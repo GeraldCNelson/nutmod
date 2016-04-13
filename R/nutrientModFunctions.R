@@ -3,6 +3,7 @@
 #' @name nutrientModFunctions.R
 #' @author Gerald C. Nelson, \\email{nelson.gerald.c@@gmail.com}
 
+
 # .onLoad <- function(libname, pkgname) {
 #   op <- options()
 #   op.devtools <- list(
