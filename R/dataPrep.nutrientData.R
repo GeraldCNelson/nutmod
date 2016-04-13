@@ -64,7 +64,7 @@ cookretn.cols <- names(cookretn)[2:length(cookretn)]
 cookretn[is.na(cookretn[keepListCol])] <- 1.0
 inDT <- cookretn
 outName <- "cookingRet"
-cleanup(inDT,outName)
+cleanup(inDT,outName,fileloc("mData"))
 #get list of nutrients in the food nutrient lookup table
 #create list of columns that are not nutrients
 temp <-
@@ -136,5 +136,5 @@ nutrients <- merge(nutrients, tmp, by = "IMPACT_code", all = TRUE)
 
 inDT <- nutrients
 outName <- "df.nutrients"
-cleanup(inDT,outName)
+cleanup(inDT,outName,fileloc("mData"))
 #nutrients.out <- iconv(nutrients, from = "UTF-8", to = "Windows-1252") #to deal with mu

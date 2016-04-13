@@ -222,4 +222,4 @@ data.table::setnames(dt.FBS.commods.final,old = "value.sum", new = "value")
 dt.FBS.commods.final[order(ISO_code)]
 inDT <- dt.FBS.commods.final
 outName <- "dt.FBS"
-cleanup(inDT,outName)
+cleanup(inDT,outName,fileloc("mData"))

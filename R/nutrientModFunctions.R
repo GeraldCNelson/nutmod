@@ -26,6 +26,7 @@
 #' @param RData - raw data directory
 #' @param mData - main data directory
 #' @param iData - directory with IMPACT data
+#' @param resData - directory with results
 #' @param resultsDir - directory for results
 #' @param FBSData - directory where FBS data are kept
 #' @param SSPData - the path to the SSP data directory
@@ -37,6 +38,7 @@ fileloc <- function(variableName) {
   RData <- "data-raw"
   mData <- "data"
   iData <- "data/IMPACTData"
+  resData <- "results"
   resultsDir <- "results"
   FBSData <- paste(RData, "FBSData", sep = "/")
   SSPData <- paste(RData, "SSPData", sep = "/")
@@ -48,6 +50,7 @@ fileloc <- function(variableName) {
       "RData",
       "mData",
       "iData",
+      "resData",
       "resultsDir",
       "FBSData",
       "SSPData"
@@ -83,7 +86,7 @@ getNewestVersion <- function(fileShortName) {
 #' Title getNewestVersionIMPACT
 #' @description read in a .rds file that includes the file fileShortName from the data/IMPACTData directory
 #' @param fileShortName The substantive (first) part of the file name.
-#' @return The most recent .RData file of IMPACT data
+#' @return The most recent .rds file of IMPACT data
 #' @export
 getNewestVersionIMPACT <- function(fileShortName) {
   iData <- fileloc("iData")
@@ -103,85 +106,59 @@ getNewestVersionIMPACT <- function(fileShortName) {
   return(readRDS(paste(iData, newestFile, sep = "/")))
 }
 
-#' Title removeOldVersionsIMPACT
-#' Remove old versions of a file with name fileShortName in the data/IMPACT directory
-#' @param fileShortName The substantive (first) part of the file name.
-#' @return nothing. Just deletes old files
-#' @export
-removeOldVersionsIMPACT <- function(fileShortName) {
-  # returns a list of all the [fileShortName] files in the iData
-  # directory
-  iData <- fileloc("iData")
-  #  regExp <- paste("(?=^", fileShortName, ")(?=.*RData$)", sep = "")
-  regExp <- paste("(?=^", fileShortName, ")(?=.*rds$)", sep = "")
-  oldVersionList <-
-    grep(regExp,
-         list.files(iData),
-         value = TRUE,
-         perl = TRUE)
-  if (length(oldVersionList) > 0) {
-    file.remove(paste(iData, oldVersionList, sep = "/"))
-  }
-}
-
 #' Title removeOldVersions - removes old version of an RData file
 #'
 #' @param fileShortName - short name of the file to be removed
+#' @param dir - directory of the file to be removed
 #' @export
-removeOldVersions <- function(fileShortName) {
-  mData <- fileloc("mData")
-  # returns a list of all the [fileShortName] files in the mData
-  # directory
+removeOldVersions <- function(fileShortName,dir) {
   #  regExp <- paste("(?=^", fileShortName, ")(?=.*RData$)", sep = "")
   regExp <- paste("(?=^", fileShortName, ")(?=.*rds$)", sep = "")
   oldVersionList <-
     grep(regExp,
-         list.files(mData),
+         list.files(dir),
          value = TRUE,
          perl = TRUE)
   if (length(oldVersionList) > 0) {
-    file.remove(paste(mData, oldVersionList, sep = "/"))
+    file.remove(paste(dir, oldVersionList, sep = "/"))
   }
 }
 
 #' Title removeOldVersions.xlsx - remove old xlsx versions in preparation for writing out new ones
 #' @param fileShortName - short name of the files to be removed
 #' @export
-removeOldVersions.xlsx <- function(fileShortName) {
-  mData <- fileloc("mData")
+removeOldVersions.xlsx <- function(fileShortName,dir) {
+  #mData <- fileloc("mData")
   # returns a list of all the [fileShortName] files in the mData
   # directory
   regExp <- paste("(?=^", fileShortName, ")(?=.*xlsx$)", sep = "")
   oldVersionList <-
     grep(regExp,
-         list.files(mData),
+         list.files(dir),
          value = TRUE,
          perl = TRUE)
   if (length(oldVersionList) > 0) {
-    file.remove(paste(mData, oldVersionList, sep = "/"))
+    file.remove(paste(dir, oldVersionList, sep = "/"))
   }
 }
 
 #' Title cleanup - remove old versions and save rds and xlsx versions of the file
 #' @param inDT - name of the data table or frame to be written out
 #' @param outName - short name of the file to be written out
-cleanup <- function(inDT, outName) {
-  mData <- fileloc("mData")
-  removeOldVersions(outName)
-  removeOldVersions.xlsx(outName)
+#' @param dir - directory where the cleanup takes place
+cleanup <- function(inDT, outName,dir) {
+  #mData <- fileloc("mData")
+  removeOldVersions(outName,dir)
+  removeOldVersions.xlsx(outName,dir)
   temp <- inDT
   # save(temp,
-  #      file = paste(mData, "/", outName, ".", Sys.Date(), ".RData", sep = ""))
+  #      file = paste(dir, "/", outName, ".", Sys.Date(), ".RData", sep = ""))
   saveRDS(inDT,
-          file = paste(mData, "/", outName, ".", Sys.Date(), ".rds", sep = ""))
-  # openxlsx::write.xlsx(
-  #   x = inDT,
-  #   file = paste(mData, "/", outName, ".", Sys.Date(), ".xlsx", sep = ""),
-  #   colWidths = "auto",
-  #   colNames = TRUE)
+          file = paste(dir, "/", outName, ".", Sys.Date(), ".rds", sep = ""))
 
   wbGeneral <- openxlsx::createWorkbook()
   openxlsx::addWorksheet(wb = wbGeneral, sheetName = outName)
+
   openxlsx::writeData(
     wbGeneral,
     inDT,
@@ -189,7 +166,7 @@ cleanup <- function(inDT, outName) {
     startRow = 1,
     startCol = 1,
     rowNames = FALSE,
-    colNames = FALSE
+    colNames = TRUE
   )
 
   openxlsx::setColWidths(
@@ -198,48 +175,21 @@ cleanup <- function(inDT, outName) {
     cols = 1:ncol(inDT),
     widths = "auto"
   )
-  xcelOutFileName = paste(mData, "/", outName, ".", Sys.Date(), ".xlsx", sep = "")
+
+  numStyle <- openxlsx::createStyle(numFmt = "0.00")
+  openxlsx::addStyle(
+    wbGeneral,
+    sheet = outName,
+    style = numStyle,
+    rows = 1:nrow(inDT),
+    cols = 2:ncol(inDT),
+    gridExpand = TRUE
+  )
+
+  xcelOutFileName = paste(dir, "/", outName, ".", Sys.Date(), ".xlsx", sep = "")
   openxlsx::saveWorkbook(wbGeneral, xcelOutFileName, overwrite = TRUE)
 }
-#' Title cleanupIMPACT - remove old versions and save rds and xlsx versions of the file
-#' The file coming in needs to be a data table (although I think a data frame will work too)
-#' @param inDT - name of the data table or frame to be written out
-#' @param outName - short name of the file to be written out
-cleanupIMPACT <- function(inDT, outName) {
-  iData <- fileloc("iData")
-  #removeOldVersions(outName)
-  removeOldVersionsIMPACT(outName)
-  removeOldVersions.xlsx(outName)
 
-  # temp <- eval(parse(text = inName), 1)
-  # save(inDT,
-  #      file = paste(iData, "/", outName, ".", Sys.Date(), ".RData", sep = ""))
-  saveRDS(inDT, file = paste(iData, "/", outName, ".", Sys.Date(), ".rds", sep = ""))
-  openxlsx::write.xlsx(x = inDT,
-                       file = paste(iData, "/", outName, ".", Sys.Date(), ".xlsx", sep = ""),
-                       colWidths = "auto", colNames = TRUE
-  )
-}
-
-#' Title cleanupResults - remove old versions and save rds and xlsx versions of the file
-#' The file coming in needs to be a data table (although I think a data frame will work too)
-#' @param inDT - name of the data table or frame to be written out
-#' @param outName - short name of the file to be written out
-cleanupResults <- function(inDT, outName) {
-  resultsDir <- fileloc("resultsDir")
-  #removeOldVersions(outName)
-  removeOldVersionsIMPACT(outName)
-  removeOldVersions.xlsx(outName)
-
-  # temp <- eval(parse(text = inName), 1)
-  # save(inDT,
-  #      file = paste(resultsDir, "/", outName, ".", Sys.Date(), ".RData", sep = ""))
-  saveRDS(inDT, file = paste(resultsDir, "/", outName, ".", Sys.Date(), ".rds", sep = ""))
-  openxlsx::write.xlsx(x = inDT,
-                       file = paste(resultsDir, "/", outName, ".", Sys.Date(), ".xlsx", sep = ""),
-                       colWidths = "auto", colNames = TRUE
-  )
-}
 
 #' Title keyVariable - Return a key variable, or a list of all possibilities
 #' @param keepYearList - list of scenario years to keep
@@ -248,14 +198,17 @@ cleanupResults <- function(inDT, outName) {
 #' @param IMPACTfish_code- variable name list for fish consumption items for IMPACT
 #' @param IMPACTalcohol_code - variable name list for alcoholic beverages consumption for IMPACT
 #' @param IMPACTfoodCommodList - variable name lists for IMPACT food commodities
-#' @param scenarioList - list of scenarios in the SSP data
+#' @param scenarioListSSP - list of scenarios in the SSP data
 #' @param DinY - number of days in a year
+#' @param reqSSP - nutrient requirements by SSP age groups
 #' @param ctyDeleteList
 #' @param useCookingRetnValues - apply the cooking retention values to the nutrient content
-#' @param userName Name of person running the scripts and generating results
+#' @param userName - Name of person running the scripts and generating results
+#' @param region -  Aggregation scheme from individual countries to regions
 #' @return list of key variables
 #' @export
 keyVariable <- function(variableName) {
+  region <- "region_code.IMPACT3"
   keepYearList <-
     c(
       "X2010",
@@ -273,43 +226,50 @@ keyVariable <- function(variableName) {
   FBSyearsToAverage <- c("X2004", "X2005", "X2006")
 
   #' note shrimp, tuna, and salmon are removed in dataManagement.fish.R
-  IMPACTfish_code <- c("c_shrimp", "c_Crust", "c_Mllsc", "c_Salmon", "c_FrshD",
+  IMPACTfish_code <- c("c_Shrimp", "c_Crust", "c_Mllsc", "c_Salmon", "c_FrshD",
                        "c_Tuna", "c_OPelag", "c_ODmrsl", "c_OMarn", "c_FshOil", "c_aqan",
                        "c_aqpl")
   IMPACTalcohol_code <- c("c_wine", "c_beer", "c_spirits")
-  IMPACTfoodCommodList <- sort(c("cbeef", "cpork", "clamb", "cpoul", "ceggs",
-                                 "cmilk", "cbarl", "cmaiz", "cmill", "crice", "csorg", "cwhea", "cocer",
-                                 "ccass", "cpota", "cswpt", "cyams", "corat", "cbean", "cchkp", "ccowp",
-                                 "clent", "cpigp", "copul", "cbana", "cplnt", "csubf", "ctemf", "cvege",
-                                 "csugr", "cgrnd", "cgdol", "crpsd", "crpol", "csoyb", "csbol", "csnfl",
-                                 "csfol", "cplol", "cpkol", "ctols", "ctool", "ccoco", "ccafe", "cteas",
-                                 "cothr"))
+  IMPACTfoodCommodList <- sort(c("cbeef", "cpork", "clamb", "cpoul", "ceggs", "cmilk", "cbarl", "cmaiz",
+                                 "cmill", "crice", "csorg", "cwhea", "cocer", "ccass", "cpota", "cswpt",
+                                 "cyams", "corat", "cbean", "cchkp", "ccowp", "clent", "cpigp", "copul",
+                                 "cbana", "cplnt", "csubf", "ctemf", "cvege", "csugr", "cgrnd", "cgdol",
+                                 "crpsd", "crpol", "csoyb", "csbol", "csnfl", "csfol", "cplol", "cpkol",
+                                 "ctols", "ctool", "ccoco", "ccafe", "cteas", "cothr", IMPACTfish_code,
+                                 IMPACTalcohol_code))
 
-  scenarioList <- c("SSP1_v9_130325", "SSP2_v9_130325", "SSP3_v9_130325",
+  scenarioListSSP <- c("SSP1_v9_130325", "SSP2_v9_130325", "SSP3_v9_130325",
                     "SSP4_v9_130325", "SSP5_v9_130325")
+
   DinY <-
     365 #see http://stackoverflow.com/questions/9465817/count-days-per-year for a way to deal with leap years
   #' #' countries to remove because of poor data
   #' FSM - Micronesia, Federated States of
   #' GRD - Grenada
   #' PRK - Korea, Democratic People's Republic of
+
+  reqSSP <- c("req.EAR.ssp", "req.RDA.vits.ssp","req.RDA.minrls.ssp", "req.RDA.macro.ssp","req.UL.vits.ssp", "req.UL.minrls.ssp")
+
   ctyDeleteList <- c("FSM", "GRD", "PRK")
   useCookingRetnValues <- "yes"
   userName <- "Gerald C. Nelson"
   if (variableName == "list") {
     return(
       c(
-        keepYearList,
-        keepYearList.FBS,
-        FBSyearsToAverage,
-        IMPACTfish_code,
-        IMPACTalcohol_code,
-        IMPACTfoodCommodList,
-        scenarioList,
-        DinY,
-        ctyDeleteList,
-        useCookingRetnValues,
-        userName
+        "region",
+        "keepYearList",
+        "keepYearList.FBS",
+        "FBSyearsToAverage",
+        "IMPACTfish_code",
+        "IMPACTalcohol_code",
+        "IMPACTfoodCommodList",
+        "scenarioListSSP",
+        "scenarioListIMPACT",
+        "DinY",
+        "reqSSP",
+        "ctyDeleteList",
+        "useCookingRetnValues",
+        "userName"
       )
     )
   } else{
@@ -443,7 +403,8 @@ fileNameList <- function(variableName) {
   IMPACTstdRegionsFileName <- "IMPACT-agg-regionsFeb2016.xlsx"
   IMPACTstdRegions <-
     paste(IMPACTData, IMPACTstdRegionsFileName, sep = "/")
-  IMPACTgdxfileName <- "Demand Results20150817.gdx"
+  # IMPACTgdxfileName <- "Micronutrient-Inputs20160404.gdx" - new larger gdx
+   IMPACTgdxfileName <- "Demand Results20150817.gdx"
   IMPACTgdx         <- paste(IMPACTData, IMPACTgdxfileName, sep = "/")
   gdxLib            <- "/Applications/GAMS/gams24.5_osx_x64_64_sfx"
   R_GAMS_SYSDIR     <- "/Applications/GAMS/gams24.5_osx_x64_64_sfx"
@@ -454,7 +415,7 @@ fileNameList <- function(variableName) {
   IMPACTfoodFileName <- "dt.FoodAvailability"
   IMPACTfoodFileInfo <-  paste(mData,"/IMPACTData/",IMPACTfoodFileName,sep="")
   # nutrient data ------
-  nutrientFileName <- "USDA GFS IMPACT V15.xlsx"
+  nutrientFileName <- "USDA GFS IMPACT V16.xlsx"
   nutrientLU       <- paste(NutrientData, nutrientFileName, sep = "/")
   commodityFoodGroupLookupFileName <-
     "food commodity to food group table V2.xlsx"

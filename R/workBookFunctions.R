@@ -46,19 +46,19 @@ f.createGeneralWorksheet <- function() {
   #create a worksheet with info on creator, date, model version, etc.
   creationInfo <-
     ("Information on creator, date, model version, etc.")
-  creationInfo <- rbind(creationInfo, paste("Creator:", userName))
+  creationInfo <- rbind(creationInfo, paste("Creator:", keyVariable("userName")))
   creationInfo <-
     rbind(creationInfo, paste("Date of file creation:", Sys.Date()))
   creationInfo <-
-    rbind(creationInfo, paste("IMPACT data:", IMPACTfileName))
+    rbind(creationInfo, paste("IMPACT data:", fileNameList("IMPACTgdx")))
   creationInfo <-
-    rbind(creationInfo, paste("Nutrient data:", nutrientFileName))
+    rbind(creationInfo, paste("Nutrient data:", fileNameList("nutrientFileName")))
   creationInfo <-
     rbind(creationInfo,
-          paste("Nutrient requirements data:", EARFileName))
+          paste("Nutrient requirements data:", fileNameList("EARFileName")))
   creationInfo <-
-    rbind(creationInfo, paste("SSP data:", SSPdataZipFileName))
-  addWorksheet(wbGeneral, sheetName = "creation_Info")
+    rbind(creationInfo, paste("SSP data:", fileNameList("SSPdataZip")))
+  openxlsx::addWorksheet(wbGeneral, sheetName = "creation_Info")
   openxlsx::writeData(
     wbGeneral,
     creationInfo,
@@ -82,14 +82,14 @@ f.createGeneralWorksheet <- function() {
   wbInfoGeneral[(nrow(wbInfoGeneral) + 1),] <-
     c("creation_Info",
       "Information on creator, date, model version, etc.")
-
+df.regions.all <- getNewestVersion("df.regions.all")
   #create a worksheet with info on the regions
   openxlsx::addWorksheet(wbGeneral, sheetName = "metadataRegions")
   wbInfoGeneral[(nrow(wbInfoGeneral) + 1),] <-
     c("metadataRegions", "Region metadata")
   openxlsx::writeData(
     wbGeneral,
-    IMPACTregions,
+    df.regions.all,
     sheet = "metadataRegions",
     startRow = 1,
     startCol = 1,
@@ -99,15 +99,18 @@ f.createGeneralWorksheet <- function() {
     wbGeneral,
     sheet = "metadataRegions",
     style = textStyle,
-    rows = 1:nrow(IMPACTregions),
-    cols = 1:ncol(IMPACTregions),
+    rows = 1:nrow(df.regions.all),
+    cols = 1:ncol(df.regions.all),
     gridExpand = TRUE
   )
 
   #create a worksheet with info on the nutrient sources
-  req.metadata <-
-    openxlsx::read.xlsx(EARFileName, sheet = 1, colNames = FALSE)
+
+  EARs <- fileNameList("EARs")
+ req.metadata <- openxlsx::read.xlsx(EARs, sheet = "Reference", colNames = FALSE)
+#    openxlsx::read.xlsx(EARFileName, sheet = 1, colNames = FALSE)
   openxlsx::addWorksheet(wbGeneral, sheetName = "MetaDataNutrnts")
+
   openxlsx::writeData(
     wbGeneral,
     req.metadata,
@@ -125,9 +128,12 @@ f.createGeneralWorksheet <- function() {
   #create a worksheet with info on the commodities and nutrients
   openxlsx::addWorksheet(wbGeneral, sheetName = "IMPACTCommdlist")
   #commodityNames <- cbind(nutrients[c("Name","IMPACT_code")])
+  nutrientLU <- fileNameList("nutrientLU")
+  nutrients.raw <- openxlsx::read.xlsx(nutrientLU, sheet = 1, rows = 3:68, cols = 1:63, colNames = TRUE)
+
   openxlsx::writeData(
     wbGeneral,
-    nutrients,
+    nutrients.raw,
     sheet = "IMPACTCommdlist",
     startRow = 1,
     startCol = 1
@@ -136,8 +142,8 @@ f.createGeneralWorksheet <- function() {
     wbGeneral,
     sheet = "IMPACTCommdlist",
     style = numStyle,
-    rows = 1:nrow(nutrients),
-    cols = 2:ncol(eval(parse(text = reqList[i]))),
+    rows = 1:nrow(nutrients.raw),
+    cols = 2:ncol(nutrients.raw),
     gridExpand = TRUE
   )
 
@@ -162,7 +168,7 @@ f.finalizeWB <- function(wb, wbInf, file.name) {
   #the first column is written using writeFormula
   openxlsx::addWorksheet(wb, sheetName = "sheetInfo")
   for (i in 1:nrow(wbInf)) {
-    writeFormula(
+    openxlsx::writeFormula(
       wb,
       "sheetInfo",
       x = f.hyperlink(wbInf[i, 1], wbInf[i, 1]),

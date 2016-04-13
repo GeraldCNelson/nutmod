@@ -26,7 +26,7 @@ year0 <- year1 - (year2 - year1)
 year0 <- paste("X",year0,sep="")
 keepYearList <- c(year0,keepYearList)
 IMPACTfish <- fileNameList("IMPACTfish")
-scenarioList <- keyVariable("scenarioList")
+scenarioListSSP <- keyVariable("scenarioListSSP")
 
 # load regions info ----
 dt.regions.all <- data.table::as.data.table(getNewestVersion("df.regions.all"))
@@ -166,7 +166,7 @@ fixFish <- TRUE
 if (fixFish == TRUE) {
   dt.fishIncElast[, c_Crust.elas := NULL]
   data.table::setnames(dt.fishIncElast, old = "c_shrimp.elas", new = "c_Crust.elas")
-  itemsToRemove <- c("c_shrimp", "c_Tuna", "c_Salmon")
+  itemsToRemove <- c("c_Shrimp", "c_Tuna", "c_Salmon")
   IMPACTfish_code <-
     IMPACTfish_code[!(IMPACTfish_code %in% itemsToRemove)]
 }
@@ -215,9 +215,9 @@ dt.fishIncElast <- data.table::melt(
 )
 dt.fishIncElast <- dt.fishIncElast[!is.na(region_code.SSP), ]
 data.table::setnames(dt.fishIncElast, old = "region_code.SSP", new = "ISO_code")
-inDt <- dt.fishIncElast
+inDT <- dt.fishIncElast
 outName <- "dt.fishIncElast"
-cleanupIMPACT(inDt,outName)
+cleanup(inDT,outName,fileloc("iData"))
 # loop over scenarios and countries  -----
 # set up a data table to hold the results of the calculations
 dt.final <-
@@ -239,7 +239,7 @@ Qn <- function(elasInc, GDPn, GDPn_1, delta.GDP, Qn_1) {
   return(Qn)
 }
 
-for (scenarioChoice in scenarioList) {
+for (scenarioChoice in scenarioListSSP) {
   for (ctyChoice in ctyList) {
     # subset on current scenario and country
     dt.GDP <-  dt.SSPGDP[.(scenarioChoice, ctyChoice)]
@@ -299,7 +299,7 @@ dt.final[, pop := dt.SSPPopTot$pop]
 dt.final <- dt.final[year %in% keepYearList,]
 inDT <- dt.final
 outName <- "dt.fishScenarios"
-cleanup(inDT, outName)
+cleanup(inDT,outName,fileloc("mData"))
 
 # # combine average (initially around 2005) fish data from FBS, the income scenario data to 2050,
 # # and the melted (into long form) elasticity data

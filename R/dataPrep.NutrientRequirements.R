@@ -271,7 +271,7 @@ for (j in reqsList) {
   inDT <- eval(parse(text = newDFname))
   #print(newDFname)
   outName <- newDFname
-  cleanup(inDT,outName)
+  cleanup(inDT,outName,fileloc("mData"))
 }
 
 remove(

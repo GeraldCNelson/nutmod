@@ -32,7 +32,7 @@ year0 <- year1 - (year2 - year1)
 year0 <- paste("X",year0,sep="")
 keepYearList <- c(year0,keepYearList)
 IMPACTalcohol_code <- keyVariable("IMPACTalcohol_code")
-scenarioList <- keyVariable("scenarioList")
+scenarioListSSP <- keyVariable("scenarioListSSP")
 
 # load regions info ----
 dt.regions.all <- data.table::as.data.table(getNewestVersion("df.regions.all"))
@@ -163,7 +163,7 @@ Qn <- function(elasInc, GDPn, GDPn_1, delta.GDP, Qn_1) {
   return(Qn)
 }
 
-for (scenarioChoice in scenarioList) {
+for (scenarioChoice in scenarioListSSP) {
   for (ctyChoice in ctyList) {
     # subset on current scenario and country
     dt.GDP <-  dt.SSPGDP[.(scenarioChoice, ctyChoice)]
@@ -225,4 +225,4 @@ dt.final <- dt.final[year %in% keepYearList,]
 
 inDT <- dt.final
 outName <- "dt.alcScenarios"
-cleanup(inDT,outName)
+cleanup(inDT,outName,fileloc("mData"))

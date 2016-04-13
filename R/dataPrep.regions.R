@@ -218,5 +218,5 @@ regions.all <- regions.all[order(regions.all$ISO_code), ]
 
 inDT <- regions.all
 outName <- "df.regions.all"
-cleanup(inDT,outName)
+cleanup(inDT,outName,fileloc("mData"))
 

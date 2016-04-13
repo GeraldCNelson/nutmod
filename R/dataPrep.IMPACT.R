@@ -28,21 +28,22 @@ if (!exists("getNewestVersion", mode = "function")) {source("R/nutrientModFuncti
 #' the install.packages command will find it.
 #' @import gdxrrw
 
-IMPACTDataClean <- fileloc("IMPACTDataClean")
-
 # needed at the moment because I can't install the gdxrrw file to the nutmod project directory
 #packrat::opts$external.packages("gdxrrw")
-#' Title importIMPACT
+#' Title importIMPACT - Import data from the IMPACT model and write out rds and excel files
 #' @description Read IMPACT3 data from a gdx file
 #'
-#' @param varName - variable name from the gdx file
-#' @param catNames - category name from the gdx file
-#' @param dt.gdx.param - data frame that holds the gdx parameters
 #' @return dt.temp
 #' @export
-getGDXmetaData <- function() {
-  R_GAMS_SYSDIR <-  fileNameList("R_GAMS_SYSDIR")
-  IMPACTgdx <- fileNameList("IMPACTgdx")
+
+#' Title getGDXmetaData - get gdxmetadata from an IMPACT gdx output file and write out
+#' rds and excel versions#'
+#' @param gamsDir - path to the gdx library
+#' @param IMPACTgdx - name of the gdx file
+#' @return null
+#' @export
+getGDXmetaData <- function(gamsDir,IMPACTgdx) {
+  R_GAMS_SYSDIR <-  gamsDir
   gdxrrw::igdx(gamsSysDir = R_GAMS_SYSDIR)
   # read in the gdx information to temp
   temp <-
@@ -61,26 +62,29 @@ getGDXmetaData <- function() {
   data.table::setnames(dt.gdx.param,old = c("name","text"), new = c("catNames","description"))
   inDT <- dt.gdx.param
   outName <- "dt.IMPACTmetaData"
-  cleanupIMPACT(inDT,outName)
+  cleanup(inDT,outName,fileloc("iData"))
 }
-getGDXmetaData()
+getGDXmetaData(fileNameList("R_GAMS_SYSDIR"),fileNameList("IMPACTgdx"))
 
-#' Title processIMPACT3Data
-#' @param varName
-#' @param catNames
-#' @return dt.temp
+#' Title processIMPACT3Data - read in from the IMPACT gdx file and write out rds and excel files for a single param
+
+#' @param gdxFileName - name of the IMPACT gdx file
+#' @param varName - name of the IMPACT parameter to write out
+#' @param catNames - types of info about the parameter
+#' @return null
 #' @export
-processIMPACT3Data <- function(varName, catNames) {
+#'
+processIMPACT3Data <- function(gdxFileName, varName, catNames) {
   df.regions.all <- getNewestVersion("df.regions.all")
-  IMPACTgdx <- fileNameList("IMPACTgdx")
-  keepYearList  <- keyVariable("keepYearList")
+  IMPACTgdx <- gdxFileName
+#  keepYearList  <- keyVariable("keepYearList")
   dt.temp <- data.table::as.data.table(df.regions.all[,c("region_code.IMPACT3","region_name.IMPACT3")])
   data.table::setkey(dt.temp,region_code.IMPACT3)
   dt.IMPACTregions <- unique(dt.temp)
   dt.ptemp <- data.table::as.data.table(gdxrrw::rgdx.param(IMPACTgdx, varName,
                                                            ts = TRUE, names = catNames))
   dt.ptemp[, year := paste("X", dt.ptemp$year, sep = "")]
-  dt.ptemp <- dt.ptemp[year %in% keepYearList]
+  #dt.ptemp <- dt.ptemp[year %in% keepYearList]
   dt.ptemp <- data.table::as.data.table(rapply(dt.ptemp, as.character, classes = "factor", how = "replace"))
   #setorder(dt.temp, scenario, IMPACT_code, region_code.IMPACT3, year)
   data.table::setorderv(dt.ptemp, cols = catNames)
@@ -95,17 +99,25 @@ processIMPACT3Data <- function(varName, catNames) {
   }
   inDT <- dt.ptemp
   outName <- paste("dt",varName, sep=".")
-  cleanupIMPACT(inDT,outName)
+  cleanup(inDT,outName,fileloc("iData"))
   # return(dt.temp)
 }
 
-#' @param landVars - scenario, region_code.IMPACT3, landUse,IMPACT_code,year, value
+#' Title generateResults - send a list of variable with common categories to the
+#' function to write out the data
+#'
+#' @param vars - list of variables to process
+#' @param catNames - list of categories common to all variables
+#'
+#' @return
+#' @export
 generateResults <- function (vars,catNames){
   #dtlist.land <- lapply(vars.land,processIMPACT3Data,catNames = catNames.land)
   for (i in vars){
-    processIMPACT3Data(i, catNames)
+    processIMPACT3Data(fileNameList("IMPACTgdx"),i, catNames)
   }
 }
+#' processIMPACT3Data(fileNameList("IMPACTgdx"),)
 
 vars.land <- c("AREACTYX0", "YLDCTYX0", "ANMLNUMCTYX0")
 catNames.land <- c("scenario","IMPACT_code","region_code.IMPACT3","landUse","year","value")
@@ -133,109 +145,17 @@ generateResults(vars.world,catNames.world)
 
 #' @param dt.CSEs - data table with consumer surplus equivalents
 CSEs <- fileNameList("CSEs")
+
+
 dt.CSEs <- data.table::as.data.table(
   openxlsx::read.xlsx(CSEs,cols=c(1:3)))
 data.table::setnames(dt.CSEs, old=c("CTY","C","CSE"), new=c("region_code.IMPACT3","IMPACT_code","CSE"))
 data.table::set(dt.CSEs, which(is.na(dt.CSEs[["CSE"]])), "CSE", 0)
 data.table::setorder(dt.CSEs, region_code.IMPACT3, IMPACT_code)
+# add years to the CSE file, because it currently doesn't have any
+dt.years <- data.table::data.table(year = rep(keyVariable("keepYearList"), each = nrow(dt.CSEs)))
+dt.CSEs <- cbind(dt.years, dt.CSEs)
 inDT <- dt.CSEs
 outName <- "dt.CSEs"
-cleanupIMPACT(inDT,outName)
-
-#create separate data table just for food items
-createFood <- function(fileShortName) {
-  IMPACTfoodCommodList <- keyVariable("IMPACTfoodCommodList")
-  dt.temp <- getNewestVersionIMPACT(fileShortName)
-  dt.temp.food <- dt.temp[IMPACT_code %in% IMPACTfoodCommodList]
-  inDT <- dt.temp.food
-  outName <- paste(fileShortName,"food",sep=".")
-  cleanupIMPACT(inDT,outName)
-}
-
-createFood("dt.PWX0")
-createFood("dt.PCX0")
-createFood("dt.CSEs")
-
-#combine all relevant data tables for analysis
-combineIMPACTData <- function() {
-  dt.PWX0.food <- getNewestVersionIMPACT("dt.PWX0.food")
-  dt.PCX0.food <- getNewestVersionIMPACT("dt.PCX0.food")
-  dt.CSEs.food <- getNewestVersionIMPACT("dt.CSEs.food")
-  dt.pcGDPX0 <- getNewestVersionIMPACT("dt.pcGDPX0")
-  dt.FoodAvailability <- getNewestVersionIMPACT("dt.FoodAvailability")
-
-  data.table::setkey(dt.PWX0.food,        "scenario",                        "IMPACT_code")
-  data.table::setkey(dt.CSEs.food,                    "region_code.IMPACT3", "IMPACT_code")
-  data.table::setkey(dt.PCX0.food,        "scenario", "region_code.IMPACT3", "IMPACT_code")
-  data.table::setkey(dt.pcGDPX0,          "scenario", "region_code.IMPACT3")
-  data.table::setkey(dt.FoodAvailability, "scenario", "region_code.IMPACT3", "IMPACT_code")
-  #dtlist <- list(dt.FoodAvailability, dt.PCX0.food,dt.CSEs.food,dt.PWX0.food,dt.pcGDPX0)
-  dtlist <- list(dt.FoodAvailability,dt.pcGDPX0,dt.PCX0.food,dt.PWX0.food,dt.CSEs.food)
-  #dt.IMPACTfood <- rbindlist(l = dtlist, use.names = TRUE, fill = TRUE)
-  dt.IMPACTfood <- plyr::join_all(dtlist)
-  #dt.IMPACTfood <-Reduce(mymerge,dtlist)
-
-  # add alcohol
-  dt.alcScenarios <- getNewestVersion("dt.alcScenarios")
-  dt.alcScenarios[,pop:=NULL]
-
-  idVarsAlc <- c("scenario","ISO_code","year")
-  #get the names of the fish that are included in dt.fishScenario
-  measureVarsAlc <- names(dt.alcScenarios)[!names(dt.alcScenarios) %in% idVarsAlc]
-  measureVarsAlc <- IMPACTalcohol_code <- keyVariable("IMPACTalcohol_code")
-  dt.alcScenarios.melt <- data.table::melt(dt.alcScenarios,
-                                           id.vars = idVarsAlc,
-                                           variable.name = "IMPACT_code",
-                                           measure.vars = measureVarsAlc,
-                                           value.name = "FoodAvailability",
-                                           variable.factor = FALSE)
-  dt.alcScenarios.melt<- merge(dt.alcScenarios.melt, df.regions.all, by = "ISO_code", all = TRUE)
-  deleteListCol <- c("ISO_code","region_code.SSP","FAOSTAT_code","country_name.ISO", "region_code.IMPACT115",
-                     "region_name.IMPACT115","region_code.IMPACTstandard","region_name.IMPACT3",
-                     "region_name.IMPACTstandard","Short.name","Official.name",
-                     "ISO2_code","UNI_code","UNDP_code","GAUL_code"
-  )
-  dt.alcScenarios.melt[,(deleteListCol) := NULL]
-  #to get rid of the countries that are in IMPACT regions and so don't have separate data
-  dt.alcScenarios.melt <- dt.alcScenarios.melt[!is.na(FoodAvailability),]
-  data.table::setkey(dt.alcScenarios.melt, "scenario", "region_code.IMPACT3", "IMPACT_code")
-
-  # add fish
-  dt.fishScenarios <- getNewestVersion("dt.fishScenarios")
-  dt.fishScenarios[,pop:=NULL]
-  idVarsFish <- c("scenario","ISO_code","year")
-  #get the names of the fish that are included in dt.fishScenario
-  measureVarsFish <- names(dt.fishScenarios)[!names(dt.fishScenarios) %in% idVarsFish]
-  dt.fishScenarios.melt <- data.table::melt(dt.fishScenarios,
-                                            id.vars = idVarsFish,
-                                            variable.name = "IMPACT_code",
-                                            measure.vars = measureVarsFish,
-                                            value.name = "FoodAvailability",
-                                            variable.factor = FALSE)
-  dt.fishScenarios.melt<- merge(dt.fishScenarios.melt, df.regions.all, by = "ISO_code", all = TRUE)
-  deleteListCol <- c("ISO_code","region_code.SSP","FAOSTAT_code","country_name.ISO", "region_code.IMPACT115",
-                     "region_name.IMPACT115","region_code.IMPACTstandard","region_name.IMPACT3",
-                     "region_name.IMPACTstandard","Short.name","Official.name",
-                     "ISO2_code","UNI_code","UNDP_code","GAUL_code"
-  )
-  dt.fishScenarios.melt[,(deleteListCol) := NULL]
-  #to get rid of the countries that are in IMPACT regions and so don't have separate data
-  dt.fishScenarios.melt <- dt.fishScenarios.melt[!is.na(FoodAvailability),]
-  data.table::setkey(dt.fishScenarios.melt, "scenario", "region_code.IMPACT3", "IMPACT_code")
-  dtList <- list(dt.FoodAvailability,dt.fishScenarios.melt,dt.fishScenarios.melt)
-  dt.FoodAvailability <- data.table::rbindlist(dtList)
-
-  # dtlist <- list(dt.FoodAvailability,dt.pcGDPX0,dt.PCX0.food,dt.PWX0.food,dt.CSEs.food)
-  dtlist <- list(dt.FoodAvailability,dt.pcGDPX0,dt.PCX0.food,dt.PWX0.food,dt.CSEs.food)
-  dt.IMPACTfood <- plyr::join_all(dtlist)
-
-  data.table::set(dt.IMPACTfood, which(is.na(dt.IMPACTfood[["CSE"]])), "CSE", 0)
-
-  data.table::setorder(dt.IMPACTfood, scenario, region, IMPACT_code, year)
-  data.table::setkeyv(dt.IMPACTfood, c("scenario", "region_code.IMPACT3", "IMPACT_code"))
-  inDT <- dt.IMPACTfood
-  outName <- "dt.IMPACTfood"
-  cleanupIMPACT(inDT,outName)
-}
-
+cleanup(inDT,outName,fileloc("iData"))
 

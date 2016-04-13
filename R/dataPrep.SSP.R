@@ -3,7 +3,7 @@
 # Intro -------------------------------------------------------------------
 #' @description
 #' This script renames the variables in the SSP file and deletes all years except those in
-#' keepYearList
+#' keepYearList (with year 0 added)
 #' It keeps population results only from the IIASA-WiC POP model.
 
 #Copyright (C) 2015 Gerald C,Nelson, except where noted
@@ -19,9 +19,15 @@
 #     GNU General Public License for more details at http://www.gnu.org/licenses/.
 #' @include nutrientModFunctions.R
 if (!exists("getNewestVersion", mode = "function")) {source("R/nutrientModFunctions.R")}
+
 SSPcsv <-         fileNameList("SSPcsv")
 SSPdataZip <-     fileNameList("SSPdataZip")
 keepYearList <-   keyVariable("keepYearList")
+#need to include the n-1 year for the elasticity calculations
+year1 <- as.numeric(substr(keepYearList[1], 2, 5)); year2 <- as.numeric(substr(keepYearList[2], 2, 5))
+year0 <- year1 - (year2 - year1)
+year0 <- paste("X",year0,sep="")
+keepYearList <- c(year0,keepYearList)
 modelListGDP <-   fileNameList("modelListGDP")
 modelListPop <-     fileNameList("modelListPop")
 temp <- utils::unzip(SSPdataZip, file = SSPcsv)
@@ -79,7 +85,7 @@ dt.SSP.GDP.melt[, variable := "GDP"]
 data.table::setorder(dt.SSP.GDP.melt, scenario, ISO_code)
 inDT <- dt.SSP.GDP.melt
 outName <- "dt.SSPGDPClean"
-cleanup(inDT,outName)
+cleanup(inDT,outName,fileloc("mData"))
 
 # create cleaned up population SSP data ---
 #' @param dt.SSP.pop - data table with the SSP results from the model identified in modelListPop
@@ -119,7 +125,7 @@ dt.SSP.pop.tot.melt <- data.table::melt(
 
 inDT <- dt.SSP.pop.tot.melt
 outName <- "dt.SSP.pop.tot"
-cleanup(inDT,outName)
+cleanup(inDT,outName,fileloc("mData"))
 
 # Remove the aggregates of
 # "Population", "Population|Female" and "Population|Male"
@@ -183,4 +189,4 @@ dt.SSP.pop.step2.melt <- data.table::melt(
 )
 inDT <- dt.SSP.pop.step2.melt
 outName <- "dt.SSPPopClean"
-cleanup(inDT,outName)
+cleanup(inDT,outName,fileloc("mData"))

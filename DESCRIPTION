@@ -1,0 +1,76 @@
+Package: nutmod
+Type: Package
+Title: Modeling Nutrient Intake and Share of Requirements for Plausible Futures
+Version: 0.1.0
+Description: The Nutrient Modeling package provides tools to combine outputs
+    from future scenarios using the IMPACT modelling environment. It uses GDP,
+    population and gender and age distributions from the Shared Socioeconomic
+    Profiles stored at IIASA, official values of Recommended Daily Allowances
+    (RDAs) and Estimated Average Requirements (EAR), and expert assessments of the
+    nutritional content of food items modeled in IMPACT.
+Depends:
+    R (> 3.2),
+    data.table,
+    openxlsx
+License: (>=GPL-3)
+LazyData: true
+Suggests:
+    devtools,
+    knitr,
+    rmarkdown,
+    testthat
+VignetteBuilder: knitr
+Imports:
+    splitstackshape,
+    ggplot2,
+    gdxrrw,
+    plotrix,
+    stringi,
+    tidyr
+Collate:
+    'nutrientModFunctions.R'
+    'dataManagement.IMPACT.R'
+    'dataManagement.alcohol.R'
+    'dataManagement.fish.R'
+    'dataPrep.FBS.R'
+    'dataPrep.IMPACT.R'
+    'dataPrep.NutrientRequirements.R'
+    'dataPrep.SSP.R'
+    'workBookFunctions.R'
+    'dataPrep.SSPPopExtract.R'
+    'dataPrep.nutrientData.R'
+    'dataPrep.regions.R'
+    'nutrientCalcs.R'
+    'workSheetCreation.R'
+Authors@R: c(
+  person("Gerald", "Nelson", email = "nelson.gerald.c@gmail.com",
+    role = c("aut", "cre")),
+  person("Brendan", "Power", email = "Brendan.Power@csiro.au",
+    role = c("ctb"), comment = "programming assistance"),
+  person("David", "Gustafson", email = "dgustafson@ilsi.org",
+    role = c("ctb")),
+  person("Keith", "Lividini", email = "k.lividini@cgiar.org",
+    role = c("ctb"), comment = "nutrition expert"),
+  person("Joanne", "Arsenault", email = "jearsenault@ucdavis.edu",
+    role = c("ctb"), comment = "nutrition expert"),
+  person("Keith", "Wiebe", email = "k.wiebe@cgiar.org",
+    role = c("ctb")),
+  person("Malcolm", "Riley", email = "malcolm.riley@csiro.au",
+    role = c("ctb"), comment = "nutrition expert"),
+  person("Mario", "Herrero", email = "mario.herrero@csiro.au",
+    role = c("ctb")),
+  person("Timothy", "Sulser", email = "T.Sulser@cgiar.org",
+    role = c("ctb"), comment = "programming assistance"),
+  person("Sherman ", "Robinson", email = "S.Robinson@cgiar.org",
+    role = c("ctb"), comment = "programming assistance"),
+  person("Jessica", "Bogard", email = "jessica.bogard@live.com",
+    role = c("ctb"), comment = "nutrition expert"),
+  person("Karen", "Cooper", email = "Karen.Cooper@nestle.com",
+    role = c("ctb"), comment = "nutrition expert"),
+  person("Derek", "Headey", email = "D.Headey@cgiar.org",
+    role = c("ctb")),
+  person("Roseline", "Remans", email = "rremans@ei.columbia.edu",
+    role = c("ctb")),
+  person("Daniel", "Mason-DCroz", email = "D.MASON-DCROZ@cgiar.org",
+    role = c("ctb"), comment = "programming assistance"))
+RoxygenNote: 5.0.1
