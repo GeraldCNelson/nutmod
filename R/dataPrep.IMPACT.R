@@ -138,14 +138,14 @@ catNames.region <- c("scenario","region_code.IMPACT3","year","value")
 vars.world <- "PWX0"
 catNames.world <- c("scenario","IMPACT_code","year","value")
 
-generateResults(vars.land,catNames.land)
+# comment out lines below to speed up data crunching.
+# generateResults(vars.land,catNames.land)
 generateResults(vars.commods,catNames.commod)
 generateResults(vars.region,catNames.region)
 generateResults(vars.world,catNames.world)
 
 #' @param dt.CSEs - data table with consumer surplus equivalents
 CSEs <- fileNameList("CSEs")
-
 
 dt.CSEs <- data.table::as.data.table(
   openxlsx::read.xlsx(CSEs,cols=c(1:3)))

@@ -104,22 +104,23 @@ cookingRet <- function(applyCookingRetention) {
 #' @return null
 #' @export
 budgetShare <- function(dt.IMPACTfood,region) {
- # prices are in 2005 dollars
+ # prices are in 2005 dollars per metric ton
   # pcGDP is in 1000 2005 dollars
    # 'FoodAvailability' variable is in kgs/person/year. DinY is days in year
-
-  data.table::setkeyv(dt.IMPACTfood, c("scenario", region, "year"))
+dt.temp <- data.table::copy(dt.IMPACTfood)
+  data.table::setkeyv(dt.temp, c("scenario", region, "year"))
   # budget is in 1000 2005 dollars
-  dt.IMPACTfood[, budget.PWX0 := sum(FoodAvailability * PWX0 / 1000), by = eval(data.table::key(dt.IMPACTfood))]
-  dt.IMPACTfood[, budget.PCX0 := sum(FoodAvailability * PCX0 / 1000), by = eval(data.table::key(dt.IMPACTfood))]
-  data.table::setkey(dt.IMPACTfood, budget.PWX0)
-  dt.budget <-dt.IMPACTfood[!duplicated(budget.PCX0),]
+  dt.temp[, budget.PWX0 := (sum(FoodAvailability * PWX0 / 1000 )) / 1000, by = eval(data.table::key(dt.temp))]
+  dt.temp[, budget.PCX0 := (sum(FoodAvailability * PCX0 / 1000 )) / 1000, by = eval(data.table::key(dt.temp))]
+  data.table::setkey(dt.temp, budget.PWX0)
+  dt.budget <- dt.temp[!duplicated(budget.PCX0),]
   deleteListCol <- c("IMPACT_code","FoodAvailability","PCX0","PWX0","CSE")
   dt.budget[,(deleteListCol) := NULL]
   # at world prices -----
   dt.budget[, incSharePWX0 := budget.PWX0 / pcGDPX0 ]
   # at domestic prices -----
   dt.budget[, incSharePCX0 := budget.PCX0 / pcGDPX0 ]
+  data.table::setkeyv(dt.budget, c("scenario", region, "year"))
   inDT <- dt.budget
   outName <- "budgetShare"
   cleanup(inDT,outName,fileloc("resData"))

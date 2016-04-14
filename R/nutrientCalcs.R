@@ -54,7 +54,7 @@ IMPACTscenarioList <- unique(dt.IMPACTfood$scenario)
 keepListCol <- c("scenario", "IMPACT_code", region, "FoodAvailability","year")
 dt.food <- dt.IMPACTfood[, keepListCol, with = FALSE]
 # convert food availability from per year to per day
-dt.food[, foodAvail := FoodAvailability / keyVariable("DinY")][,FoodAvailability:= NULL]
+dt.food[, foodAvailpDay:= FoodAvailability / keyVariable("DinY")][,FoodAvailability:= NULL]
 
 # reqList is a list of the requirements types. Each has a different set of nutrients. These are a subset
 # of what are in the nutrients requirements tables from IOM. They are the nutrients common to
@@ -94,7 +94,6 @@ generateResults <- function(req,dt.food,IMPACTscenarioList) {
   # convert nutrients (in 100 grams of food) to nutrients per kg of food -----
   dt.nutrients[, (nutList) := lapply(.SD, function(x) (x * 10)), .SDcols = nutList]
 
-
   # convert dt.nutsReqPerCap scenario names. Leave just SSP1 to 5.
   dt.nutsReqPerCap[,scenario := substr(scenario,1,4)]
   # dt.nutsReqPerCap has values for the 5 SSP scenarios. To align with the IMPACT data we need to
@@ -111,26 +110,27 @@ generateResults <- function(req,dt.food,IMPACTscenarioList) {
     temp.nuts[,scenario:= paste(scenario,climModel,sep="-")]
     dt.temp <- rbind(dt.temp, temp.nuts)
   }
+  # keep just the nutrient requirements scenarios that are in the IMPACT data
   dt.nutsReqPerCap <- dt.temp[scenario %in% IMPACTscenarioList,]
 
+  #combine the food availability info with the nutrients for each of the IMPACT commodities
   data.table::setkey(dt.nutrients, IMPACT_code)
   data.table::setkeyv(dt.food, c("scenario",region,"IMPACT_code","year" ))
   dt.foodnNuts <-  merge(dt.food,dt.nutrients, by = "IMPACT_code", all = TRUE)
 
   #temp <- merge(dt.food,dt.nutsReqPerCap, by = c("scenario",region,"year"), all = TRUE)
-  nutList.Q <- paste(nutList, "Q", sep = ".")
+  nutList.Q <-   paste(nutList, "Q", sep = ".")
   nutList.sum <- paste(nutList, "sum", sep = ".")
 
-  # multiply the food item by the nutrients it contains
-  dt.foodnNuts <- dt.foodnNuts[, (nutList.Q) := lapply(.SD, function(x)
-    (x * dt.foodnNuts[['foodAvail']])), .SDcols = nutList][,(nutList) := NULL]
+  # multiply the food item by the nutrients it contains and copy into a table called dt.food.sum
+  dt.food.sum <- data.table::copy(dt.foodnNuts[, (nutList.Q) := lapply(.SD, function(x)
+    (x * dt.foodnNuts[['foodAvailpDay']])), .SDcols = nutList][,(nutList) := NULL])
 
   #sum individual nutrients across all commodities
   allKey <-    c("scenario", region, "year")
-  dt.food.sum <- data.table::copy(dt.foodnNuts)
   data.table::setkeyv(dt.food.sum,allKey)
   dt.food.sum <- dt.food.sum[, (nutList.sum) := lapply(.SD, sum), .SDcols = nutList.Q,
-                             by = eval(data.table::key(allKey))][,(nutList.Q) := NULL]
+                             by = eval(data.table::key(dt.food.sum))][,(nutList.Q) := NULL]
   dt.food.sum <-
     unique(dt.food.sum[, c("scenario", region, "year", nutList.sum), with =  FALSE])
 
@@ -170,12 +170,13 @@ generateResults <- function(req,dt.food,IMPACTscenarioList) {
   #   dt.food.tot[, (nutList.ratio[j]) := eval(parse(text = nutList[j])) /
   #                 eval(parse(text = nutList.sum[j]))]
   # }
-#temp <- dt.food.tot[,(nutList.ratio) := .(nutList)/.(nutList.sum)]
+  #temp <- dt.food.tot[,(nutList.ratio) := .(nutList)/.(nutList.sum)]
   for(j in nutList){
     nutListSum <- paste(j,".sum",sep="")
     data.table::set(dt.food.tot, i=NULL, j=j, value= dt.food.tot[[j]]/dt.food.tot[[nutListSum]])
   }
-  dt.food.ratio <- dt.food.tot[, nutList, with = FALSE]
+  keepListCol <- c("scenario",region,"year",nutList)
+  dt.food.ratio <- dt.food.tot[, keepListCol, with = FALSE]
   colMax <- function(dataIn)
     lapply(dataIn, max, na.rm = TRUE)
   colMin <- function(dataIn)
@@ -186,39 +187,38 @@ generateResults <- function(req,dt.food,IMPACTscenarioList) {
   # dt.maxRows = dt.food.tot[0]
   # rbind[dt.maxRows, dt.food.tot[maxRowNum,]]
 
-  inDT <- dt.food.tot
-  outName <- paste(req, ".results",sep = "")
+  inDT <- dt.food.ratio
+  outName <- paste(req, ".ratio",sep = "")
   cleanup(inDT, outName,fileloc("resData"))
 
   #reshape the results to get years in columns
-  dt.food.tot.long <- data.table::melt(
-    dt.food.tot,
+  dt.food.ratio.long <- data.table::melt(
+    dt.food.ratio,
     id.vars = c("scenario", region, "year"),
-    measure.vars = c(nutList, nutList.Q.sum, nutList.ratio),
+    measure.vars = c(nutList),
     variable.name = "nutrient",
     value.name = "nut_req",
     variable.factor = FALSE
   )
-  # dt.food.tot.long[,nutrient:= as.character(nutrient)]
-  # a kludge to get rid of Greenland, GRL. Needs to handle better somewhere else
-  dt.food.tot.long <- dt.food.tot.long[!get(region) == "GRL",]
-
-  dt.food.tot.wide <- data.table::dcast.data.table(dt.food.tot.long, scenario + get(region)
-                                                   + nutrient ~ year, value.var = "nut_req")
+dt.food.ratio.wide <- data.table::dcast.data.table(
+  data = dt.food.ratio.long,
+  formula = scenario + get(region) + nutrient ~ year,
+  value.var = "nut_req")
 
   #set up initial worksheets for the ith set of requirements -----
   tmp <- f.createGeneralWorksheet()
   # this structure is needed to get two data frames out of the function
-  wbGeneral <- tmp[[1]]
-  wbInfoGeneral <- tmp[[2]]
-
-  reqListShort <-gsub(".ssp.percap","",reqList)
+  #wbGeneral sets up a workbook with some basic information
+wbGeneral <- tmp[[1]]
+# df.wbInfoGeneral is a data frame
+  df.wbInfoGeneral <- tmp[[2]]
+  reqListShort <-gsub(".percap","",req)
 
   #add a worksheet describing the nutrients in this requirement
   openxlsx::addWorksheet(wbGeneral, sheetName = reqListShort)
   openxlsx::writeData(
     wbGeneral,
-    dt.reqs.long,
+    dt.nutsReqPerCap,
     sheet = reqListShort,
     startRow = 1,
     startCol = 1,
@@ -228,23 +228,23 @@ generateResults <- function(req,dt.food,IMPACTscenarioList) {
     wbGeneral,
     sheet = reqListShort,
     style = numStyle,
-    rows = 1:nrow(dt.reqs.long) + 1,
-    cols = 2:ncol(dt.reqs.long),
+    rows = 1:nrow(dt.nutsReqPerCap) + 1,
+    cols = 2:ncol(dt.nutsReqPerCap),
     gridExpand = TRUE)
 
   openxlsx::setColWidths(
     wbGeneral,
     sheet = reqListShort,
-    cols = 1:ncol(dt.reqs.long),
+    cols = 1:ncol(dt.nutsReqPerCap),
     widths = "auto")
 
-  wbInfoGeneral[(nrow(wbInfoGeneral) + 1), ] <-
+  df.wbInfoGeneral[(nrow(df.wbInfoGeneral) + 1), ] <-
     c(reqList[i], paste("metadata on nutrients included in ", reqListShort))
 
   # add data to the spreadsheet -----
   for (j in 1:length(nutList)) {
     # add an info sheet for the jth nutrient in the ith set of requirements
-    temp <- dt.food.tot.wide[nutrient %in% nutList.ratio[j]]
+    temp <- dt.food.ratio.wide[nutrient %in% nutList.ratio[j]]
     # add the results to the spreadsheet
     openxlsx::addWorksheet(wbGeneral, sheetName = nutList[j])
     openxlsx::writeData(
@@ -272,12 +272,13 @@ generateResults <- function(req,dt.food,IMPACTscenarioList) {
       gridExpand = TRUE
     )
 
-    # code to create a graph of the nutrient ratios for each of the nutrients in the current requirements list for a single scenario
+    # code to create a graph of the nutrient ratios for each of the nutrients
+    # in the current requirements list for a single scenario
     scenario.name <- unique(dt.IMPACTfood$scenario)
     nutrient.name <- sub("^(.*)_.*$", "\\1", nutList[j])
     temp <-
-      dt.food.tot.long[eval(data.table::like(nutrient, "ratio")) & eval(data.table::like(nutrient, nutrient.name)) &
-                         scenario %in% scenario.name, ]
+      dt.food.ratio.long[eval(data.table::like(nutrient, "ratio")) & eval(data.table::like(nutrient, nutrient.name)) &
+                           scenario %in% scenario.name, ]
     #ggplot wants the x axis to be numeric
     temp[,year:= as.numeric(gsub("X", "", year))]
     gg <- ggplot2::ggplot(data = temp,
@@ -337,7 +338,7 @@ generateResults <- function(req,dt.food,IMPACTscenarioList) {
       units = "in",
       startRow = 5
     )
-    wbInfoGeneral[(nrow(wbInfoGeneral) + 1), ] <-
+    df.wbInfoGeneral[(nrow(df.wbInfoGeneral) + 1), ] <-
       c(nutList[j], paste("Ratio results for ", nutrient.name))
 
     #write the rows that have the max and min values for the current nutrient
@@ -355,63 +356,26 @@ generateResults <- function(req,dt.food,IMPACTscenarioList) {
       rowNames = FALSE,
       withFilter = FALSE
     )
-    openxlsx::writeData(
-      wbGeneral,
-      paste(
-        "Country and year with max value for the ",
-        nutrient.name,
-        " ratio",
-        sep = ""
-      ),
-      sheet = plotSheet,
-      startRow = 1,
-      startCol = 1,
-      rowNames = FALSE,
-      withFilter = FALSE
-    )
-    openxlsx::writeData(
-      wbGeneral,
-      dt.food.ratio[minRowNum, ],
-      sheet = plotSheet,
-      startRow = 3,
-      startCol = 2,
-      rowNames = FALSE,
-      withFilter = FALSE
-    )
-    openxlsx::writeData(
-      wbGeneral,
-      paste("row with min value for the ", nutrient.name, " ratio", sep = ""),
-      sheet = plotSheet,
-      startRow = 3,
-      startCol = 1,
-      rowNames = FALSE,
-      withFilter = FALSE
-    )
-    openxlsx::addStyle(
-      wbGeneral,
-      sheet = plotSheet,
-      style = numStyle,
-      rows = 1:4,
-      cols = 2:ncol(dt.food.tot),
-      gridExpand = TRUE
-    )
-    openxlsx::setColWidths(
-      wbGeneral,
-      sheet = plotSheet,
-      cols = 1:ncol(dt.food.tot[minRowNum, ]),
-      widths = "auto",
-      ignoreMergedCells = FALSE
-    )
-    wbInfoGeneral[(nrow(wbInfoGeneral) + 1), ] <-
+    openxlsx::writeData(wbGeneral, paste("Country and year with max value for the ",
+                                         nutrient.name, " ratio", sep = ""), sheet = plotSheet, startRow = 1,
+                        startCol = 1, rowNames = FALSE, withFilter = FALSE)
+    openxlsx::writeData(wbGeneral, dt.food.ratio[minRowNum, ], sheet = plotSheet,
+                        startRow = 3, startCol = 2, rowNames = FALSE, withFilter = FALSE)
+    openxlsx::writeData(wbGeneral, paste("row with min value for the ", nutrient.name,
+                                         " ratio", sep = ""), sheet = plotSheet, startRow = 3, startCol = 1,
+                        rowNames = FALSE, withFilter = FALSE)
+    openxlsx::addStyle(wbGeneral, sheet = plotSheet, style = numStyle, rows = 1:4,
+                       cols = 2:ncol(dt.food.tot), gridExpand = TRUE)
+    openxlsx::setColWidths(wbGeneral, sheet = plotSheet, cols = 1:ncol(dt.food.tot[minRowNum,
+                                                                                   ]), widths = "auto", ignoreMergedCells = FALSE)
+    df.wbInfoGeneral[(nrow(df.wbInfoGeneral) + 1), ] <-
       c(plotSheet,
         paste("Max/min rows and graph of results for ", nutrient.name))
-
   }
 
-  f.finalizeWB(wbGeneral, wbInfoGeneral, reqList[i])
+  f.finalizeWB(wbGeneral, df.wbInfoGeneral, reqList[i])
 }
 
 for (i in 1:length(reqList)) {
   generateResults(reqList(i))
 }
-
