@@ -274,14 +274,16 @@ wbGeneral <- tmp[[1]]
 
     # code to create a graph of the nutrient ratios for each of the nutrients
     # in the current requirements list for a single scenario
-    scenario.name <- unique(dt.IMPACTfood$scenario)
-    nutrient.name <- sub("^(.*)_.*$", "\\1", nutList[j])
-    temp <-
-      dt.food.ratio.long[eval(data.table::like(nutrient, "ratio")) & eval(data.table::like(nutrient, nutrient.name)) &
-                           scenario %in% scenario.name, ]
-    #ggplot wants the x axis to be numeric
-    temp[,year:= as.numeric(gsub("X", "", year))]
-    gg <- ggplot2::ggplot(data = temp,
+    scenario.name <- IMPACTscenarioList[k]
+  #  nutrient.name <- sub("^(.*)_.*$", "\\1", nutList[j])
+    nutrient.name <- nutList[l]
+    # temp <-
+    #   dt.food.ratio.long[eval(data.table::like(nutrient, "ratio")) & eval(data.table::like(nutrient, nutrient.name)) &
+    #                        scenario %in% scenario.name, ]
+  dt.temp <- data.table::copy(dt.food.ratio.long[nutrient == nutrient.name & scenario == scenario.name,])
+      #ggplot wants the x axis to be numeric
+  dt.temp[,year:= as.numeric(gsub("X", "", year))]
+    gg <- ggplot2::ggplot(data = dt.temp,
                           mapping = eval(ggplot2::aes(x = year, y = nut_req,  color = get(region)))) +
       eval(ggplot2::geom_line()) +
       eval(ggplot2::theme(
