@@ -159,14 +159,15 @@ cleanup <- function(inDT, outName,dir) {
   wbGeneral <- openxlsx::createWorkbook()
   openxlsx::addWorksheet(wb = wbGeneral, sheetName = outName)
 
-  openxlsx::writeData(
+  openxlsx::writeDataTable(
     wbGeneral,
     inDT,
     sheet = outName,
     startRow = 1,
     startCol = 1,
     rowNames = FALSE,
-    colNames = TRUE
+    colNames = TRUE,
+    withFilter = TRUE
   )
 
   openxlsx::setColWidths(
@@ -346,7 +347,7 @@ metadata <- function() {
 
   inDT <- metadata
   outName <- "metaData"
-  cleanup(inDT,outName)
+  cleanup(inDT,outName,fileloc("resData"))
 }
 
 #' Title fileNameList returns a list of filenames, with or without complete paths

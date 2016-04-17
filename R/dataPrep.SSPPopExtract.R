@@ -359,5 +359,5 @@ temp <- c(length(names(wbGeneral)), temp)
 openxlsx::worksheetOrder(wbGeneral) <- temp
 
 xcelOutFileName <-
-  paste("results/nut.requirements", Sys.Date(), ".xlsx", sep = "")
+  paste("results/nut.requirements.", Sys.Date(), ".xlsx", sep = "")
 openxlsx::saveWorkbook(wb = wbGeneral, xcelOutFileName, overwrite = TRUE)
