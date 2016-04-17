@@ -109,8 +109,14 @@ f.finalizeWB <- function(wb, wbInf, file.name) {
   # written using writeFormula
   openxlsx::addWorksheet(wb, sheetName = "sheetInfo")
   for (i in 1:nrow(wbInf)) {
-    openxlsx::writeFormula(wb, "sheetInfo", x = f.hyperlink(wbInf[i,
-                                                                  1], wbInf[i, 1]), startCol = 1, startRow = i)
+    linkInfo <- openxlsx::makeHyperlinkString("sheetInfo", row = i, col = 1,
+                                              text = wbInf[i,1], file = NULL)
+    # openxlsx::writeFormula(wb, "sheetInfo",
+    #                        x = f.hyperlink(wbInf[i,1],
+    #                           wbInf[i, 1]), startCol = 1, startRow = i)
+    openxlsx::writeFormula(wb, "sheetInfo",
+                           x = linkInfo)
+
   }
 
   openxlsx::writeData(wb, wbInf[, 2], sheet = "sheetInfo", startRow = 1,

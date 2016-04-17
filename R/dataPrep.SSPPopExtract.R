@@ -49,7 +49,7 @@ data.table::setnames(dt.SSP.regions, old = "V1", new = "value")
 # scenarios <- unique(dt.SSP.regions$scenario)
 # scen <- scenarios[2] #"SSP2_v9_130115"
 # #mdl <- "IIASA-WiC POP"
-# dt.SSP.scen <- dt.SSP.regions[scenario == scen, ]
+# dt.SSP.scen <- dt.SSP.regions[scenario = =  scen, ]
 # above is commented out. Want to include all scenarios
 dt.SSP.scen <- dt.SSP.regions
 # start process of creating a separate list for pregnant and lactating (P/L) women----
@@ -57,7 +57,7 @@ dt.SSP.scen <- dt.SSP.regions
 #identical nutrient needs if they are not P/L
 ageRowsToSum <- c(
   "F15_19", "F20_24", "F25_29", "F30_34", "F35_39", "F40_44", "F45_49")
-ageRowsToSumSSP <- paste("SSP",ageRowsToSum,sep="")
+ageRowsToSumSSP <- paste("SSP",ageRowsToSum,sep = "")
 
 #pull out the relevant rows
 dt.SSP.scen.F15_49 <- dt.SSP.scen[ageGenderCode %in% ageRowsToSum,]
@@ -79,9 +79,9 @@ dt.SSP.scen <-  dt.SSP.scen[!ageGenderCode %in% ageRowsToSum, ]
 # pop.temp <- dt.tmp[, sum(value), by = key(dt.tmp)]
 # data.table::setnames(pop.temp, old = "V1", new = "value")
 # dt.SSP.pop.tot <- getNewestVersion("dt.SSP.pop.tot")
-# #check with AFG and for scenario == SSP3
-# dt.SSP.pop.tot.AFG <- dt.SSP.pop.tot[ISO_code == "AFG" & scenario == "SSP3_v9_130115",value]
-# pop.temp.AFG <- pop.temp[region_code.IMPACT3 == "AFG" & scenario == "SSP3_v9_130115",value]
+# #check with AFG and for scenario = =  SSP3
+# dt.SSP.pop.tot.AFG <- dt.SSP.pop.tot[ISO_code = =  "AFG" & scenario = =  "SSP3_v9_130115",value]
+# pop.temp.AFG <- pop.temp[region_code.IMPACT3 = =  "AFG" & scenario = =  "SSP3_v9_130115",value]
 # temp <- dt.SSP.pop.tot.AFG - pop.temp.AFG
 # summary(temp) #the differences should be very small
 
@@ -102,14 +102,14 @@ share.lact <- 0.2
 # temp.preg <-
 #   as.data.frame(dt.kids.sum[, lapply(.SD, function(x)
 #     x * share.preg), by = "region"])
-dt.MF_0_4.sum[,Preg := MF_0_4 * share.preg][,Lact := MF_0_4 * share.lact]
+dt.MF_0_4.sum[,Preg :=  MF_0_4 * share.preg][,Lact :=  MF_0_4 * share.lact]
 data.table::setkey(dt.MF_0_4.sum)
 data.table::setkey(dt.SSP.scen.F15_49.sum)
 dt.temp <- cbind(dt.MF_0_4.sum,F15_49 = dt.SSP.scen.F15_49.sum$F15_49)
 data.table::setkey(dt.temp)
 deleteListCol <- c("MF_0_4","F15_49")
-dt.temp[,nonPL := F15_49 - Preg - Lact][,(deleteListCol):=NULL]
-data.table::setnames(dt.temp,old = "nonPL",new="F15_49")
+dt.temp[,nonPL :=  F15_49 - Preg - Lact][,(deleteListCol) :=  NULL]
+data.table::setnames(dt.temp,old = "nonPL",new = "F15_49")
 idVarsPop <- c("scenario",region,"year" )
 measureVarsPop <- c("Preg","Lact","F15_49")
 dt.temp.melt <- data.table::melt(dt.temp,
@@ -123,10 +123,10 @@ dt.temp.melt <- data.table::melt(dt.temp,
 dt.pop <- rbind(dt.SSP.scen, dt.temp.melt)
 #change names of age groups; prepend SSP
 # somehow this next line of code adds SSP to the front of all the ageGenderCode s
-dt.pop[, ageGenderCode := stringi::stri_replace_all_fixed("SSPM", "M", ageGenderCode)]
+dt.pop[, ageGenderCode :=  stringi::stri_replace_all_fixed("SSPM", "M", ageGenderCode)]
 data.table::setnames(dt.pop,old = "value",new = "pop.value")
 
-# dt.pop[, ageGenderCode := lapply(dt.pop[,ageGenderCode,with=FALSE],
+# dt.pop[, ageGenderCode :=  lapply(dt.pop[,ageGenderCode,with = FALSE],
 #                            function(x) gsub(" ", "_", x))]
 data.table::setkeyv(dt.SSP.scen,c(region,"year"))
 dt.popTot <- dt.SSP.scen[, sum(value), by = eval(data.table::key(dt.SSP.scen))]
@@ -161,14 +161,14 @@ repCons <- function(dt.pop, nutReqName,ageRowsToSum,region) {
   keyValues <- c("scenario", region, "year", "ageGenderCode","pop.value")
   data.table::setkeyv(dt.temp,keyValues)
   # multiply the number of people be age and gender group by the nutritional requirements of that group
-  dt.temp[, (paste(common.nut, "prod", sep = ".")) := lapply(.SD, function(x)
-    x * dt.temp$pop.value), .SDcols = (common.nut)][,(common.nut):=NULL]
+  dt.temp[, (paste(common.nut, "prod", sep = ".")) :=  lapply(.SD, function(x)
+    x * dt.temp$pop.value), .SDcols = (common.nut)][,(common.nut) :=  NULL]
   keyValues <- c("scenario", region, "year")
   data.table::setkeyv(dt.temp, keyValues)
   reqlist <- c(paste(common.nut, "prod", sep = "."),"pop.value")
   # sum the nutritional requirements for all groups
-  dt.temp[, (paste(reqlist, "sum", sep = ".")) := lapply(.SD, sum), by =
-            keyValues, .SDcols = c(reqlist)][, c(reqlist) := NULL]
+  dt.temp[, (paste(reqlist, "sum", sep = ".")) :=  lapply(.SD, sum), by  =
+            keyValues, .SDcols = c(reqlist)][, c(reqlist) :=  NULL]
  # c("scenario",region, "year", "ageGenderCode"), .SDcols = c(reqlist)]
   dt.temp.sum <- unique(dt.temp[, c("scenario",region, "year",
                                     paste(reqlist, "sum", sep = ".")), with = FALSE])
@@ -183,16 +183,20 @@ repCons <- function(dt.pop, nutReqName,ageRowsToSum,region) {
   sumlist <- paste(common.nut, "prod.sum", sep = ".")
   finlist <- paste(common.nut, "fin", sep = ".")
   #divide every element in sumlist by pop.value and put in corresponding variable in finlist
-  dt.temp.sum[,(finlist):=lapply(.SD,"/",dt.temp.sum$pop.value.sum),.SDcols=sumlist]
-  dt.temp.sum[, c("pop.value.sum", sumlist) := NULL]
+  dt.temp.sum[,(finlist) :=  lapply(.SD,"/",dt.temp.sum$pop.value.sum),.SDcols = sumlist]
+  dt.temp.sum[, c("pop.value.sum", sumlist) :=  NULL]
+  # change column names back to just nutrient names
+  data.table::setnames(dt.temp.sum,old = finlist, new = common.nut)
   dt.temp.melt <- data.table::melt(
     dt.temp.sum,
     id.vars = c("scenario",region, "year"),
-    measure.vars = finlist,
+    measure.vars = common.nut,
     variable.name = "nutrient",
     variable.factor = FALSE,
     value.name = "value"
   )
+  #change scenario names to just SSP1, SSP2, etc.
+  dt.temp.sum[,scenario := substr((scenario),1,4)]
   inDT <- dt.temp.sum
   outName <- paste(gsub(".ssp","",nutReqName),"percap",sep = ".")
   cleanup(inDT,outName,fileloc("mData"))
@@ -206,8 +210,8 @@ repCons <- function(dt.pop, nutReqName,ageRowsToSum,region) {
 # #convert every 5 years data to every year. this is not working so commented out.
 # data.table::setkey(dt.temp.dcast,"region","nutrient")
 # yrs <- seq(2010,2050,5)
-# lin.interp <- function(y,yrs) predict(lm(y~yrs),data.frame(yrs=min(yrs):max(yrs)))
-# dt.temp.dcast[, paste0("X",min(yrs):max(yrs)):= apply(.SD,FUN = lin.interp, yrs, MARGIN = 1), .SDcols = yearList, key=dt.temp.dcast]
+# lin.interp <- function(y,yrs) predict(lm(y~yrs),data.frame(yrs = min(yrs):max(yrs)))
+# dt.temp.dcast[, paste0("X",min(yrs):max(yrs)) :=   apply(.SD,FUN = lin.interp, yrs, MARGIN = 1), .SDcols = yearList, key = dt.temp.dcast]
 #
 # p1 <- as.data.frame(apply(temp.preg[,2:4],1,lin.interp,yrs))
 # names(p1) <- paste0("X",min(yrs):max(yrs))
@@ -288,8 +292,9 @@ for (i in 1:length(reqs)) {
     repCons(dt.pop, reqs[i],ageRowsToSum,region)
   data.table::setkeyv(dt.temp.internal, c("nutrient", region))
 
-  dt.temp.internal$nutrient <-
-    gsub(".fin", "", dt.temp.internal$nutrient)
+# don't think this is needed anymore
+  # dt.temp.internal$nutrient <-
+  #   gsub(".fin", "", dt.temp.internal$nutrient)
 
   dt.name <- paste(reqs[i], "percap", sep = ".")
   #print(dt.name)
@@ -311,7 +316,7 @@ for (i in 1:length(reqs)) {
     rowNames = FALSE,
     colNames = TRUE
   )
-  nutrientList <- paste(unique(dt.temp.internal$nutrient), collapse=", ")
+  nutrientList <- paste(unique(dt.temp.internal$nutrient), collapse = ", ")
   sheetDesc <- paste("nutrients included: ", nutrientList)
   wbInfoGeneral[(nrow(wbInfoGeneral) + 1), ] <-
     c(dt.name, sheetDesc)
@@ -356,4 +361,3 @@ openxlsx::worksheetOrder(wbGeneral) <- temp
 xcelOutFileName <-
   paste("results/nut.requirements", Sys.Date(), ".xlsx", sep = "")
 openxlsx::saveWorkbook(wb = wbGeneral, xcelOutFileName, overwrite = TRUE)
-
