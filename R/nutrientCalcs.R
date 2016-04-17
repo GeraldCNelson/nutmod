@@ -48,7 +48,7 @@ dt.IMPACTfood <- dt.IMPACTfood[IMPACT_code %in% keyVariable("IMPACTfoodCommodLis
 dt.IMPACTfood <- dt.IMPACTfood[!get(region) == "GRL",] # neither should this
 # get the list of scenarios in the IMPACT data for use below
 IMPACTscenarioList <- unique(dt.IMPACTfood$scenario)
-IMPACTscenarioList <- IMPACTscenarioList[1] # just for testing. !!!XXX
+#IMPACTscenarioList <- IMPACTscenarioList[1] # just for testing. !!!XXX
 
 # read in nutrients data and optionally apply cooking retention values -----
 dt.nuts <- cookingRet("yes")
@@ -82,7 +82,7 @@ reqList <-
     "req.UL.minrls.percap"
   )
 reqList <- reqList[1] # just for testing!!! XXX
-IMPACTscenarioList <- "SSP2-MIROC" # just for testing!!! XXX
+#IMPACTscenarioList <- "SSP2-MIROC" # just for testing!!! XXX
 req <- "req.EAR.percap" # just for testing!!! XXX
 
 generateResults <- function(req,dt.IMPACTfood,IMPACTscenarioList,dt.nuts,region) {
@@ -94,7 +94,7 @@ generateResults <- function(req,dt.IMPACTfood,IMPACTscenarioList,dt.nuts,region)
   dt.nutsReqPerCap <- getNewestVersion(req)
   # get list of nutrients from dt.nutsReqPerCap for the req set of requirements
   nutList <- names( dt.nutsReqPerCap)[4:length(names( dt.nutsReqPerCap))]
-  nutList <- nutList[3:4] # Here just for testing. !!! be sure to delete!!!XXX
+  #nutList <- nutList[3:4] # Here just for testing. !!! be sure to comment out!!!XXX
 
   # dt.nutsReqPerCap has values for the 5 SSP scenarios. To align with the IMPACT data we need to
   # add the climate model name to the SSP scenario name (SSP1 - 5).
@@ -161,7 +161,7 @@ generateResults <- function(req,dt.IMPACTfood,IMPACTscenarioList,dt.nuts,region)
   allKey <-       c("scenario", region, "year")
   sumKey <-       c("scenario", region, "year","IMPACT_code")
   stapleKey <-    c("scenario", region, "year", "staple.code")
-  foodGroupkey <- c("scenario", region, "year", "food.group.code")
+  foodGroupKey <- c("scenario", region, "year", "food.group.code")
 
   # first sum
     ## individual nutrients from all commodities
@@ -175,7 +175,7 @@ generateResults <- function(req,dt.IMPACTfood,IMPACTscenarioList,dt.nuts,region)
                              by = eval(data.table::key(dt.food.agg))]
 
   ## individual nutrients by food group
-  data.table::setkeyv(dt.food.agg,foodGroupkey)
+  data.table::setkeyv(dt.food.agg,foodGroupKey)
   dt.food.agg <- dt.food.agg[, (nutList.sum.foodGroup) := lapply(.SD, sum), .SDcols = nutList.Q,
                              by = eval(data.table::key(dt.food.agg))]
 
@@ -218,60 +218,44 @@ remainder <- oldOrder[!oldOrder %in% moveitems]
   }
 
   inDT <- dt.food.agg
-  outName <- paste("food.agg.",req,sep = "")
+
+  reqShortName <- substring(req,5,7)
+  outName <- paste("food.agg.",reqShortName,sep = "")
   cleanup(inDT, outName,fileloc("resData"))
+}
+# end of generateResults function
 
-   keepListCol.ratio <- c("scenario", region, "year", "IMPACT_code",nutList.ratio)
-  dt.food.ratio <-
-    unique(dt.food.agg[, keepListCol.ratio, with =  FALSE])
+  # now prepare for creating excel files; one each for all, staples, and food groups ------
+  sumKey <-       c("scenario", region, "year","IMPACT_code")
+  stapleKey <-    c("scenario", region, "year", "staple.code")
+  foodGroupKey <- c("scenario", region, "year", "food.group.code")
 
+  keepListCol.all <- c(sumKey,nutList.ratio.all)
+  keepListCol.staples <- c(stapleKey,nutList.ratio.staples)
+  keepListCol.foodGroup <- c(foodGroupKey,nutList.ratio.foodGroup)
 
-  # keepListCol.staples <- c("scenario", region, "staple.code", "year", "IMPACT_code",nutList.sum,nutList.ratio)
-  # dt.staples.sum <- unique(dt.food.agg[, keepListCol.staples, with =  FALSE])
-  # keepListCol.ratio <- c("scenario", region, "year", "IMPACT_code",nutList.sum,nutList.ratio)
-  # dt.food.ratio <-
-  #   unique(dt.food.ratio[, keepListCol.ratio, with =  FALSE])
+  dt.all.ratio <- unique(dt.food.agg[, keepListCol.all, with =  FALSE])
+  dt.staples.ratio <- unique(dt.food.agg[, keepListCol.staples, with =  FALSE])
+  dt.foodGroup.ratio <- unique(dt.food.agg[, keepListCol.foodGroup, with =  FALSE])
 
- # keepListCol.ratio <- c("scenario", region, "year", "IMPACT_code",nutList.sum,nutList.ratio)
-  # dt.food.ratio <-
-  #   unique(dt.food.ratio[, keepListCol.ratio, with =  FALSE])
-
-
+  # these functions return the maximum or minimum in every row
   colMax <- function(dataIn) {
     lapply(dataIn, max, na.rm = TRUE)
   }
   colMin <- function(dataIn) {
     lapply(dataIn, min, na.rm = TRUE)
   }
-  cMax.food <- data.table::as.data.table(colMax(dt.food.agg$folate_µg.ratio.all))
-  cMin.food <- data.table::as.data.table(colMin(dt.food.reqs.ratio))
-  cMax.staples <- data.table::as.data.table(colMax(dt.staples.reqs.ratio))
-  cMin.staples <- data.table::as.data.table(colMin(dt.staples.reqs.ratio))
-  cMax.foodGroup <- data.table::as.data.table(colMax(dt.foodGroup.reqs.ratio))
-  cMin.foodGroup <- data.table::as.data.table(colMin(dt.foodGroup.reqs.ratio))
-
-  # dt.maxRows = dt.food.tot[0]
-  # rbind[dt.maxRows, dt.food.tot[maxRowNum,]]
-
-  inDT <- dt.food.reqs.ratio
-  outName <- paste(req, ".food.ratio",sep = "")
-  cleanup(inDT, outName,fileloc("resData"))
-
-  inDT <- dt.staple.reqs.ratio
-  outName <- paste(req, ".staple.ratio",sep = "")
-  cleanup(inDT, outName,fileloc("resData"))
-
-  inDT <- dt.foodGroup.reqs.ratio
-  outName <- paste(req, ".foodGroup.ratio",sep = "")
-  cleanup(inDT, outName,fileloc("resData"))
+  cMax.all <- data.table::as.data.table(colMax(dt.food.agg))
+  cMin.all <- data.table::as.data.table(colMin(dt.food.agg))
 
   #reshape the results to get years in columns
-  dt.food.ratio.long <- data.table::melt(
-    dt.food.reqs.ratio,
-    id.vars = c("scenario", region, "year"),
-    measure.vars = c(nutList),
+  setkeyv(dt.food.agg,sumKey)
+  dt.food.agg.all.long <- data.table::melt(
+    dt.food.agg,
+    id.vars = sumKey,
+    measure.vars = nutList.ratio.all,
     variable.name = "nutrient",
-    value.name = "nut_req",
+    value.name = "nut_share",
     variable.factor = FALSE
   )
   dt.food.ratio.wide <- data.table::dcast.data.table(
@@ -418,6 +402,8 @@ remainder <- oldOrder[!oldOrder %in% moveitems]
       )
       df.wbInfoGeneral[(nrow(df.wbInfoGeneral) + 1), ] <-
         c(nutList[j], paste("Ratio results for ", nutrient.name))
+      cMax.all <- data.table::as.data.table(colMax(dt.food.agg$folate_µg.ratio.all))
+      cMin.all <- data.table::as.data.table(colMin(dt.food.reqs.ratio))
 
       #write the rows that have the max and min values for the current nutrient
       # eval parse needed here to get the which to run. uggh. This displays the row num of the row with the max/min value
