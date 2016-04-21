@@ -82,24 +82,22 @@ nutList.req.ratio.staples <- paste(nutList, "req.ratio.staple", sep = ".")
 nutList.req.ratio.foodGroup <- paste(nutList, "req.ratio.foodGroup", sep = ".")
 
 basicKey <- c("scenario",region,"year")
-keepListCol.all <- c(sumKey,nutList.ratio.all)
-keepListCol.staples <- c(stapleKey,nutList.ratio.staples)
-keepListCol.foodGroup <- c(foodGroupKey,nutList.ratio.foodGroup)
+keepListCol.ratio.all <- c(sumKey,nutList.ratio.all)
+keepListCol.ratio.staples <- c(stapleKey,nutList.ratio.staples)
+keepListCol.ratio.foodGroup <- c(foodGroupKey,nutList.ratio.foodGroup)
+keepListCol.req.ratio.all <- c(sumKey,nutList.ratio.all)
+keepListCol.req.ratio.staples <- c(stapleKey,nutList.ratio.staples)
+keepListCol.req.ratio.foodGroup <- c(foodGroupKey,nutList.ratio.foodGroup)
 
-dt.all.ratio <- unique(dt.food.agg[, keepListCol.all, with =  FALSE])
-dt.staples.ratio <- unique(dt.food.agg[, keepListCol.staples, with =  FALSE])
-dt.foodGroup.ratio <- unique(dt.food.agg[, keepListCol.foodGroup, with =  FALSE])
+dt.all.ratio <- unique(dt.food.agg[, keepListCol.ratio.all, with =  FALSE])
+dt.staples.ratio <- unique(dt.food.agg[, keepListCol.ratio.staples, with =  FALSE])
+dt.foodGroup.ratio <- unique(dt.food.agg[, keepListCol.ratio.foodGroup, with =  FALSE])
 
-# these functions return the maximum or minimum in every row
-colMax <- function(dataIn) {
-  lapply(dataIn, max, na.rm = TRUE)
-}
-colMin <- function(dataIn) {
-  lapply(dataIn, min, na.rm = TRUE)
-}
-cMax.all <- data.table::as.data.table(colMax(dt.foodGroup.ratio))
-cMin.all <- data.table::as.data.table(colMin(dt.foodGroup.ratio))
+dt.all.req.ratio <- unique(dt.food.agg[, keepListCol.req.ratio.all, with =  FALSE])
+dt.staples.req.ratio <- unique(dt.food.agg[, keepListCol.req.ratio.staples, with =  FALSE])
+dt.foodGroup.req.ratio <- unique(dt.food.agg[, keepListCol.req.ratio.foodGroup, with =  FALSE])
 
+# get foodGroup results for ratio -----
 #reshape the results to get years in columns
 nutList.ratio.foodGroup <- paste(nutList, "ratio.foodGroup", sep = ".")
 #setkeyv(dt.food.agg,sumKey)
@@ -121,6 +119,41 @@ dt.foodGroup.ratio.wide <- data.table::dcast.data.table(
 inDT <- dt.foodGroup.ratio.wide
 outName <- "foodGroup.ratio"
 cleanup(inDT,outName, fileloc("resData"))
+
+# get foodGroup results for req.ratio -----
+#reshape the results to get years in columns
+nutList.req.ratio.foodGroup <- paste(nutList, "req.ratio.foodGroup", sep = ".")
+#setkeyv(dt.food.agg,sumKey)
+dt.foodGroup.req.ratio.long <- data.table::melt(
+  dt.foodGroup.req.ratio,
+  id.vars = foodGroupKey,
+  measure.vars = nutList.req.ratio.foodGroup,
+  variable.name = "nutrient",
+  value.name = "nut_share",
+  variable.factor = FALSE
+)
+formula.foodGroup <- paste("scenario + ",region,"+ nutrient + food.group.code ~ year")
+dt.foodGroup.req.ratio.wide <- data.table::dcast.data.table(
+  data = dt.foodGroup.req.ratio.long,
+  formula = formula.foodGroup,
+  value.var = "nut_share",
+  variable.factor = FALSE
+)
+inDT <- dt.foodGroup.req.ratio.wide
+outName <- "req.foodGroup.ratio"
+cleanup(inDT,outName, fileloc("resData"))
+
+# graphics code below -----
+
+# these functions return the maximum or minimum in every row
+colMax <- function(dataIn) {
+  lapply(dataIn, max, na.rm = TRUE)
+}
+colMin <- function(dataIn) {
+  lapply(dataIn, min, na.rm = TRUE)
+}
+cMax.all <- data.table::as.data.table(colMax(dt.foodGroup.ratio))
+cMin.all <- data.table::as.data.table(colMin(dt.foodGroup.ratio))
 
 #set up initial worksheets for the ith set of requirements -----
 tmp <- f.createGeneralWorksheet()
