@@ -36,7 +36,7 @@ dt.SSPGDP <- getNewestVersion("dt.SSPGDPClean")
 data.table::setorder(dt.SSPGDP, scenario, ISO_code, year)
 data.table::setkey(dt.SSPGDP, scenario, ISO_code)
 # lag and difference SSP GDP -----
-dt.SSPGDP[, GDP.lag1 := data.table::shift(value,1,0,"lag"), by=c("ISO_code","scenario")][, delta.GDP := value - GDP.lag1]
+dt.SSPGDP[, GDP.lag1 := data.table::shift(value,1,0,"lag"), by = c("ISO_code","scenario")][, delta.GDP := value - GDP.lag1]
 
 # prepare the FBS data -----
 dt.FBS <- getNewestVersion("dt.FBS")
@@ -185,7 +185,9 @@ if (changeElasticity == TRUE) {
       value = 1L
     )
 }
-
+inDT <- temp
+outName <- "dt.fishIncElast"
+cleanup(inDT,outName, fileloc("iData"))
 # merge regions.all and the IMPACT115fishIncElast to assign identical income elasticities
 # to all countries in an IMPACT3 region.
 data.table::setkey(dt.fishIncElast, region_code.IMPACT115)
@@ -218,6 +220,7 @@ data.table::setnames(dt.fishIncElast, old = "region_code.SSP", new = "ISO_code")
 inDT <- dt.fishIncElast
 outName <- "dt.fishIncElast"
 cleanup(inDT,outName,fileloc("iData"))
+
 # loop over scenarios and countries  -----
 # set up a data table to hold the results of the calculations
 dt.final <-
@@ -296,7 +299,7 @@ data.table::setkeyv(dt.final, c("scenario", "ISO_code", "year"))
 dt.final[, pop := dt.SSPPopTot$pop]
 
 #keep only years in keepYearList
-dt.final <- dt.final[year %in% keepYearList,]
+dt.final <- dt.final[year %in% keyVariable("keepYearList"),]
 inDT <- dt.final
 outName <- "dt.fishScenarios"
 cleanup(inDT,outName,fileloc("mData"))

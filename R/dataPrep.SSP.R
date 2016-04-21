@@ -175,6 +175,7 @@ dt.SSP.pop.step2 <-
   dt.SSP.pop.step2[!dt.SSP.pop.step2$education %in% removeRowList,]
 
 #remove extraneous columns and keep only the ones needed
+# this keepYearList includes year 0 (X2005) because it is needed for the fish and alcohol consumption calcs
 keepList <- c("scenario", "ISO_code", "ageGenderCode", keepYearList)
 deleteListCol <-
   c("model", "gender", "education", "population", "unit")

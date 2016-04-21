@@ -74,7 +74,7 @@
 #' }
 
 cookingRet <- function(applyCookingRetention) {
-# df.nutrients is in nutrient per 100 grams of the edible portion
+  # df.nutrients is in nutrient per 100 grams of the edible portion
   dt.nutrients <- data.table::as.data.table(getNewestVersion("df.nutrients"))
   if (applyCookingRetention == "yes") {
     # get cooking retention values
@@ -104,10 +104,10 @@ cookingRet <- function(applyCookingRetention) {
 #' @return null
 #' @export
 budgetShare <- function(dt.IMPACTfood,region) {
- # prices are in 2005 dollars per metric ton
+  # prices are in 2005 dollars per metric ton
   # pcGDP is in 1000 2005 dollars
-   # 'FoodAvailability' variable is in kgs/person/year. DinY is days in year
-dt.temp <- data.table::copy(dt.IMPACTfood)
+  # 'FoodAvailability' variable is in kgs/person/year. DinY is days in year
+  dt.temp <- data.table::copy(dt.IMPACTfood)
   data.table::setkeyv(dt.temp, c("scenario", region, "year"))
   # budget is in 1000 2005 dollars
   dt.temp[, budget.PWX0 := (sum(FoodAvailability * PWX0 / 1000 )) / 1000, by = eval(data.table::key(dt.temp))]

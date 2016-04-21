@@ -29,7 +29,7 @@ keepYearList <- keyVariable("keepYearList")
 #need to include the n-1 year for the elasticity calculations
 year1 <- as.numeric(substr(keepYearList[1], 2, 5)); year2 <- as.numeric(substr(keepYearList[2], 2, 5))
 year0 <- year1 - (year2 - year1)
-year0 <- paste("X",year0,sep="")
+year0 <- paste("X", year0, sep = "")
 keepYearList <- c(year0,keepYearList)
 IMPACTalcohol_code <- keyVariable("IMPACTalcohol_code")
 scenarioListSSP <- keyVariable("scenarioListSSP")
@@ -45,7 +45,7 @@ data.table::setkeyv(dt.SSPGDP, c("scenario", "ISO_code"))
 # lag and difference SSP GDP -----
 
 #dt.SSPGDP[, GDP.lag1:=c(NA, value[-.N]), by = c("ISO_code","scenario")][, delta.GDP := value - GDP.lag1]
-dt.SSPGDP[,GDP.lag1 := data.table::shift(value,type = "lag"), by=c("ISO_code","scenario")]
+dt.SSPGDP[,GDP.lag1 := data.table::shift(value,type = "lag"), by = c("ISO_code","scenario")]
 dt.SSPGDP[,delta.GDP := value - GDP.lag1]
 
 # prepare the FBS data -----
@@ -83,7 +83,7 @@ ctyList <- sort(intersect(inFBS,inSSP))
 # load SSP population, note that it only starts at 2010 ----
 dt.SSPPopClean <- getNewestVersion("dt.SSPPopClean")
 #remove countries that are not in both FBS And SSP
-dt.SSPPopClean<- dt.SSPPopClean[ISO_code %in% ctyList,]
+dt.SSPPopClean <- dt.SSPPopClean[ISO_code %in% ctyList,]
 
 # create income elasticities data for the regions in IMPACT3 ----
 # create alcohol elasticities data table, all countries have the same income elasticities in all years
@@ -103,6 +103,9 @@ dt.alcIncElast <- data.table::melt(
     measure.vars = alc_code.elast.list,
     variable.factor = FALSE
   )
+inDT <- temp
+outName <- "dt.alcIncElast"
+cleanup(inDT,outName, fileloc("iData"))
 
 # # merge regions.all and the IMPACT115alcIncElast to assign identical income elasticities
 # # to all countries in an IMPACT3 region.
@@ -158,7 +161,7 @@ dt.final[, (IMPACTalcohol_code) := 0]
 #'
 #' @return Qn
 Qn <- function(elasInc, GDPn, GDPn_1, delta.GDP, Qn_1) {
-  x <- elasInc * delta.GDP/ (GDPn + GDPn_1)
+  x <- elasInc * delta.GDP/(GDPn + GDPn_1)
   Qn <- (x + 1) * Qn_1 / (1 - x)
   return(Qn)
 }
@@ -218,10 +221,10 @@ data.table::setnames(dt.SSPPopTot,"V1","pop.tot")
 data.table::setkeyv(dt.SSPPopTot, c("scenario","ISO_code","year"))
 data.table::setkeyv(dt.final, c("scenario","ISO_code","year"))
 
-dt.final[,pop:= dt.SSPPopTot$pop]
+dt.final[,pop := dt.SSPPopTot$pop]
 
 #keep only years in keepYearList
-dt.final <- dt.final[year %in% keepYearList,]
+dt.final <- dt.final[year %in% keyVariable("keepYearList"),]
 
 inDT <- dt.final
 outName <- "dt.alcScenarios"

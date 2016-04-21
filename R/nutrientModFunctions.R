@@ -64,8 +64,8 @@ fileloc <- function(variableName) {
 #' @param fileShortName The substantive (first) part of the file name.
 #' @return The most recent file.
 #' @export
-getNewestVersion <- function(fileShortName) {
-  mData <- fileloc("mData")
+getNewestVersion <- function(fileShortName, directory) {
+  if (missing(directory)) {mData <- fileloc("mData")} else {mData <- directory}
   # see
   # http://stackoverflow.com/questions/7381641/regex-matching-beginning-and-end-strings
   # for an explanation of this regex expression
@@ -146,17 +146,46 @@ removeOldVersions.xlsx <- function(fileShortName,dir) {
 #' @param inDT - name of the data table or frame to be written out
 #' @param outName - short name of the file to be written out
 #' @param dir - directory where the cleanup takes place
-cleanup <- function(inDT, outName,dir) {
+cleanup <- function(inDT, outName,dir, writeFiles) {
+
   #mData <- fileloc("mData")
+  #convert inDT to a standard order
+  print(paste("started cleanup process for ", outName, sep = ""))
+  print(proc.time())
+  flush.console()
+  oldOrder <- names(inDT)
+  startOrder <- c("scenario",keyVariable("region"),"year")
+  if (all(startOrder %in% oldOrder)) {
+    remainder <- oldOrder[!oldOrder %in% startOrder]
+    data.table::setcolorder(inDT,c(startOrder,remainder))
+    data.table::setorderv(inDT,c(startOrder,remainder))
+  }
+  print(paste("starting remove old versions process for ", outName, sep = ""))
+  print(proc.time())
+  flush.console()
   removeOldVersions(outName,dir)
   removeOldVersions.xlsx(outName,dir)
-  temp <- inDT
-  # save(temp,
+  # save(inDT,
   #      file = paste(dir, "/", outName, ".", Sys.Date(), ".RData", sep = ""))
+  print(paste("writing the rds for ", outName, " to ",dir, sep = ""))
+  print(proc.time())
+  flush.console()
   saveRDS(inDT,
           file = paste(dir, "/", outName, ".", Sys.Date(), ".rds", sep = ""))
 
-  wbGeneral <- openxlsx::createWorkbook()
+  print(proc.time())
+  flush.console()
+  if (missing(writeFiles)) {writeFiles = "xlsx"}
+  if ("csv"  %in% writeFiles) {
+    print(paste("write the csv for ", outName, " to ",dir, sep = ""))
+    write.csv(inDT,file = paste(dir, "/", outName, ".", Sys.Date(), ".csv", sep = ""))
+    }
+  if (!"xlsx"  %in% writeFiles) {
+    print("not writing out xlsx file")
+  }
+  else {
+    print(paste("write the xlsx for ", outName, " to ",dir, sep = ""))
+    wbGeneral <- openxlsx::createWorkbook()
   openxlsx::addWorksheet(wb = wbGeneral, sheetName = outName)
 
   openxlsx::writeDataTable(
@@ -189,6 +218,10 @@ cleanup <- function(inDT, outName,dir) {
 
   xcelOutFileName = paste(dir, "/", outName, ".", Sys.Date(), ".xlsx", sep = "")
   openxlsx::saveWorkbook(wbGeneral, xcelOutFileName, overwrite = TRUE)
+  print(paste("done writing the xlsx for ", outName, sep = ""))
+  print(proc.time())
+  flush.console()
+  }
 }
 
 
@@ -240,7 +273,7 @@ keyVariable <- function(variableName) {
                                  IMPACTalcohol_code))
 
   scenarioListSSP <- c("SSP1_v9_130325", "SSP2_v9_130325", "SSP3_v9_130325",
-                    "SSP4_v9_130325", "SSP5_v9_130325")
+                       "SSP4_v9_130325", "SSP5_v9_130325")
 
   DinY <-
     365 #see http://stackoverflow.com/questions/9465817/count-days-per-year for a way to deal with leap years
@@ -404,8 +437,8 @@ fileNameList <- function(variableName) {
   IMPACTstdRegionsFileName <- "IMPACT-agg-regionsFeb2016.xlsx"
   IMPACTstdRegions <-
     paste(IMPACTData, IMPACTstdRegionsFileName, sep = "/")
-  # IMPACTgdxfileName <- "Micronutrient-Inputs20160404.gdx" - new larger gdx
-   IMPACTgdxfileName <- "Demand Results20150817.gdx"
+  # IMPACTgdxfileName <- "Micronutrient-Inputs20160404.gdx"  #- new larger gdx
+  IMPACTgdxfileName <- "Demand Results20150817.gdx"
   IMPACTgdx         <- paste(IMPACTData, IMPACTgdxfileName, sep = "/")
   gdxLib            <- "/Applications/GAMS/gams24.5_osx_x64_64_sfx"
   R_GAMS_SYSDIR     <- "/Applications/GAMS/gams24.5_osx_x64_64_sfx"
@@ -413,7 +446,7 @@ fileNameList <- function(variableName) {
   IMPACTfish        <- paste(IMPACTData, IMPACTfishInfo, sep = "/")
   IMPACTalcoholInfo    <- "Alcohol Elasticities and Quantities IMPACT.xlsx"
   IMPACTalcohol        <- paste(IMPACTData, IMPACTalcoholInfo, sep = "/")
-  IMPACTfoodFileName <- "dt.FoodAvailability"
+  IMPACTfoodFileName <- "dt.IMPACTfood"
   IMPACTfoodFileInfo <-  paste(mData,"/IMPACTData/",IMPACTfoodFileName,sep="")
   # nutrient data ------
   nutrientFileName <- "USDA GFS IMPACT V16.xlsx"

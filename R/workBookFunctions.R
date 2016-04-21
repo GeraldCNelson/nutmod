@@ -142,7 +142,7 @@ f.write.incShare.sheet <- function(incShare, wb) {
   # used to create the metadata sheet
   shtName <- paste("IncShare_", unique(incShare$scenario), sep = "")
   shtName <- substr(shtName, 1, 31)  #sheetnames in xls must be <= 31
-  incShare.wide <- openxlsx::spread(incShare[, c("region", "year", "Pcon")],
+  incShare.wide <- tidyr::spread(incShare[, c("region", "year", "Pcon")],
                                     year, Pcon)
   openxlsx::addWorksheet(wb, sheetName = shtName)
   openxlsx::writeData(wb, incShare.wide, sheet = shtName, startRow = 1,
@@ -159,7 +159,7 @@ f.write.nut.sheet <- function(nutdf, wb) {
                    unique(nutdf$nutrient), sep = "_")
   shtName <- substr(shtName, 1, 31)  #sheetnames in xls must be <= 31
   print(shtName)
-  nutdf.wide <- openxlsx::spread(nutdf[, c("region", "year", "value")],
+  nutdf.wide <- tidyr::spread(nutdf[, c("region", "year", "value")],
                                  year, value)
   openxlsx::addWorksheet(wb, sheetName = shtName)
   openxlsx::writeData(wb, nutdf.wide, sheet = shtName, startRow = 1,
@@ -175,7 +175,7 @@ f.write.nut.sum.sheet <- function(nutdf, wb) {
   # in workSheetCreation.R wbInfo is used to create the metadata sheet
   shtName <- paste(unique(nutdf$scenario), unique(nutdf$nutrient), sep = "_")
   shtName <- substr(shtName, 1, 31)  #sheetnames in xls must be <= 31
-  nutdf.wide <- openxlsx::spread(nutdf[, c("region", "year", "value")],
+  nutdf.wide <- tidyr::spread(nutdf[, c("region", "year", "value")],
                                  year, value)
   openxlsx::addWorksheet(wb, sheetName = shtName)
   openxlsx::writeData(wb, nutdf.wide, sheet = shtName, startRow = 1,

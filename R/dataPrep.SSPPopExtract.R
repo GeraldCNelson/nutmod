@@ -31,6 +31,7 @@ if (!exists("getNewestVersion", mode = "function")) {
 keepYearList <- keyVariable("keepYearList")
 # Read in the cleaned up SSP population data ----
 dt.SSPPop <- getNewestVersion("dt.SSPPopClean")
+# do this to remove year 0, which was needed for the fish and alcohol calculations
 dt.SSPPop <- dt.SSPPop[year %in% keepYearList,]
 
 data.table::setkey(dt.SSPPop, ISO_code)
