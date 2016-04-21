@@ -118,7 +118,9 @@ dt.foodGroup.ratio.wide <- data.table::dcast.data.table(
   value.var = "nut_share",
   variable.factor = FALSE
 )
-write.csv(dt.foodGroup.ratio.wide,file = "dt.foodGroup.ratio.wide.csv")
+inDT <- dt.foodGroup.ratio.wide
+outName <- "foodGroup.ratio"
+cleanup(inDT,outName, fileloc("resData"))
 
 #set up initial worksheets for the ith set of requirements -----
 tmp <- f.createGeneralWorksheet()
