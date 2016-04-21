@@ -81,13 +81,16 @@ reqList <-
     "req.UL.vits.percap",
     "req.UL.minrls.percap"
   )
-reqList <- reqList[4] # just for testing!!! XXX
+#reqList <- reqList[4] # just for testing!!! XXX
 #IMPACTscenarioList <- "SSP2-MIROC" # just for testing!!! XXX
-req <- "req.EAR.percap" # just for testing!!! XXX
+#req <- "req.EAR.percap" # just for testing!!! XXX
 
 generateResults <- function(req,dt.IMPACTfood,IMPACTscenarioList,dt.nuts,region) {
   # use dt.food only in the function
   dt.food <- data.table::copy(dt.IMPACTfood)
+  print(paste("loading dt.IMPACT.food for ", req, sep = ""))
+  print(proc.time())
+  flush.console()
   str(dt.food)
   dt.food <- dt.food[scenario %in% IMPACTscenarioList,]
   # read in the nutrient requirements data that for a representative consumer -----
@@ -122,6 +125,9 @@ generateResults <- function(req,dt.IMPACTfood,IMPACTscenarioList,dt.nuts,region)
   dt.nutrients <- data.table::copy(dt.nuts[,keepListCol, with = FALSE])
   # convert nutrients (in 100 grams of food) to nutrients per kg of food -----
   dt.nutrients[, (nutList) := lapply(.SD, function(x) (x * 10)), .SDcols = nutList]
+  print(paste("multiplying dt.nutrients by 10 for ", req, sep = ""))
+  print(proc.time())
+  flush.console()
 
   #combine the food availability info with the nutrients for each of the IMPACT commodities
   data.table::setkey(dt.nutrients, IMPACT_code)
@@ -140,11 +146,11 @@ generateResults <- function(req,dt.IMPACTfood,IMPACTscenarioList,dt.nuts,region)
   nutList.req.ratio.all <- paste(nutList, "req.ratio.all", sep = ".")
 
   # the total daily consumption of each staple
-  nutList.sum.staple <- paste(nutList, "sum.staple", sep = ".")
+  nutList.sum.staples <- paste(nutList, "sum.staple", sep = ".")
   # the ratio daily consumption of each nutrient for each staple to the total consumption
-  nutList.ratio.staple <- paste(nutList, "ratio.staple", sep = ".")
+  nutList.ratio.staples <- paste(nutList, "ratio.staple", sep = ".")
   # the ratio daily consumption of each nutrient for each staple by the nutrient requirement
-  nutList.req.ratio.staple <- paste(nutList, "req.ratio.staple", sep = ".")
+  nutList.req.ratio.staples <- paste(nutList, "req.ratio.staple", sep = ".")
 
   # the total daily consumption of each food group
   nutList.sum.foodGroup <- paste(nutList, "sum.foodGroup", sep = ".")
@@ -169,20 +175,32 @@ generateResults <- function(req,dt.IMPACTfood,IMPACTscenarioList,dt.nuts,region)
   data.table::setkeyv(dt.food.agg,allKey)
   dt.food.agg <- dt.food.agg[, (nutList.sum.all) := lapply(.SD, sum), .SDcols = nutList.Q,
                              by = eval(data.table::key(dt.food.agg))]
+  print(paste("summing nutrient for all commodities for ", req, sep = ""))
+  print(proc.time())
+  flush.console()
 
   ## individual nutrients by staples
   data.table::setkeyv(dt.food.agg,stapleKey)
-  dt.food.agg <- dt.food.agg[, (nutList.sum.staple) := lapply(.SD, sum), .SDcols = nutList.Q,
+  dt.food.agg <- dt.food.agg[, (nutList.sum.staples) := lapply(.SD, sum), .SDcols = nutList.Q,
                              by = eval(data.table::key(dt.food.agg))]
+
+  print(paste("summing by food group ", req, sep = ""))
+  print(proc.time())
+  flush.console()
 
   ## individual nutrients by food group
   data.table::setkeyv(dt.food.agg,foodGroupKey)
   dt.food.agg <- dt.food.agg[, (nutList.sum.foodGroup) := lapply(.SD, sum), .SDcols = nutList.Q,
                              by = eval(data.table::key(dt.food.agg))]
 
+
   # now calculate ratios of nutrient by group to total consumption of the nutrient
   # nutrient from each food item to the total
   #dt.food.ratio <- data.table::copy(dt.all.sum[,(nutList.ratio) := dt.all.sum[[nutList.Q]] / dt.all.sum[[nutList.sum]]])
+
+  print(paste("calculating nutrient share ratios ", req, sep = ""))
+  print(proc.time())
+  flush.console()
 
   #  ratio of nutrient from each food item to the total
   for (k in 1:length(nutList)) {
@@ -190,7 +208,7 @@ generateResults <- function(req,dt.IMPACTfood,IMPACTscenarioList,dt.nuts,region)
   }
   #  ratio of nutrient from each staple item to the total
   for (k in 1:length(nutList)) {
-    dt.food.agg[,nutList.ratio.staple[k] := get(nutList.sum.staple[k]) / get(nutList.sum.all[k])]
+    dt.food.agg[,nutList.ratio.staples[k] := get(nutList.sum.staples[k]) / get(nutList.sum.all[k])]
   }
   #  ratio of nutrient from each food group item to the total
   for (k in 1:length(nutList)) {
@@ -198,6 +216,10 @@ generateResults <- function(req,dt.IMPACTfood,IMPACTscenarioList,dt.nuts,region)
   }
 
   # now do ratios with nutrient requirements
+ print(paste("calculating nutrient requirement ratios for ", req, sep = ""))
+ print(proc.time())
+ flush.console()
+
   data.table::setkeyv(dt.food.agg,allKey)
   data.table::setkeyv(dt.nutsReqPerCap,allKey)
   dt.food.agg <- merge(dt.food.agg,dt.nutsReqPerCap, by = allKey, all = TRUE)
@@ -209,22 +231,35 @@ generateResults <- function(req,dt.IMPACTfood,IMPACTscenarioList,dt.nuts,region)
   for (k in 1:length(nutList)) {
     dt.food.agg[,nutList.req.ratio.all[k] := get(nutList.Q[k]) / get(nutList[k])]
   }
-  #  ratio of nutrient from each staple item to the requirement
+
+  print(paste("finished with ratio for each food item ", req, sep = ""))
+  print(proc.time())
+  flush.console()
+
+   #  ratio of nutrient from each staple item to the requirement
   for (k in 1:length(nutList)) {
-    dt.food.agg[,nutList.req.ratio.staple[k] := get(nutList.sum.staple[k]) / get(nutList[k])]
+    dt.food.agg[,nutList.req.ratio.staples[k] := get(nutList.sum.staples[k]) / get(nutList[k])]
   }
-  #  ratio of nutrient from each food group item to the requirement
+  print(paste("finished with ratio for the staple/non staple categories ", req, sep = ""))
+  print(proc.time())
+  flush.console()
+   #  ratio of nutrient from each food group item to the requirement
   for (k in 1:length(nutList)) {
     dt.food.agg[,nutList.req.ratio.foodGroup[k] := get(nutList.sum.foodGroup[k]) / get(nutList[k])]
   }
-
+  print(paste("finished with ratio for the food group categories ", req, sep = ""))
+  print(proc.time())
+  flush.console()
   inDT <- dt.food.agg
 
   temp <- gsub("req.","",req)
   reqShortName <- gsub(".percap","",temp)
   outName <- paste("food.agg.",reqShortName,sep = "")
-  cleanup(inDT, outName,fileloc("resData"))
+  cleanup(inDT, outName,fileloc("resData"), "csv")
 }
 # end of generateResults function
 
-generateResults(reqList[1],dt.IMPACTfood,IMPACTscenarioList, dt.nuts,region)
+for (i in 1:length(reqList)) {
+generateResults(reqList[i],dt.IMPACTfood,IMPACTscenarioList, dt.nuts,region)
+  print(paste("Done with ", reqList[i], ". ", length(reqList) - i," sets of requirements to go.", sep = ""))
+}
