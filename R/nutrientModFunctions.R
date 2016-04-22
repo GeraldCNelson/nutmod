@@ -177,11 +177,15 @@ cleanup <- function(inDT, outName,dir, writeFiles) {
   flush.console()
   if (missing(writeFiles)) {writeFiles = "xlsx"}
   if ("csv"  %in% writeFiles) {
-    print(paste("write the csv for ", outName, " to ",dir, sep = ""))
-    write.csv(inDT,file = paste(dir, "/", outName, ".", Sys.Date(), ".csv", sep = ""))
-    }
+      print(paste("write the csv for ", outName, " to ",dir, sep = ""))
+      write.csv(inDT,file = paste(dir, "/", outName, ".", Sys.Date(), ".csv", sep = ""))
+  }
+  if (nrow(inDT) > 50000) {
+      print (paste("number of rows in the data, ", nrow(inDT), ", greater than 50,000. Not writing xlsx", sep = ""))
+      writeFiles <- writeFiles[!writeFiles %in% "xlsx"]
+  }
   if (!"xlsx"  %in% writeFiles) {
-    print("not writing out xlsx file")
+      print("not writing out xlsx file")
   }
   else {
     print(paste("write the xlsx for ", outName, " to ",dir, sep = ""))

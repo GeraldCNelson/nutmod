@@ -49,7 +49,7 @@ reqList <-
     "req.UL.minrls.percap"
   )
 
-req <- "req.EAR.percap" # for testing
+req <- "req.UL.vits.percap" # for testing
 temp <- gsub("req.","",req)
 reqShortName <- gsub(".percap","",temp)
 temp <- paste("food.agg.", reqShortName, sep = "")
