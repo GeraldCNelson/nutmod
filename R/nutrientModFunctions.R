@@ -816,3 +816,10 @@ flagMissingFiles <- function() {
   }
 }
 
+# these functions return the maximum or minimum in every row
+colMax <- function(dataIn) {
+  lapply(dataIn, max, na.rm = TRUE)
+}
+colMin <- function(dataIn) {
+  lapply(dataIn, min, na.rm = TRUE)
+}

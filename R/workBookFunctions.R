@@ -25,8 +25,8 @@ shareStyle <- openxlsx::createStyle(numFmt = "0.0%")
 textStyle <- openxlsx::createStyle(fontName = NULL, fontSize = NULL, fontColour = NULL,
                                    numFmt = "GENERAL", border = NULL, borderColour = getOption("openxlsx.borderColour",
                                                                                                "black"), borderStyle = getOption("openxlsx.borderStyle", "thin"),
-                                   bgFill = NULL, fgFill = NULL, halign = "left", valign = NULL, textDecoration = NULL,
-                                   wrapText = FALSE, textRotation = NULL)
+                                   bgFill = NULL, fgFill = NULL, halign = "left", valign = NULL,
+                                   textDecoration = NULL, wrapText = FALSE, textRotation = NULL)
 
 #' function to create the first, common worksheets in the results workbook
 f.createGeneralWorksheet <- function() {
@@ -143,7 +143,7 @@ f.write.incShare.sheet <- function(incShare, wb) {
   shtName <- paste("IncShare_", unique(incShare$scenario), sep = "")
   shtName <- substr(shtName, 1, 31)  #sheetnames in xls must be <= 31
   incShare.wide <- tidyr::spread(incShare[, c("region", "year", "Pcon")],
-                                    year, Pcon)
+                                 year, Pcon)
   openxlsx::addWorksheet(wb, sheetName = shtName)
   openxlsx::writeData(wb, incShare.wide, sheet = shtName, startRow = 1,
                       startCol = 1, rowNames = FALSE, colNames = TRUE)
@@ -160,7 +160,7 @@ f.write.nut.sheet <- function(nutdf, wb) {
   shtName <- substr(shtName, 1, 31)  #sheetnames in xls must be <= 31
   print(shtName)
   nutdf.wide <- tidyr::spread(nutdf[, c("region", "year", "value")],
-                                 year, value)
+                              year, value)
   openxlsx::addWorksheet(wb, sheetName = shtName)
   openxlsx::writeData(wb, nutdf.wide, sheet = shtName, startRow = 1,
                       startCol = 1, rowNames = FALSE, colNames = TRUE)
@@ -176,7 +176,7 @@ f.write.nut.sum.sheet <- function(nutdf, wb) {
   shtName <- paste(unique(nutdf$scenario), unique(nutdf$nutrient), sep = "_")
   shtName <- substr(shtName, 1, 31)  #sheetnames in xls must be <= 31
   nutdf.wide <- tidyr::spread(nutdf[, c("region", "year", "value")],
-                                 year, value)
+                              year, value)
   openxlsx::addWorksheet(wb, sheetName = shtName)
   openxlsx::writeData(wb, nutdf.wide, sheet = shtName, startRow = 1,
                       startCol = 1, rowNames = FALSE, colNames = TRUE)
@@ -184,4 +184,13 @@ f.write.nut.sum.sheet <- function(nutdf, wb) {
   # variable such as wbInfo
   return(c(shtName, paste("Average daily consumption of", (unique(nutdf$nutrient)),
                           "in scenario", (unique(nutdf$scenario)), sep = " ")))
+}
+f.addStyle <- function(wbGeneral, styleType, DT, sheetName){
+  openxlsx::addStyle(
+    wbGeneral,
+    sheet = sheetName,
+    style = styleType,
+    rows = 1:nrow(DT) + 1,
+    cols = 2:ncol(DT),
+    gridExpand = TRUE)
 }

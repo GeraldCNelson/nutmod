@@ -256,6 +256,7 @@ generateResults <- function(req,dt.IMPACTfood,IMPACTscenarioList,dt.nuts,region)
   reqShortName <- gsub(".percap","",temp)
   outName <- paste("food.agg.",reqShortName,sep = "")
   cleanup(inDT, outName,fileloc("resData"), "csv")
+
 }
 # end of generateResults function
 
