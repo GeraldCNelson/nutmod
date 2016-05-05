@@ -50,7 +50,7 @@ nutList <- names( dt.nutsReqPerCap)[4:length(names( dt.nutsReqPerCap))]
 # one each for all food items, staples, and food groups ------
 
 # individual food function
-f.ratios.All <- function(region,dt.food.agg,nutList){
+f.ratios.all <- function(region,dt.food.agg,nutList){
   basicKey <- c("scenario",region,"year")
   sumKey <-   c(basicKey,"IMPACT_code")
   # the total daily consumption of each nutrient
@@ -70,50 +70,40 @@ f.ratios.All <- function(region,dt.food.agg,nutList){
   dt.all.req.ratio <- unique(dt.food.agg[, keepListCol.req.ratio.all, with =  FALSE])
   #reshape the results to get years in columns
   dt.all.sum.long <- data.table::melt(
-    dt.all.sum,
-    id.vars = basicKey,
-    measure.vars = nutList.sum.all,
-    variable.name = "nutrient",
-    value.name = "nut_share",
-    variable.factor = FALSE
-  )
+    dt.all.sum, id.vars = basicKey, measure.vars = nutList.sum.all, variable.name = "nutrient",
+    value.name = "nut_share", variable.factor = FALSE)
   dt.all.ratio.long <- data.table::melt(
     dt.all.ratio,
     id.vars = sumKey,
     measure.vars = nutList.ratio.all,
     variable.name = "nutrient",
     value.name = "nut_share",
-    variable.factor = FALSE
-  )
+    variable.factor = FALSE)
   dt.all.req.ratio.long <- data.table::melt(
     dt.all.req.ratio,
     id.vars = sumKey,
     measure.vars = nutList.req.ratio.all,
     variable.name = "nutrient",
     value.name = "nut_share",
-    variable.factor = FALSE
-  )
+    variable.factor = FALSE)
   formula.sum.all <- paste("scenario + ", region, " + nutrient  ~ year")
   dt.all.sum.wide <- data.table::dcast.data.table(
     data = dt.all.sum.long,
     formula = formula.sum.all,
     value.var = "nut_share",
-    variable.factor = FALSE
-  )
+    variable.factor = FALSE)
 
   formula.ratio.all <- paste("scenario + ", region, " + nutrient + IMPACT_code ~ year")
   dt.all.ratio.wide <- data.table::dcast.data.table(
     data = dt.all.ratio.long,
     formula = formula.ratio.all,
     value.var = "nut_share",
-    variable.factor = FALSE
-  )
+    variable.factor = FALSE)
   dt.all.req.ratio.wide <- data.table::dcast.data.table(
     data = dt.all.req.ratio.long,
     formula = formula.ratio.all,
     value.var = "nut_share",
-    variable.factor = FALSE
-  )
+    variable.factor = FALSE)
   inDT <- dt.all.sum.wide
   outName <- "all.sum"
   cleanup(inDT,outName, fileloc("resData"))
@@ -252,7 +242,7 @@ r.ratios.staples <- function(region,dt.food.agg,nutList) {
   )
   dt.staples.req.ratio.wide <- data.table::dcast.data.table(
     data = dt.staples.req.ratio.long,
-    formula = formula.staples,
+    formula = formula.staple,
     value.var = "nut_share",
     variable.factor = FALSE
   )

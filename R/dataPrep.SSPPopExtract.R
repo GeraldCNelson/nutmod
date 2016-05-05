@@ -124,7 +124,8 @@ dt.temp.melt <- data.table::melt(dt.temp,
 dt.pop <- rbind(dt.SSP.scen, dt.temp.melt)
 #change names of age groups; prepend SSP
 # somehow this next line of code adds SSP to the front of all the ageGenderCode s
-dt.pop[, ageGenderCode :=  stringi::stri_replace_all_fixed("SSPM", "M", ageGenderCode)]
+#dt.pop[, ageGenderCode :=  stringi::stri_replace_all_fixed("SSPM", "M", ageGenderCode)]
+dt.pop[, ageGenderCode :=  paste("SSP", ageGenderCode, sep="")]
 data.table::setnames(dt.pop,old = "value",new = "pop.value")
 
 # dt.pop[, ageGenderCode :=  lapply(dt.pop[,ageGenderCode,with = FALSE],
@@ -133,7 +134,7 @@ data.table::setkeyv(dt.SSP.scen,c(region,"year"))
 dt.popTot <- dt.SSP.scen[, sum(value), by = eval(data.table::key(dt.SSP.scen))]
 data.table::setnames(dt.popTot, old = "V1", new = "pop.tot")
 #a temporary line of code for testing
-nutReqName <- "req.UL.minrls.ssp"
+#nutReqName <- "req.UL.minrls.ssp"
 #common.nut <- getNewestVersion()
 
 #' Title repCons
@@ -221,8 +222,7 @@ repCons <- function(dt.pop, nutReqName,ageRowsToSum,region) {
 reqs <- keyVariable("reqSSP")
 #The list of nutrients for each is common.EAR, common.RDA.vits, common.RDA.minrls, common.RDA.macro, common.UL.vits,
 #        common.UL.minrls, common.AMDR
-common <-
-  c( "common.EAR", "common.RDA.vits", "common.RDA.minrls", "common.RDA.macro", "common.UL.vits","common.UL.minrls")
+common <- keyVariable("commonList")
 # code that creates and writes out the nutrient requirements files
 # set up workbook wbGeneral -----
 wbGeneral <- openxlsx::createWorkbook()

@@ -160,7 +160,7 @@ cleanup <- function(inDT, outName,dir, writeFiles) {
     data.table::setcolorder(inDT,c(startOrder,remainder))
     data.table::setorderv(inDT,c(startOrder,remainder))
   }
-  print(paste("starting remove old versions process for ", outName, sep = ""))
+  print(paste("removin old versions of ", outName, sep = ""))
   print(proc.time())
   flush.console()
   removeOldVersions(outName,dir)
@@ -243,6 +243,7 @@ cleanup <- function(inDT, outName,dir, writeFiles) {
 #' @param useCookingRetnValues - apply the cooking retention values to the nutrient content
 #' @param userName - Name of person running the scripts and generating results
 #' @param region -  Aggregation scheme from individual countries to regions
+#' @param commonList - names of the lists of nutrient names common to the nutrient lookup table and the requirements
 #' @return list of key variables
 #' @export
 keyVariable <- function(variableName) {
@@ -287,7 +288,7 @@ keyVariable <- function(variableName) {
   #' PRK - Korea, Democratic People's Republic of
 
   reqSSP <- c("req.EAR.ssp", "req.RDA.vits.ssp","req.RDA.minrls.ssp", "req.RDA.macro.ssp","req.UL.vits.ssp", "req.UL.minrls.ssp")
-
+  commonList <- c( "common.EAR", "common.RDA.vits", "common.RDA.minrls", "common.RDA.macro", "common.UL.vits","common.UL.minrls")
   ctyDeleteList <- c("FSM", "GRD", "PRK")
   useCookingRetnValues <- "yes"
   userName <- "Gerald C. Nelson"
@@ -307,6 +308,7 @@ keyVariable <- function(variableName) {
         "reqSSP",
         "ctyDeleteList",
         "useCookingRetnValues",
+        "commonList",
         "userName"
       )
     )
@@ -425,7 +427,7 @@ fileNameList <- function(variableName) {
   IMPACTData      <- fileloc("IMPACTData")
   NutrientData    <- fileloc("NutrientData")
   SSPData         <- fileloc("SSPData")
-  EARFileName     <- "DRI_IOM_V2.xlsx"
+  EARFileName     <- "DRI_IOM_V3.xlsx"
   mData <- fileloc("mData")
   EARs            <- paste(NutrientData, EARFileName, sep = "/")
   # CSE - consumer support equivalent

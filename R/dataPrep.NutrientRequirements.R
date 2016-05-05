@@ -42,14 +42,14 @@ allFoodGroups <- unique(nutrients$food.group.code)
 
 # getSheetNames(EARFileName)
 #' @param req.metadata - meta data for the nutrient requirements
-EARs <- fileNameList("EARs")
-req.metadata <- openxlsx::read.xlsx(EARs, sheet = "Reference", colNames = FALSE)
+reqsFile <- fileNameList("EARs")
+req.metadata <- openxlsx::read.xlsx(reqsFile, sheet = "Reference", colNames = FALSE)
 format(req.metadata, justify = c("left"))
 
 #' @param req.EAR - Estimated Average Requirements (EAR) data
 req.EAR <-
   openxlsx::read.xlsx(
-    EARs,
+    reqsFile,
     sheet = "EAR",
     startRow = 1,
     cols = 3:24,
@@ -60,7 +60,7 @@ reqsList <- "req.EAR"
 #' @param req.RDA.vits - Recommended Daily Allowance (RDA) data for vitamins
 req.RDA.vits <-
   openxlsx::read.xlsx(
-    EARs,
+    reqsFile,
     sheet = "RDAorAI_vitamins",
     startRow = 1,
     cols = 3:17,
@@ -71,7 +71,7 @@ reqsList <- c(reqsList,"req.RDA.vits")
 #' @param req.RDA.minrls - Recommended Daily Allowance (RDA) data for minerals
 req.RDA.minrls <-
   openxlsx::read.xlsx(
-    EARs,
+    reqsFile,
     sheet = "RDAorAI_minerals",
     startRow = 1,
     cols = 3:18,
@@ -82,7 +82,7 @@ reqsList <- c(reqsList,"req.RDA.minrls")
 #' @param req.RDA.macro - Recommended Daily Allowance (RDA) data for macro nutrients
 req.RDA.macro <-
   openxlsx::read.xlsx(
-    EARs,
+    reqsFile,
     sheet = "RDAorAI_macro",
     startRow = 1,
     cols = 3:10,
@@ -93,7 +93,7 @@ reqsList <- c(reqsList,"req.RDA.macro")
 #' @param req.UL.vits - Recommended Upper Limit (UL) data for vitamins
 req.UL.vits <-
   openxlsx::read.xlsx(
-    EARs,
+    reqsFile,
     sheet = "UL_vitamins",
     startRow = 1,
     cols = 3:18,
@@ -104,7 +104,7 @@ reqsList <- c(reqsList,"req.UL.vits")
 #' @param req.UL.minrls - Recommended Upper Limit (UL) data for minerals
 req.UL.minrls <-
   openxlsx::read.xlsx(
-    EARs,
+    reqsFile,
     sheet = "UL_minerals",
     startRow = 1,
     cols = 3:22,
@@ -115,7 +115,7 @@ reqsList <- c(reqsList,"req.UL.minrls")
 #' @param req.AMDR - Acceptable Macronutrient Distribution Range
 req.AMDR <-
   openxlsx::read.xlsx(
-    EARs,
+    reqsFile,
     sheet = "AMDR",
     startRow = 1,
     cols = 3:13,
@@ -165,8 +165,7 @@ req.AMDR <- req.AMDR[, c("ageGenderCode", common.AMDR)]
 # olds (this is the number of 4 year olds) plus 80% of the population
 # of 5-9 year olds (this is number of 5-8 year olds) – and then adjust
 # all the others in a similar manner.
-SSP_DRI_ageGroupLU <- fileNameList("SSP_DRI_ageGroupLU")
-ageGroupLU <- openxlsx::read.xlsx(SSP_DRI_ageGroupLU)
+df.ageGroupLU <- openxlsx::read.xlsx(fileNameList("SSP_DRI_ageGroupLU"))
 
 children <- c("Inf0_0.5", "Inf0.5_1", "Chil1_3")
 
@@ -183,16 +182,16 @@ for (j in reqsList) {
   temp2 <- eval(parse(text = j))
   temp2[is.na(temp2)] <- 0
   #males
-  for (i in 1:nrow(ageGroupLU)) {
-    temp <- temp2[temp2$ageGenderCode == ageGroupLU[i, 2], ]
-    temp[1, 1] <- ageGroupLU[i, 1]
+  for (i in 1:nrow(df.ageGroupLU)) {
+    temp <- temp2[temp2$ageGenderCode == df.ageGroupLU[i, 2], ]
+    temp[1, 1] <- df.ageGroupLU[i, 1]
     # print(temp[1,1])
     temp2 <- rbind(temp2, temp)
   }
   #females
-  for (i in 1:nrow(ageGroupLU)) {
-    temp <- temp2[temp2$ageGenderCode == ageGroupLU[i, 4], ]
-    temp[1, 1] <- ageGroupLU[i, 3]
+  for (i in 1:nrow(df.ageGroupLU)) {
+    temp <- temp2[temp2$ageGenderCode == df.ageGroupLU[i, 4], ]
+    temp[1, 1] <- df.ageGroupLU[i, 3]
     # print(temp[1,1])
     temp2 <- rbind(temp2, temp)
   }
@@ -203,10 +202,11 @@ for (j in reqsList) {
   chldrn.male <- temp2[temp2$ageGenderCode %in% children, ]
   chldrn.male.SSP <-
     chldrn.male[chldrn.male$ageGenderCode == "Inf0_0.5",
-                2:length(temp)] * 1 / 8 + chldrn.male[chldrn.male$ageGenderCode ==
-                                                        "Inf0.5_1", 2:length(chldrn.male)] * 1 /
-    8 + chldrn.male[chldrn.male$ageGenderCode ==
-                      "Chil1_3", 2:length(chldrn.male)] * 6 /8
+    2:length(temp)] * 1 / 8 +
+    chldrn.male[chldrn.male$ageGenderCode == "Inf0.5_1",
+    2:length(chldrn.male)] * 1 / 8 +
+    chldrn.male[chldrn.male$ageGenderCode == "Chil1_3",
+    2:length(chldrn.male)] * 6 / 8
   chldrn.male.SSP$ageGenderCode <- "SSPM0_4"
 
   # female children are the same as male children
@@ -255,8 +255,8 @@ for (j in reqsList) {
   # delete extraneous rows
   temp2 <-
     temp2[(
-      !temp2$ageGenderCode %in% ageGroupLU[, 2] &
-        !temp2$ageGenderCode %in% ageGroupLU[, 4] &
+      !temp2$ageGenderCode %in% df.ageGroupLU[, 2] &
+        !temp2$ageGenderCode %in% df.ageGroupLU[, 4] &
         !temp2$ageGenderCode %in% children &
         !temp2$ageGenderCode %in% c("Preg14_18", "Preg19_30", "Preg31_50") &
         !temp2$ageGenderCode %in%
@@ -269,7 +269,7 @@ for (j in reqsList) {
   nutlist <- colnames(temp2[, 2:length(temp2)])
   assign(nutlistname, nutlist)
   inDT <- eval(parse(text = newDFname))
-  #print(newDFname)
+  print(newDFname)
   outName <- newDFname
   cleanup(inDT,outName,fileloc("mData"))
 }

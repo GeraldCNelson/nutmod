@@ -93,7 +93,7 @@ generateResults <- function(req,dt.IMPACTfood,IMPACTscenarioList,dt.nuts,region)
   flush.console()
   str(dt.food)
   dt.food <- dt.food[scenario %in% IMPACTscenarioList,]
-  # read in the nutrient requirements data that for a representative consumer -----
+  # read in the nutrient requirements data  for a representative consumer -----
   # Note that these are for SSP categories and thus vary by SSP category and year for each region
   dt.nutsReqPerCap <- getNewestVersion(req)
   # get list of nutrients from dt.nutsReqPerCap for the req set of requirements
