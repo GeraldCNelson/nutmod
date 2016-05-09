@@ -1,6 +1,6 @@
 # Intro -----------------------
-#This script reads in alcohol data from FBS.
-# Uses income elasticity parameters from
+#This script reads in alcoholic beverages data from FAO's Food Balance Sheet data.
+# It uses income elasticity parameters from
 # Nelson, Jon P. 2013. “Meta-Analysis of Alcohol Price and Income Elasticities –
 # with Corrections for Publication Bias.” Health Economics Review 3 (1): 17.
 # doi:10.1186/2191-1991-3-17. http://www.healtheconomicsreview.com/content/3/1/17.
@@ -9,6 +9,9 @@
 # beer, -0.30, 0.50
 # wine, -0.45, 1.00
 # spirits, -0.55, 1.00
+
+# Note that only the income elasticties parameters are used below. These are for the US and are assumed to be smaller
+# than for countries with lower per capita income.
 
 #Copyright (C) 2015 Gerald C. Nelson, except where noted
 
@@ -79,6 +82,10 @@ ctyDeleteList <- c("FSM","GRD","PRK")
 inFBS <- sort(dt.regions.all[!is.na(FAOSTAT_code),ISO_code])
 inSSP <- sort(dt.regions.all[!is.na(region_code.SSP) & !ISO_code %in% (ctyDeleteList),ISO_code])
 ctyList <- sort(intersect(inFBS,inSSP))
+regions.all <- getNewestVersion("df.regions.all")
+region <- keyVariable("region")
+setdiff(regions.all[,region],ctyList)
+
 
 # load SSP population, note that it only starts at 2010 ----
 dt.SSPPopClean <- getNewestVersion("dt.SSPPopClean")

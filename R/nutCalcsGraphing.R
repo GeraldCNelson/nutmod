@@ -257,17 +257,181 @@ r.ratios.staples <- function(region,dt.food.agg,nutList) {
   cleanup(inDT,outName, fileloc("resData"))
 }
 
-for (i in reqList) {
-  req <- "req.UL.vits.percap" # for testing
-  #get just nutrient list from req
-  temp <- gsub("req.","",i)
-  reqShortName <- gsub(".percap","",temp)
-  temp <- paste("food.agg.", reqShortName, sep = "")
-  dt.food.agg <- getNewestVersion(temp, fileloc("resData"))
-  # get per capita consumption of each nutrient
-  dt.nuts.sum <- getNewestVersion("all.sum",fileloc("resData"))
-  dt.nutsReqPerCap <- getNewestVersion(i)
-  # get list of nutrients from dt.nutsReqPerCap for the req set of requirements
-  nutList <- names( dt.nutsReqPerCap)[4:length(names( dt.nutsReqPerCap))]
-f.ratios.FG(i,dt.food.agg,nutList)
+# graphics code below -----
+
+cMax.all <- data.table::as.data.table(colMax(dt.staples.req.ratio.wide))
+cMin.all <- data.table::as.data.table(colMin(dt.foodGroup.ratio))
+
+#set up initial worksheets for the ith set of requirements -----
+tmp <- f.createGeneralWorksheet()
+# this structure is needed to get two items out of the function
+#wbGeneral sets up a workbook with some basic information
+wbGeneral <- tmp[[1]]
+# df.wbInfoGeneral is a data frame
+df.wbInfoGeneral <- tmp[[2]]
+#add a worksheet describing the nutrients in this requirement
+openxlsx::addWorksheet(wbGeneral, sheetName = reqShortName)
+openxlsx::writeData(
+  wbGeneral,
+  dt.nutsReqPerCap,
+  sheet = reqShortName,
+  startRow = 1,
+  startCol = 1,
+  rowNames = FALSE)
+
+f.addStyle(wbGeneral, numStyle, dt.nutsReqPerCap, sheetName)
+# openxlsx::addStyle(
+#   wbGeneral,
+#   sheet = reqShortName,
+#   style = numStyle,
+#   rows = 1:nrow(dt.nutsReqPerCap) + 1,
+#   cols = 2:ncol(dt.nutsReqPerCap),
+#   gridExpand = TRUE)
+
+openxlsx::setColWidths(
+  wbGeneral,
+  sheet = reqShortName,
+  cols = 1:ncol(dt.nutsReqPerCap),
+  widths = "auto")
+
+df.wbInfoGeneral[(nrow(df.wbInfoGeneral) + 1), ] <-
+  c(reqList[i], paste("metadata on nutrients included in ", reqShortName))
+
+# add data to the spreadsheet -----
+for (j in 1:length(nutList)) {
+  # add an info sheet for the jth nutrient in the ith set of requirements
+  temp <- dt.food.ratio.wide[nutrient %in% nutList.ratio[j],]
+  # add the results to the spreadsheet
+  openxlsx::addWorksheet(wbGeneral, sheetName = nutList[j])
+  openxlsx::writeData(
+    wbGeneral,
+    temp,
+    sheet = nutList[j],
+    startRow = 1,
+    startCol = 1,
+    rowNames = FALSE,
+    withFilter = TRUE
+  )
+  openxlsx::setColWidths(
+    wbGeneral,
+    sheet = nutList[j],
+    cols = 1,
+    widths = "auto",
+    ignoreMergedCells = FALSE
+  )
+
+  f.addStyle(wbGeneral, numStyle, temp, nutList[j])
+  #   openxlsx::addStyle(
+  # wbGeneral,
+  # sheet = nutList[j],
+  # style = numStyle,
+  # rows = 1:nrow(temp),
+  # cols = 2:ncol(temp),
+  # gridExpand = TRUE
+  #  )
+
+  # code to create a graph of the nutrient ratios for each of the nutrients
+  # in the current requirements list for a single scenario
+  for (k in 1:length(IMPACTscenarioList)) {
+    scenario.name <- IMPACTscenarioList[k]
+    #  nutrient.name <- sub("^(.*)_.*$", "\\1", nutList[j])
+    nutrient.name <- nutList[j]
+    # temp <-
+    #   dt.food.ratio.long[eval(data.table::like(nutrient, "ratio")) & eval(data.table::like(nutrient, nutrient.name)) &
+    #                        scenario %in% scenario.name, ]
+    dt.temp <- data.table::copy(dt.food.ratio.long[nutrient == nutrient.name & scenario == scenario.name,])
+    #ggplot wants the x axis to be numeric
+    dt.temp[,year := as.numeric(gsub("X", "", year))]
+    plotTitle <- paste("Requirement share, ", nutrient.name, ", ", scenario.name,sep = "")
+    gElements <- paste("color = 'black', size = 9, vjust = 0.5")
+    gg <- ggplot2::ggplot(data = dt.temp,
+                          mapping = eval(ggplot2::aes(x = year, y = nut_req,  color = get(region)))) +
+      eval(ggplot2::geom_line()) +
+      eval(ggplot2::theme(
+        axis.text.x = eval(ggplot2::element_text(
+          gElements
+        )),
+        axis.text.y = eval(ggplot2::element_text(
+          gElements
+        )),
+        axis.title.y = eval(ggplot2::element_text(
+          gElements
+        )),
+        legend.text = eval(ggplot2::element_text(
+          color = "black", size = 7, vjust = 0.5
+        )),
+        plot.title = eval(ggplot2::element_text(
+          color = "black", face = "bold", size = 11, hjust = 0.5, vjust = 1
+        )),
+        panel.background = eval(ggplot2::element_blank()),
+        panel.border = eval(ggplot2::element_rect(
+          linetype = "solid",
+          colour = "black",
+          fill = NA
+        )),
+        legend.position = "bottom",
+        legend.title = eval(ggplot2::element_blank()),
+        legend.key = eval(ggplot2::element_rect(fill = "white")),
+        legend.background = eval(ggplot2::element_rect(fill = NA))
+      )) +
+      eval(ggplot2::xlab("year")) + eval(ggplot2::ylab(paste("share of",nutList[j] ,"requirement"))) +
+      eval(ggplot2::ggtitle(plotTitle))  +
+      eval(ggplot2::guides(color = eval(ggplot2::guide_legend(nrow = 5, byrow = TRUE))))
+
+    # add plot to the spreadsheet
+    plotSheet <- paste(nutrient.name,scenario.name, sep = ".")
+    print(plotSheet)
+    openxlsx::addWorksheet(wbGeneral, sheetName = plotSheet)
+    print(gg) #needs to be showing for the next step to work
+    openxlsx::insertPlot(
+      wbGeneral,
+      sheet = plotSheet, width = 9, height = 5, units = "in", startRow = 5,
+      fileType = "png"
+    )
+
+    df.wbInfoGeneral[(nrow(df.wbInfoGeneral) + 1), ] <-
+      c(nutList[j], paste("Ratio results for ", nutrient.name))
+    cMax.all <- data.table::as.data.table(colMax(dt.food.agg$folate_µg.ratio.all))
+    cMin.all <- data.table::as.data.table(colMin(dt.food.reqs.ratio))
+
+    #write the rows that have the max and min values for the current nutrient
+    # eval parse needed here to get the which to run. uggh.
+    # This displays the row num of the row with the max/min value
+    maxRowNum <-
+      which(dt.food.ratio[, eval(parse(text = colnames(cMax)[j]))] ==
+              cMax.food[1, eval(parse(text = colnames(cMax.food)[j]))])
+    minRowNum <-
+      which(dt.food.ratio[, eval(parse(text = colnames(cMin)[j]))] ==
+              cMin.food[1, eval(parse(text = colnames(cMin.food)[j]))])
+    openxlsx::writeData(
+      wbGeneral,
+      dt.food.ratio[maxRowNum, ],
+      sheet = plotSheet,
+      startRow = 1,
+      startCol = 2,
+      rowNames = FALSE,
+      withFilter = FALSE
+    )
+    openxlsx::writeData(wbGeneral,
+                        paste("Country and year with max value for the ",
+                              nutrient.name, " ratio", sep = ""), sheet = plotSheet, startRow = 1,
+                        startCol = 1, rowNames = FALSE, withFilter = FALSE)
+    openxlsx::writeData(wbGeneral, dt.food.ratio[minRowNum, ],
+                        sheet = plotSheet,
+                        startCol = 2, startRow = 3, rowNames = FALSE, withFilter = FALSE)
+    openxlsx::writeData(wbGeneral,
+                        paste("row with min value for the ", nutrient.name,
+                              " ratio", sep = ""), sheet = plotSheet,
+                        startCol = 1, startRow = 3,
+                        rowNames = FALSE, withFilter = FALSE)
+    openxlsx::addStyle(wbGeneral, sheet = plotSheet, style = numStyle, rows = 1:4,
+                       cols = 2:ncol(dt.food.tot), gridExpand = TRUE)
+    openxlsx::setColWidths(wbGeneral, sheet = plotSheet,
+                           cols = 1:ncol(dt.food.tot[minRowNum, ]), widths = "auto", ignoreMergedCells = FALSE)
+    df.wbInfoGeneral[(nrow(df.wbInfoGeneral) + 1), ] <-
+      c(plotSheet,
+        paste("Max/min rows and graph of results for ", nutrient.name))
+  }
+}
+f.finalizeWB(wbGeneral, df.wbInfoGeneral, reqList[i])
 }
