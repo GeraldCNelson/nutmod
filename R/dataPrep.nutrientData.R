@@ -5,7 +5,7 @@
 #' This script reads in the nutrient lookup table (file name is held in nutrientLU) for
 #' IMPACT commodities (USDA GFS IMPACT Vx).
 #' It produces a data frame that has for 100 grams of each IMPACT commodity the amount of several nutrients
-#' adjusted for bone in to boneless, edible portion, and cooking retention.
+#' adjusted for bone in to boneless and edible portion. The choice of using a cooking retention value is in nutrientCalcs.R.
 #' Contributors to the work include Brendan Power (for coding assistance), and
 #' Joanne E. Arsenault, Malcom Reilly, Jessica Bogard, and Keith Lividini (for nutrition expertise)
 

@@ -42,7 +42,7 @@ colCharacter = c("Country Code", "Country","Item Code","Item","Element Code","El
 # temp <- read_file(FBSdataZip,col_numeric(colNumeric),col_character("Country.Code"))
 FBSdataZip <- filelocFBS("FBSdataZip")
 FBScsv <- filelocFBS("FBScsv")
-temp <- unzip(FBSdataZip, file = FBScsv)
+temp <- unzip(FBSdataZip, files = FBScsv)
 dt.FBSrawData <- data.table::fread(temp, header = TRUE)
 file.remove(temp)
 
@@ -156,7 +156,7 @@ dt.FBS <- dt.FBSraw[dt.FBSNameLookup]
 # #get rid of rows that are aggregations of countries
 # dt.FBS <- subset(dt.FBS,Country %in% regions.ISO$country_name)
 
-# Create separate data frame for aggregations of commodities
+# Create separate data data without the commodities aggregations
 aggregates <- c("Animal fats + (Total)",
                 "Cereals - Excluding Beer + (Total)",
                 "Meat + (Total)",

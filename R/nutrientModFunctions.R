@@ -150,7 +150,7 @@ cleanup <- function(inDT, outName,dir, writeFiles) {
 
   #mData <- fileloc("mData")
   #convert inDT to a standard order
-  print(paste("started cleanup process for ", outName, sep = ""))
+  print(paste("started cleanup for ", outName, sep = ""))
   print(proc.time())
   flush.console()
   oldOrder <- names(inDT)
@@ -160,7 +160,7 @@ cleanup <- function(inDT, outName,dir, writeFiles) {
     data.table::setcolorder(inDT,c(startOrder,remainder))
     data.table::setorderv(inDT,c(startOrder,remainder))
   }
-  print(paste("removin old versions of ", outName, sep = ""))
+  print(paste("removing old versions of ", outName, sep = ""))
   print(proc.time())
   flush.console()
   removeOldVersions(outName,dir)

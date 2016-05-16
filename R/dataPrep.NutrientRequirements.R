@@ -17,9 +17,10 @@
 # Arsenault, Malcolm Reilly, Jessica Bogard, and Keith Lividini (for
 # nutrition expertise)
 
-#' @description - This script calculated nutrient requirements for SSP age group categories
-# Source of requirements is
+#' @description - This script calculates nutrient requirements for SSP age group categories
+#' The source of the requirements is
 #' @source \url{http://www.nal.usda.gov/fnic/DRI/DRI_Tables/recommended_intakes_individuals.pdf}
+#' The requirements are imported in dataPrep.nutrientData.R and saved as df.nutrients
 
 #' @include nutrientModFunctions.R
 if (!exists("getNewestVersion", mode = "function")) {source("R/nutrientModFunctions.R")}
@@ -140,8 +141,7 @@ common.UL.minrls <-
 common.AMDR <-
   intersect(colnames(nutrients), colnames(req.AMDR))  # this is empty right now
 
-
-# keep only the common nutrients
+# keep only the nutrients common to the df.nutrients and the list of nutrients covered in a nutrient requirements list
 req.EAR <- req.EAR[, c("ageGenderCode", common.EAR)]
 req.RDA.vits <- req.RDA.vits[, c("ageGenderCode", common.RDA.vits)]
 req.RDA.minrls <-

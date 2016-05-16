@@ -3,7 +3,8 @@
 # Intro -------------------------------------------------------------------
 #' @description
 #' # Intro -------------------------------------------------------------------
-#' This script contains functions to align regional aggregations from country data and writes them out to
+#' This script contains functions to align regional aggregations from country data and writes
+#' a file with the alignments to
 #' @param df.regions.all.rds It contains
 #' @param ISO_code - official ISO 3 digit code for all countries - 249 countries
 #' @param region_code.SSP - the SSP region for each ISO code (either an ISO 3 code or NA) - 194 countries

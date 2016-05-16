@@ -52,7 +52,10 @@ nutList <- names( dt.nutsReqPerCap)[4:length(names( dt.nutsReqPerCap))]
 # one each for all food items, staples, and food groups ------
 
 # individual food function
-f.ratios.all <- function(region,dt.food.agg,nutList){
+f.ratios.all <- function(region,dt.food.agg,req){
+  dt.nutsReqPerCap <- getNewestVersion(req)
+  # get list of nutrients from dt.nutsReqPerCap for the req set of requirements
+  nutList <- names( dt.nutsReqPerCap)[4:length(names(dt.nutsReqPerCap))]
   basicKey <- c("scenario",region,"year")
   sumKey <-   c(basicKey,"IMPACT_code")
 
@@ -94,7 +97,7 @@ f.ratios.all <- function(region,dt.food.agg,nutList){
 
   formula.ratio.all <- paste("scenario + ", region, "  + nutrient + IMPACT_code  ~ year")
 
-    dt.all.ratio.wide <- data.table::dcast(
+  dt.all.ratio.wide <- data.table::dcast(
     data = dt.all.ratio.long,
     formula = formula.ratio.all,
     value.var = "nut_share")
@@ -102,41 +105,48 @@ f.ratios.all <- function(region,dt.food.agg,nutList){
     data = dt.all.req.ratio.long,
     formula = formula.ratio.all,
     value.var = "nut_share")
+
+  temp <- gsub("req.","",req)
+  reqShortName <- gsub(".percap","",temp)
+
   inDT <- dt.all.sum.wide
-  outName <- "all.sum"
+  outName <- paste(reqShortName,"sum.all", sep = ".")
   cleanup(inDT,outName, fileloc("resData"))
 
   inDT <- dt.all.ratio.wide
-  outName <- "all.ratio"
+  outName <- paste(reqShortName,"ratio.all", sep = ".")
   cleanup(inDT,outName, fileloc("resData"))
 
   inDT <- dt.all.req.ratio.wide
-  outName <- "all.req.ratio"
+  outName <- paste(reqShortName,"req.ratio.all", sep = ".")
   cleanup(inDT,outName, fileloc("resData"))
 }
 
 # foodGroup function
-f.ratios.FG <- function(region,dt.food.agg,nutList) {
+f.ratios.FG <- function(region,dt.food.agg,req) {
+  dt.nutsReqPerCap <- getNewestVersion(req)
+  # get list of nutrients from dt.nutsReqPerCap for the req set of requirements
+  nutList <- names( dt.nutsReqPerCap)[4:length(names(dt.nutsReqPerCap))]
   basicKey <-     c("scenario",region,"year")
   foodGroupKey <- c(basicKey, "food.group.code")
-  nutList.sum.foodGroup <-       paste(nutList, "sum.foodGroup", sep = ".")
+  #  nutList.sum.foodGroup <-       paste(nutList, "sum.foodGroup", sep = ".")
   nutList.ratio.foodGroup <-     paste(nutList, "ratio.foodGroup", sep = ".")
   nutList.req.ratio.foodGroup <- paste(nutList, "req.ratio.foodGroup", sep = ".")
-  keepListCol.sum.foodGroup <-       c(foodGroupKey,nutList.sum.foodGroup)
+  # keepListCol.sum.foodGroup <-       c(foodGroupKey,nutList.sum.foodGroup)
   keepListCol.ratio.foodGroup <-     c(foodGroupKey,nutList.ratio.foodGroup)
   keepListCol.req.ratio.foodGroup <- c(foodGroupKey,nutList.req.ratio.foodGroup)
-  dt.foodGroup.sum <- unique(dt.food.agg[,       keepListCol.sum.foodGroup, with =  FALSE])
+  #  dt.foodGroup.sum <- unique(dt.food.agg[,       keepListCol.sum.foodGroup, with =  FALSE])
   dt.foodGroup.ratio <- unique(dt.food.agg[,     keepListCol.ratio.foodGroup, with =  FALSE])
   dt.foodGroup.req.ratio <- unique(dt.food.agg[, keepListCol.req.ratio.foodGroup, with =  FALSE])
   #reshape the results to get years in columns
-  dt.foodGroup.sum.long <- data.table::melt(
-    dt.foodGroup.sum,
-    id.vars = foodGroupKey,
-    measure.vars = nutList.sum.foodGroup,
-    variable.name = "nutrient",
-    value.name = "nut_share",
-    variable.factor = FALSE
-  )
+  # dt.foodGroup.sum.long <- data.table::melt(
+  #   dt.foodGroup.sum,
+  #   id.vars = foodGroupKey,
+  #   measure.vars = nutList.sum.foodGroup,
+  #   variable.name = "nutrient",
+  #   value.name = "nut_share",
+  #   variable.factor = FALSE
+  # )
   dt.foodGroup.ratio.long <- data.table::melt(
     dt.foodGroup.ratio,
     id.vars = foodGroupKey,
@@ -154,12 +164,12 @@ f.ratios.FG <- function(region,dt.food.agg,nutList) {
     variable.factor = FALSE
   )
   formula.foodGroup <- paste("scenario + ",region," + nutrient + food.group.code ~ year")
-  dt.foodGroup.sum.wide <- data.table::dcast.data.table(
-    data = dt.foodGroup.sum.long,
-    formula = formula.foodGroup,
-    value.var = "nut_share",
-    variable.factor = FALSE
-  )
+  # dt.foodGroup.sum.wide <- data.table::dcast.data.table(
+  #   data = dt.foodGroup.sum.long,
+  #   formula = formula.foodGroup,
+  #   value.var = "nut_share",
+  #   variable.factor = FALSE
+  # )
   dt.foodGroup.ratio.wide <- data.table::dcast.data.table(
     data = dt.foodGroup.ratio.long,
     formula = formula.foodGroup,
@@ -172,21 +182,23 @@ f.ratios.FG <- function(region,dt.food.agg,nutList) {
     value.var = "nut_share",
     variable.factor = FALSE
   )
-  inDT <- dt.foodGroup.sum.wide
-  outName <- "foodGroup.sum"
-  cleanup(inDT,outName, fileloc("resData"))
+  temp <- gsub("req.","",req)
+  reqShortName <- gsub(".percap","",temp)
 
   inDT <- dt.foodGroup.ratio.wide
-  outName <- "foodGroup.ratio"
+  outName <- paste(reqShortName,"ratio.foodGroup", sep = ".")
   cleanup(inDT,outName, fileloc("resData"))
 
   inDT <- dt.foodGroup.req.ratio.wide
-  outName <- "foodGroup.req.ratio"
+  outName <- paste(reqShortName,"req.ratio.foodGroup", sep = ".")
   cleanup(inDT,outName, fileloc("resData"))
 }
 
 # staples function
-r.ratios.staples <- function(region,dt.food.agg,nutList) {
+r.ratios.staples <- function(region,dt.food.agg,req) {
+  dt.nutsReqPerCap <- getNewestVersion(req)
+  # get list of nutrients from dt.nutsReqPerCap for the req set of requirements
+  nutList <- names( dt.nutsReqPerCap)[4:length(names(dt.nutsReqPerCap))]
   basicKey <-  c("scenario", region, "year")
   stapleKey <- c(basicKey, "staple.code")
   # the total daily consumption of each staple
@@ -244,30 +256,32 @@ r.ratios.staples <- function(region,dt.food.agg,nutList) {
     value.var = "nut_share",
     variable.factor = FALSE
   )
+  temp <- gsub("req.","",req)
+  reqShortName <- gsub(".percap","",temp)
+
   inDT <- dt.staples.sum.wide
-  outName <- "staples.sum"
+  outName <- paste(reqShortName,"staples.sum", sep = ".")
   cleanup(inDT,outName, fileloc("resData"))
 
   inDT <- dt.staples.ratio.wide
-  outName <- "staples.ratio"
+  outName <- paste(reqShortName,"staples.ratio", sep = ".")
   cleanup(inDT,outName, fileloc("resData"))
 
+
   inDT <- dt.staples.req.ratio.wide
-  outName <- "staples.req.ratio"
+  outName <- paste(reqShortName,"staples.req.ratio", sep = ".")
   cleanup(inDT,outName, fileloc("resData"))
 }
 
 for (i in reqList) {
-  req <- "req.UL.vits.percap" # for testing
+  # req <- "req.UL.vits.percap" # for testing
   #get just nutrient list from req
+  print(paste("working on", i))
   temp <- gsub("req.","",i)
   reqShortName <- gsub(".percap","",temp)
   temp <- paste("food.agg.", reqShortName, sep = "")
   dt.food.agg <- getNewestVersion(temp, fileloc("resData"))
   # get per capita consumption of each nutrient
-  dt.nuts.sum <- getNewestVersion("all.sum",fileloc("resData"))
-  dt.nutsReqPerCap <- getNewestVersion(i)
-  # get list of nutrients from dt.nutsReqPerCap for the req set of requirements
-  nutList <- names( dt.nutsReqPerCap)[4:length(names( dt.nutsReqPerCap))]
-f.ratios.FG(i,dt.food.agg,nutList)
+  # dt.nuts.sum <- getNewestVersion("all.sum",fileloc("resData"))
+  f.ratios.FG(region,dt.food.agg,i)
 }

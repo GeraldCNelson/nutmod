@@ -19,7 +19,7 @@ if (!exists("getNewestVersion", mode = "function")) {source("R/nutrientModFuncti
 #     or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
 #     for more details at http://www.gnu.org/licenses/.
 
-#' @description read in the IMPACT data from a gdx file and prepare for analysis.
+#' @description This script reads in the IMPACT data from a gdx file and writes out selected variables to a .rds file.
 #' The gdxrrw package is needed to run this. It is available at this url, not from CRAN.
 #' @source \url{https://support.gams.com/gdxrrw:interfacing_gams_and_r}
 #' Download the relevant file and use the following command to install

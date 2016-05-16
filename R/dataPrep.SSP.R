@@ -2,7 +2,7 @@
 #' @keywords SSP data cleanup
 # Intro -------------------------------------------------------------------
 #' @description
-#' This script renames the variables in the SSP file and deletes all years except those in
+#' This script reads in the SSP data and renames the variables in the SSP file. It deletes all years except those in
 #' keepYearList (with year 0 added)
 #' It keeps population results only from the IIASA-WiC POP model.
 

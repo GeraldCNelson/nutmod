@@ -147,16 +147,16 @@ generateResults <- function(req,dt.IMPACTfood,IMPACTscenarioList,dt.nuts,region)
 
   # the total daily consumption of each staple
   nutList.sum.staples <- paste(nutList, "sum.staple", sep = ".")
-  # the ratio daily consumption of each nutrient for each staple to the total consumption
+  # the ratio of daily consumption of each nutrient for each staple to the total consumption
   nutList.ratio.staples <- paste(nutList, "ratio.staple", sep = ".")
-  # the ratio daily consumption of each nutrient for each staple by the nutrient requirement
+  # the ratio of daily consumption of each nutrient for each staple by the nutrient requirement
   nutList.req.ratio.staples <- paste(nutList, "req.ratio.staple", sep = ".")
 
   # the total daily consumption of each food group
   nutList.sum.foodGroup <- paste(nutList, "sum.foodGroup", sep = ".")
-  # the ratio daily consumption of each nutrient for each foodGroup to the total consumption
+  # the ratio of daily consumption of each nutrient for each foodGroup to the total consumption
   nutList.req.ratio.foodGroup <- paste(nutList, "req.ratio.foodGroup", sep = ".")
-  # the ratio daily consumption of each nutrient for each foodGroup by the nutrient requirement
+  # the ratio of daily consumption of each nutrient for each foodGroup by the nutrient requirement
   nutList.ratio.foodGroup <- paste(nutList, "ratio.foodGroup", sep = ".")
 
   # multiply the food item by the nutrients it contains and copy into a table called dt.food.prod
