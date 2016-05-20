@@ -29,7 +29,7 @@
 #     GNU General Public License for more details at http://www.gnu.org/licenses/.
 
 #' @include nutrientModFunctions.R
-#' @include nutrientModFunctions.R
+#' @include workbookFunctions.R
 #' @include nutrientCalcFunctions.R
 if (!exists("getNewestVersion", mode = "function")) {
   source("R/nutrientModFunctions.R")
@@ -45,7 +45,7 @@ region <- keyVariable("region")
 dt.IMPACTfood <- getNewestVersionIMPACT("dt.IMPACTfood")
 # this should not be necessary
 dt.IMPACTfood <- dt.IMPACTfood[IMPACT_code %in% keyVariable("IMPACTfoodCommodList"),]
-dt.IMPACTfood <- dt.IMPACTfood[!get(region) == "GRL",] # neither should this
+#dt.IMPACTfood <- dt.IMPACTfood[!get(region) == "GRL",] # neither should this
 # get the list of scenarios in the IMPACT data for use below
 IMPACTscenarioList <- unique(dt.IMPACTfood$scenario)
 #IMPACTscenarioList <- IMPACTscenarioList[1] # just for testing. !!!XXX

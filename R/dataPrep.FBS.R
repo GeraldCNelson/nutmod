@@ -1,9 +1,9 @@
 #' @author Gerald C. Nelson, \\email{nelson.gerald.c@@gmail.com}
 #' @keywords utilities, FAOSTAT, data management
-
+#'
 #' @description This script reads in the FAO Food Balance Sheet information and does some manipulations of the data
 #' @source \url{http://faostat3.fao.org/download/FB/FBS/E}
-
+#'
 #' @include nutrientModFunctions.R
 if (!exists("getNewestVersion", mode = "function")) {source("R/nutrientModFunctions.R")}
 # Intro -------------------------------------------------------------------
@@ -42,7 +42,7 @@ colCharacter = c("Country Code", "Country","Item Code","Item","Element Code","El
 # temp <- read_file(FBSdataZip,col_numeric(colNumeric),col_character("Country.Code"))
 FBSdataZip <- filelocFBS("FBSdataZip")
 FBScsv <- filelocFBS("FBScsv")
-temp <- unzip(FBSdataZip, files = FBScsv)
+temp <- unzip(paste(getwd(),FBSdataZip,sep = "/"), files = FBScsv)
 dt.FBSrawData <- data.table::fread(temp, header = TRUE)
 file.remove(temp)
 

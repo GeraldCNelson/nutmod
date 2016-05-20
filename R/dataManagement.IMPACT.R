@@ -20,8 +20,9 @@ if (!exists("getNewestVersion", mode = "function"))
 #   or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License
 #   for more details at http://www.gnu.org/licenses/.
 
-#' @description read in the IMPACT rds files prepared in dataPrep.IMPACT.R and create the
-#' IMPACTfood data table for use in nutrientCalcs.R
+#' @description This script reads in the IMPACT rds files prepared in dataPrep.IMPACT.R and
+#' creates the IMPACTfood data table for use in nutrientCalcs.R. It reads in dt.FoodAvail,
+#' adds the fish and alcohol data, and pcGDPX0, PCX0 PWX0, and CSV and writes out dt.IMPACTfood.
 
 #create data table just for food items
 createFood <- function(fileShortName) {
@@ -37,67 +38,78 @@ createFood <- function(fileShortName) {
 }
 
 #combine all relevant data tables for analysis
-combineIMPACTData <- function(region) {
+combineIMPACTData <- function() {
  # combineIMPACTData <- function(region,scenSSP,climModel,RCP) {
  #  scen <- paste(scenSSP,"-",climModel,sep="")
  keepYearList <- keyVariable("keepYearList")
  dt.FoodAvail <- getNewestVersionIMPACT("dt.FoodAvail")
- dt.FoodAvail[year %in% keepYearList,]
+ dt.FoodAvail <- dt.FoodAvail[year %in% keepYearList,]
+ dt.regions.all <- data.table::as.data.table(getNewestVersion("df.regions.all"))
  # get the list of scenarios in the IMPACT data for use below
- IMPACTscenarioList <- unique(dt.FoodAvail$scenario)
- df.regions.all <- getNewestVersion("df.regions.all")
+ scenarioListIMPACT <- keyVariable("scenarioListIMPACT")
+# scenarioListIMPACT <- unique(dt.FoodAvail$scenario)
  data.table::setkey(dt.FoodAvail, "scenario","year", "region_code.IMPACT3", "IMPACT_code")
 
  # add alcohol
  dt.alcScenarios <- getNewestVersion("dt.alcScenarios")
- dt.alcScenarios[,pop:=NULL][year %in% keepYearList,]
- idVarsAlc <- c("scenario","ISO_code","year")
+ dt.alcScenarios[,pop := NULL]
+ dt.alcScenarios <- dt.alcScenarios[year %in% keepYearList,]
+ IMPACTalcohol_code <- keyVariable("IMPACTalcohol_code")
+
  #get the names of the beverages that are included in dt.alcScenarios
- measureVarsAlc <- IMPACTalcohol_code <- keyVariable("IMPACTalcohol_code")
+ idVarsAlc <- c("scenario","ISO_code","year")
+ measureVarsAlc <- IMPACTalcohol_code
+
  dt.alcScenarios.melt <- data.table::melt(dt.alcScenarios,
                       id.vars = idVarsAlc,
                       variable.name = "IMPACT_code",
                       measure.vars = measureVarsAlc,
                       value.name = "FoodAvailability",
                       variable.factor = FALSE)
- dt.alcScenarios.melt <- merge(dt.alcScenarios.melt, df.regions.all, by = "ISO_code", all = TRUE)
- deleteListCol <- c("ISO_code","region_code.SSP","FAOSTAT_code","country_name.ISO", "region_code.IMPACT115",
-           "region_name.IMPACT115","region_code.IMPACTstandard","region_name.IMPACT3",
-           "region_name.IMPACTstandard","Short.name","Official.name",
-           "ISO2_code","UNI_code","UNDP_code","GAUL_code"
- )
- dt.alcScenarios.melt[,(deleteListCol) := NULL]
- #to get rid of the countries that are in IMPACT regions and so don't have separate data
- dt.alcScenarios.melt <- dt.alcScenarios.melt[!is.na(FoodAvailability),]
- data.table::setorderv(dt.alcScenarios.melt, cols = c("scenario", "IMPACT_code",region, "year", "FoodAvailability"))
- data.table::setkeyv(dt.alcScenarios.melt, c("scenario","region_code.IMPACT3", "IMPACT_code",region, "year"))
+
+ # aggregate to IMPACT3 regions
+ dt.alcScenarios.melt <- merge(dt.alcScenarios.melt,dt.regions.all, by = "ISO_code")
+ keepListCol <- c("scenario", "ISO_code", "year", "IMPACT_code", "FoodAvailability", "region_code.IMPACT3")
+ dt.alcScenarios.melt <- dt.alcScenarios.melt[,keepListCol, with = FALSE]
+ data.table::setkeyv(dt.alcScenarios.melt, c("scenario", "region_code.IMPACT3", "year", "IMPACT_code"))
+ dt.alcScenarios.melt[,FoodAvailability := sum(FoodAvailability), by = eval(data.table::key(dt.alcScenarios.melt))]
+ dt.alcScenarios.melt[,ISO_code := NULL]
+ dt.alcScenarios.melt <-  unique(dt.alcScenarios.melt)
 
  # add fish
- dt.fishScenarios <- getNewestVersion("dt.fishScenarios")[,pop:=NULL][year %in% keepYearList,]
+ dt.fishScenarios <- getNewestVersion("dt.fishScenarios")
+ dt.fishScenarios[,pop := NULL]
+ dt.fishScenarios <- dt.fishScenarios[year %in% keepYearList,]
+ # use next line because of missing tuna and shrimp
+ IMPACTfish_code <- names(dt.fishScenarios)[4:length(dt.fishScenarios)]
+
  idVarsFish <- c("scenario","ISO_code","year")
  #get the names of the fish that are included in dt.fishScenario
- measureVarsFish <- names(dt.fishScenarios)[!names(dt.fishScenarios) %in% idVarsFish]
+ measureVarsFish <- IMPACTfish_code
  dt.fishScenarios.melt <- data.table::melt(dt.fishScenarios,
                       id.vars = idVarsFish,
                       variable.name = "IMPACT_code",
                       measure.vars = measureVarsFish,
                       value.name = "FoodAvailability",
                       variable.factor = FALSE)
- dt.fishScenarios.melt <- merge(dt.fishScenarios.melt, df.regions.all, by = "ISO_code", all = TRUE)
- deleteListCol <- c("ISO_code","region_code.SSP","FAOSTAT_code","country_name.ISO", "region_code.IMPACT115",
-           "region_name.IMPACT115","region_code.IMPACTstandard","region_name.IMPACT3",
-           "region_name.IMPACTstandard","Short.name","Official.name",
-           "ISO2_code","UNI_code","UNDP_code","GAUL_code"
- )
- dt.fishScenarios.melt[,(deleteListCol) := NULL]
- data.table::setkeyv(dt.fishScenarios.melt, c("scenario","region_code.IMPACT3", "IMPACT_code",region, "year"))
- #to get rid of the countries that are in IMPACT regions and so don't have separate data
- dt.fishScenarios.melt <- dt.fishScenarios.melt[!is.na(FoodAvailability),]
- data.table::setkeyv(dt.fishScenarios.melt, c("scenario", "region_code.IMPACT3", "IMPACT_code"))
+
+ # aggregate to IMPACT3 regions
+ dt.fishScenarios.melt <- merge(dt.fishScenarios.melt,dt.regions.all, by = "ISO_code")
+ keepListCol <- c("scenario", "ISO_code", "year", "IMPACT_code", "FoodAvailability", "region_code.IMPACT3")
+ dt.fishScenarios.melt <- dt.fishScenarios.melt[,keepListCol, with = FALSE]
+ data.table::setkeyv(dt.fishScenarios.melt, c("scenario", "region_code.IMPACT3", "year", "IMPACT_code"))
+ dt.fishScenarios.melt[,FoodAvailability := sum(FoodAvailability), by = eval(data.table::key(dt.fishScenarios.melt))]
+ dt.fishScenarios.melt[,ISO_code := NULL]
+ dt.fishScenarios.melt <-  unique(dt.fishScenarios.melt)
+
+ # data.table::setkeyv(dt.fishScenarios.melt, c("scenario","region_code.IMPACT3", "IMPACT_code",region, "year"))
+ # #to get rid of the countries that are in IMPACT regions and so don't have separate data
+ # dt.fishScenarios.melt <- dt.fishScenarios.melt[!is.na(FoodAvailability),]
+ # data.table::setkeyv(dt.fishScenarios.melt, c("scenario", "region_code.IMPACT3", "IMPACT_code"))
 
  #create alcohol and fish data sets for all the IMPACT scenarios
- dt.alcScenarios.melt[,scenario:= substr((scenario),1,4)]
- dt.fishScenarios.melt[,scenario:= substr((scenario),1,4)]
+ dt.alcScenarios.melt[,scenario := substr((scenario),1,4)]
+ dt.fishScenarios.melt[,scenario := substr((scenario),1,4)]
  dt.temp <- dt.alcScenarios.melt[FALSE,]
  for (i in unique(dt.FoodAvail$scenario)) {
   climModel <- gsub(substr((i),1,5),"",i)
@@ -105,11 +117,11 @@ combineIMPACTData <- function(region) {
   print(i)
   temp.fish <- data.table::copy(dt.fishScenarios.melt)
   temp.alc <- data.table::copy(dt.alcScenarios.melt)
-  temp.fish[,scenario:= paste(scenario,climModel,sep="-")]
-  temp.alc[,scenario:= paste(scenario,climModel,sep="-")]
+  temp.fish[,scenario := paste(scenario,climModel,sep = "-")]
+  temp.alc[,scenario := paste(scenario,climModel,sep = "-")]
   dt.temp <- rbind(dt.temp, temp.fish,temp.alc)
  }
- dt.temp <- dt.temp[scenario %in% IMPACTscenarioList,]
+ dt.temp <- dt.temp[scenario %in% scenarioListIMPACT,]
  # add fish and alcohol via dt.temp to dt.FoodAvail, which has all the other commodities
  dtList <- list(dt.FoodAvail,dt.temp)
  dt.FoodAvail <- data.table::rbindlist(dtList, use.names = TRUE)
@@ -131,10 +143,10 @@ combineIMPACTData <- function(region) {
  #  dt.PCX0.food[, scenario := substring(scenario,1,4)]
 
  data.table::setkeyv(dt.PWX0.food, c("scenario",         "IMPACT_code", "year"))
- data.table::setkeyv(dt.CSEs.food, c(            region, "IMPACT_code"))
- data.table::setkeyv(dt.PCX0.food, c("scenario", region, "IMPACT_code", "year"))
- data.table::setkeyv(dt.pcGDPX0,   c("scenario", region,                "year"))
- data.table::setkeyv(dt.FoodAvail, c("scenario", region, "IMPACT_code", "year"))
+ data.table::setkeyv(dt.CSEs.food, c(            "region_code.IMPACT3", "IMPACT_code"))
+ data.table::setkeyv(dt.PCX0.food, c("scenario", "region_code.IMPACT3", "IMPACT_code", "year"))
+ data.table::setkeyv(dt.pcGDPX0,   c("scenario", "region_code.IMPACT3",                "year"))
+ data.table::setkeyv(dt.FoodAvail, c("scenario", "region_code.IMPACT3", "IMPACT_code", "year"))
  dtlist <- list(dt.FoodAvail,dt.pcGDPX0,dt.PCX0.food,dt.PWX0.food,dt.CSEs.food)
  dt.IMPACTfood <- plyr::join_all(dtlist)
  # set CSEs, PCX, and PWX that are NA to 0
@@ -143,14 +155,15 @@ combineIMPACTData <- function(region) {
  data.table::set(dt.IMPACTfood, which(is.na(dt.IMPACTfood[["PCX0"]])), "PCX0", 0)
  data.table::set(dt.IMPACTfood, which(is.na(dt.IMPACTfood[["PWX0"]])), "PWX0", 0)
  dt.IMPACTfood[IMPACT_code %in% keyVariable("IMPACTfoodCommodList")]
- data.table::setorderv(dt.IMPACTfood, cols = c("scenario", region, "IMPACT_code","year"))
- data.table::setkeyv(dt.IMPACTfood, c("scenario", region, "IMPACT_code"))
+ data.table::setorderv(dt.IMPACTfood, cols = c("scenario",  "region_code.IMPACT3", "IMPACT_code","year"))
+ data.table::setkeyv(dt.IMPACTfood, c("scenario",  "region_code.IMPACT3", "IMPACT_code"))
 
  inDT <- dt.IMPACTfood
  outName <- "dt.IMPACTfood"
  cleanup(inDT,outName,fileloc("iData"))
 }
-region <- keyVariable("region")
 
-combineIMPACTData(region)
+#region <- keyVariable("region")
+
+combineIMPACTData()
 

@@ -1,3 +1,5 @@
+#' Nutrient Modeling Functions
+#'
 #' @keywords utilities, nutrient data management functions
 #' title: "Functions to facilitate management of nutrient data"
 #' @name nutrientModFunctions.R
@@ -21,9 +23,12 @@
 #   invisible()
 # }
 
-#' Title fileloc directory locations for files
+#'fileloc directory locations for files
+#'
 #' @param variableName Name of variable holding a path
+#'
 #' @param RData - raw data directory
+#'
 #' @param mData - main data directory
 #' @param iData - directory with IMPACT data
 #' @param resData - directory with results
@@ -33,6 +38,7 @@
 #' @param IMPACTData - the path to the raw IMPACT data directory
 #' @param IMPACTDataClean  - the path to the cleaned up IMPACT data directory
 #' @return Value of the variableName to be assigned in another script
+#'
 #' @export
 fileloc <- function(variableName) {
   RData <- "data-raw"
@@ -60,9 +66,11 @@ fileloc <- function(variableName) {
   }
 }
 
-#' Title getNewestVersion
+#' getNewestVersion
+#'
 #' @param fileShortName The substantive (first) part of the file name.
 #' @return The most recent file.
+#'
 #' @export
 getNewestVersion <- function(fileShortName, directory) {
   if (missing(directory)) {mData <- fileloc("mData")} else {mData <- directory}
@@ -186,8 +194,7 @@ cleanup <- function(inDT, outName,dir, writeFiles) {
   }
   if (!"xlsx"  %in% writeFiles) {
       print("not writing out xlsx file")
-  }
-  else {
+  } else {
     print(paste("write the xlsx for ", outName, " to ",dir, sep = ""))
     wbGeneral <- openxlsx::createWorkbook()
   openxlsx::addWorksheet(wb = wbGeneral, sheetName = outName)
@@ -278,10 +285,13 @@ keyVariable <- function(variableName) {
                                  IMPACTalcohol_code))
 
   scenarioListSSP <- c("SSP1_v9_130325", "SSP2_v9_130325", "SSP3_v9_130325",
-                       "SSP4_v9_130325", "SSP5_v9_130325")
-
-  DinY <-
-    365 #see http://stackoverflow.com/questions/9465817/count-days-per-year for a way to deal with leap years
+                       "SSP4d_v9_130115", "SSP5_v9_130325")
+  R_GAMS_SYSDIR <- fileNameList("R_GAMS_SYSDIR")
+  gdxrrw::igdx(gamsSysDir = R_GAMS_SYSDIR, silent = TRUE)
+  dt.ptemp <- data.table::as.data.table(gdxrrw::rgdx.param(fileNameList("IMPACTgdx"), "PWX0",ts = TRUE,
+                                                           names = c("scenario", "IMPACT_code", "year", "value")))
+  scenarioListIMPACT <- unique(dt.ptemp$scenario)
+  DinY <- 365 #see http://stackoverflow.com/questions/9465817/count-days-per-year for a way to deal with leap years
   #' #' countries to remove because of poor data
   #' FSM - Micronesia, Federated States of
   #' GRD - Grenada
@@ -312,7 +322,7 @@ keyVariable <- function(variableName) {
         "userName"
       )
     )
-  } else{
+  } else {
     return(eval(parse(text = variableName)))
   }
 }

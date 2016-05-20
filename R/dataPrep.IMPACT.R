@@ -98,7 +98,7 @@ processIMPACT3Data <- function(gdxFileName, varName, catNames) {
     dt.ptemp[region_code.IMPACT3  == "SDN", region_code.IMPACT3 := "SDP"]
   }
   inDT <- dt.ptemp
-  outName <- paste("dt",varName, sep=".")
+  outName <- paste("dt",varName, sep = ".")
   cleanup(inDT,outName,fileloc("iData"))
   # return(dt.temp)
 }
@@ -111,7 +111,7 @@ processIMPACT3Data <- function(gdxFileName, varName, catNames) {
 #'
 #' @return
 #' @export
-generateResults <- function (vars,catNames){
+generateResults <- function(vars,catNames){
   #dtlist.land <- lapply(vars.land,processIMPACT3Data,catNames = catNames.land)
   for (i in vars){
     processIMPACT3Data(fileNameList("IMPACTgdx"),i, catNames)
@@ -136,7 +136,7 @@ catNames.region <- c("scenario","region_code.IMPACT3","year","value")
 
 #' @param worldVars - parameters for data at the world level
 vars.world <- "PWX0"
-catNames.world <- c("scenario","IMPACT_code","year","value")
+catNames.world <- c("scenario", "IMPACT_code", "year", "value")
 
 # comment out lines below to speed up data crunching.
 # generateResults(vars.land,catNames.land)
@@ -148,8 +148,8 @@ generateResults(vars.world,catNames.world)
 CSEs <- fileNameList("CSEs")
 
 dt.CSEs <- data.table::as.data.table(
-  openxlsx::read.xlsx(CSEs,cols=c(1:3)))
-data.table::setnames(dt.CSEs, old=c("CTY","C","CSE"), new=c("region_code.IMPACT3","IMPACT_code","CSE"))
+  openxlsx::read.xlsx(CSEs,cols = c(1:3)))
+data.table::setnames(dt.CSEs, old = c("CTY","C","CSE"), new = c("region_code.IMPACT3","IMPACT_code","CSE"))
 data.table::set(dt.CSEs, which(is.na(dt.CSEs[["CSE"]])), "CSE", 0)
 data.table::setorder(dt.CSEs, region_code.IMPACT3, IMPACT_code)
 # add years to the CSE file, because it currently doesn't have any
@@ -158,4 +158,8 @@ dt.CSEs <- cbind(dt.years, dt.CSEs)
 inDT <- dt.CSEs
 outName <- "dt.CSEs"
 cleanup(inDT,outName,fileloc("iData"))
+
+dt.ptemp <- data.table::as.data.table(gdxrrw::rgdx.param(fileNameList("IMPACTgdx"), vars.world,
+                                                         ts = TRUE, names = catNames.world))
+scenarioList <- unique(dt.ptemp$scenario)
 
