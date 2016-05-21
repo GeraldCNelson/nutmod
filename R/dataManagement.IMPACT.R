@@ -68,10 +68,18 @@ combineIMPACTData <- function() {
                       variable.factor = FALSE)
 
  # aggregate to IMPACT3 regions
+ dt.pop <- getNewestVersion("dt.IMPACT3.pop.tot")
  dt.alcScenarios.melt <- merge(dt.alcScenarios.melt,dt.regions.all, by = "ISO_code")
  keepListCol <- c("scenario", "ISO_code", "year", "IMPACT_code", "FoodAvailability", "region_code.IMPACT3")
  dt.alcScenarios.melt <- dt.alcScenarios.melt[,keepListCol, with = FALSE]
- data.table::setkeyv(dt.alcScenarios.melt, c("scenario", "region_code.IMPACT3", "year", "IMPACT_code"))
+ data.table::setkeyv(dt.alcScenarios.melt,c("scenario", "year", "IMPACT_code", "FoodAvailability", "region_code.IMPACT3"))
+ data.table::setkeyv(dt.pop, c("scenario","year", "region_code.IMPACT3"))
+ dt.temp1 <- merge(dt.alcScenarios.melt, dt.pop, by = c("scenario", "region_code.IMPACT3", "year"), allow.cartesian = TRUE)
+
+data.table::setkeyv(dt.alcScenarios.melt, c("scenario", "region_code.IMPACT3", "year", "IMPACT_code"))
+ dt.alcScenarios.melt[,foodAvailability.sum := sum(FoodAvailability * pop.share), by = eval(data.table::key(dt.alcScenarios.melt))]
+
+
  dt.alcScenarios.melt[,FoodAvailability := sum(FoodAvailability), by = eval(data.table::key(dt.alcScenarios.melt))]
  dt.alcScenarios.melt[,ISO_code := NULL]
  dt.alcScenarios.melt <-  unique(dt.alcScenarios.melt)

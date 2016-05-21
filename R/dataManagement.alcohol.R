@@ -35,7 +35,8 @@ year0 <- year1 - (year2 - year1)
 year0 <- paste("X", year0, sep = "")
 keepYearList <- c(year0,keepYearList)
 IMPACTalcohol_code <- keyVariable("IMPACTalcohol_code")
-scenarioListSSP <- keyVariable("scenarioListSSP")
+scenarioListSSP.pop <- keyVariable("scenarioListSSP.pop")
+scenarioListSSP.GDP <- keyVariable("scenarioListSSP.GDP")
 
 # load regions info ----
 dt.regions.all <- data.table::as.data.table(getNewestVersion("df.regions.all"))
@@ -86,15 +87,14 @@ regions.all <- getNewestVersion("df.regions.all")
 region <- keyVariable("region")
 setdiff(regions.all[,region],ctyList)
 
-
-# load SSP population, note that it only starts at 2010 ----
+# load SSP population, note that it only starts at 2010 -----
 dt.SSPPopClean <- getNewestVersion("dt.SSPPopClean")
 #remove countries that are not in both FBS And SSP
 dt.SSPPopClean <- dt.SSPPopClean[ISO_code %in% ctyList,]
 
 # create income elasticities data for the regions in IMPACT3 ----
 # create alcohol elasticities data table, all countries have the same income elasticities in all years
-temp <- data.table::data.table(ISO_code = rep(dt.regions.all$ISO_code, each = length(keepYearList)),
+dt.elas.wide <- data.table::data.table(ISO_code = rep(dt.regions.all$ISO_code, each = length(keepYearList)),
                              year = keepYearList,
                              c_beer.elas = 0.50,
                              c_wine.elas = 1.00,
@@ -102,15 +102,15 @@ temp <- data.table::data.table(ISO_code = rep(dt.regions.all$ISO_code, each = le
 
 idVars <- c("ISO_code", "year")
 alc_code.elast.list <-
-  names(temp)[3:length(temp)]
+  names(dt.elas.wide)[3:length(dt.elas.wide)]
 dt.alcIncElast <- data.table::melt(
-    temp,
+  dt.elas.wide,
     id.vars = idVars,
     variable.name = "variable",
     measure.vars = alc_code.elast.list,
     variable.factor = FALSE
   )
-inDT <- temp
+inDT <- dt.elas.wide
 outName <- "dt.alcIncElast"
 cleanup(inDT,outName, fileloc("iData"))
 
@@ -153,9 +153,11 @@ dt.final[, (IMPACTalcohol_code) := 0]
 # arc elasticity elasInc = [(Qn - Qn-1)/(Qn + Qn-1)/2] / [(Yn - Yn-1) /(Yn + Yn-1)/2)]
 # [(Qn - Qn-1)/(Qn + Qn-1)] = elasInc * [(Yn - Yn-1) /(Yn + Yn-1))]
 # set x = elasInc * [(Yn - Yn-1) /(Yn + Yn-1))]
-# x * (Qn + Qn-1) + Qn-1 = x* Qn + x * Qn-1 + Qn-1 = Qn
-# Qn -  x * Qn = x * Qn-1 + Qn-1
-# Qn = (x * Qn-1 + Qn-1))/1-x
+# x * (Qn + Qn-1) = (Qn - Qn-1)
+# x * Qn + x* Qn-1 + Qn-1 = Qn
+# x* Qn - Qn = - Qn-1 - x * Qn-1 = - Qn-1 (1 + x)
+# (x - 1)* Qn = - Qn-1 - x * Qn-1 = - Qn-1 (1 + x)
+# Qn = - Qn-1 (1 + x)/(x-1) = Qn-1 (1+x)/(1-x)
 
 
 #' Title function to generate nth value of quantity consumed
@@ -167,27 +169,37 @@ dt.final[, (IMPACTalcohol_code) := 0]
 #' @param Qn_1 - consumption quantity in year n-1
 #'
 #' @return Qn
-Qn <- function(elasInc, GDPn, GDPn_1, delta.GDP, Qn_1) {
-  x <- elasInc * delta.GDP/(GDPn + GDPn_1)
+Qn <- function(elasInc, GDPn, GDP.lag1, delta.GDP, Qn_1) {
+  x <- elasInc * delta.GDP/(GDPn + GDP.lag1)
   Qn <- (x + 1) * Qn_1 / (1 - x)
   return(Qn)
 }
 
-for (scenarioChoice in scenarioListSSP) {
+for (scenarioChoice in scenarioListSSP.GDP) {
   for (ctyChoice in ctyList) {
+    print(paste(scenarioChoice,ctyChoice))
     # subset on current scenario and country
-    dt.GDP <-  dt.SSPGDP[.(scenarioChoice, ctyChoice)]
-
-    # the .() code is very useful in subsetting a data table.
-    # step 1. setkey for the columns you want to subset on (e.g., variable, ISO_code)
-    # step 2. Use this construction (dt.FBS[.("perCapKg",ctyChoice)]) to create a new data table.
-    # Note that in this example ctyChoice is a variable that can have multiple items
+    data.table::setkeyv(dt.SSPGDP, c("scenario", "ISO_code"))
+    dt.GDP <-  dt.SSPGDP[scenario  %in% scenarioChoice & ISO_code  %in% ctyChoice,]
+    dt.GDP[,(IMPACTalcohol_code) := 0]
+    dt.GDP[year == middleYear, (alc) :=  dt.FBS.subset[IMPACT_code == alc,get(baseYear)]]
+    temp.elas <- dt.elas.wide[ctyChoice %in% ISO_code,]
+    dt.GDP <- merge(dt.GDP,temp.elas, by = c("ISO_code","year"))
+# calculation to get to Qn
+    # x <- elasInc * delta.GDP/(GDPn + GDPn_1)
+    # Qn <- Qn_1 * (1 + x) / (1 - x)
+    dt.GDP[,temp := c_wine.elas * delta.GDP/(value + GDP.lag1)]
+    for (alc in IMPACTalcohol_code) {
+    dt.GDP[year == "X2005",(alc) := dt.FBS.subset[IMPACT_code == alc,get(baseYear)]]
+    }
+    dt.GDP[, c_wine := c_wine[1L]][-1L, c_wine := c_wine * (1 + temp)  / (1 - temp)]
 
     # create a data table with FBS alc perCapKg values for one country
     keylist <- c("ISO_code", "IMPACT_code")
     data.table::setkeyv(dt.FBS.kgPerCap, keylist)
     #' @param dt.FBS.kgPerCap - FBS kgPerCap numbers for years in the keepYearsList
-    dt.FBS.subset <-
+   print("subsetting FBS")
+     dt.FBS.subset <-
       dt.FBS.kgPerCap[J(ctyChoice, IMPACTalcohol_code)]
     # some countries don't have values for the base year. Next two lines of code deal with this.
     dt.FBS.subset[, year := (middleYear)]
@@ -200,6 +212,7 @@ for (scenarioChoice in scenarioListSSP) {
     for (alc in IMPACTalcohol_code) {
       #alc <- IMPACTalcohol_code[1]
       # set baseyear value to the average from FBS
+      print(paste("loop over ", alc, "in", IMPACTalcohol_code))
       dt.temp[year == middleYear, (alc) :=  dt.FBS.subset[IMPACT_code == alc,get(baseYear)]]
       # get the country elasticities
       keylist <- c("ISO_code", "variable")
@@ -209,6 +222,7 @@ for (scenarioChoice in scenarioListSSP) {
 
       #subsequent rows
       for (n in 2:nrow(dt.temp)) {
+#        print(paste("working on row ", n, "in dt.temp"))
         #        GDPn_1 <- dt.GDP[n, GDP.lag1]
         #        elastIncn <- dt.elas[n, value]
         n_1 <- n - 1
@@ -221,7 +235,7 @@ for (scenarioChoice in scenarioListSSP) {
   }
 }
 
-# add SSP population ---
+# add an SSP population to the final data table ----
 data.table::setkeyv(dt.SSPPopClean, c("scenario", "ISO_code", "year"))
 dt.SSPPopTot <- dt.SSPPopClean[, sum(value), by = eval(data.table::key(dt.SSPPopClean))]
 data.table::setnames(dt.SSPPopTot,"V1","pop.tot")
@@ -230,7 +244,7 @@ data.table::setkeyv(dt.final, c("scenario","ISO_code","year"))
 
 dt.final[,pop := dt.SSPPopTot$pop]
 
-#keep only years in keepYearList
+#keep only years in keepYearList -----
 dt.final <- dt.final[year %in% keyVariable("keepYearList"),]
 
 inDT <- dt.final

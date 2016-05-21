@@ -30,7 +30,7 @@ year0 <- paste("X",year0,sep="")
 keepYearList <- c(year0,keepYearList)
 modelListGDP <-   fileNameList("modelListGDP")
 modelListPop <-     fileNameList("modelListPop")
-temp <- utils::unzip(SSPdataZip, file = SSPcsv)
+temp <- utils::unzip(SSPdataZip, files = SSPcsv)
 dt.SSP <-
   data.table::fread(temp, header = TRUE, stringsAsFactors = FALSE)
 file.remove(temp)
@@ -190,4 +190,26 @@ dt.SSP.pop.step2.melt <- data.table::melt(
 )
 inDT <- dt.SSP.pop.step2.melt
 outName <- "dt.SSPPopClean"
+cleanup(inDT,outName,fileloc("mData"))
+
+
+# pop needs to be  aggregated from all ISO codes to the regions of the latest IMPACT data - region_code.IMPACT3.
+dt.regions.all <- data.table::as.data.table(getNewestVersion("df.regions.all"))
+# list of countries not in SSP data set so no age gender info
+missingSSP <- setdiff(dt.regions.all$ISO_code,dt.regions.all$region_code.SSP)
+#remove them from list of countries
+dt.regions.all <- dt.regions.all[!ISO_code %in% missingSSP,]
+
+dt.pop <- dt.SSP.pop.step2.melt[year %in% keepYearList,]
+temp <- merge(dt.regions.all,dt.pop, by = "ISO_code")
+temp[is.na(temp)] <- 0
+keepListCol <- c("scenario", "ISO_code", "year", "value", "region_code.IMPACT3")
+dt.pop <- temp[,keepListCol, with = FALSE]
+data.table::setkeyv(dt.pop,c("scenario","region_code.IMPACT3","year"))
+dt.pop[,value := sum(value), by = eval(data.table::key(dt.pop))] [,ISO_code := NULL]
+dt.pop <- unique(dt.pop)
+dt.pop <- dt.pop[year %in% keyVariable("keepYearList"),]
+
+inDT <- dt.pop
+outName <- "dt.IMPACT3.pop.tot"
 cleanup(inDT,outName,fileloc("mData"))

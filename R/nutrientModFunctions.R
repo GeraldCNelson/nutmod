@@ -243,7 +243,8 @@ cleanup <- function(inDT, outName,dir, writeFiles) {
 #' @param IMPACTfish_code- variable name list for fish consumption items for IMPACT
 #' @param IMPACTalcohol_code - variable name list for alcoholic beverages consumption for IMPACT
 #' @param IMPACTfoodCommodList - variable name lists for IMPACT food commodities
-#' @param scenarioListSSP - list of scenarios in the SSP data
+#' @param scenarioListSSP.pop - list of scenarios in the SSP pop data
+#' @param scenarioListSSP.GDP - list of scenarios in the SSP GDP|PPP data
 #' @param DinY - number of days in a year
 #' @param reqSSP - nutrient requirements by SSP age groups
 #' @param ctyDeleteList
@@ -284,8 +285,12 @@ keyVariable <- function(variableName) {
                                  "ctols", "ctool", "ccoco", "ccafe", "cteas", "cothr", IMPACTfish_code,
                                  IMPACTalcohol_code))
 
-  scenarioListSSP <- c("SSP1_v9_130325", "SSP2_v9_130325", "SSP3_v9_130325",
-                       "SSP4d_v9_130115", "SSP5_v9_130325")
+  #These are the scenario numbers for the IIASA data with population disaggregated.
+  scenarioListSSP.pop <- c("SSP1_v9_130115", "SSP2_v9_130115", "SSP3_v9_130115",
+                       "SSP4_v9_130115", "SSP5_v9_130115")
+  scenarioListSSP.GDP <- c("SSP1_v9_130325", "SSP2_v9_130325", "SSP3_v9_130325",
+                           "SSP4_v9_130325", "SSP5_v9_130325")
+
   R_GAMS_SYSDIR <- fileNameList("R_GAMS_SYSDIR")
   gdxrrw::igdx(gamsSysDir = R_GAMS_SYSDIR, silent = TRUE)
   dt.ptemp <- data.table::as.data.table(gdxrrw::rgdx.param(fileNameList("IMPACTgdx"), "PWX0",ts = TRUE,
@@ -312,7 +317,8 @@ keyVariable <- function(variableName) {
         "IMPACTfish_code",
         "IMPACTalcohol_code",
         "IMPACTfoodCommodList",
-        "scenarioListSSP",
+        "scenarioListSSP.pop",
+        "scenarioListSSP.GDP",
         "scenarioListIMPACT",
         "DinY",
         "reqSSP",
