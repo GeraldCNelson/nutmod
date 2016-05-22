@@ -52,7 +52,7 @@ combineIMPACTData <- function() {
 
  # add alcohol
  dt.alcScenarios <- getNewestVersion("dt.alcScenarios")
- dt.alcScenarios[,pop := NULL]
+# dt.alcScenarios[,pop := NULL]
  dt.alcScenarios <- dt.alcScenarios[year %in% keepYearList,]
  IMPACTalcohol_code <- keyVariable("IMPACTalcohol_code")
 
@@ -86,7 +86,7 @@ data.table::setkeyv(dt.alcScenarios.melt, c("scenario", "region_code.IMPACT3", "
 
  # add fish
  dt.fishScenarios <- getNewestVersion("dt.fishScenarios")
- dt.fishScenarios[,pop := NULL]
+ #dt.fishScenarios[,pop := NULL]
  dt.fishScenarios <- dt.fishScenarios[year %in% keepYearList,]
  # use next line because of missing tuna and shrimp
  IMPACTfish_code <- names(dt.fishScenarios)[4:length(dt.fishScenarios)]
