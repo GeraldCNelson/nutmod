@@ -36,11 +36,10 @@ dt.regions.all <- data.table::as.data.table(getNewestVersion("df.regions.all"))
 dt.SSPGDP <- getNewestVersion("dt.SSPGDPClean")
 data.table::setorder(dt.SSPGDP, scenario, ISO_code, year)
 # change code for countries from ISO to SSP
-data.table::setnames(dt.SSPGDP, old = "ISO_code", new = "region_code.SSP")
-data.table::setkeyv(dt.SSPGDP, c("scenario", "region_code.SSP"))
+data.table::setkeyv(dt.SSPGDP, c("scenario", "ISO_code"))
 
 # lag and difference SSP GDP -----
-dt.SSPGDP[,GDP.lag1 := data.table::shift(value,type = "lag"), by = c("region_code.SSP","scenario")]
+dt.SSPGDP[,GDP.lag1 := data.table::shift(value,type = "lag"), by = c("ISO_code","scenario")]
 dt.SSPGDP[,delta.GDP := value - GDP.lag1]
 
 # prepare the FBS data -----
@@ -81,7 +80,7 @@ setdiff(regions.all[,region],ctyList)
 
 # load SSP population, note that it only starts at 2010 ----
 dt.SSPPopClean <- getNewestVersion("dt.SSPPopClean")
-#remove countries that are not in both FBS And SSP
+#keep only countries that are in both FBS And SSP
 dt.SSPPopClean <- dt.SSPPopClean[ISO_code %in% ctyList, ]
 
 # read in fish data from IMPACT  ----
@@ -121,30 +120,17 @@ fishD <- openxlsx::read.xlsx(
 )
 colnames(fishD) <-
   c(
-    "IMPACT_code",
-    "region",
-    "net_trade",
-    "exports",
-    "imports",
-    "tot_demand",
-    "food_demand",
-    "feed_demand",
-    "other_demand",
-    "stock_change",
-    "crush_demand"
+    "IMPACT_code", "region", "net_trade", "exports", "imports", "tot_demand", "food_demand", "feed_demand",
+    "other_demand", "stock_change","crush_demand"
   )
 
 fishD[is.na(fishD)] <- 0
 fishD <- fishD[order(fishD$region), ]
 
-# create income elasticities data for the regions in IMPACT3 ----
+# create income elasticities data for the countries common to FBS and SSP ----
 #' @param - fishIncElast - fish income elasticity
 dt.fishIncElast <- data.table::as.data.table(openxlsx::read.xlsx(
-  IMPACTfish,
-  sheet = "IncDmdElas",
-  cols = 1:11,
-  startRow = 1,
-  colNames = TRUE
+  IMPACTfish, sheet = "IncDmdElas", cols = 1:11, startRow = 1, colNames = TRUE
 ))
 
 #Column names can't have a "-" in them. This code changes them to underscore
@@ -193,19 +179,14 @@ if (changeElasticity == TRUE) {
       value = 1L
     )
 }
-# inDT <- dt.fishIncElast
-# outName <- "dt.fishIncElast"
-# cleanup(inDT, outName, fileloc("iData"))
 
-# merge regions.all and the IMPACT115fishIncElast to assign identical income elasticities
-# to all SSP countries .
 data.table::setkey(dt.fishIncElast, region_code.IMPACT115)
 data.table::setkey(dt.regions.all, region_code.IMPACT115)
 dt.fishIncElast.ISO <- dt.fishIncElast[dt.regions.all]
-dt.fishIncElast.ISO <- merge(dt.fishIncElast ,dt.regions.all, by = "region_code.IMPACT115")
+#dt.fishIncElast.ISO <- merge(dt.fishIncElast ,dt.regions.all, by = "region_code.IMPACT115")
 keepListCol <- c( "region_code.SSP",fish_code.elast.list)
 dt.fishIncElast.ISO <- dt.fishIncElast.ISO[, keepListCol, with = FALSE]
-dt.fishIncElast.ISO <- unique(dt.fishIncElast.ISO)
+dt.fishIncElast.ISO <- dt.fishIncElast.ISO[!is.na(region_code.SSP),]
 # create a fish elasticities data table with the same income elasticities in all years
 dt.years <- data.table::data.table(year = rep(keepYearList, each = nrow(dt.fishIncElast.ISO)))
 

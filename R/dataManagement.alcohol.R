@@ -47,8 +47,6 @@ data.table::setorder(dt.SSPGDP, scenario, ISO_code, year)
 data.table::setkeyv(dt.SSPGDP, c("scenario", "ISO_code"))
 
 # lag and difference SSP GDP -----
-
-#dt.SSPGDP[, GDP.lag1:=c(NA, value[-.N]), by = c("ISO_code","scenario")][, delta.GDP := value - GDP.lag1]
 dt.SSPGDP[,GDP.lag1 := data.table::shift(value,type = "lag"), by = c("ISO_code","scenario")]
 dt.SSPGDP[,delta.GDP := value - GDP.lag1]
 
@@ -90,16 +88,18 @@ setdiff(regions.all[,region],ctyList)
 
 # load SSP population, note that it only starts at 2010 -----
 dt.SSPPopClean <- getNewestVersion("dt.SSPPopClean")
-#remove countries that are not in both FBS And SSP
+#keep only countries that are in both FBS And SSP
 dt.SSPPopClean <- dt.SSPPopClean[ISO_code %in% ctyList,]
 
-# create income elasticities data for the regions in IMPACT3 ----
+# create income elasticities data for the regions common to SSP and FSB ----
 # create alcohol elasticities data table, all countries have the same income elasticities in all years
 dt.elas.wide <- data.table::data.table(ISO_code = rep(dt.regions.all$ISO_code, each = length(keepYearList)),
                                        year = keepYearList,
                                        c_beer.elas = 0.50,
                                        c_wine.elas = 1.00,
                                        c_spirits.elas = 1.00)
+
+dt.elas.wide <- dt.elas.wide[ISO_code %in% ctyList]
 
 idVars <- c("ISO_code", "year")
 alc_code.elast.list <-
@@ -115,33 +115,6 @@ inDT <- dt.elas.wide
 outName <- "dt.alcIncElast"
 cleanup(inDT,outName, fileloc("iData"))
 
-# # merge regions.all and the IMPACT115alcIncElast to assign identical income elasticities
-# # to all countries in an IMPACT3 region.
-# setkey(dt.alcIncElast, region_code.IMPACT115)
-# setkey(dt.regions.all, region_code.IMPACT115)
-# dt.alcIncElast.ISO <- dt.alcIncElast[dt.regions.all]
-# deleteColList <- c("region_name.IMPACT115")
-# dt.alcIncElast.ISO <- dt.alcIncElast.ISO[, (deleteColList) := NULL]
-
-# # create an alc elasticities data table with the same income elasticities in all years
-# temp <-
-#   data.table(ISO_code = rep((dt.alcIncElast.ISO), each = length(keepYearList)))
-# dt.years <-
-#   data.table(year = rep(keepYearList, each = nrow(dt.alcIncElast.ISO)))
-
-#' #' @param - dt.alcIncElast.ISO - alc elasticities for each region in the SSP data and all years
-#' dt.alcIncElast.ISO <- cbind(dt.years, dt.alcIncElast.ISO)
-#' idVars <- c("region_code.SSP", "year")
-#' dt.alcIncElast <- melt(
-#'   dt.alcIncElast.ISO,
-#'   id.vars = idVars,
-#'   variable.name = "variable",
-#'   measure.vars = alc_code.elast.list,
-#'   variable.factor = FALSE
-#' )
-#' dt.alcIncElast <- dt.alcIncElast[!is.na(region_code.SSP),]
-#' setnames(dt.alcIncElast,old = "region_code.SSP", new = "ISO_code")
-
 # arc elasticity elasInc = [(Qn - Qn-1)/(Qn + Qn-1)/2] / [(Yn - Yn-1) /(Yn + Yn-1)/2)]
 # [(Qn - Qn-1)/(Qn + Qn-1)] = elasInc * [(Yn - Yn-1) /(Yn + Yn-1))]
 # set x = elasInc * [(Yn - Yn-1) /(Yn + Yn-1))]
@@ -151,26 +124,10 @@ cleanup(inDT,outName, fileloc("iData"))
 # (x - 1)* Qn = - Qn-1 - x * Qn-1 = - Qn-1 (1 + x)
 # Qn = - Qn-1 (1 + x)/(x-1) = Qn-1 (1+x)/(1-x)
 
-# #' Title function to generate nth value of quantity consumed
-# #'
-# #' @param elasInc - income elasticity
-# #' @param GDPn - GDP for year n
-# #' @param GDPn_1 - GDP for year n-1
-# #' @param delta.GDP - difference in GDP
-# #' @param Qn_1 - consumption quantity in year n-1
-# #'
-# #' @return Qn
-# Qn <- function(elasInc, GDPn, GDP.lag1, delta.GDP, Qn_1) {
-#   x <- elasInc * delta.GDP/(GDPn + GDP.lag1)
-#   Qn <- (x + 1) * Qn_1 / (1 - x)
-#   return(Qn)
-# }
+# loop over scenarios and countries common to FBS and SSP  -----
 
-# loop over scenarios and countries  -----
-# this code is designed to make loop implementation easier in the future
-# set up a data table to hold the results of the calculations
-dt.final <-
-  data.table::data.table(scenario = character(0),
+# set up dt to hold the results
+dt.final <- data.table::data.table(scenario = character(0),
                          ISO_code = character(0),
                          year = character(0))
 dt.final[, (IMPACTalcohol_code) := 0]
