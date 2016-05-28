@@ -14,7 +14,7 @@
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 # GNU General Public License for more details at http://www.gnu.org/licenses/.
-
+# options(warn=2)
 #' @include nutrientModFunctions.R
 if (!exists("getNewestVersion", mode = "function")) {source("R/nutrientModFunctions.R")}
 FBSyearsToAverage <- keyVariable("FBSyearsToAverage")
@@ -29,21 +29,37 @@ IMPACTfish_code <- keyVariable("IMPACTfish_code")
 scenarioListSSP.pop <- keyVariable("scenarioListSSP.pop")
 scenarioListSSP.GDP <- keyVariable("scenarioListSSP.GDP")
 
+#load the SSP GDP data -----
+dt.SSPGDP <- getNewestVersion("dt.SSPGDPClean")
+
 # load regions info ----
 dt.regions.all <- data.table::as.data.table(getNewestVersion("df.regions.all"))
+# create list with only countries in both FBS and SSP
+inFBS <- sort(dt.regions.all[!is.na(FAOSTAT_code), ISO_code])
+# the pop data has a different set of countries than the GDP data. Only keep countries that are in both
+inSSP.pop <- sort(dt.regions.all[!is.na(region_code.SSP), ISO_code])
+inSSP.GDP <- sort(unique(dt.SSPGDP$ISO_code))
+setdiff(inSSP.pop,inSSP.GDP)
+inSSP <- sort(intersect(inSSP.pop,inSSP.GDP))
+ctyList <- sort(intersect(inFBS,inSSP))
+# regions.all <- getNewestVersion("df.regions.all")
+# region <- keyVariable("region")
+# setdiff(regions.all[,region],ctyList)
+dt.SSPGDP <- dt.SSPGDP[ISO_code %in% ctyList, ]
 
-#prepare the SSP GDP data -----
-dt.SSPGDP <- getNewestVersion("dt.SSPGDPClean")
-data.table::setorder(dt.SSPGDP, scenario, ISO_code, year)
-# change code for countries from ISO to SSP
-data.table::setkeyv(dt.SSPGDP, c("scenario", "ISO_code"))
+data.table::setnames(dt.SSPGDP, old = "ISO_code", new = "region_code.SSP")# change code for countries from ISO to SSP
+data.table::setkeyv(dt.SSPGDP, c("scenario", "region_code.SSP"))
+data.table::setorder(dt.SSPGDP, scenario, region_code.SSP, year)
 
 # lag and difference SSP GDP -----
-dt.SSPGDP[,GDP.lag1 := data.table::shift(value,type = "lag"), by = c("ISO_code","scenario")]
+dt.SSPGDP[,GDP.lag1 := data.table::shift(value,type = "lag"), by = c("region_code.SSP","scenario")]
 dt.SSPGDP[,delta.GDP := value - GDP.lag1]
 
 # prepare the FBS data -----
 dt.FBS <- getNewestVersion("dt.FBS")
+# keep only FBS data for countries in ctyList
+dt.FBS <- dt.FBS[ISO_code %in% ctyList, ]
+data.table::setnames(dt.FBS, old = "ISO_code", new = "region_code.SSP")# change code for countries from ISO to SSP
 
 #keep only the years to average
 dt.FBS <- dt.FBS[year %in% FBSyearsToAverage, ]
@@ -55,51 +71,40 @@ middleYear <-
 data.table::setkey(dt.FBS, variable)
 dt.FBS.kgPerCap <- dt.FBS["perCapKg"] # choose perCapKg
 #to reduce the clutter in the FBS DT
-keepListCol <- c("ISO_code", "IMPACT_code", "year", "value")
+keepListCol <- c("region_code.SSP", "IMPACT_code", "year", "value")
 dt.FBS.kgPerCap <- dt.FBS.kgPerCap[, keepListCol, with = FALSE]
 #now average
 baseYear <- paste("aveAt", middleYear, sep = "")
-dt.FBS.kgPerCap[, (baseYear) := mean(value), by = list(ISO_code, IMPACT_code)]
+dt.FBS.kgPerCap[, (baseYear) := mean(value), by = list(region_code.SSP, IMPACT_code)]
 
 dt.FBS.kgPerCap <- dt.FBS.kgPerCap[year == middleYear, ]
 deleteListCol <- c("value")
 dt.FBS.kgPerCap[, (deleteListCol) := NULL]
 data.table::set(dt.FBS.kgPerCap, which(is.na(dt.FBS.kgPerCap[[baseYear]])), baseYear, 0)
-data.table::setorder(dt.FBS.kgPerCap, ISO_code, IMPACT_code)
+data.table::setorder(dt.FBS.kgPerCap, region_code.SSP, IMPACT_code)
 
-# # delete pesky countries
-ctyDeleteList <- c("FSM", "GRD", "PRK")
-
-# create list with only countries in both FBS and SSP
-inFBS <- sort(dt.regions.all[!is.na(FAOSTAT_code),ISO_code])
-inSSP <- sort(dt.regions.all[!is.na(region_code.SSP) & !ISO_code %in% (ctyDeleteList),ISO_code])
-ctyList <- sort(intersect(inFBS,inSSP))
-regions.all <- getNewestVersion("df.regions.all")
-region <- keyVariable("region")
-setdiff(regions.all[,region],ctyList)
-
-# load SSP population, note that it only starts at 2010 ----
-dt.SSPPopClean <- getNewestVersion("dt.SSPPopClean")
-#keep only countries that are in both FBS And SSP
-dt.SSPPopClean <- dt.SSPPopClean[ISO_code %in% ctyList, ]
+# # load SSP population, note that it only starts at 2010 ----
+# dt.SSPPopClean <- getNewestVersion("dt.SSPPopClean")
+# #keep only pop from countries that are in both FBS And SSP
+# dt.SSPPopClean <- dt.SSPPopClean[ISO_code %in% ctyList, ]
 
 # read in fish data from IMPACT  ----
-# fish supply in 1000 metric tons
-#' @param - fishS - supply of fish
-fishS <- openxlsx::read.xlsx(
-  IMPACTfish,
-  sheet = "QS_FishSys",
-  cols = 1:6,
-  startRow = 3,
-  colNames = FALSE
-)
-colnames(fishS) <-
-  c("fish_type",
-    "region",
-    "freshAquac",
-    "marinAquac",
-    "freshCapt",
-    "marine_capt")
+# # fish supply in 1000 metric tons
+# #' @param - fishS - supply of fish
+# fishS <- openxlsx::read.xlsx(
+#   IMPACTfish,
+#   sheet = "QS_FishSys",
+#   cols = 1:6,
+#   startRow = 3,
+#   colNames = FALSE
+# )
+# colnames(fishS) <-
+#   c("fish_type",
+#     "region",
+#     "freshAquac",
+#     "marinAquac",
+#     "freshCapt",
+#     "marine_capt")
 
 #' @param - fishLookup - fish look up. production and consumption names and IMPACT names
 fishLookup <- openxlsx::read.xlsx(
@@ -134,17 +139,10 @@ dt.fishIncElast <- data.table::as.data.table(openxlsx::read.xlsx(
 ))
 
 #Column names can't have a "-" in them. This code changes them to underscore
-data.table::setnames(
-  dt.fishIncElast,
-  old = colnames(dt.fishIncElast),
-  new = gsub("-", "_", colnames(dt.fishIncElast))
-)
+data.table::setnames(dt.fishIncElast, old = colnames(dt.fishIncElast), new = gsub("-", "_", colnames(dt.fishIncElast)))
 # in code below, start with item 2 because item 1 is region
-data.table::setnames(
-  dt.fishIncElast,
-  old = colnames(dt.fishIncElast)[2:length(dt.fishIncElast)],
-  new = paste(colnames(dt.fishIncElast)[2:length(dt.fishIncElast)], "elas", sep = ".")
-)
+data.table::setnames(dt.fishIncElast, old = colnames(dt.fishIncElast)[2:length(dt.fishIncElast)],
+                     new = paste(colnames(dt.fishIncElast)[2:length(dt.fishIncElast)], "elas", sep = "."))
 data.table::setnames(dt.fishIncElast, old = "region", new = "region_code.IMPACT115")
 # add elasticity of zero for aquatic plants and animals (c_aqpl and c_aqan)
 dt.fishIncElast[, c("c_aqan.elas", "c_aqpl.elas") := 0]
@@ -182,37 +180,28 @@ if (changeElasticity == TRUE) {
 
 data.table::setkey(dt.fishIncElast, region_code.IMPACT115)
 data.table::setkey(dt.regions.all, region_code.IMPACT115)
-dt.fishIncElast.ISO <- dt.fishIncElast[dt.regions.all]
-#dt.fishIncElast.ISO <- merge(dt.fishIncElast ,dt.regions.all, by = "region_code.IMPACT115")
+dt.fishIncElast.SSP <- dt.fishIncElast[dt.regions.all]
+#dt.fishIncElast.SSP <- merge(dt.fishIncElast ,dt.regions.all, by = "region_code.IMPACT115")
 keepListCol <- c( "region_code.SSP",fish_code.elast.list)
-dt.fishIncElast.ISO <- dt.fishIncElast.ISO[, keepListCol, with = FALSE]
-dt.fishIncElast.ISO <- dt.fishIncElast.ISO[!is.na(region_code.SSP),]
+dt.fishIncElast.SSP <- dt.fishIncElast.SSP[, keepListCol, with = FALSE]
+dt.fishIncElast.SSP <- dt.fishIncElast.SSP[!is.na(region_code.SSP),]
 # create a fish elasticities data table with the same income elasticities in all years
-dt.years <- data.table::data.table(year = rep(keepYearList, each = nrow(dt.fishIncElast.ISO)))
+dt.years <- data.table::data.table(year = rep(keepYearList, each = nrow(dt.fishIncElast.SSP)))
 
-#' @param - dt.fishIncElast.ISO - fish elasticities for each region in the SSP data and all years
-dt.fishIncElast.ISO <- cbind(dt.years, dt.fishIncElast.ISO)
+#' @param - dt.fishIncElast.SSP - fish elasticities for each region in the SSP data and all years
+dt.fishIncElast.SSP <- cbind(dt.years, dt.fishIncElast.SSP)
 idVars <- c("region_code.SSP", "year")
 dt.fishIncElast <- data.table::melt(
-  dt.fishIncElast.ISO,
+  dt.fishIncElast.SSP,
   id.vars = idVars,
   variable.name = "variable",
   measure.vars = fish_code.elast.list,
   variable.factor = FALSE
 )
 dt.fishIncElast <- dt.fishIncElast[!is.na(region_code.SSP), ]
-#data.table::setnames(dt.fishIncElast, old = "region_code.SSP", new = "ISO_code")
 inDT <- dt.fishIncElast
 outName <- "dt.fishIncElast"
 cleanup(inDT,outName,fileloc("iData"))
-
-# loop over scenarios and countries  -----
-# set up a data table to hold the results of the calculations
-dt.final <-
-  data.table::data.table(scenario = character(0),
-                         region_code.SSP = character(0),
-                         year = character(0))
-dt.final[, (IMPACTfish_code) := 0]
 
 # arc elasticity elasInc = [(Qn - Qn-1)/(Qn + Qn-1)/2] / [(Yn - Yn-1) /(Yn + Yn-1)/2)]
 # [(Qn - Qn-1)/(Qn + Qn-1)] = elasInc * [(Yn - Yn-1) /(Yn + Yn-1))]
@@ -229,27 +218,39 @@ dt.final[, (IMPACTfish_code) := 0]
 #   return(Qn)
 # }
 
+# loop over scenarios and countries  -----
+# set up a data table to hold the results of the calculations
+dt.final <-
+  data.table::data.table(scenario = character(0),
+                         region_code.SSP = character(0),
+                         year = character(0))
+dt.final[, (IMPACTfish_code) := 0]
+
+# ctyList <- c("AFG", "AGO", "ALB", "ARE", "ARG", "ARM", "AUS", "AUT") # for testing
+# scenarioListSSP.GDP <- c("SSP1_v9_130325","SSP2_v9_130325") # for testing
 for (scenarioChoice in scenarioListSSP.GDP) {
   for (ctyChoice in ctyList) {
     print(paste(scenarioChoice,ctyChoice))
     # create a data table with FBS fish perCapKg values for one country
-    keylist <- c("ISO_code", "IMPACT_code")
+    keylist <- c("region_code.SSP", "IMPACT_code")
     data.table::setkeyv(dt.FBS.kgPerCap, keylist)
     #' @param dt.FBS.kgPerCap - FBS kgPerCap numbers for years in the keepYearsList
+    # get data rows for each fish commodity for country ctyChoice. The row is created if it
+    # doesn't exist i dt.FBS.kgPerCap
     dt.FBS.subset <- dt.FBS.kgPerCap[J(ctyChoice, IMPACTfish_code)]
-    # some countries don't have values for the base year. Next two lines of code deal with this.
+    # some countries don't have fish values for the base year. Next two lines of code deal with this.
     dt.FBS.subset[, year := (middleYear)]
     dt.FBS.subset[is.na(get(baseYear)), (baseYear) := 0, with = FALSE]
     data.table::setkeyv(dt.FBS.subset, c("IMPACT_code", baseYear))
 
-    # subset on current scenario and country
+    # subset on country and the current scenario
     data.table::setkeyv(dt.SSPGDP, c("scenario", "region_code.SSP"))
-    dt.GDP <-  dt.SSPGDP[scenarioChoice %in% scenario & ctyChoice %in% region_code.SSP,]
+    dt.GDP <-  dt.SSPGDP[scenario %in% scenarioChoice  &  region_code.SSP %in% ctyChoice,]
+    # add columns for the fish commodities
     dt.GDP[,(IMPACTfish_code) := 0]
-    #--------------------------------
 
-    temp.elas <- dt.fishIncElast[ctyChoice %in% region_code.SSP,]
-    dt.GDP <- merge(dt.GDP,dt.fishIncElast.ISO, by = c("region_code.SSP", "year"))
+    dt.temp.fish.elas <- dt.fishIncElast.SSP[region_code.SSP %in% ctyChoice,]
+    dt.GDP <- merge(dt.GDP,dt.temp.fish.elas, by = c("region_code.SSP", "year"))
     # calculation to get to Qn
     # x <- elasInc * delta.GDP/(GDPn + GDPn_1)
     # Qn <- Qn_1 * (1 + x) / (1 - x)
@@ -257,32 +258,11 @@ for (scenarioChoice in scenarioListSSP.GDP) {
       elas <- paste(fish,"elas", sep = ".")
       dt.GDP[,temp := get(elas) * delta.GDP/(value + GDP.lag1)]
       dt.GDP[year == "X2005",(fish) := dt.FBS.subset[IMPACT_code == fish,get(baseYear)]]
-      dt.GDP[, (fish) := get(fish)[1L]][-1L, (fish) := get(fish) * (1 + temp)  / (1 - temp)]
+      dt.GDP[, (fish) := get(fish)[1L]]
+      dt.GDP[-1L, (fish) := get(fish) * (1 + temp)  / (1 - temp)]
+
     }
 
-    #---------------------
-    # keepListCol <- c("scenario", "ISO_code", "year")
-    # dt.temp <- dt.GDP[, keepListCol, with = FALSE]
-    # dt.temp[, (IMPACTfish_code) := 0]
-    # # loop over all fish codes ---
-    # for (fish in IMPACTfish_code) {
-    #   #fish <- IMPACTfish_code[1]
-    #   # set baseyear value to the average from FBS
-    #   dt.temp[year == middleYear, (fish) :=  dt.FBS.subset[IMPACT_code == fish, get(baseYear)]]
-    #   # get the country elasticities
-    #   keylist <- c("ISO_code", "variable")
-    #   data.table::setkeyv(dt.fishIncElast, keylist)
-    #   dt.elas <-
-    #     dt.fishIncElast[.(ctyChoice, paste(fish, ".elas", sep = ""))]
-    #
-    #   #subsequent rows
-    #   for (n in 2:nrow(dt.temp)) {
-    #     #        GDPn_1 <- dt.GDP[n, GDP.lag1]
-    #     #        elastIncn <- dt.elas[n, value]
-    #     n_1 <- n - 1
-    #     Qn_1 <- dt.temp[n_1, get(fish)]
-    #     dt.temp[n, (fish) := Qn(dt.elas[n, value], dt.GDP[n, value], dt.GDP[n, GDP.lag1], dt.GDP[n, delta.GDP], Qn_1)]
-    #   }
     keepListCol <- c("scenario", "region_code.SSP", "year", IMPACTfish_code)
     dt.temp <- dt.GDP[,keepListCol, with = FALSE]
     dt.final <- rbind(dt.final, dt.temp)

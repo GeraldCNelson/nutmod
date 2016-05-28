@@ -43,12 +43,7 @@ colKeepList <-
 dt.SSP <- dt.SSP[, colKeepList, with = FALSE]
 #make all names lower case and change region to ISO_code
 oldNameList <- names(dt.SSP)
-newNameList <- c("model",
-                 "scenario",
-                 "ISO_code",
-                 "variable",
-                 "unit",
-                 keepYearList)
+newNameList <- c("model", "scenario","ISO_code",  "variable", "unit", keepYearList)
 data.table::setnames(dt.SSP, oldNameList, newNameList)
 
 #There are 21 scenarios; 4 each for SSP scenarios 1, 2, 3, and 5 and
@@ -63,7 +58,9 @@ data.table::setnames(dt.SSP, oldNameList, newNameList)
 # Keep only the population results from IIASA for the age and gender breakdown and
 # for the years 2010 to 2050.
 
-# the lists of pop and GDP models are defined in dataPrep.setup.R
+# the lists of pop and GDP models are defined in nutrientModFunctions.R
+
+# Note: the different models don't have results for the same set of countries
 
 # create cleaned up GDP SSP data ---
 #' @param dt.SSP.GDP - data table with the SSP results from the model identified in modelListGDP
