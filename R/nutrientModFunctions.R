@@ -120,47 +120,59 @@ getNewestVersionIMPACT <- function(fileShortName) {
 #' @param dir - directory of the file to be removed
 #' @export
 removeOldVersions <- function(fileShortName,dir) {
-  #  regExp <- paste("(?=^", fileShortName, ")(?=.*RData$)", sep = "")
-  regExp <- paste("(?=^", fileShortName, ")(?=.*rds$)", sep = "")
-  oldVersionList <-
-    grep(regExp,
-         list.files(dir),
-         value = TRUE,
-         perl = TRUE)
-  if (length(oldVersionList) > 0) {
-    file.remove(paste(dir, oldVersionList, sep = "/"))
+  removeFcn <- function(regExp) {
+    oldVersionList <-
+      grep(regExp,
+           list.files(dir),
+           value = TRUE,
+           perl = TRUE)
+    if (length(oldVersionList) > 0) {
+      file.remove(paste(dir, oldVersionList, sep = "/"))
+    }
   }
+  # remove .Rdata versions
+  regExp <- paste("(?=^", fileShortName, ")(?=.*RData$)", sep = "")
+  removeFcn(regExp)
+  # remove .rds versions
+  regExp <- paste("(?=^", fileShortName, ")(?=.*rds$)", sep = "")
+  removeFcn(regExp)
+  # remove .xlsx versions
+  regExp <- paste("(?=^", fileShortName, ")(?=.*xlsx$)", sep = "")
+  removeFcn(regExp)
+  # remove .csv versions
+  regExp <- paste("(?=^", fileShortName, ")(?=.*csv$)", sep = "")
+  removeFcn(regExp)
 }
 
-#' Title removeOldVersions.xlsx - remove old xlsx versions in preparation for writing out new ones
-#' @param fileShortName - short name of the files to be removed
-#' @export
-removeOldVersions.xlsx <- function(fileShortName,dir) {
-  #mData <- fileloc("mData")
-  # returns a list of all the [fileShortName] files in the mData
-  # directory
-  regExp <- paste("(?=^", fileShortName, ")(?=.*xlsx$)", sep = "")
-  oldVersionList <-
-    grep(regExp,
-         list.files(dir),
-         value = TRUE,
-         perl = TRUE)
-  if (length(oldVersionList) > 0) {
-    file.remove(paste(dir, oldVersionList, sep = "/"))
-  }
-}
+# #' Title removeOldVersions.xlsx - remove old xlsx versions in preparation for writing out new ones
+# #' @param fileShortName - short name of the files to be removed
+# #' @export
+# removeOldVersions.xlsx <- function(fileShortName,dir) {
+#   #mData <- fileloc("mData")
+#   # returns a list of all the [fileShortName] files in the mData
+#   # directory
+#   regExp <- paste("(?=^", fileShortName, ")(?=.*xlsx$)", sep = "")
+#   oldVersionList <-
+#     grep(regExp,
+#          list.files(dir),
+#          value = TRUE,
+#          perl = TRUE)
+#   if (length(oldVersionList) > 0) {
+#     file.remove(paste(dir, oldVersionList, sep = "/"))
+#   }
+# }
 
 #' Title cleanup - remove old versions and save rds and xlsx versions of the file
 #' @param inDT - name of the data table or frame to be written out
 #' @param outName - short name of the file to be written out
 #' @param dir - directory where the cleanup takes place
-cleanup <- function(inDT, outName,dir, writeFiles) {
+cleanup <- function(inDT, outName, dir, writeFiles) {
 
   #mData <- fileloc("mData")
   #convert inDT to a standard order
-  print(paste("started cleanup for ", outName, sep = ""))
+  print(paste("start cleanup for ", outName, sep = ""))
   print(proc.time())
-  flush.console()
+
   oldOrder <- names(inDT)
   startOrder <- c("scenario",keyVariable("region"),"year")
   if (all(startOrder %in% oldOrder)) {
@@ -170,9 +182,9 @@ cleanup <- function(inDT, outName,dir, writeFiles) {
   }
   print(paste("removing old versions of ", outName, sep = ""))
   print(proc.time())
-  flush.console()
+
   removeOldVersions(outName,dir)
-  removeOldVersions.xlsx(outName,dir)
+#  removeOldVersions.xlsx(outName,dir)
   # save(inDT,
   #      file = paste(dir, "/", outName, ".", Sys.Date(), ".RData", sep = ""))
   print(paste("writing the rds for ", outName, " to ",dir, sep = ""))
@@ -185,53 +197,54 @@ cleanup <- function(inDT, outName,dir, writeFiles) {
   flush.console()
   if (missing(writeFiles)) {writeFiles = "xlsx"}
   if ("csv"  %in% writeFiles) {
-      print(paste("write the csv for ", outName, " to ",dir, sep = ""))
-      write.csv(inDT,file = paste(dir, "/", outName, ".", Sys.Date(), ".csv", sep = ""))
+    print(paste("the number of rows in the csv is ", nrow(inDT)))
+    print(paste("write the csv for ", outName, " to ",dir, sep = ""))
+    write.csv(inDT,file = paste(dir, "/", outName, ".", Sys.Date(), ".csv", sep = ""))
   }
   if (nrow(inDT) > 50000) {
-      print (paste("number of rows in the data, ", nrow(inDT), ", greater than 50,000. Not writing xlsx", sep = ""))
-      writeFiles <- writeFiles[!writeFiles %in% "xlsx"]
+    print(paste("number of rows in the data, ", nrow(inDT), ", greater than 50,000. Not writing xlsx", sep = ""))
+    writeFiles <- writeFiles[!writeFiles %in% "xlsx"]
   }
   if (!"xlsx"  %in% writeFiles) {
-      print("not writing out xlsx file")
+    print("not writing out xlsx file")
   } else {
     print(paste("write the xlsx for ", outName, " to ",dir, sep = ""))
     wbGeneral <- openxlsx::createWorkbook()
-  openxlsx::addWorksheet(wb = wbGeneral, sheetName = outName)
+    openxlsx::addWorksheet(wb = wbGeneral, sheetName = outName)
 
-  openxlsx::writeDataTable(
-    wbGeneral,
-    inDT,
-    sheet = outName,
-    startRow = 1,
-    startCol = 1,
-    rowNames = FALSE,
-    colNames = TRUE,
-    withFilter = TRUE
-  )
+    openxlsx::writeDataTable(
+      wbGeneral,
+      inDT,
+      sheet = outName,
+      startRow = 1,
+      startCol = 1,
+      rowNames = FALSE,
+      colNames = TRUE,
+      withFilter = TRUE
+    )
 
-  openxlsx::setColWidths(
-    wbGeneral,
-    sheet = outName,
-    cols = 1:ncol(inDT),
-    widths = "auto"
-  )
+    openxlsx::setColWidths(
+      wbGeneral,
+      sheet = outName,
+      cols = 1:ncol(inDT),
+      widths = "auto"
+    )
 
-  numStyle <- openxlsx::createStyle(numFmt = "0.00")
-  openxlsx::addStyle(
-    wbGeneral,
-    sheet = outName,
-    style = numStyle,
-    rows = 1:nrow(inDT),
-    cols = 2:ncol(inDT),
-    gridExpand = TRUE
-  )
+    numStyle <- openxlsx::createStyle(numFmt = "0.00")
+    openxlsx::addStyle(
+      wbGeneral,
+      sheet = outName,
+      style = numStyle,
+      rows = 1:nrow(inDT),
+      cols = 2:ncol(inDT),
+      gridExpand = TRUE
+    )
 
-  xcelOutFileName = paste(dir, "/", outName, ".", Sys.Date(), ".xlsx", sep = "")
-  openxlsx::saveWorkbook(wbGeneral, xcelOutFileName, overwrite = TRUE)
-  print(paste("done writing the xlsx for ", outName, sep = ""))
-  print(proc.time())
-  flush.console()
+    xcelOutFileName = paste(dir, "/", outName, ".", Sys.Date(), ".xlsx", sep = "")
+    openxlsx::saveWorkbook(wbGeneral, xcelOutFileName, overwrite = TRUE)
+    print(paste("done writing the xlsx for ", outName, sep = ""))
+    print(proc.time())
+    flush.console()
   }
 }
 
@@ -287,7 +300,7 @@ keyVariable <- function(variableName) {
 
   #These are the scenario numbers for the IIASA data with population disaggregated.
   scenarioListSSP.pop <- c("SSP1_v9_130115", "SSP2_v9_130115", "SSP3_v9_130115",
-                       "SSP4_v9_130115", "SSP5_v9_130115")
+                           "SSP4_v9_130115", "SSP5_v9_130115")
   scenarioListSSP.GDP <- c("SSP1_v9_130325", "SSP2_v9_130325", "SSP3_v9_130325",
                            "SSP4_v9_130325", "SSP5_v9_130325")
 
