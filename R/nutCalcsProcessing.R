@@ -39,10 +39,11 @@ req <- "req.UL.vits.percap" # for testing
 #get just nutrient list from req
 temp <- gsub("req.","",req)
 reqShortName <- gsub(".percap","",temp)
+##### This probably needs to be changed
 temp <- paste("food.agg.", reqShortName, sep = "")
 dt.food.agg <- getNewestVersion(temp, fileloc("resData"))
 # get per capita consumption of each nutrient
-dt.nuts.sum <- getNewestVersion("all.sum",fileloc("resData"))
+#dt.nuts.sum <- getNewestVersion("all.sum",fileloc("resData"))
 
 dt.nutsReqPerCap <- getNewestVersion(req)
 # get list of nutrients from dt.nutsReqPerCap for the req set of requirements
@@ -56,8 +57,8 @@ f.ratios.all <- function(region,dt.food.agg,req){
   dt.nutsReqPerCap <- getNewestVersion(req)
   # get list of nutrients from dt.nutsReqPerCap for the req set of requirements
   nutList <- names( dt.nutsReqPerCap)[4:length(names(dt.nutsReqPerCap))]
-  basicKey <- c("scenario",region,"year")
-  sumKey <-   c(basicKey,"IMPACT_code")
+  basicKey <- c("scenario", region, "year")
+  sumKey <-   c(basicKey, "IMPACT_code")
 
   # the total daily consumption of each nutrient
   nutList.sum.all <-       paste(nutList, "sum.all", sep = ".")

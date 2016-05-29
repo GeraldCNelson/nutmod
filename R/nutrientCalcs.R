@@ -52,8 +52,10 @@ IMPACTscenarioList <- unique(dt.IMPACTfood$scenario)
 # read in nutrients data and optionally apply cooking retention values -----
 dt.nuts <- cookingRet("yes")
 # # get rid of nutrient info for shrimp, tuna, and salmon because they are not currently in the FBS data
-# deleteListRow <- c("c_Shrimp", "c_Tuna", "c_Salmon")
-# dt.nuts <- dt.nuts[!IMPACT_code %in% deleteListRow,]
+if (keyVariable("fixFish") == TRUE) {
+deleteListRow <- c("c_Shrimp", "c_Tuna", "c_Salmon")
+dt.nuts <- dt.nuts[!IMPACT_code %in% deleteListRow,]
+}
 
 # calculate the share of per capita income spent on IMPACT commodities
 # do only if the data are mostly by country; ie the IMPACT3 regions
@@ -89,8 +91,7 @@ generateResults <- function(req,dt.IMPACTfood,IMPACTscenarioList,dt.nuts,region)
   dt.food <- data.table::copy(dt.IMPACTfood)
   print(paste("loading dt.IMPACT.food for ", req, sep = ""))
   print(proc.time())
-  flush.console()
-  str(dt.food)
+ # str(dt.food)
   dt.food <- dt.food[scenario %in% IMPACTscenarioList,]
   # read in the nutrient requirements data  for a representative consumer -----
   # Note that these are for SSP categories and thus vary by SSP category and year for each region
@@ -126,7 +127,6 @@ generateResults <- function(req,dt.IMPACTfood,IMPACTscenarioList,dt.nuts,region)
   dt.nutrients[, (nutList) := lapply(.SD, function(x) (x * 10)), .SDcols = nutList]
   print(paste("multiplying dt.nutrients by 10 for ", req, sep = ""))
   print(proc.time())
-  flush.console()
 
   #combine the food availability info with the nutrients for each of the IMPACT commodities
   data.table::setkey(dt.nutrients, IMPACT_code)

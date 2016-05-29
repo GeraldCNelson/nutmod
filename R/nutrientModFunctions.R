@@ -264,10 +264,14 @@ cleanup <- function(inDT, outName, dir, writeFiles) {
 #' @param useCookingRetnValues - apply the cooking retention values to the nutrient content
 #' @param userName - Name of person running the scripts and generating results
 #' @param region -  Aggregation scheme from individual countries to regions
+#' @param fixFish - if TRUE, fix salmon, tuna, and crustaceans
+#' @param changeElasticity - if TRUE, set max fish income elasticities to 1
 #' @param commonList - names of the lists of nutrient names common to the nutrient lookup table and the requirements
 #' @return list of key variables
 #' @export
 keyVariable <- function(variableName) {
+  fixFish <- "TRUE"
+  changeElasticity <- "TRUE"
   region <- "region_code.IMPACT3"
   keepYearList <-
     c(
@@ -323,6 +327,8 @@ keyVariable <- function(variableName) {
   if (variableName == "list") {
     return(
       c(
+        "fixFish",
+        "changeElasticity",
         "region",
         "keepYearList",
         "keepYearList.FBS",
@@ -456,7 +462,7 @@ fileNameList <- function(variableName) {
   IMPACTData      <- fileloc("IMPACTData")
   NutrientData    <- fileloc("NutrientData")
   SSPData         <- fileloc("SSPData")
-  EARFileName     <- "DRI_IOM_V3.xlsx"
+  EARFileName     <- "DRI_IOM_V4.xlsx"
   mData <- fileloc("mData")
   EARs            <- paste(NutrientData, EARFileName, sep = "/")
   # CSE - consumer support equivalent
@@ -484,7 +490,7 @@ fileNameList <- function(variableName) {
   IMPACTfoodFileName <- "dt.IMPACTfood"
   IMPACTfoodFileInfo <-  paste(mData,"/IMPACTData/",IMPACTfoodFileName,sep="")
   # nutrient data ------
-  nutrientFileName <- "USDA GFS IMPACT V16.xlsx"
+  nutrientFileName <- "USDA GFS IMPACT V17.xlsx"
   nutrientLU       <- paste(NutrientData, nutrientFileName, sep = "/")
   commodityFoodGroupLookupFileName <-
     "food commodity to food group table V2.xlsx"
