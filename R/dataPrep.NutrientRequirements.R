@@ -25,6 +25,8 @@
 #' @include nutrientModFunctions.R
 if (!exists("getNewestVersion", mode = "function")) {source("R/nutrientModFunctions.R")}
 
+options(encoding = "UTF-8")
+
 # nutrients spreadsheet; otherwise the next line is fine
 #' @param nutrients - list of nutrient data generated in dataPrep.nutrientData.R
 nutrients <- getNewestVersion("df.nutrients")
@@ -129,17 +131,17 @@ reqsList <- c(reqsList,"req.AMDR")
 common.EAR <-
   intersect(sort(colnames(nutrients)), sort(colnames(req.EAR)))
 common.RDA.vits <-
-  intersect(colnames(nutrients), colnames(req.RDA.vits))
+  intersect(sort(colnames(nutrients)), sort(colnames(req.RDA.vits)))
 common.RDA.minrls <-
-  intersect(colnames(nutrients), colnames(req.RDA.minrls))
+  intersect(sort(colnames(nutrients)), sort(colnames(req.RDA.minrls)))
 common.RDA.macro <-
-  intersect(colnames(nutrients), colnames(req.RDA.macro))
+  intersect(sort(colnames(nutrients)), sort(colnames(req.RDA.macro)))
 common.UL.vits <-
-  intersect(colnames(nutrients), colnames(req.UL.vits))
+  intersect(sort(colnames(nutrients)), sort(colnames(req.UL.vits)))
 common.UL.minrls <-
-  intersect(colnames(nutrients), colnames(req.UL.minrls))
+  intersect(sort(colnames(nutrients)), sort(colnames(req.UL.minrls)))
 common.AMDR <-
-  intersect(colnames(nutrients), colnames(req.AMDR))  # this is empty right now
+  intersect(sort(colnames(nutrients)), sort(colnames(req.AMDR)))  # this is empty right now
 
 # keep only the nutrients common to the df.nutrients and the list of nutrients covered in a nutrient requirements list
 req.EAR <- req.EAR[, c("ageGenderCode", common.EAR)]

@@ -53,7 +53,12 @@ nutList <- names( dt.nutsReqPerCap)[4:length(names( dt.nutsReqPerCap))]
 # one each for all food items, staples, and food groups ------
 
 # individual food function
-f.ratios.all <- function(region,dt.food.agg,req){
+f.ratios.all <- function(region,req){
+  print(paste("working on", i))
+  temp <- gsub("req.","",i)
+  reqShortName <- gsub(".percap","",temp)
+  temp <- paste("food.agg.", reqShortName, sep = "")
+  dt.food.agg <- getNewestVersion(temp, fileloc("resData"))
   dt.nutsReqPerCap <- getNewestVersion(req)
   # get list of nutrients from dt.nutsReqPerCap for the req set of requirements
   nutList <- names( dt.nutsReqPerCap)[4:length(names(dt.nutsReqPerCap))]
@@ -72,16 +77,20 @@ f.ratios.all <- function(region,dt.food.agg,req){
   keepListCol.req.ratio.all <- c(sumKey,nutList.req.ratio.all)
 
   # create the data table and remove unneeded columns
-  dt.all.sum <- unique(dt.food.agg[,       keepListCol.sum.all, with =  FALSE])
+  dt.all.sum <- dt.food.agg[,       keepListCol.sum.all, with =  FALSE]
+  dt.all.sum <- unique(dt.all.sum)
   dt.all.ratio <- unique(dt.food.agg[,     keepListCol.ratio.all, with =  FALSE])
   dt.all.req.ratio <- unique(dt.food.agg[, keepListCol.req.ratio.all, with =  FALSE])
   #reshape the results to get years in columns
   dt.all.sum.long <- data.table::melt(
     dt.all.sum,   id.vars = basicKey, measure.vars = nutList.sum.all, variable.name = "nutrient",
     value.name = "nut_share", variable.factor = FALSE)
+
   dt.all.ratio.long <- data.table::melt(
-    dt.all.ratio, id.vars = sumKey, measure.vars = nutList.ratio.all, variable.name = "nutrient",
+    dt.all.ratio, id.vars = sumKey, measure.vars = nutList.ratio.all,
+    variable.name = "nutrient",
     value.name = "nut_share", variable.factor = FALSE)
+
   dt.all.req.ratio.long <- data.table::melt(
     dt.all.req.ratio,
     id.vars = sumKey,
@@ -89,6 +98,7 @@ f.ratios.all <- function(region,dt.food.agg,req){
     variable.name = "nutrient",
     value.name = "nut_share",
     variable.factor = FALSE)
+
   formula.sum.all <- paste("scenario + ", region, " + nutrient  ~ year")
   dt.all.sum.wide <- data.table::dcast.data.table(
     data = dt.all.sum.long,
@@ -121,10 +131,23 @@ f.ratios.all <- function(region,dt.food.agg,req){
   inDT <- dt.all.req.ratio.wide
   outName <- paste(reqShortName,"req.ratio.all", sep = ".")
   cleanup(inDT,outName, fileloc("resData"))
+
+  inDT <- data.table::as.data.table(colMax(dt.all.req.ratio.wide))
+  outName <- "all.req.ratio.cMax"
+  cleanup(inDT,outName, fileloc("resData"))
+
+  inDT <- data.table::as.data.table(colMin(dt.all.req.ratio.wide))
+  outName <- "all.req.ratio.cMin"
+  cleanup(inDT,outName, fileloc("resData"))
 }
 
 # foodGroup function
-f.ratios.FG <- function(region,dt.food.agg,req) {
+f.ratios.FG <- function(region,req) {
+  print(paste("working on", i))
+  temp <- gsub("req.","",i)
+  reqShortName <- gsub(".percap","",temp)
+  temp <- paste("food.agg.", reqShortName, sep = "")
+  dt.food.agg <- getNewestVersion(temp, fileloc("resData"))
   dt.nutsReqPerCap <- getNewestVersion(req)
   # get list of nutrients from dt.nutsReqPerCap for the req set of requirements
   nutList <- names( dt.nutsReqPerCap)[4:length(names(dt.nutsReqPerCap))]
@@ -193,10 +216,23 @@ f.ratios.FG <- function(region,dt.food.agg,req) {
   inDT <- dt.foodGroup.req.ratio.wide
   outName <- paste(reqShortName,"req.ratio.foodGroup", sep = ".")
   cleanup(inDT,outName, fileloc("resData"))
+
+  inDT <- data.table::as.data.table(colMax(dt.foodGroup.req.ratio.wide))
+  outName <- "foodGroup.req.ratio.cMax"
+  cleanup(inDT,outName, fileloc("resData"))
+
+  inDT <- data.table::as.data.table(colMin(dt.foodGroup.req.ratio.wide))
+  outName <- "foodGroup.req.ratio.cMin"
+  cleanup(inDT,outName, fileloc("resData"))
 }
 
 # staples function
-r.ratios.staples <- function(region,dt.food.agg,req) {
+f.ratios.staples <- function(region,req) {
+  print(paste("working on", i))
+  temp <- gsub("req.","",i)
+  reqShortName <- gsub(".percap","",temp)
+  temp <- paste("food.agg.", reqShortName, sep = "")
+  dt.food.agg <- getNewestVersion(temp, fileloc("resData"))
   dt.nutsReqPerCap <- getNewestVersion(req)
   # get list of nutrients from dt.nutsReqPerCap for the req set of requirements
   nutList <- names( dt.nutsReqPerCap)[4:length(names(dt.nutsReqPerCap))]
@@ -272,17 +308,22 @@ r.ratios.staples <- function(region,dt.food.agg,req) {
   inDT <- dt.staples.req.ratio.wide
   outName <- paste(reqShortName,"staples.req.ratio", sep = ".")
   cleanup(inDT,outName, fileloc("resData"))
+
+  inDT <- data.table::as.data.table(colMax(dt.staples.req.ratio.wide))
+  outName <- "staples.req.ratio.cMax"
+  cleanup(inDT,outName, fileloc("resData"))
+
+  inDT <- data.table::as.data.table(colMin(dt.staples.req.ratio.wide))
+  outName <- "staples.req.ratio.cMin"
+  cleanup(inDT,outName, fileloc("resData"))
 }
 
 for (i in reqList) {
   # req <- "req.UL.vits.percap" # for testing
-  #get just nutrient list from req
-  print(paste("working on", i))
-  temp <- gsub("req.","",i)
-  reqShortName <- gsub(".percap","",temp)
-  temp <- paste("food.agg.", reqShortName, sep = "")
-  dt.food.agg <- getNewestVersion(temp, fileloc("resData"))
+
   # get per capita consumption of each nutrient
   # dt.nuts.sum <- getNewestVersion("all.sum",fileloc("resData"))
-  f.ratios.FG(region,dt.food.agg,i)
+  f.ratios.all(region,i)
+  f.ratios.staples(region,i)
+  f.ratios.FG(region,i)
 }

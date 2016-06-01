@@ -184,31 +184,26 @@ cleanup <- function(inDT, outName, dir, writeFiles) {
   print(proc.time())
 
   removeOldVersions(outName,dir)
-#  removeOldVersions.xlsx(outName,dir)
+  #  removeOldVersions.xlsx(outName,dir)
   # save(inDT,
   #      file = paste(dir, "/", outName, ".", Sys.Date(), ".RData", sep = ""))
   print(paste("writing the rds for ", outName, " to ",dir, sep = ""))
   print(proc.time())
-  flush.console()
   saveRDS(inDT,
           file = paste(dir, "/", outName, ".", Sys.Date(), ".rds", sep = ""))
 
   print(proc.time())
-  flush.console()
   if (missing(writeFiles)) {writeFiles = "xlsx"}
+  if (nrow(inDT) > 50000) {
+    print(paste("number of rows in the data, ", nrow(inDT), ", greater than 50,000. Not writing xlsx or csv", sep = ""))
+    writeFiles <- writeFiles[!writeFiles %in% c("xlsx", "csv")]
+  }
   if ("csv"  %in% writeFiles) {
-    print(paste("the number of rows in the csv is ", nrow(inDT)))
-    print(paste("write the csv for ", outName, " to ",dir, sep = ""))
+    print(paste("writing the csv for ", outName, " to ",dir, sep = ""))
     write.csv(inDT,file = paste(dir, "/", outName, ".", Sys.Date(), ".csv", sep = ""))
   }
-  if (nrow(inDT) > 50000) {
-    print(paste("number of rows in the data, ", nrow(inDT), ", greater than 50,000. Not writing xlsx", sep = ""))
-    writeFiles <- writeFiles[!writeFiles %in% "xlsx"]
-  }
-  if (!"xlsx"  %in% writeFiles) {
-    print("not writing out xlsx file")
-  } else {
-    print(paste("write the xlsx for ", outName, " to ",dir, sep = ""))
+  if ("xlsx"  %in% writeFiles) {
+    print(paste("write the xlsx for ", outName, " to ", dir, sep = ""))
     wbGeneral <- openxlsx::createWorkbook()
     openxlsx::addWorksheet(wb = wbGeneral, sheetName = outName)
 
@@ -462,7 +457,7 @@ fileNameList <- function(variableName) {
   IMPACTData      <- fileloc("IMPACTData")
   NutrientData    <- fileloc("NutrientData")
   SSPData         <- fileloc("SSPData")
-  EARFileName     <- "DRI_IOM_V4.xlsx"
+  EARFileName     <- "DRI_IOM_V5.xlsx"
   mData <- fileloc("mData")
   EARs            <- paste(NutrientData, EARFileName, sep = "/")
   # CSE - consumer support equivalent
