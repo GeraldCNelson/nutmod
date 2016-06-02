@@ -37,20 +37,17 @@ reqList <-
 
 req <- "req.UL.vits.percap" # for testing
 #get just nutrient list from req
-temp <- gsub("req.","",req)
-reqShortName <- gsub(".percap","",temp)
-##### This probably needs to be changed
-temp <- paste("food.agg.", reqShortName, sep = "")
-dt.food.agg <- getNewestVersion(temp, fileloc("resData"))
-# get per capita consumption of each nutrient
-#dt.nuts.sum <- getNewestVersion("all.sum",fileloc("resData"))
-
-dt.nutsReqPerCap <- getNewestVersion(req)
-# get list of nutrients from dt.nutsReqPerCap for the req set of requirements
-nutList <- names( dt.nutsReqPerCap)[4:length(names( dt.nutsReqPerCap))]
-
-# now prepare for creating rds and excel files (if they are not too big);
-# one each for all food items, staples, and food groups ------
+# temp <- gsub("req.","",req)
+# reqShortName <- gsub(".percap","",temp)
+# ##### This probably needs to be changed
+# temp <- paste("food.agg.", reqShortName, sep = "")
+# dt.food.agg <- getNewestVersion(temp, fileloc("resData"))
+# # get per capita consumption of each nutrient
+# #dt.nuts.sum <- getNewestVersion("all.sum",fileloc("resData"))
+#
+# dt.nutsReqPerCap <- getNewestVersion(req)
+# # get list of nutrients from dt.nutsReqPerCap for the req set of requirements
+# nutList <- names( dt.nutsReqPerCap)[4:length(names( dt.nutsReqPerCap))]
 
 # individual food function
 f.ratios.all <- function(region,req){
@@ -121,15 +118,15 @@ f.ratios.all <- function(region,req){
   reqShortName <- gsub(".percap","",temp)
 
   inDT <- dt.all.sum.wide
-  outName <- paste(reqShortName,"sum.all", sep = ".")
+  outName <- paste(reqShortName,"all.sum", sep = ".")
   cleanup(inDT,outName, fileloc("resData"))
 
   inDT <- dt.all.ratio.wide
-  outName <- paste(reqShortName,"ratio.all", sep = ".")
+  outName <- paste(reqShortName,"all.ratio", sep = ".")
   cleanup(inDT,outName, fileloc("resData"))
 
   inDT <- dt.all.req.ratio.wide
-  outName <- paste(reqShortName,"req.ratio.all", sep = ".")
+  outName <- paste(reqShortName,"all.req.ratio", sep = ".")
   cleanup(inDT,outName, fileloc("resData"))
 
   inDT <- data.table::as.data.table(colMax(dt.all.req.ratio.wide))
@@ -210,19 +207,19 @@ f.ratios.FG <- function(region,req) {
   reqShortName <- gsub(".percap","",temp)
 
   inDT <- dt.foodGroup.ratio.wide
-  outName <- paste(reqShortName,"ratio.foodGroup", sep = ".")
+  outName <- paste(reqShortName,"FG.ratio", sep = ".")
   cleanup(inDT,outName, fileloc("resData"))
 
   inDT <- dt.foodGroup.req.ratio.wide
-  outName <- paste(reqShortName,"req.ratio.foodGroup", sep = ".")
+  outName <- paste(reqShortName,"FG.req.ratio", sep = ".")
   cleanup(inDT,outName, fileloc("resData"))
 
   inDT <- data.table::as.data.table(colMax(dt.foodGroup.req.ratio.wide))
-  outName <- "foodGroup.req.ratio.cMax"
+  outName <- "FG.req.ratio.cMax"
   cleanup(inDT,outName, fileloc("resData"))
 
   inDT <- data.table::as.data.table(colMin(dt.foodGroup.req.ratio.wide))
-  outName <- "foodGroup.req.ratio.cMin"
+  outName <- "FG.req.ratio.cMin"
   cleanup(inDT,outName, fileloc("resData"))
 }
 
@@ -303,7 +300,6 @@ f.ratios.staples <- function(region,req) {
   inDT <- dt.staples.ratio.wide
   outName <- paste(reqShortName,"staples.ratio", sep = ".")
   cleanup(inDT,outName, fileloc("resData"))
-
 
   inDT <- dt.staples.req.ratio.wide
   outName <- paste(reqShortName,"staples.req.ratio", sep = ".")
