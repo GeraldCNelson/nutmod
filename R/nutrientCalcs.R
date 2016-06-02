@@ -46,7 +46,7 @@ dt.IMPACTfood <- getNewestVersionIMPACT("dt.IMPACTfood")
 # this should not be necessary
 # dt.IMPACTfood <- dt.IMPACTfood[IMPACT_code %in% keyVariable("IMPACTfoodCommodList"),]
 # get the list of scenarios in the IMPACT data for use below
-IMPACTscenarioList <- unique(dt.IMPACTfood$scenario)
+IMPACTscenarioList <- keyVariable("scenarioListIMPACT")
 #IMPACTscenarioList <- IMPACTscenarioList[1] # just for testing. !!!XXX
 
 # read in nutrients data and optionally apply cooking retention values -----
@@ -63,7 +63,9 @@ if (region == "region_code.IMPACT3") {budgetShare(dt.IMPACTfood,region)}
 
 keepListCol <- c("scenario", "IMPACT_code", region, "FoodAvailability","year")
 dt.IMPACTfood <- dt.IMPACTfood[, keepListCol, with = FALSE]
-
+# get rid of duplicate rows, caused by getting rid of GDP column
+data.table::setkey(dt.IMPACTfood)
+dt.IMPACTfood <- unique(dt.IMPACTfood)
 # convert food availability from per year to per day
 dt.IMPACTfood[, foodAvailpDay := FoodAvailability / keyVariable("DinY")][,FoodAvailability := NULL]
 

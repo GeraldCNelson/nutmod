@@ -71,11 +71,15 @@ for (req in reqList) {
 
   # add data to the spreadsheet -----
   for (j in 1:length(nutList)) {
-    # add an info sheet for the jth nutrient in the req set of requirements
+    # keep only columns relevant to the current nutrient
     data.table::setkey(dt.food.agg)
-    dt.temp.nut <- dt.food.agg[, grepl((nutList[j]),names(dt.food.agg)), with = FALSE]
+    keepListCol <- c("scenario", "region_code.IMPACT3", "year", "IMPACT_code", "food.group.code", "staple.code",
+                     "foodAvailpDay",names(dt.food.agg)[grepl((nutList[j]),names(dt.food.agg))])
+    dt.temp.nut <- dt.food.agg[, keepListCol, with = FALSE]
     for (k in c("staple","FG","all")) {
-      dt.temp.group <- dt.temp[, grepl(k,names(dt.temp)), with = FALSE]
+      keepListCol <- c("scenario", "region_code.IMPACT3", "year", "IMPACT_code", "food.group.code", "staple.code",
+                       "foodAvailpDay", names(dt.temp.nut)[grepl(k,names(dt.temp.nut))])
+      dt.temp.group <- dt.temp.nut[, keepListCol, with = FALSE]
       # add the results to the spreadsheet
       sheetName <- paste(nutList[j], k, sep = ".")
       openxlsx::addWorksheet(wbGeneral, sheetName)
@@ -96,7 +100,8 @@ for (req in reqList) {
         # temp <-
         #   dt.food.ratio.long[eval(data.table::like(nutrient, "ratio")) & eval(data.table::like(nutrient, nutrient.name)) &
         #                        scenario %in% scenario.name, ]
-        dt.temp <- data.table::copy(dt.temp.nut[nutrient == nutrient.name & scenario == scenario.name,])
+
+        dt.temp <- data.table::copy(dt.temp.nut[scenario == scenario.name,])
         #ggplot wants the x axis to be numeric
         dt.temp[,year := as.numeric(gsub("X", "", year))]
         plotTitle <- paste("Requirement share, ", nutrient.name, ", ", scenario.name,sep = "")

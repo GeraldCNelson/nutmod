@@ -47,15 +47,14 @@ combineIMPACTData <- function() {
   dt.regions.all <- data.table::as.data.table(getNewestVersion("df.regions.all"))
   # get the list of scenarios in the IMPACT data for use below
   scenarioListIMPACT <- keyVariable("scenarioListIMPACT")
-  # scenarioListIMPACT <- unique(dt.FoodAvail$scenario)
   data.table::setkey(dt.FoodAvail, "scenario","year", "region_code.IMPACT3", "IMPACT_code")
 
   # add alcohol
   dt.alcScenarios <- getNewestVersion("dt.alcScenarios")
   dt.alcScenarios <- dt.alcScenarios[year %in% keepYearList,]
-  IMPACTalcohol_code <- keyVariable("IMPACTalcohol_code")
 
   #get the names of the beverages that are included in dt.alcScenarios
+  IMPACTalcohol_code <- keyVariable("IMPACTalcohol_code")
   idVarsAlc <- c("scenario","region_code.SSP","year")
   measureVarsAlc <- IMPACTalcohol_code
 
@@ -66,7 +65,7 @@ combineIMPACTData <- function() {
                                            value.name = "FoodAvailability",
                                            variable.factor = FALSE)
 
-   dt.pop <- getNewestVersion("dt.IMPACT3.pop.tot")
+  dt.pop <- getNewestVersion("dt.IMPACT3.pop.tot")
   data.table::setnames(dt.pop, old = "value", new = "pop")
   dt.pop[,pop.sum := sum(pop), by = eval(data.table::key(dt.pop))][,pop.share := pop/pop.sum]
 
@@ -82,12 +81,13 @@ combineIMPACTData <- function() {
   data.table::setkeyv(dt.alcScenarios.melt,c("scenario", "region_code.IMPACT3", "year"))
   data.table::setkeyv(dt.pop, c("scenario", "region_code.IMPACT3", "year"))
   dt.alcScenarios.melt <- merge(dt.alcScenarios.melt, dt.pop, by = c("scenario", "region_code.IMPACT3", "year"))
- # dt.temp1 <- dt.alcScenarios.melt[dt.pop]
+  # dt.temp1 <- dt.alcScenarios.melt[dt.pop]
   data.table::setkeyv(dt.alcScenarios.melt, c("scenario", "region_code.IMPACT3", "year", "IMPACT_code"))
   dt.alcScenarios.melt[,foodAvailability.sum := sum(FoodAvailability * pop.share), by = eval(data.table::key(dt.alcScenarios.melt))]
 
   dt.alcScenarios.melt[,FoodAvailability := sum(FoodAvailability), by = eval(data.table::key(dt.alcScenarios.melt))]
   dt.alcScenarios.melt[,region_code.SSP := NULL]
+  data.table::setkey(dt.alcScenarios.melt)
   dt.alcScenarios.melt <-  unique(dt.alcScenarios.melt)
 
   # add fish
@@ -113,18 +113,20 @@ combineIMPACTData <- function() {
   keepListCol <- c("scenario", "region_code.SSP", "year", "IMPACT_code", "FoodAvailability", "region_code.IMPACT3")
   dt.fishScenarios.melt <- dt.fishScenarios.melt[,keepListCol, with = FALSE]
 
-    data.table::setkeyv(dt.fishScenarios.melt,c("scenario", "region_code.IMPACT3", "year"))
+  data.table::setkeyv(dt.fishScenarios.melt,c("scenario", "region_code.IMPACT3", "year"))
   data.table::setkeyv(dt.pop, c("scenario", "region_code.IMPACT3", "year"))
   dt.fishScenarios.melt <- merge(dt.fishScenarios.melt, dt.pop, by = c("scenario", "region_code.IMPACT3", "year"))
   data.table::setkeyv(dt.fishScenarios.melt, c("scenario", "region_code.IMPACT3", "year", "IMPACT_code"))
   dt.fishScenarios.melt[,foodAvailability.sum := sum(FoodAvailability * pop.share), by = eval(data.table::key(dt.fishScenarios.melt))]
 
   dt.fishScenarios.melt[,region_code.SSP := NULL]
+  data.table::setkey(dt.fishScenarios.melt)
   dt.fishScenarios.melt <-  unique(dt.fishScenarios.melt)
 
- #create alcohol and fish data sets for all the IMPACT scenarios
-   dt.temp <- dt.alcScenarios.melt[FALSE,]
-  for (i in unique(dt.FoodAvail$scenario)) {
+  #create alcohol and fish data sets for all the IMPACT scenarios
+  dt.temp <- dt.alcScenarios.melt[FALSE,]
+  scenario.list <- unique(dt.FoodAvail$scenario)
+  for (i in scenario.list) {
     climModel <- gsub(substr((i),1,5),"",i)
     SSPNum <- substr((i),1,4)
     print(i)

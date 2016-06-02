@@ -51,8 +51,8 @@ req <- "req.UL.vits.percap" # for testing
 
 # individual food function
 f.ratios.all <- function(region,req){
-  print(paste("working on", i))
-  temp <- gsub("req.","",i)
+  print(paste("working on", req))
+  temp <- gsub("req.","",req)
   reqShortName <- gsub(".percap","",temp)
   temp <- paste("food.agg.", reqShortName, sep = "")
   dt.food.agg <- getNewestVersion(temp, fileloc("resData"))
@@ -75,9 +75,12 @@ f.ratios.all <- function(region,req){
 
   # create the data table and remove unneeded columns
   dt.all.sum <- dt.food.agg[,       keepListCol.sum.all, with =  FALSE]
+  data.table::setkey(dt.all.sum)
   dt.all.sum <- unique(dt.all.sum)
   dt.all.ratio <- unique(dt.food.agg[,     keepListCol.ratio.all, with =  FALSE])
-  dt.all.req.ratio <- unique(dt.food.agg[, keepListCol.req.ratio.all, with =  FALSE])
+  dt.all.req.ratio <- dt.food.agg[, keepListCol.req.ratio.all, with =  FALSE]
+  data.table::setkey(dt.all.req.ratio)
+  dt.all.req.ratio <- unique(dt.all.req.ratio)
   #reshape the results to get years in columns
   dt.all.sum.long <- data.table::melt(
     dt.all.sum,   id.vars = basicKey, measure.vars = nutList.sum.all, variable.name = "nutrient",
@@ -104,7 +107,7 @@ f.ratios.all <- function(region,req){
     variable.factor = FALSE)
 
   formula.ratio.all <- paste("scenario + ", region, "  + nutrient + IMPACT_code  ~ year")
-
+data.table::setkey(dt.all.ratio.long)
   dt.all.ratio.wide <- data.table::dcast(
     data = dt.all.ratio.long,
     formula = formula.ratio.all,
@@ -140,8 +143,8 @@ f.ratios.all <- function(region,req){
 
 # foodGroup function
 f.ratios.FG <- function(region,req) {
-  print(paste("working on", i))
-  temp <- gsub("req.","",i)
+  print(paste("working on", req))
+  temp <- gsub("req.","",req)
   reqShortName <- gsub(".percap","",temp)
   temp <- paste("food.agg.", reqShortName, sep = "")
   dt.food.agg <- getNewestVersion(temp, fileloc("resData"))
@@ -157,8 +160,12 @@ f.ratios.FG <- function(region,req) {
   keepListCol.ratio.foodGroup <-     c(foodGroupKey,nutList.ratio.foodGroup)
   keepListCol.req.ratio.foodGroup <- c(foodGroupKey,nutList.req.ratio.foodGroup)
   #  dt.foodGroup.sum <- unique(dt.food.agg[,       keepListCol.sum.foodGroup, with =  FALSE])
-  dt.foodGroup.ratio <- unique(dt.food.agg[,     keepListCol.ratio.foodGroup, with =  FALSE])
-  dt.foodGroup.req.ratio <- unique(dt.food.agg[, keepListCol.req.ratio.foodGroup, with =  FALSE])
+  dt.foodGroup.ratio <- dt.food.agg[,     keepListCol.ratio.foodGroup, with =  FALSE]
+  data.table::setkey(dt.foodGroup.ratio)
+  dt.foodGroup.ratio <- unique(dt.foodGroup.ratio)
+  dt.foodGroup.req.ratio <- dt.food.agg[, keepListCol.req.ratio.foodGroup, with =  FALSE]
+  data.table::setkey(dt.foodGroup.req.ratio)
+  dt.foodGroup.req.ratio <- unique(dt.foodGroup.req.ratio)
   #reshape the results to get years in columns
   # dt.foodGroup.sum.long <- data.table::melt(
   #   dt.foodGroup.sum,
@@ -225,8 +232,8 @@ f.ratios.FG <- function(region,req) {
 
 # staples function
 f.ratios.staples <- function(region,req) {
-  print(paste("working on", i))
-  temp <- gsub("req.","",i)
+  print(paste("working on", req))
+  temp <- gsub("req.","", req)
   reqShortName <- gsub(".percap","",temp)
   temp <- paste("food.agg.", reqShortName, sep = "")
   dt.food.agg <- getNewestVersion(temp, fileloc("resData"))
@@ -243,9 +250,15 @@ f.ratios.staples <- function(region,req) {
   keepListCol.sum.staple <-       c(stapleKey,nutList.sum.staple)
   keepListCol.ratio.staple <-     c(stapleKey,nutList.ratio.staple)
   keepListCol.req.ratio.staple <- c(stapleKey,nutList.req.ratio.staple)
-  dt.staples.sum <- unique(dt.food.agg[,       keepListCol.sum.staple, with =  FALSE])
-  dt.staples.ratio <- unique(dt.food.agg[,     keepListCol.ratio.staple, with =  FALSE])
-  dt.staples.req.ratio <- unique(dt.food.agg[, keepListCol.req.ratio.staple, with =  FALSE])
+  dt.staples.sum <- dt.food.agg[,       keepListCol.sum.staple, with =  FALSE]
+  data.table::setkey(dt.staples.sum)
+  dt.staples.sum <- unique(dt.staples.sum)
+  dt.staples.ratio <- dt.food.agg[,     keepListCol.ratio.staple, with =  FALSE]
+  data.table::setkey(dt.staples.ratio)
+  dt.staples.ratio <- unique(dt.staples.ratio)
+  dt.staples.req.ratio <- dt.food.agg[, keepListCol.req.ratio.staple, with =  FALSE]
+  data.table::setkey(dt.staples.req.ratio)
+  dt.staples.req.ratio <- unique(dt.staples.req.ratio)
   #reshape the results to get years in columns
   dt.staples.sum.long <- data.table::melt(
     dt.staples.sum,
