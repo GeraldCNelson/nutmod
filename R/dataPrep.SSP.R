@@ -191,7 +191,7 @@ cleanup(inDT,outName,fileloc("mData"))
 
 
 # pop needs to be  aggregated from all ISO codes to the regions of the latest IMPACT data - region_code.IMPACT159.
-dt.regions.all <- data.table::as.data.table(getNewestVersion("df.regions.all"))
+dt.regions.all <- getNewestVersion("dt.regions.all")
 # list of countries not in SSP data set so no age gender info
 missingSSP <- setdiff(dt.regions.all$ISO_code,dt.regions.all$region_code.SSP)
 #remove them from list of countries

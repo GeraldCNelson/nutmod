@@ -126,13 +126,13 @@ dt.FBScommodLookup <- data.table::as.data.table(openxlsx::read.xlsx(FBSCommodity
                              colNames = TRUE))
 
 charConvertList <- c("item_code")
-for (col in charConvertList) data.table::set(dt.FBScommodLookup, j=col, value=as.character(dt.FBScommodLookup[[col]]))
+for (col in charConvertList) data.table::set(dt.FBScommodLookup, j = col, value = as.character(dt.FBScommodLookup[[col]]))
 
 # remove the item called "Miscellaneous"
 dt.FBScommodLookup <- dt.FBScommodLookup[!item_name == "Miscellaneous",]
 
-# Read in the region lookup table, created in dataPrep.regions.R
-regions.all <- getNewestVersion("df.regions.all")
+# Read in the region lookup table, created in dataPrep.regions.R # this doesn't seem to be used
+#dt.regions.all <- getNewestVersion("dt.regions.all")
 
 FAOCountryNameCodeLookup <- filelocFBS("FAOCountryNameCodeLookup")
 # Read in the worksheet that has the FAO country code-ISO country name lookup
@@ -143,7 +143,7 @@ dt.FBSNameLookup <- data.table::as.data.table(openxlsx::read.xlsx(FAOCountryName
 
 #convert to character and leave just ISO code and FAOSTAT code
 charConvertList <- c("ISO3","FAOSTAT")
-dt.FBSNameLookup <- dt.FBSNameLookup[, lapply(.SD, as.character), .SDcols=charConvertList]
+dt.FBSNameLookup <- dt.FBSNameLookup[, lapply(.SD, as.character), .SDcols = charConvertList]
 data.table::setnames(dt.FBSNameLookup,c("ISO3","FAOSTAT"),c("ISO_code","FAOSTAT_country_code"))
 
 data.table::setkey(dt.FBSraw,FAOSTAT_country_code)

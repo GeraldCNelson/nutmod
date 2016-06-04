@@ -33,7 +33,7 @@ scenarioListSSP.GDP <- keyVariable("scenarioListSSP.GDP")
 dt.SSPGDP <- getNewestVersion("dt.SSPGDPClean")
 
 # load regions info ----
-dt.regions.all <- data.table::as.data.table(getNewestVersion("df.regions.all"))
+dt.regions.all <- getNewestVersion("dt.regions.all")
 # create list with only countries in both FBS and SSP
 inFBS <- sort(dt.regions.all[!is.na(FAOSTAT_code), ISO_code])
 # the pop data has a different set of countries than the GDP data. Only keep countries that are in both
@@ -42,9 +42,6 @@ inSSP.GDP <- sort(unique(dt.SSPGDP$ISO_code))
 setdiff(inSSP.pop,inSSP.GDP)
 inSSP <- sort(intersect(inSSP.pop,inSSP.GDP))
 ctyList <- sort(intersect(inFBS,inSSP))
-# regions.all <- getNewestVersion("df.regions.all")
-# region <- keyVariable("region")
-# setdiff(regions.all[,region],ctyList)
 dt.SSPGDP <- dt.SSPGDP[ISO_code %in% ctyList, ]
 
 data.table::setnames(dt.SSPGDP, old = "ISO_code", new = "region_code.SSP")# change code for countries from ISO to SSP

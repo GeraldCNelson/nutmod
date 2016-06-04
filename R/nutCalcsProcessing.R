@@ -77,7 +77,8 @@ f.ratios.all <- function(region,req){
   dt.all.sum <- dt.food.agg[,       keepListCol.sum.all, with =  FALSE]
   data.table::setkey(dt.all.sum)
   dt.all.sum <- unique(dt.all.sum)
-  dt.all.ratio <- unique(dt.food.agg[,     keepListCol.ratio.all, with =  FALSE])
+  data.table::setkey(dt.all.sum)
+  dt.all.ratio <- unique(dt.all.ratio[,     keepListCol.ratio.all, with =  FALSE])
   dt.all.req.ratio <- dt.food.agg[, keepListCol.req.ratio.all, with =  FALSE]
   data.table::setkey(dt.all.req.ratio)
   dt.all.req.ratio <- unique(dt.all.req.ratio)

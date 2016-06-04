@@ -53,15 +53,15 @@ f.createGeneralWorksheet <- function() {
 
   wbInfoGeneral[1, ] <- c("Sheet names", "Description of sheet contents")
   wbInfoGeneral[(nrow(wbInfoGeneral) + 1), ] <- c("creation_Info", "Information on creator, date, model version, etc.")
-  df.regions.all <- getNewestVersion("df.regions.all")
+  dt.regions.all <- getNewestVersion("dt.regions.all")
   # create a worksheet with info on the regions
   openxlsx::addWorksheet(wbGeneral, sheetName = "metadataRegions")
   wbInfoGeneral[(nrow(wbInfoGeneral) + 1), ] <- c("metadataRegions",
                                                   "Region metadata")
-  openxlsx::writeData(wbGeneral, df.regions.all, sheet = "metadataRegions",
+  openxlsx::writeData(wbGeneral, dt.regions.all, sheet = "metadataRegions",
                       startRow = 1, startCol = 1, rowNames = FALSE)
   openxlsx::addStyle(wbGeneral, sheet = "metadataRegions", style = textStyle,
-                     rows = 1:nrow(df.regions.all), cols = 1:ncol(df.regions.all), gridExpand = TRUE)
+                     rows = 1:nrow(dt.regions.all), cols = 1:ncol(dt.regions.all), gridExpand = TRUE)
 
   # create a worksheet with info on the nutrient sources
 

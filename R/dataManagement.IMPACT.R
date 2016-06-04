@@ -39,12 +39,12 @@ createFood <- function(fileShortName) {
 
 #combine all relevant data tables for analysis
 combineIMPACTData <- function() {
-  # combineIMPACTData <- function(region,scenSSP,climModel,RCP) {
+  # combineIMPACTData <- function(region, scenSSP, climModel, RCP) {
   #  scen <- paste(scenSSP,"-",climModel,sep="")
   keepYearList <- keyVariable("keepYearList")
   dt.FoodAvail <- getNewestVersionIMPACT("dt.FoodAvail")
   dt.FoodAvail <- dt.FoodAvail[year %in% keepYearList,]
-  dt.regions.all <- data.table::as.data.table(getNewestVersion("df.regions.all"))
+  dt.regions.all <- getNewestVersion("dt.regions.all")
   # get the list of scenarios in the IMPACT data for use below
   scenarioListIMPACT <- keyVariable("scenarioListIMPACT")
   data.table::setkey(dt.FoodAvail, "scenario","year", "region_code.IMPACT159", "IMPACT_code")

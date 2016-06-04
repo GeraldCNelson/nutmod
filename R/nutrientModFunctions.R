@@ -840,7 +840,7 @@ createIMPACT159Regions <- function() {
 #' @export
 flagMissingFiles <- function() {
   shortNameList = data.frame(
-    name = c("FBS", "df.regions.all", "dt.SSPPopClean"),
+    name = c("FBS", "dt.regions.all", "dt.SSPPopClean"),
     script = c("dataPrep.FBS.R", "dataPrep.regions.R", "dataPrep.SSP.R")
   )
   mData <- fileloc("mData")

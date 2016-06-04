@@ -75,14 +75,15 @@ getGDXmetaData(fileNameList("R_GAMS_SYSDIR"),fileNameList("IMPACTgdx"))
 #' @export
 #'
 processIMPACT159Data <- function(gdxFileName, varName, catNames) {
-  df.regions.all <- getNewestVersion("df.regions.all")
+  dt.regions.all <- getNewestVersion("dt.regions.all")
   IMPACTgdx <- gdxFileName
 #  keepYearList  <- keyVariable("keepYearList")
-  dt.temp <- data.table::as.data.table(df.regions.all[,c("region_code.IMPACT159","region_name.IMPACT159")])
+  dt.temp <- dt.regions.all[,c("region_code.IMPACT159","region_name.IMPACT159"), with = FALSE]
   data.table::setkey(dt.temp,region_code.IMPACT159)
   dt.IMPACTregions <- unique(dt.temp)
   dt.ptemp <- data.table::as.data.table(gdxrrw::rgdx.param(IMPACTgdx, varName,
                                                            ts = TRUE, names = catNames))
+  temp <-
   dt.ptemp[, year := paste("X", dt.ptemp$year, sep = "")]
   #dt.ptemp <- dt.ptemp[year %in% keepYearList]
   dt.ptemp <- data.table::as.data.table(rapply(dt.ptemp, as.character, classes = "factor", how = "replace"))

@@ -4,7 +4,7 @@
 #' @description
 #' # Intro -------------------------------------------------------------------
 #' This script contains functions to align regional aggregations from country data and writes them out to
-#' @param df.regions.all.rds It contains
+#' @param dt.regions.all.rds It contains
 #' @param ISO_code - official ISO 3 digit code for all countries - 249 countries
 #' @param region_code.SSP - the SSP region for each ISO code (either an ISO 3 code or NA) - 194 countries
 #' @param region_code.IMPACT115 - the 3 digit IMPACT115 region code for each ISO code
@@ -45,6 +45,7 @@ IMPACTalcohol <-     fileNameList("IMPACTalcohol")
 IMPACTstdRegions <- fileNameList("IMPACTstdRegions")
 FAOCountryNameCodeLookup <- filelocFBS("FAOCountryNameCodeLookup")
 ISOCodes <- filelocFBS("ISOCodes")
+IMPACTregionsUpdateJun2016 <- fileNameList("IMPACTregionsUpdateJun2016")
 
 # create regions.ISO by reading in all ISO country codes ----
 #' @param regions.ISO - ISO codes
@@ -77,10 +78,7 @@ regions.IMPACT115$mappingCode_2 <-
             2,
             nchar(regions.IMPACT115$mappingCode_2) - 1)
 colnames(regions.IMPACT115) <-
-  c("region_code.IMPACT115",
-    "description",
-    "mappingCode_1",
-    "region_members")
+  c("region_code.IMPACT115", "description", "mappingCode_1", "region_members")
 regions.IMPACT115 <-
   regions.IMPACT115[, c("region_code.IMPACT115", "description", "region_members")]
 temp1 <-
@@ -215,8 +213,9 @@ regions.all <- regions.all[order(regions.all$ISO_code), ]
 #   "region_name.IMPACT159",
 #   "region_name.IMPACTstandard"
 # )]
-
-inDT <- regions.all
-outName <- "df.regions.all"
+dt.regions.all <- data.table::as.data.table(regions.all)
+newRegions <- openxlsx::read.xlsx(IMPACTregionsUpdateJun2016, colNames = TRUE)
+inDT <- merge(dt.regions.all,newRegions, by = "region_code.IMPACT159")
+outName <- "dt.regions.all"
 cleanup(inDT,outName,fileloc("mData"))
 
