@@ -58,10 +58,10 @@ dt.nuts <- dt.nuts[!IMPACT_code %in% deleteListRow,]
 }
 
 # calculate the share of per capita income spent on IMPACT commodities
-# do only if the data are mostly by country; ie the IMPACT3 regions
-if (region == "region_code.IMPACT3") {budgetShare(dt.IMPACTfood,region)}
+# do only if the data are mostly by country; ie the IMPACT159 regions
+if (region == "region_code.IMPACT159") {budgetShare(dt.IMPACTfood,region)}
 
-keepListCol <- c("scenario", "IMPACT_code", region, "FoodAvailability","year")
+keepListCol <- c("scenario", "IMPACT_code", region, "FoodAvailability", "year")
 dt.IMPACTfood <- dt.IMPACTfood[, keepListCol, with = FALSE]
 # get rid of duplicate rows, caused by getting rid of GDP column
 data.table::setkey(dt.IMPACTfood)
@@ -251,7 +251,6 @@ generateResults <- function(req,dt.IMPACTfood,IMPACTscenarioList,dt.nuts,region)
   reqShortName <- gsub(".percap","",temp)
   outName <- paste("food.agg.",reqShortName,sep = "")
   cleanup(inDT, outName,fileloc("resData"), "csv")
-
 }
 # end of generateResults function
 

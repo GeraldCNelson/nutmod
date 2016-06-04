@@ -31,7 +31,7 @@ if (!exists("getNewestVersion", mode = "function")) {source("R/nutrientModFuncti
 # needed at the moment because I can't install the gdxrrw file to the nutmod project directory
 #packrat::opts$external.packages("gdxrrw")
 #' Title importIMPACT - Import data from the IMPACT model and write out rds and excel files
-#' @description Read IMPACT3 data from a gdx file
+#' @description Read IMPACT159 data from a gdx file
 #'
 #' @return dt.temp
 #' @export
@@ -66,7 +66,7 @@ getGDXmetaData <- function(gamsDir,IMPACTgdx) {
 }
 getGDXmetaData(fileNameList("R_GAMS_SYSDIR"),fileNameList("IMPACTgdx"))
 
-#' Title processIMPACT3Data - read in from the IMPACT gdx file and write out rds and excel files for a single param
+#' Title processIMPACT159Data - read in from the IMPACT gdx file and write out rds and excel files for a single param
 
 #' @param gdxFileName - name of the IMPACT gdx file
 #' @param varName - name of the IMPACT parameter to write out
@@ -74,28 +74,28 @@ getGDXmetaData(fileNameList("R_GAMS_SYSDIR"),fileNameList("IMPACTgdx"))
 #' @return null
 #' @export
 #'
-processIMPACT3Data <- function(gdxFileName, varName, catNames) {
+processIMPACT159Data <- function(gdxFileName, varName, catNames) {
   df.regions.all <- getNewestVersion("df.regions.all")
   IMPACTgdx <- gdxFileName
 #  keepYearList  <- keyVariable("keepYearList")
-  dt.temp <- data.table::as.data.table(df.regions.all[,c("region_code.IMPACT3","region_name.IMPACT3")])
-  data.table::setkey(dt.temp,region_code.IMPACT3)
+  dt.temp <- data.table::as.data.table(df.regions.all[,c("region_code.IMPACT159","region_name.IMPACT159")])
+  data.table::setkey(dt.temp,region_code.IMPACT159)
   dt.IMPACTregions <- unique(dt.temp)
   dt.ptemp <- data.table::as.data.table(gdxrrw::rgdx.param(IMPACTgdx, varName,
                                                            ts = TRUE, names = catNames))
   dt.ptemp[, year := paste("X", dt.ptemp$year, sep = "")]
   #dt.ptemp <- dt.ptemp[year %in% keepYearList]
   dt.ptemp <- data.table::as.data.table(rapply(dt.ptemp, as.character, classes = "factor", how = "replace"))
-  #setorder(dt.temp, scenario, IMPACT_code, region_code.IMPACT3, year)
+  #setorder(dt.temp, scenario, IMPACT_code, region_code.IMPACT159, year)
   data.table::setorderv(dt.ptemp, cols = catNames)
   data.table::setnames(dt.ptemp,"value",varName)
   # this if statement keeps the region code and name from being added since PW is only for the world
   if (!varName == "PWX0") {
-    data.table::setkey(dt.ptemp, region_code.IMPACT3)
+    data.table::setkey(dt.ptemp, region_code.IMPACT159)
     dt.temp <-
-      merge(dt.ptemp, dt.IMPACTregions, by = "region_code.IMPACT3", all = TRUE)
+      merge(dt.ptemp, dt.IMPACTregions, by = "region_code.IMPACT159", all = TRUE)
     # set the region code of South Sudan to the code for Sudan, if it has not already been done
-    dt.ptemp[region_code.IMPACT3  == "SDN", region_code.IMPACT3 := "SDP"]
+    dt.ptemp[region_code.IMPACT159  == "SDN", region_code.IMPACT159 := "SDP"]
   }
   inDT <- dt.ptemp
   outName <- paste("dt",varName, sep = ".")
@@ -112,27 +112,27 @@ processIMPACT3Data <- function(gdxFileName, varName, catNames) {
 #' @return
 #' @export
 generateResults <- function(vars,catNames){
-  #dtlist.land <- lapply(vars.land,processIMPACT3Data,catNames = catNames.land)
+  #dtlist.land <- lapply(vars.land,processIMPACT159Data,catNames = catNames.land)
   for (i in vars){
-    processIMPACT3Data(fileNameList("IMPACTgdx"),i, catNames)
+    processIMPACT159Data(fileNameList("IMPACTgdx"),i, catNames)
   }
 }
-#' processIMPACT3Data(fileNameList("IMPACTgdx"),)
+#' processIMPACT159Data(fileNameList("IMPACTgdx"),)
 
 vars.land <- c("AREACTYX0", "YLDCTYX0", "ANMLNUMCTYX0")
-catNames.land <- c("scenario","IMPACT_code","region_code.IMPACT3","landUse","year","value")
+catNames.land <- c("scenario","IMPACT_code","region_code.IMPACT159","landUse","year","value")
 
-#' @param commodVars - scenario, region_code.IMPACT3, IMPACT_code,year, value
+#' @param commodVars - scenario, region_code.IMPACT159, IMPACT_code,year, value
 vars.commods <-
   c("PCX0", "QSX0", "QSUPX0", "QDX0", "QFX0", "QBFX0",
     "QLX0", "QINTX0", "QOTHRX0", "QEX0", "QMX0","PerCapKCAL_com","FoodAvailability")
-catNames.commod <- c("scenario","IMPACT_code","region_code.IMPACT3","year","value")
+catNames.commod <- c("scenario","IMPACT_code","region_code.IMPACT159","year","value")
 
 #' @param regionVars - parameters included for data at the region (countries and country-aggregates) level
 vars.region <-
   c("GDPX0", "pcGDPX0",  "TotalMalnourished",
     "PerCapKCAL", "PopX0", "ShareAtRisk", "PopulationAtRisk")
-catNames.region <- c("scenario","region_code.IMPACT3","year","value")
+catNames.region <- c("scenario","region_code.IMPACT159","year","value")
 
 #' @param worldVars - parameters for data at the world level
 vars.world <- "PWX0"
@@ -149,9 +149,9 @@ CSEs <- fileNameList("CSEs")
 
 dt.CSEs <- data.table::as.data.table(
   openxlsx::read.xlsx(CSEs,cols = c(1:3)))
-data.table::setnames(dt.CSEs, old = c("CTY","C","CSE"), new = c("region_code.IMPACT3","IMPACT_code","CSE"))
+data.table::setnames(dt.CSEs, old = c("CTY","C","CSE"), new = c("region_code.IMPACT159","IMPACT_code","CSE"))
 data.table::set(dt.CSEs, which(is.na(dt.CSEs[["CSE"]])), "CSE", 0)
-data.table::setorder(dt.CSEs, region_code.IMPACT3, IMPACT_code)
+data.table::setorder(dt.CSEs, region_code.IMPACT159, IMPACT_code)
 # add years to the CSE file, because it currently doesn't have any
 dt.years <- data.table::data.table(year = rep(keyVariable("keepYearList"), each = nrow(dt.CSEs)))
 dt.CSEs <- cbind(dt.years, dt.CSEs)

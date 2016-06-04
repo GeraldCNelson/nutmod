@@ -47,7 +47,7 @@ combineIMPACTData <- function() {
   dt.regions.all <- data.table::as.data.table(getNewestVersion("df.regions.all"))
   # get the list of scenarios in the IMPACT data for use below
   scenarioListIMPACT <- keyVariable("scenarioListIMPACT")
-  data.table::setkey(dt.FoodAvail, "scenario","year", "region_code.IMPACT3", "IMPACT_code")
+  data.table::setkey(dt.FoodAvail, "scenario","year", "region_code.IMPACT159", "IMPACT_code")
 
   # add alcohol
   dt.alcScenarios <- getNewestVersion("dt.alcScenarios")
@@ -65,24 +65,24 @@ combineIMPACTData <- function() {
                                            value.name = "FoodAvailability",
                                            variable.factor = FALSE)
 
-  dt.pop <- getNewestVersion("dt.IMPACT3.pop.tot")
+  dt.pop <- getNewestVersion("dt.IMPACT159.pop.tot")
   data.table::setnames(dt.pop, old = "value", new = "pop")
   dt.pop[,pop.sum := sum(pop), by = eval(data.table::key(dt.pop))][,pop.share := pop/pop.sum]
 
-  # aggregate to IMPACT3 regions
+  # aggregate to IMPACT159 regions
   dt.alcScenarios.melt <- merge(dt.alcScenarios.melt,dt.regions.all, by = "region_code.SSP")
-  keepListCol <- c("scenario", "region_code.SSP", "year", "IMPACT_code", "FoodAvailability", "region_code.IMPACT3")
+  keepListCol <- c("scenario", "region_code.SSP", "year", "IMPACT_code", "FoodAvailability", "region_code.IMPACT159")
   dt.alcScenarios.melt <- dt.alcScenarios.melt[,keepListCol, with = FALSE]
 
   # reduce scenario name to just SSPx
   dt.alcScenarios.melt[,scenario := substring(scenario,1,4)]
   dt.pop[,scenario := substring(scenario,1,4)]
 
-  data.table::setkeyv(dt.alcScenarios.melt,c("scenario", "region_code.IMPACT3", "year"))
-  data.table::setkeyv(dt.pop, c("scenario", "region_code.IMPACT3", "year"))
-  dt.alcScenarios.melt <- merge(dt.alcScenarios.melt, dt.pop, by = c("scenario", "region_code.IMPACT3", "year"))
+  data.table::setkeyv(dt.alcScenarios.melt,c("scenario", "region_code.IMPACT159", "year"))
+  data.table::setkeyv(dt.pop, c("scenario", "region_code.IMPACT159", "year"))
+  dt.alcScenarios.melt <- merge(dt.alcScenarios.melt, dt.pop, by = c("scenario", "region_code.IMPACT159", "year"))
   # dt.temp1 <- dt.alcScenarios.melt[dt.pop]
-  data.table::setkeyv(dt.alcScenarios.melt, c("scenario", "region_code.IMPACT3", "year", "IMPACT_code"))
+  data.table::setkeyv(dt.alcScenarios.melt, c("scenario", "region_code.IMPACT159", "year", "IMPACT_code"))
   dt.alcScenarios.melt[,foodAvailability.sum := sum(FoodAvailability * pop.share), by = eval(data.table::key(dt.alcScenarios.melt))]
 
   dt.alcScenarios.melt[,FoodAvailability := sum(FoodAvailability), by = eval(data.table::key(dt.alcScenarios.melt))]
@@ -108,15 +108,15 @@ combineIMPACTData <- function() {
   # reduce scenario name to just SSPx
   dt.fishScenarios.melt[,scenario := substring(scenario,1,4)]
 
-  # aggregate to IMPACT3 regions
+  # aggregate to IMPACT159 regions
   dt.fishScenarios.melt <- merge(dt.fishScenarios.melt,dt.regions.all, by = "region_code.SSP")
-  keepListCol <- c("scenario", "region_code.SSP", "year", "IMPACT_code", "FoodAvailability", "region_code.IMPACT3")
+  keepListCol <- c("scenario", "region_code.SSP", "year", "IMPACT_code", "FoodAvailability", "region_code.IMPACT159")
   dt.fishScenarios.melt <- dt.fishScenarios.melt[,keepListCol, with = FALSE]
 
-  data.table::setkeyv(dt.fishScenarios.melt,c("scenario", "region_code.IMPACT3", "year"))
-  data.table::setkeyv(dt.pop, c("scenario", "region_code.IMPACT3", "year"))
-  dt.fishScenarios.melt <- merge(dt.fishScenarios.melt, dt.pop, by = c("scenario", "region_code.IMPACT3", "year"))
-  data.table::setkeyv(dt.fishScenarios.melt, c("scenario", "region_code.IMPACT3", "year", "IMPACT_code"))
+  data.table::setkeyv(dt.fishScenarios.melt,c("scenario", "region_code.IMPACT159", "year"))
+  data.table::setkeyv(dt.pop, c("scenario", "region_code.IMPACT159", "year"))
+  dt.fishScenarios.melt <- merge(dt.fishScenarios.melt, dt.pop, by = c("scenario", "region_code.IMPACT159", "year"))
+  data.table::setkeyv(dt.fishScenarios.melt, c("scenario", "region_code.IMPACT159", "year", "IMPACT_code"))
   dt.fishScenarios.melt[,foodAvailability.sum := sum(FoodAvailability * pop.share), by = eval(data.table::key(dt.fishScenarios.melt))]
 
   dt.fishScenarios.melt[,region_code.SSP := NULL]
@@ -160,10 +160,10 @@ combineIMPACTData <- function() {
   #  dt.PCX0.food[, scenario := substring(scenario,1,4)]
 
   data.table::setkeyv(dt.PWX0.food, c("scenario",         "IMPACT_code", "year"))
-  data.table::setkeyv(dt.CSEs.food, c(            "region_code.IMPACT3", "IMPACT_code"))
-  data.table::setkeyv(dt.PCX0.food, c("scenario", "region_code.IMPACT3", "IMPACT_code", "year"))
-  data.table::setkeyv(dt.pcGDPX0,   c("scenario", "region_code.IMPACT3",                "year"))
-  data.table::setkeyv(dt.FoodAvail, c("scenario", "region_code.IMPACT3", "IMPACT_code", "year"))
+  data.table::setkeyv(dt.CSEs.food, c(            "region_code.IMPACT159", "IMPACT_code"))
+  data.table::setkeyv(dt.PCX0.food, c("scenario", "region_code.IMPACT159", "IMPACT_code", "year"))
+  data.table::setkeyv(dt.pcGDPX0,   c("scenario", "region_code.IMPACT159",                "year"))
+  data.table::setkeyv(dt.FoodAvail, c("scenario", "region_code.IMPACT159", "IMPACT_code", "year"))
   dtlist <- list(dt.FoodAvail,dt.pcGDPX0,dt.PCX0.food,dt.PWX0.food,dt.CSEs.food)
   dt.IMPACTfood <- plyr::join_all(dtlist)
   # set CSEs, PCX, and PWX that are NA to 0
@@ -172,8 +172,8 @@ combineIMPACTData <- function() {
   data.table::set(dt.IMPACTfood, which(is.na(dt.IMPACTfood[["PCX0"]])), "PCX0", 0)
   data.table::set(dt.IMPACTfood, which(is.na(dt.IMPACTfood[["PWX0"]])), "PWX0", 0)
   dt.IMPACTfood[IMPACT_code %in% keyVariable("IMPACTfoodCommodList")]
-  data.table::setorderv(dt.IMPACTfood, cols = c("scenario",  "region_code.IMPACT3", "IMPACT_code","year"))
-  data.table::setkeyv(dt.IMPACTfood, c("scenario",  "region_code.IMPACT3", "IMPACT_code"))
+  data.table::setorderv(dt.IMPACTfood, cols = c("scenario",  "region_code.IMPACT159", "IMPACT_code","year"))
+  data.table::setkeyv(dt.IMPACTfood, c("scenario",  "region_code.IMPACT159", "IMPACT_code"))
 
   inDT <- dt.IMPACTfood
   outName <- "dt.IMPACTfood"

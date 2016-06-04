@@ -189,6 +189,8 @@ cleanup <- function(inDT, outName, dir, writeFiles) {
   #      file = paste(dir, "/", outName, ".", Sys.Date(), ".RData", sep = ""))
   print(paste("writing the rds for ", outName, " to ",dir, sep = ""))
   print(proc.time())
+  # next line removes any key left in the inDT data table; this may be an issue if a df is used
+  data.table::setkey(inDT, NULL)
   saveRDS(inDT,
           file = paste(dir, "/", outName, ".", Sys.Date(), ".rds", sep = ""))
 
@@ -267,7 +269,7 @@ cleanup <- function(inDT, outName, dir, writeFiles) {
 keyVariable <- function(variableName) {
   fixFish <- "TRUE"
   changeElasticity <- "TRUE"
-  region <- "region_code.IMPACT3"
+  region <- "region_code.IMPACT159"
   keepYearList <-
     c(
       "X2010",
@@ -364,7 +366,7 @@ metadata <- function() {
   metadata[(nrow(metadata) + 1), ] <-
     c(fileNameList("CSEs"), "Consumer Surplus Equivalents for IMPACT commodities")
   metadata[(nrow(metadata) + 1), ] <-
-    c(fileNameList("IMPACT3regions"),
+    c(fileNameList("IMPACT159regions"),
       "List of IMPACT regions; single countries and country aggregates")
   metadata[(nrow(metadata) + 1), ] <-
     c(fileNameList("IMPACTstdRegions"),
@@ -425,8 +427,9 @@ metadata <- function() {
 #' @param EARs - the path to and the name of the EAR data file
 #' @param CSEFileName - the name of the file with consumer support equivalents (CSEs)
 #' @param CSEs - the path to and the file name for the CSE data
-#' @param IMPACT3regionsFileName - the file name with the IMPACT3 regions names
-#' @param IMPACT3regions - the path to and the file name for the IMPACT3 regions names
+#' @param IMPACT159regionsFileName - the file name with the IMPACT159 regions names
+#' @param IMPACT159regions - the path to and the file name for the IMPACT159 regions names
+#' @param IMPACTregionsUpdateJun2016 - update to IMPACT regions in June 2016
 #' @param IMPACTstdRegionsFileName - file name with IMPACT standard global regions
 #' @param IMPACTstdRegions - path and file name for the list of IMPACT standard regions
 #' @param IMPACTgdxfileName- file name with IMPACT demand results
@@ -464,12 +467,15 @@ fileNameList <- function(variableName) {
   #Note: the price a consumer pays is Pc * (1-CSE)
   CSEFileName     <- "CSEs20150824.xlsx"
   CSEs            <- paste(IMPACTData, CSEFileName, sep = "/")
-  IMPACT3regionsFileName <-
+  IMPACT159regionsFileName <-
     "IMPACTRegionsFeb2016.xlsx" # this file includes Denmark plus (DNP) and Sudan plus (SDP)
-  #' IMPACT3regionsFileName <- "IMPACTRegionsMay2015.csv" # this file includes Denmark plus (DNP) and Sudan plus (SDP) and removes Greenland and South Sudan
-  #' #IMPACT3regionsFileName <- "IMPACTRegionsJan15tmp.csv" # this file removes Denmark plus (DNP) and South Sudan (SSD) as well as removes Greenland and South Sudan
-  IMPACT3regions <-
-    paste(IMPACTData, IMPACT3regionsFileName, sep = "/")
+  #' IMPACT159regionsFileName <- "IMPACTRegionsMay2015.csv" # this file includes Denmark plus (DNP) and Sudan plus (SDP) and removes Greenland and South Sudan
+  #' #IMPACT159regionsFileName <- "IMPACTRegionsJan15tmp.csv" # this file removes Denmark plus (DNP) and South Sudan (SSD) as well as removes Greenland and South Sudan
+  IMPACTregionsUpdateJun2016FileName <- "IMPACT_regions_Update_June_2016.xlsx"
+  IMPACTregionsUpdateJun2016 <-
+    paste(IMPACTData, IMPACTregionsUpdateJun2016FileName, sep = "/")
+  IMPACT159regions <-
+    paste(IMPACTData, IMPACT159regionsFileName, sep = "/")
   IMPACTstdRegionsFileName <- "IMPACT-agg-regionsFeb2016.xlsx"
   IMPACTstdRegions <-
     paste(IMPACTData, IMPACTstdRegionsFileName, sep = "/")
@@ -488,7 +494,7 @@ fileNameList <- function(variableName) {
   nutrientFileName <- "USDA GFS IMPACT V17.xlsx"
   nutrientLU       <- paste(NutrientData, nutrientFileName, sep = "/")
   commodityFoodGroupLookupFileName <-
-    "food commodity to food group table V2.xlsx"
+    "food commodity to food group table V3.xlsx"
   foodGroupLU      <-
     paste(NutrientData, commodityFoodGroupLookupFileName, sep = "/")
   # SSP information ----
@@ -509,8 +515,10 @@ fileNameList <- function(variableName) {
         "EARs",
         "CSEFileName",
         "CSEs",
-        "IMPACT3regionsFileName",
-        "IMPACT3regions",
+        "IMPACT159regionsFileName",
+        "IMPACT159regions",
+        "IMPACTregionsUpdateJun2016FileName",
+        "IMPACTregionsUpdateJun2016",
         "IMPACTstdRegionsFileName",
         "IMPACTstdRegions",
         "IMPACTgdxfileName",
@@ -611,61 +619,61 @@ filelocFBS <- function(variableName) {
 #' @param region_title - name of the region (eg., Denmark plus)
 #' @return data from with the information for an IMPACT region with multiple countries
 # plusCnst <- function(region_code.IMPACT, ISO3_list, region_title) {
-#   data.frame(region_code.IMPACT3, ISO3_lst, region_name.IMPACT3, stringsAsFactors = FALSE)}
+#   data.frame(region_code.IMPACT159, ISO3_lst, region_name.IMPACT159, stringsAsFactors = FALSE)}
 
-plusCnst <- function(region_code.IMPACT3, ISO3_lst, region_name) {
-  data.frame(region_code.IMPACT3, ISO3_lst, region_name, stringsAsFactors = FALSE)
+plusCnst <- function(region_code.IMPACT159, ISO3_lst, region_name) {
+  data.frame(region_code.IMPACT159, ISO3_lst, region_name, stringsAsFactors = FALSE)
 }
-#' Title createIMPACT3Regions
-#' @return regions.IMPACT3
+#' Title createIMPACT159Regions
+#' @return regions.IMPACT159
 #' @export
-createIMPACT3Regions <- function() {
-  #' regions.IMPACT3.plus is all the regions larger than a single political unit (as defined by an ISO3 code)
+createIMPACT159Regions <- function() {
+  #' regions.IMPACT159.plus is all the regions larger than a single political unit (as defined by an ISO3 code)
   #' and what political units are included
-  regions.IMPACT3.plus <- data.frame(
-    region_code.IMPACT3 = character(0),
+  regions.IMPACT159.plus <- data.frame(
+    region_code.IMPACT159 = character(0),
     region_members = character(0),
-    region_name.IMPACT3 = character(0),
+    region_name.IMPACT159 = character(0),
     stringsAsFactors = FALSE
   )
-  #' @param region_code.IMPACT3 - temporary variable to hold countries that make up a region
-  region_code.IMPACT3 <- "BLT"
+  #' @param region_code.IMPACT159 - temporary variable to hold countries that make up a region
+  region_code.IMPACT159 <- "BLT"
   ISO3_lst <- c("EST", "LTU", "LVA")
-  region_name.IMPACT3 <- "Baltic States"
-  temp <- plusCnst(region_code.IMPACT3,ISO3_lst,region_name.IMPACT3)
-  regions.IMPACT3.plus <- rbind(regions.IMPACT3.plus, temp)
+  region_name.IMPACT159 <- "Baltic States"
+  temp <- plusCnst(region_code.IMPACT159,ISO3_lst,region_name.IMPACT159)
+  regions.IMPACT159.plus <- rbind(regions.IMPACT159.plus, temp)
   # txt <- c('BLT Baltic States is Estonia EST, Lithuania LTU, Latvia
   # LVA')
 
-  region_code.IMPACT3 <- "BLX"
+  region_code.IMPACT159 <- "BLX"
   ISO3_lst <- c("BEL", "LUX")
-  region_name.IMPACT3 <- "Belgium-Luxembourg"
-  temp <- plusCnst(region_code.IMPACT3,ISO3_lst,region_name.IMPACT3)
-  regions.IMPACT3.plus <- rbind(regions.IMPACT3.plus, temp)
+  region_name.IMPACT159 <- "Belgium-Luxembourg"
+  temp <- plusCnst(region_code.IMPACT159,ISO3_lst,region_name.IMPACT159)
+  regions.IMPACT159.plus <- rbind(regions.IMPACT159.plus, temp)
   # txt <- c('BLX Belgium-Luxembourg is Belgium BEL, Luxembourg LUX')
 
-  region_code.IMPACT3 <- "CHM"
+  region_code.IMPACT159 <- "CHM"
   ISO3_lst <- c("CHN", "HKG", "MAC", "TWN")
-  region_name.IMPACT3 <- "China plus"
-  temp <- plusCnst(region_code.IMPACT3,ISO3_lst,region_name.IMPACT3)
-  regions.IMPACT3.plus <- rbind(regions.IMPACT3.plus, temp)
+  region_name.IMPACT159 <- "China plus"
+  temp <- plusCnst(region_code.IMPACT159,ISO3_lst,region_name.IMPACT159)
+  regions.IMPACT159.plus <- rbind(regions.IMPACT159.plus, temp)
   # txt <- c('CHM China plus is China CHN, Hong Kong HKG, Macao MAC,
   # Taiwan TWN')
 
-  region_code.IMPACT3 <- "CHP"
+  region_code.IMPACT159 <- "CHP"
   ISO3_lst <- c("CHE", "LIE")
-  region_name.IMPACT3 <- "Switzerland plus"
-  temp <- plusCnst(region_code.IMPACT3,ISO3_lst,region_name.IMPACT3)
-  regions.IMPACT3.plus <- rbind(regions.IMPACT3.plus, temp)
+  region_name.IMPACT159 <- "Switzerland plus"
+  temp <- plusCnst(region_code.IMPACT159,ISO3_lst,region_name.IMPACT159)
+  regions.IMPACT159.plus <- rbind(regions.IMPACT159.plus, temp)
   # txt <- c('CHP Switzerland plus is Switzerland CHE Liechtenstein LIE')
 
-  region_code.IMPACT3 <- "CRB"
+  region_code.IMPACT159 <- "CRB"
   ISO3_lst <- c("ABW", "AIA", "ATG", "BES", "BHS", "BLM", "BRB", "CUW", "CYM",
                 "DMA", "GLP", "GRD", "KNA", "LCA", "MAF", "MSR", "MTQ", "PRI", "SXM",
                 "TCA", "TTO", "VCT", "VGB", "VIR")
-  region_name.IMPACT3 <- "Other Caribbean"
-  temp <- plusCnst(region_code.IMPACT3,ISO3_lst,region_name.IMPACT3)
-  regions.IMPACT3.plus <- rbind(regions.IMPACT3.plus, temp)
+  region_name.IMPACT159 <- "Other Caribbean"
+  temp <- plusCnst(region_code.IMPACT159,ISO3_lst,region_name.IMPACT159)
+  regions.IMPACT159.plus <- rbind(regions.IMPACT159.plus, temp)
   # txt <- c('CRB Other Caribbean is Aruba ABW, Anguilla AIA, Netherlands
   # Antilles (obsolete) ANT, Antigua ATG Bonaire, Sint Eustatius, and
   # Saba BES, Bahamas BHS, St,Barthélemy BLM, Barbados BRB, Curacao CUW,
@@ -677,90 +685,90 @@ createIMPACT3Regions <- function() {
   # from this list
 
   #DNP is commented out because the latest version of the IMPACT regions has Denmark and Greenland separately
-  # region_code.IMPACT3 <- "DNP"
+  # region_code.IMPACT159 <- "DNP"
   # ISO3_lst <- c("DNK", "GRL")
-  # region_name.IMPACT3 <- "Denmark plus"
-  # regions.IMPACT3.plus <- rbind(regions.IMPACT3.plus, plusCnst(region_code.IMPACT3,
-  #                                                                  ISO3_list, region_name.IMPACT3))
+  # region_name.IMPACT159 <- "Denmark plus"
+  # regions.IMPACT159.plus <- rbind(regions.IMPACT159.plus, plusCnst(region_code.IMPACT159,
+  #                                                                  ISO3_list, region_name.IMPACT159))
   # txt <- c('DNP Denmark plus is DNK Denmark GRL Greenland')
 
-  region_code.IMPACT3 <- "FNP"
+  region_code.IMPACT159 <- "FNP"
   ISO3_lst <- c("ALA", "FIN")
-  region_name.IMPACT3 <- "Finland plus"
-  temp <- plusCnst(region_code.IMPACT3,ISO3_lst,region_name.IMPACT3)
-  regions.IMPACT3.plus <- rbind(regions.IMPACT3.plus, temp)
+  region_name.IMPACT159 <- "Finland plus"
+  temp <- plusCnst(region_code.IMPACT159,ISO3_lst,region_name.IMPACT159)
+  regions.IMPACT159.plus <- rbind(regions.IMPACT159.plus, temp)
   # txt <- c('FNP Finland plus is Aland Islands ALA Finland FIN')
 
-  region_code.IMPACT3 <- "FRP"
+  region_code.IMPACT159 <- "FRP"
   ISO3_lst <- c("FRA", "MCO")
-  region_name.IMPACT3 <- "France plus"
-  temp <- plusCnst(region_code.IMPACT3,ISO3_lst,region_name.IMPACT3)
-  regions.IMPACT3.plus <- rbind(regions.IMPACT3.plus, temp)
+  region_name.IMPACT159 <- "France plus"
+  temp <- plusCnst(region_code.IMPACT159,ISO3_lst,region_name.IMPACT159)
+  regions.IMPACT159.plus <- rbind(regions.IMPACT159.plus, temp)
   # txt <- c('FRP France plus is France FRA Monaco MCO')
 
-  region_code.IMPACT3 <- "GSA"
+  region_code.IMPACT159 <- "GSA"
   ISO3_lst <- c("GUF", "GUY", "SUR")
-  region_name.IMPACT3 <- "Guyanas"
-  temp <- plusCnst(region_code.IMPACT3,ISO3_lst,region_name.IMPACT3)
-  regions.IMPACT3.plus <- rbind(regions.IMPACT3.plus, temp)
+  region_name.IMPACT159 <- "Guyanas"
+  temp <- plusCnst(region_code.IMPACT159,ISO3_lst,region_name.IMPACT159)
+  regions.IMPACT159.plus <- rbind(regions.IMPACT159.plus, temp)
   # txt <- c('GSA Guyanas is South America French Guiana GUF Guyana GUY
   # Suriname SUR')
 
-  region_code.IMPACT3 <- "ITP"
+  region_code.IMPACT159 <- "ITP"
   ISO3_lst <- c("ITA", "MLT", "SMR", "VAT")
-  region_name.IMPACT3 <- "Italy plus"
-  temp <- plusCnst(region_code.IMPACT3,ISO3_lst,region_name.IMPACT3)
-  regions.IMPACT3.plus <- rbind(regions.IMPACT3.plus, temp)
+  region_name.IMPACT159 <- "Italy plus"
+  temp <- plusCnst(region_code.IMPACT159,ISO3_lst,region_name.IMPACT159)
+  regions.IMPACT159.plus <- rbind(regions.IMPACT159.plus, temp)
   # txt <- c('ITP Italy plus is Italy ITA Malta MLT San Marino SMR
   # Vatican City VAT')
 
-  region_code.IMPACT3 <- "MOR"
+  region_code.IMPACT159 <- "MOR"
   ISO3_lst <- c("MAR", "ESH")
-  region_name.IMPACT3 <- "Morocco plus"
-  temp <- plusCnst(region_code.IMPACT3,ISO3_lst,region_name.IMPACT3)
-  regions.IMPACT3.plus <- rbind(regions.IMPACT3.plus, temp)
+  region_name.IMPACT159 <- "Morocco plus"
+  temp <- plusCnst(region_code.IMPACT159,ISO3_lst,region_name.IMPACT159)
+  regions.IMPACT159.plus <- rbind(regions.IMPACT159.plus, temp)
   # txt <- c('MOR Morocco plus is Morocco MAR Western Sahara ESH')
 
-  region_code.IMPACT3 <- "OAO"
+  region_code.IMPACT159 <- "OAO"
   # Antartic (ATA) added to this list
   ISO3_lst <- c("ATA", "BMU", "BVT", "CPV", "FLK", "FRO", "SGS", "SHN", "SJM",
                 "SPM", "STP")
-  region_name.IMPACT3 <- "Other Atlantic Ocean"
-  temp <- plusCnst(region_code.IMPACT3,ISO3_lst,region_name.IMPACT3)
-  regions.IMPACT3.plus <- rbind(regions.IMPACT3.plus, temp)
+  region_name.IMPACT159 <- "Other Atlantic Ocean"
+  temp <- plusCnst(region_code.IMPACT159,ISO3_lst,region_name.IMPACT159)
+  regions.IMPACT159.plus <- rbind(regions.IMPACT159.plus, temp)
   # txt <- c('OAO Other Atlantic Ocean is Bermuda BMU Bouvet Island BVT
   # Cape Verde CPV Falkland Islands FLK Faroe Islands FRO South Georgia
   # and South Sandwich Islands SGS Saint Helena, Ascension, and Tristan
   # de Cunha SHN Svalbard and Jan Mayen SJM Saint Pierre and Miquelon SPM
   # Sao Tome and Principe STP')
 
-  region_code.IMPACT3 <- "OBN"
+  region_code.IMPACT159 <- "OBN"
   ISO3_lst <- c("BIH", "MKD", "MNE", "SRB")
-  region_name.IMPACT3 <- "Other Balkans"
-  temp <- plusCnst(region_code.IMPACT3,ISO3_lst,region_name.IMPACT3)
-  regions.IMPACT3.plus <- rbind(regions.IMPACT3.plus, temp)
+  region_name.IMPACT159 <- "Other Balkans"
+  temp <- plusCnst(region_code.IMPACT159,ISO3_lst,region_name.IMPACT159)
+  regions.IMPACT159.plus <- rbind(regions.IMPACT159.plus, temp)
   # txt <- c('OBN Other Balkans is Bosnia-Herzegovina BIH Macedonia (FYR)
   # MKD Montenegro MNE Serbia SRB')
 
-  region_code.IMPACT3 <- "OIO"
+  region_code.IMPACT159 <- "OIO"
   ISO3_lst <- c("ATF", "CCK", "COM", "CXR", "HMD", "IOT", "MDV", "MUS", "MYT",
                 "REU", "SYC")
-  region_name.IMPACT3 <- "Other Indian Ocean"
-  temp <- plusCnst(region_code.IMPACT3,ISO3_lst,region_name.IMPACT3)
-  regions.IMPACT3.plus <- rbind(regions.IMPACT3.plus, temp)
+  region_name.IMPACT159 <- "Other Indian Ocean"
+  temp <- plusCnst(region_code.IMPACT159,ISO3_lst,region_name.IMPACT159)
+  regions.IMPACT159.plus <- rbind(regions.IMPACT159.plus, temp)
   # txt <- c('OIO Other Indian Ocean is Southern Territories ATF Keeling
   # Islands CCK Comoros COM Christmas Island CXR Heard and McDonald
   # Islands HMD British Indian Ocean Territory IOT Maldives MDV Mauritius
   # MUS Mayotte MYT Réunion REU Seychelles SYC') CXR deleted from this
   # list
 
-  region_code.IMPACT3 <- "OPO"
+  region_code.IMPACT159 <- "OPO"
   ISO3_lst <- c("ASM", "COK", "FSM", "GUM", "KIR", "MHL", "MNP", "NCL", "NFK",
                 "NIU", "NRU", "PCN", "PLW", "PYF", "TKL", "TON", "TUV", "UMI", "WLF",
                 "WSM")
-  region_name.IMPACT3 <- "Other Pacific Ocean"
-  temp <- plusCnst(region_code.IMPACT3,ISO3_lst,region_name.IMPACT3)
-  regions.IMPACT3.plus <- rbind(regions.IMPACT3.plus, temp)
+  region_name.IMPACT159 <- "Other Pacific Ocean"
+  temp <- plusCnst(region_code.IMPACT159,ISO3_lst,region_name.IMPACT159)
+  regions.IMPACT159.plus <- rbind(regions.IMPACT159.plus, temp)
   # txt <- c('OPO Other Pacific Ocean is American Samoa ASM Cook Islands
   # COK Micronesia FSM Guam GUM Kiribati KIR Marshall Islands MHL
   # Northern Mariana Islands MNP New Caledonia NCL Norfolk Island NFK
@@ -768,61 +776,61 @@ createIMPACT3Regions <- function() {
   # Tokelau TKL Tonga TON Tuvalu TUV Minor Outlying Islands UMI Wallis
   # and Futuna WLF Samoa WSM')
 
-  region_code.IMPACT3 <- "OSA"
+  region_code.IMPACT159 <- "OSA"
   ISO3_lst <- c("BRN", "SGP")
-  region_name.IMPACT3 <- "Other Southeast Asia"
-  temp <- plusCnst(region_code.IMPACT3,ISO3_lst,region_name.IMPACT3)
-  regions.IMPACT3.plus <- rbind(regions.IMPACT3.plus, temp)
+  region_name.IMPACT159 <- "Other Southeast Asia"
+  temp <- plusCnst(region_code.IMPACT159,ISO3_lst,region_name.IMPACT159)
+  regions.IMPACT159.plus <- rbind(regions.IMPACT159.plus, temp)
   # txt <- c('OSA OtherSoutheast Asia is Brunei BRN Singapore SGP')
 
-  region_code.IMPACT3 <- "RAP"
+  region_code.IMPACT159 <- "RAP"
   ISO3_lst <- c("ARE", "BHR", "KWT", "OMN", "QAT")
-  region_name.IMPACT3 <- "Rest of Arab Peninsula"
-  temp <- plusCnst(region_code.IMPACT3,ISO3_lst,region_name.IMPACT3)
-  regions.IMPACT3.plus <- rbind(regions.IMPACT3.plus, temp)
+  region_name.IMPACT159 <- "Rest of Arab Peninsula"
+  temp <- plusCnst(region_code.IMPACT159,ISO3_lst,region_name.IMPACT159)
+  regions.IMPACT159.plus <- rbind(regions.IMPACT159.plus, temp)
   # txt <- c('RAP Rest of Arab Peninsula is United Arab Emirates ARE
   # Bahrain BHR Kuwait KWT Oman OMN Qatar QAT')
 
-  region_code.IMPACT3 <- "SDP"
+  region_code.IMPACT159 <- "SDP"
   ISO3_lst <- c("SSD", "SDN")
-  region_name.IMPACT3 <- "Sudan plus"
-  temp <- plusCnst(region_code.IMPACT3,ISO3_lst,region_name.IMPACT3)
-  regions.IMPACT3.plus <- rbind(regions.IMPACT3.plus, temp)
+  region_name.IMPACT159 <- "Sudan plus"
+  temp <- plusCnst(region_code.IMPACT159,ISO3_lst,region_name.IMPACT159)
+  regions.IMPACT159.plus <- rbind(regions.IMPACT159.plus, temp)
   # txt <- c('SDP Sudan plus is SSD Sudan SDN South Sudan')
 
-  region_code.IMPACT3 <- "SPP"
+  region_code.IMPACT159 <- "SPP"
   ISO3_lst <- c("AND", "ESP", "GIB")
-  region_name.IMPACT3 <- "Spain plus"
-  temp <- plusCnst(region_code.IMPACT3,ISO3_lst,region_name.IMPACT3)
-  regions.IMPACT3.plus <- rbind(regions.IMPACT3.plus, temp)
+  region_name.IMPACT159 <- "Spain plus"
+  temp <- plusCnst(region_code.IMPACT159,ISO3_lst,region_name.IMPACT159)
+  regions.IMPACT159.plus <- rbind(regions.IMPACT159.plus, temp)
   # txt <- c('SPP Spain plus is Andorra AND Spain ESP Gibraltar GIB')
 
-  region_code.IMPACT3 <- "UKP"
+  region_code.IMPACT159 <- "UKP"
   ISO3_lst <- c("GBR", "GGY", "IMN")
-  region_name.IMPACT3 <- "Great Britain plus"
-  temp <- plusCnst(region_code.IMPACT3,ISO3_lst,region_name.IMPACT3)
-  regions.IMPACT3.plus <- rbind(regions.IMPACT3.plus, temp)
+  region_name.IMPACT159 <- "Great Britain plus"
+  temp <- plusCnst(region_code.IMPACT159,ISO3_lst,region_name.IMPACT159)
+  regions.IMPACT159.plus <- rbind(regions.IMPACT159.plus, temp)
   # txt <- c('UKP Great Britain plus is Great Britain GBR Guernsey GGY
   # Isle of Man IMN Jersey JEY')
 
-  colnames(regions.IMPACT3.plus) <-
-    c("region_code.IMPACT3", "ISO_code", "region_name.IMPACT3")
+  colnames(regions.IMPACT159.plus) <-
+    c("region_code.IMPACT159", "ISO_code", "region_name.IMPACT159")
 
-  # Create regions.IMPACT3 ----
-  # The next lines of code get a list of IMPACT 3 regions that are not in IMPACT3.plus
-  IMPACT3regions <- fileNameList("IMPACT3regions")
-  regions.IMPACT3 <- openxlsx::read.xlsx(IMPACT3regions)
-  colnames(regions.IMPACT3) <-
-    c("region_code.IMPACT3", "region_name.IMPACT3")
-  #' @param regions.IMPACT3.region_name.IMPACT3 regions in IMPACT3 that are only one country
-  regions.IMPACT3.cty <-
-    regions.IMPACT3[!regions.IMPACT3$region_code.IMPACT3 %in% regions.IMPACT3.plus$region_code.IMPACT3,]
-  regions.IMPACT3.cty$ISO_code <-
-    regions.IMPACT3.cty$region_code.IMPACT3
-  regions.IMPACT3 <- rbind(regions.IMPACT3.cty, regions.IMPACT3.plus)
-  regions.IMPACT3 <-
-    regions.IMPACT3[order(regions.IMPACT3$ISO_code), ]
-  temp <- regions.IMPACT3
+  # Create regions.IMPACT159 ----
+  # The next lines of code get a list of IMPACT 3 regions that are not in IMPACT159.plus
+  IMPACT159regions <- fileNameList("IMPACT159regions")
+  regions.IMPACT159 <- openxlsx::read.xlsx(IMPACT159regions)
+  colnames(regions.IMPACT159) <-
+    c("region_code.IMPACT159", "region_name.IMPACT159")
+  #' @param regions.IMPACT159.region_name.IMPACT159 regions in IMPACT159 that are only one country
+  regions.IMPACT159.cty <-
+    regions.IMPACT159[!regions.IMPACT159$region_code.IMPACT159 %in% regions.IMPACT159.plus$region_code.IMPACT159,]
+  regions.IMPACT159.cty$ISO_code <-
+    regions.IMPACT159.cty$region_code.IMPACT159
+  regions.IMPACT159 <- rbind(regions.IMPACT159.cty, regions.IMPACT159.plus)
+  regions.IMPACT159 <-
+    regions.IMPACT159[order(regions.IMPACT159$ISO_code), ]
+  temp <- regions.IMPACT159
   return(temp)
 }
 

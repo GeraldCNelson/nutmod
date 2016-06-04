@@ -30,7 +30,7 @@ foodGroupLU <- fileNameList("foodGroupLU")
 #' @param nutrients.raw - nutrient content of IMPACT 3 commodities, including fish and alcoholic beverages
 nutrients.raw <- openxlsx::read.xlsx(nutrientLU, sheet = 1, rows = 3:68, cols = 1:63, colNames = TRUE)
 
-#' @param nutrientNames_Units - units for the nutrients in IMPACT3 nutrient list
+#' @param nutrientNames_Units - units for the nutrients in IMPACT159 nutrient list
 nutrientNames_Units <- openxlsx::read.xlsx(nutrientLU,sheet = 1,rows = 1:3,cols = 10:46,colNames = FALSE)
 
 #remove columns that are dividers, etc. This leaves only the IMPACT_code, edible share, IMPACT_conversion,
@@ -123,15 +123,15 @@ nutrients.clean[, nutrients.list] <-
 colsToRemove <- c("edible_share", "IMPACT_conversion", cookretn.cols)
 nutrients <- nutrients.clean[, !(names(nutrients.clean) %in% colsToRemove)]
 
-# add food groups and staples codes to the nutrients table ---
+# add food groups, staples, and white starches codes to the nutrients table ---
 foodGroupsInfo <- openxlsx::read.xlsx(
   foodGroupLU,
   sheet = 1,
   startRow = 1,
-  cols = 1:5,
+  cols = 1:6,
   colNames = TRUE
 )
-tmp <- foodGroupsInfo[, c("IMPACT_code", "food.group.code","staple.code")]
+tmp <- foodGroupsInfo[, c("IMPACT_code", "food.group.code","staple.code", "white.starch.code")]
 nutrients <- merge(nutrients, tmp, by = "IMPACT_code", all = TRUE)
 
 inDT <- nutrients

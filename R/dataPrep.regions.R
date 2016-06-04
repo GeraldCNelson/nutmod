@@ -9,12 +9,12 @@
 #' @param region_code.SSP - the SSP region for each ISO code (either an ISO 3 code or NA) - 194 countries
 #' @param region_code.IMPACT115 - the 3 digit IMPACT115 region code for each ISO code
 #' @param region_name.IMPACT115 - the name of the IMPACT115 region for each ISO code
-#' @param region_code.IMPACT3 - the 3 digit IMPACT3 region code for each ISO code
-#' @param region_name.IMPACT3 - the name of the IMPACT3 region for each ISO code
+#' @param region_code.IMPACT159 - the 3 digit IMPACT159 region code for each ISO code
+#' @param region_name.IMPACT159 - the name of the IMPACT159 region for each ISO code
 #' @param regions.IMPACT115 - all 115 regions in the 115 region version of IMPACT
 #' @param regions.IMPACT115.plus - the 20 regions in the 115 region version of IMPACT that are aggregates of individual 'countries'
-#' @param regions.IMPACT3 - all 157 regions in the IMPACT3 version of IMPACT (2015)
-#' @param regions.IMPACT3.plus - the 20 regions in the IMPACT3 version of IMPACT that are aggregates of individual 'countries'
+#' @param regions.IMPACT159 - all 157 regions in the IMPACT159 version of IMPACT (2015)
+#' @param regions.IMPACT159.plus - the 20 regions in the IMPACT159 version of IMPACT that are aggregates of individual 'countries'
 #' The 3 digit country codes are based on the ISO 3166 standard, accessed Nov 2015.
 #' @source \url{http://en.wikipedia.org/wiki/ISO_3166-1_alpha-3}
 
@@ -23,7 +23,7 @@
 #' country_name - a descriptive name for the country
 #' region_members - one or more country codes that make up the region
 #' region_name - a descriptive name for the region. Identical to the country name for regions that have only one country
-#' IMPACT3 includes all the countries in the ISO list, either individually or in a plus region
+#' IMPACT159 includes all the countries in the ISO list, either individually or in a plus region
 #' SSP doesn't include the 56 countries in missingList.SSP. These are bunch of really small things.
 
 #Copyright (C) 2015 Gerald C,Nelson, except where noted
@@ -51,7 +51,7 @@ ISOCodes <- filelocFBS("ISOCodes")
 regions.ISO <- openxlsx::read.xlsx(ISOCodes)
 colnames(regions.ISO) <- c("ISO_code", "country_name.ISO")
 
-regions.IMPACT3 <- createIMPACT3Regions()
+regions.IMPACT159 <- createIMPACT159Regions()
 
 # Create regions.IMPACT115 and regions.IMPACT115.plus ----
 
@@ -117,7 +117,7 @@ regions.IMPACT115 <- temp
 colnames(regions.IMPACT115) <-
   c("region_code.IMPACT115", "ISO_code", "region_name.IMPACT115")
 regions.IMPACT <-
-  merge(regions.IMPACT115, regions.IMPACT3, by = "ISO_code")
+  merge(regions.IMPACT115, regions.IMPACT159, by = "ISO_code")
 
 dt.SSP <- getNewestVersion("dt.SSPPopClean")
 
@@ -132,18 +132,18 @@ regions.all.ISO <-
 regions.all.SSP <-
   merge(regions.SSP, regions.all.ISO, by = "ISO_code", all = TRUE)
 
-# add IMPACT3 standard world regions ----
+# add IMPACT159 standard world regions ----
 
 IMPACTstdRegions <- openxlsx::read.xlsx(IMPACTstdRegions)
 colnames(IMPACTstdRegions) <-
   c(
-    "region_code.IMPACT3",
+    "region_code.IMPACT159",
     "region_code.IMPACTstandard",
     "region_name.IMPACTstandard",
-    "region_name.IMPACT3"
+    "region_name.IMPACT159"
   )
 IMPACTstdRegions <-
-  IMPACTstdRegions[, c("region_code.IMPACT3", "region_code.IMPACTstandard")]
+  IMPACTstdRegions[, c("region_code.IMPACT159", "region_code.IMPACTstandard")]
 
 IMPACT.world.regions.lookup <-
   data.frame(
@@ -171,7 +171,7 @@ regions.IMPACTworld <-
 regions.all <-
   merge(regions.all.SSP,
         regions.IMPACTworld,
-        by = "region_code.IMPACT3",
+        by = "region_code.IMPACT159",
         all = TRUE)
 
 # Read in the worksheet that has the FAO country code-ISO country name lookup
@@ -191,16 +191,16 @@ regions.all <-
         by = "ISO_code",
         all = TRUE)
 newColOrder <- c("ISO_code", "region_code.SSP", "FAOSTAT_code","region_code.IMPACT115",
-  "region_code.IMPACT3", "region_code.IMPACTstandard", "country_name.ISO",
-  "region_name.IMPACT115", "region_name.IMPACT3", "region_name.IMPACTstandard",
+  "region_code.IMPACT159", "region_code.IMPACTstandard", "country_name.ISO",
+  "region_name.IMPACT115", "region_name.IMPACT159", "region_name.IMPACTstandard",
   "Short.name", "Official.name", "ISO2_code", "UNI_code", "UNDP_code",
   "GAUL_code")
 regions.all <- regions.all[newColOrder]
 
-# remove a pesky 'country' JEY (Jersey)
-deleteListRow <- c("JEY")
-regions.all <-
-  regions.all[!regions.all$ISO_code %in% deleteListRow, ]
+# remove a pesky 'country' JEY (Jersey); this should be done elsewhere
+# deleteListRow <- c("JEY")
+# regions.all <-
+#   regions.all[!regions.all$ISO_code %in% deleteListRow, ]
 regions.all <- regions.all[order(regions.all$ISO_code), ]
 
 # #rearrange the column order
@@ -208,11 +208,11 @@ regions.all <- regions.all[order(regions.all$ISO_code), ]
 #   "ISO_code",
 #   "region_code.SSP",
 #   "region_code.IMPACT115",
-#   "region_code.IMPACT3",
+#   "region_code.IMPACT159",
 #   "region_code.IMPACTstandard",
 #   "country_name.ISO",
 #   "region_name.IMPACT115",
-#   "region_name.IMPACT3",
+#   "region_name.IMPACT159",
 #   "region_name.IMPACTstandard"
 # )]
 
