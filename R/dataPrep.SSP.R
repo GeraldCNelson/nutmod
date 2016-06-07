@@ -105,20 +105,24 @@ dt.SSP.pop <- dt.SSP[model == modelListPop,]
 #' genderList <- c("Male", "Female")
 
 #keep full population count around for bug checking later
+# get rid of year 0.
+keepYearList.temp <- keyVariable("keepYearList")
 dt.SSP.pop.tot <-
-  dt.SSP.pop[variable == "Population", c("scenario", "ISO_code", "unit" , keepYearList), with = FALSE]
+  dt.SSP.pop[variable == "Population", c("scenario", "ISO_code", "unit", keepYearList.temp), with = FALSE]
 deleteListCol <- c("units","X2005")
 
 idVars <- c("scenario", "ISO_code")
-measure.vars = keepYearList
+measure.vars = keepYearList.temp
 dt.SSP.pop.tot.melt <- data.table::melt(
   dt.SSP.pop.tot,
   id.vars = idVars,
   variable.name = "year",
-  value.name = "value",
+  value.name = "pop",
   measure.vars = measure.vars,
   variable.factor = FALSE
 )
+
+data.table::setnames(dt.SSP.pop.tot.melt, old = "ISO_code", new = "region_code.SSP")
 
 inDT <- dt.SSP.pop.tot.melt
 outName <- "dt.SSP.pop.tot"

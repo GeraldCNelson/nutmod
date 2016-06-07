@@ -471,7 +471,7 @@ fileNameList <- function(variableName) {
     "IMPACTRegionsFeb2016.xlsx" # this file includes Denmark plus (DNP) and Sudan plus (SDP)
   #' IMPACT159regionsFileName <- "IMPACTRegionsMay2015.csv" # this file includes Denmark plus (DNP) and Sudan plus (SDP) and removes Greenland and South Sudan
   #' #IMPACT159regionsFileName <- "IMPACTRegionsJan15tmp.csv" # this file removes Denmark plus (DNP) and South Sudan (SSD) as well as removes Greenland and South Sudan
-  IMPACTregionsUpdateJun2016FileName <- "IMPACT_regions_Update_June_2016.xlsx"
+  IMPACTregionsUpdateJun2016FileName <- "IMPACT regions update June 6 2016.xlsx"
   IMPACTregionsUpdateJun2016 <-
     paste(IMPACTData, IMPACTregionsUpdateJun2016FileName, sep = "/")
   IMPACT159regions <-
