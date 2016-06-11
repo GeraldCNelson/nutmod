@@ -491,7 +491,7 @@ fileNameList <- function(variableName) {
   IMPACTfoodFileName <- "dt.IMPACTfood"
   IMPACTfoodFileInfo <-  paste(mData,"/IMPACTData/",IMPACTfoodFileName,sep="")
   # nutrient data ------
-  nutrientFileName <- "USDA GFS IMPACT V17.xlsx"
+  nutrientFileName <- "USDA GFS IMPACT V18.xlsx"
   nutrientLU       <- paste(NutrientData, nutrientFileName, sep = "/")
   commodityFoodGroupLookupFileName <-
     "food commodity to food group table V3.xlsx"

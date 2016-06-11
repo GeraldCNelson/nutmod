@@ -23,7 +23,7 @@ if (!exists("getNewestVersion", mode = "function")) {
   source("R/nutrientCalcFunctions.R")
 }
 options(warn = 1) # can be deleted after development is finished. This changes warnings to errors and stops execution.
-# choose a grouping of countries -----
+
 region <- keyVariable("region")
 reqList <-
   c(
@@ -34,6 +34,8 @@ reqList <-
     "req.UL.vits.percap",
     "req.UL.minrls.percap"
   )
+scenario <- "SSP2-GFDL" # for testing
+scenarioResults <- function(scenario) {}
 for (req in reqList) {
   #req <- "req.UL.vits.percap" # for testing
   #get just nutrient list from req
@@ -83,8 +85,7 @@ for (req in reqList) {
       # add the results to the spreadsheet
       sheetName <- paste(nutList[j], k, sep = ".")
       openxlsx::addWorksheet(wbGeneral, sheetName)
-      openxlsx::writeData(
-        wbGeneral, dt.temp.group, sheet = sheetName,
+      openxlsx::writeData(wbGeneral, dt.temp.group, sheet = sheetName,
         startRow = 1, startCol = 1, rowNames = FALSE, withFilter = TRUE)
       openxlsx::setColWidths(
         wbGeneral, sheet = sheetName, cols = 1, widths = "auto", ignoreMergedCells = FALSE)

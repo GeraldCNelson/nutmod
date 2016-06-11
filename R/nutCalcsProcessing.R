@@ -35,7 +35,7 @@ reqList <-
     "req.UL.minrls.percap"
   )
 
-req <- "req.UL.vits.percap" # for testing
+# req <- "req.UL.vits.percap" # for testing
 #get just nutrient list from req
 # temp <- gsub("req.", "", req)
 # reqShortName <- gsub(".percap", "", temp)
