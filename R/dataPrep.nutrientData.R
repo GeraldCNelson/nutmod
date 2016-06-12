@@ -103,21 +103,6 @@ nutrients.clean[, nutrients.list] <-
   nutrients.clean[, nutrients.list] * nutrients.clean$IMPACT_conversion / 100
 nutrients.clean[, nutrients.list] <-
   nutrients.clean[, nutrients.list] * nutrients.clean$edible_share / 100
-#multiply the amount of a nutrient in a food by the cooking retention value
-# moved to nutrientCalcs.R
-# for (i in 1:length(cookretn.cols)) {
-#   nutrientName <-
-#     substr(x = cookretn.cols[i], 1, nchar(cookretn.cols[i]) - 3)
-#   nutColName <- paste ("nutrients.clean$", nutrientName, sep = "")
-#   #  print(nutColName)
-#   nutRetentColName <- paste ("nutrients.clean$", cookretn.cols[i], sep = "")
-#   #  print(nutRetentColName)
-#   temp <-
-#     as.data.frame(eval(parse(text = nutRetentColName)) * eval(parse(text = nutColName)) /
-#                     100)
-#   colnames(temp) <- nutrientName
-#   nutrients.clean[, nutrientName] <- temp
-# }
 
 #remove extraneous columns
 colsToRemove <- c("edible_share", "IMPACT_conversion", cookretn.cols)
@@ -132,9 +117,90 @@ foodGroupsInfo <- openxlsx::read.xlsx(
   colNames = TRUE
 )
 tmp <- foodGroupsInfo[, c("IMPACT_code", "food.group.code","staple.code", "white.starch.code")]
-nutrients <- merge(nutrients, tmp, by = "IMPACT_code", all = TRUE)
+df.nutrients <- merge(nutrients, tmp, by = "IMPACT_code", all = TRUE)
+#-----------------------
+# code to import composite information from spreadsheets ------
+fctFiles <- c("comp_fct_beans_cbean.xlsx", "comp_fct_mutton and goat_clamb.xlsx", "comp_fct_other fruits_ctemf.xlsx",
+              "comp_fct_rape and mustard oil_crpol.xlsx")
 
-inDT <- nutrients
-outName <- "df.nutrients"
+recalcFiles <- c(
+  "comp_recalc_c_Crust_crustaceans_FCT_EPC_012916.xlsx",
+  "comp_recalc_c_FrshD_freshwater_Diadr_FCT_EPC_012916.xlsx",
+  "comp_recalc_c_Mllsc_mollusks_FCT_EPC_012916.xlsx",
+  "comp_recalc_c_ODmrsl_demersal_FCT_EPC_012916.xlsx",
+  #  "comp_recalc_c_OMarn_marineFish_FCT_EPC_012916.xlsx", - not used
+  "comp_recalc_cocer_cereals_FCT.xlsx",
+  "comp_recalc_copul_pulses__FCT.xlsx",
+  "comp_recalc_cothr_othcrops_treenuts_FCT.xlsx",
+  "comp_recalc_csubf_fruits_Subtrop.xlsx",
+  "comp_recalc_ctemf_fruits_Other_FCT.xlsx",
+  "comp_recalc_ctool_oilcrops_FCT.xlsx",
+  "comp_recalc_cvege_vegetables_FCT.xlsx")
+
+dt.nutrients <- data.table::as.data.table(df.nutrients)
+nutList <- names(dt.nutrients)
+removeList <- c("IMPACT_code", "composite_code", "food.group.code", "staple.code", "white.starch.code")
+nutList <- nutList[!nutList %in% removeList]
+for (i in fctFiles) {
+  temp <- gsub(".xlsx", "", i)
+  commodName <- substr(temp, nchar(temp) - 4, nchar(temp))
+  filePath <- paste("data-raw/NutrientData/nutrientDetails/", i, sep = "")
+  dt.fct <- data.table::as.data.table(openxlsx::read.xlsx(filePath, colNames = TRUE, cols = NULL))
+  dt.fct <- dt.fct[-nrow(dt.fct),]
+  dt.fct <- dt.fct[,nutList, with = FALSE]
+  # get mean of each column for this commodity
+  temp <- dt.fct[, lapply(.SD, mean, na.rm = TRUE)]
+  # get original row for this commodity
+  temp2 <- dt.nutrients[IMPACT_code %in% commodName,]
+  # keep only the descriptor columns for this commodity
+  keepListCol <- c("IMPACT_code", "composite_code", "food.group.code", "staple.code", "white.starch.code")
+  temp2 <- temp2[,keepListCol, with = FALSE]
+  # combine the descriptor columns with the new results
+  temp <- cbind(temp,temp2)
+  # remove old row for this commodity
+  dt.nutrients <- dt.nutrients[!IMPACT_code %in% commodName,]
+  # add new row for this commodity
+  dt.nutrients <- rbind(dt.nutrients, temp)
+}
+
+for (i in recalcFiles) {
+  filePath <- paste("data-raw/NutrientData/nutrientDetails/", i, sep = "")
+  commodName <- openxlsx::getSheetNames(filePath)[1]
+  dt.fct <- data.table::as.data.table(openxlsx::read.xlsx(filePath, colNames = TRUE, cols = NULL, sheet = "FCT"))
+
+  dt.commod <- data.table::as.data.table(openxlsx::read.xlsx(filePath, colNames = TRUE, cols = NULL,
+                                                             sheet = 1))
+
+  dt.commod <- dt.commod[,1 := NULL]
+  #dt.commod <- dt.commod[!is.na(usda_code),]
+  keepListCol <- c("item_name", "usda_code","include","pcn_fdsupply_avg")
+  dt.commod <- dt.commod[,keepListCol, with = FALSE]
+  dt.fct <- dt.fct[, c("item_name","usda_code", nutList), with = FALSE]
+  dt.joined <- merge(dt.commod,dt.fct, by = c("item_name","usda_code"))
+  temp <- dt.joined[include == 1,]
+  # multiple each nutrient by its share of production (pcn_fdsupply_avg)
+  dt.joined <- dt.joined[, (nutList) := lapply(.SD, function(x) x * dt.joined[['pcn_fdsupply_avg']] ),
+                         .SDcols = nutList]
+  # sum all the weighted shares
+  temp <- dt.joined[, lapply(.SD, sum, na.rm = TRUE), .SDcols = nutList]
+
+  # get original row for this commodity
+  temp2 <- dt.nutrients[IMPACT_code %in% commodName,]
+  # keep only the descriptor columns for this commodity
+  keepListCol <- c("IMPACT_code", "composite_code", "food.group.code", "staple.code", "white.starch.code")
+  temp2 <- temp2[,keepListCol, with = FALSE]
+  # combine the descriptor columns with the new results
+  temp <- cbind(temp,temp2)
+  # remove old row for this commodity
+  dt.nutrients <- dt.nutrients[!IMPACT_code %in% commodName,]
+  # add new row for this commodity
+  dt.nutrients <- rbind(dt.nutrients, temp)
+}
+
+
+
+#--------------------
+inDT <- dt.nutrients
+outName <- "dt.nutrients"
 cleanup(inDT,outName,fileloc("mData"))
 #nutrients.out <- iconv(nutrients, from = "UTF-8", to = "Windows-1252") #to deal with mu

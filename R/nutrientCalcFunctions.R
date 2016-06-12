@@ -75,7 +75,7 @@
 
 cookingRet <- function(applyCookingRetention) {
   # df.nutrients is in nutrient per 100 grams of the edible portion
-  dt.nutrients <- data.table::as.data.table(getNewestVersion("df.nutrients"))
+  dt.nutrients <- getNewestVersion("dt.nutrients")
   if (applyCookingRetention == "yes") {
     # get cooking retention values
     dt.cookRetn <- data.table::as.data.table(getNewestVersion("cookingRet"))
