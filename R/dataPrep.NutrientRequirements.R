@@ -29,7 +29,7 @@ options(encoding = "UTF-8")
 
 # nutrients spreadsheet; otherwise the next line is fine
 #' @param nutrients - list of nutrient data generated in dataPrep.nutrientData.R
-nutrients <- getNewestVersion("df.nutrients")
+nutrients <- getNewestVersion("dt.nutrients")
 
 # This is the list of food group codes as of June 28, 2015 beverages <-
 # c('beverages') cereals <- c('cereals') dairy <- c('dairy') eggs <-
@@ -143,7 +143,7 @@ common.UL.minrls <-
 common.AMDR <-
   intersect(sort(colnames(nutrients)), sort(colnames(req.AMDR)))  # this is empty right now
 
-# keep only the nutrients common to the df.nutrients and the list of nutrients covered in a nutrient requirements list
+# keep only the nutrients common to the dt.nutrients and the list of nutrients covered in a nutrient requirements list
 req.EAR <- req.EAR[, c("ageGenderCode", common.EAR)]
 req.RDA.vits <- req.RDA.vits[, c("ageGenderCode", common.RDA.vits)]
 req.RDA.minrls <-
