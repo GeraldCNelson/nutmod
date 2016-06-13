@@ -130,7 +130,6 @@ recalcFiles <- c(
   "comp_recalc_c_FrshD_freshwater_Diadr_FCT_EPC_012916.xlsx",
   "comp_recalc_c_Mllsc_mollusks_FCT_EPC_012916.xlsx",
   "comp_recalc_c_ODmrsl_demersal_FCT_EPC_012916.xlsx",
-  #  "comp_recalc_c_OMarn_marineFish_FCT_EPC_012916.xlsx", - not used
   "comp_recalc_cocer_cereals_FCT.xlsx",
   "comp_recalc_c_OPelag_Pelagic_FCT_EPC_012916.xlsx",
   "comp_recalc_copul_pulses__FCT.xlsx",
@@ -144,6 +143,8 @@ dt.nutrients <- data.table::as.data.table(df.nutrients)
 nutList <- names(dt.nutrients)
 removeList <- c("IMPACT_code", "composite_code", "food.group.code", "staple.code", "white.starch.code")
 nutList <- nutList[!nutList %in% removeList]
+
+# work comp_recalc spreadsheets. ----
 for (i in fctFiles) {
   temp <- gsub(".xlsx", "", i)
   commodName <- substr(temp, nchar(temp) - 4, nchar(temp))
@@ -166,6 +167,7 @@ for (i in fctFiles) {
   dt.nutrients <- rbind(dt.nutrients, temp)
 }
 
+# work comp_fct spreadsheets. They just have a single worksheet ----
 for (i in recalcFiles) {
   filePath <- paste("data-raw/NutrientData/nutrientDetails/", i, sep = "")
   commodName <- openxlsx::getSheetNames(filePath)[1]
@@ -173,17 +175,18 @@ for (i in recalcFiles) {
 
   dt.commod <- data.table::as.data.table(openxlsx::read.xlsx(filePath, colNames = TRUE, cols = NULL,
                                                              sheet = 1))
-
+# delete first column which just has notes
   dt.commod <- dt.commod[,1 := NULL]
   #dt.commod <- dt.commod[!is.na(usda_code),]
   keepListCol <- c("item_name", "usda_code","include","pcn_fdsupply_avg")
   dt.commod <- dt.commod[,keepListCol, with = FALSE]
-  dt.fct <- dt.fct[, c("item_name","usda_code", nutList), with = FALSE]
+  dt.fct <- dt.fct[, c("item_name","usda_code","edible_share", nutList), with = FALSE]
   dt.joined <- merge(dt.commod,dt.fct, by = c("item_name","usda_code"))
   temp <- dt.joined[include == 1,]
-  # multiple each nutrient by its share of production (pcn_fdsupply_avg)
-  dt.joined <- dt.joined[, (nutList) := lapply(.SD, function(x) x * dt.joined[['pcn_fdsupply_avg']] ),
-                         .SDcols = nutList]
+  # multiple each nutrient by its share of production (pcn_fdsupply_avg) and reduce by its edible share
+  dt.joined <- dt.joined[, (nutList) := lapply(.SD,
+               function(x) x * (dt.joined[['edible_share']] / 100) * dt.joined[['pcn_fdsupply_avg']] ),
+               .SDcols = nutList]
   # sum all the weighted shares
   temp <- dt.joined[, lapply(.SD, sum, na.rm = TRUE), .SDcols = nutList]
 
@@ -200,9 +203,23 @@ for (i in recalcFiles) {
   dt.nutrients <- rbind(dt.nutrients, temp)
 }
 
+# special handling -----
+# c_OMarn is the average of c_OPelag and c_ODmrsl
+namesToAverage <- c("c_OPelag", "c_ODmrsl")
+dt.temp <- dt.nutrients[IMPACT_code %in% namesToAverage,lapply(.SD,mean),
+                     .SDcols = c(nutrients.list)]
+keepListCol <- c("IMPACT_code", "composite_code", "food.group.code", "staple.code", "white.starch.code")
+dt.temp2 <- dt.nutrients[IMPACT_code %in% "c_OMarn",keepListCol, with = FALSE]
+# combine the descriptor columns with the new results
+temp <- cbind(dt.temp,dt.temp2)
+# remove old row for this commodity
+dt.nutrients <- dt.nutrients[!IMPACT_code %in% "c_OMarn",]
+# add new row for this commodity
+dt.nutrients <- rbind(dt.nutrients, temp)
+
+data.table::setorder(dt.nutrients,IMPACT_code)
 
 
-#--------------------
 inDT <- dt.nutrients
 outName <- "dt.nutrients"
 cleanup(inDT,outName,fileloc("mData"))
