@@ -161,6 +161,9 @@ for (scenarioChoice in scenarioListSSP.GDP) {
       dt.GDP[,temp := get(elas) * delta.GDP/(value + GDP.lag1)]
       dt.GDP[year == "X2005",(alc) := dt.FBS.subset[IMPACT_code == alc,get(baseYear)]]
       dt.GDP[, (alc) := get(alc)[1L]][-1L, (alc) := get(alc) * (1 + temp)  / (1 - temp)]
+      # to deal with 0 in year0; hopefully a rare occurance
+      # this code from http://stackoverflow.com/questions/20535505/replacing-all-missing-values-in-r-data-table-with-a-value
+      for (i in seq_along(dt.GDP)) data.table::set(dt.GDP, i = which(is.nan(dt.GDP[[i]])), j = i, value = 0)
     }
 
     keepListCol <- c("scenario", "region_code.SSP", "year", IMPACTalcohol_code)

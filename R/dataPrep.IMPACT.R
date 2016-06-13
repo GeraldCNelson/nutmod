@@ -77,14 +77,13 @@ getGDXmetaData(fileNameList("R_GAMS_SYSDIR"),fileNameList("IMPACTgdx"))
 processIMPACT159Data <- function(gdxFileName, varName, catNames) {
   dt.regions.all <- getNewestVersion("dt.regions.all")
   IMPACTgdx <- gdxFileName
-#  keepYearList  <- keyVariable("keepYearList")
+  #  keepYearList  <- keyVariable("keepYearList")
   dt.temp <- dt.regions.all[,c("region_code.IMPACT159","region_name.IMPACT159"), with = FALSE]
   data.table::setkey(dt.temp,region_code.IMPACT159)
   dt.IMPACTregions <- unique(dt.temp)
   dt.ptemp <- data.table::as.data.table(gdxrrw::rgdx.param(IMPACTgdx, varName,
                                                            ts = TRUE, names = catNames))
-  temp <-
-  dt.ptemp[, year := paste("X", dt.ptemp$year, sep = "")]
+ dt.ptemp[, year := paste("X", dt.ptemp$year, sep = "")]
   #dt.ptemp <- dt.ptemp[year %in% keepYearList]
   dt.ptemp <- data.table::as.data.table(rapply(dt.ptemp, as.character, classes = "factor", how = "replace"))
   #setorder(dt.temp, scenario, IMPACT_code, region_code.IMPACT159, year)
@@ -96,7 +95,7 @@ processIMPACT159Data <- function(gdxFileName, varName, catNames) {
     dt.temp <-
       merge(dt.ptemp, dt.IMPACTregions, by = "region_code.IMPACT159", all = TRUE)
     # set the region code of South Sudan to the code for Sudan, if it has not already been done
-    dt.ptemp[region_code.IMPACT159  == "SDN", region_code.IMPACT159 := "SDP"]
+    # dt.ptemp[region_code.IMPACT159  == "SDN", region_code.IMPACT159 := "SDP"]
   }
   inDT <- dt.ptemp
   outName <- paste("dt",varName, sep = ".")

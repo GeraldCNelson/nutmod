@@ -120,7 +120,9 @@ tmp <- foodGroupsInfo[, c("IMPACT_code", "food.group.code","staple.code", "white
 df.nutrients <- merge(nutrients, tmp, by = "IMPACT_code", all = TRUE)
 #-----------------------
 # code to import composite information from spreadsheets ------
-fctFiles <- c("comp_fct_beans_cbean.xlsx", "comp_fct_mutton and goat_clamb.xlsx", "comp_fct_other fruits_ctemf.xlsx",
+fctFiles <- c("comp_fct_beans_cbean.xlsx",
+              "comp_fct_mutton and goat_clamb.xlsx",
+              "comp_fct_other fruits_ctemf.xlsx",
               "comp_fct_rape and mustard oil_crpol.xlsx")
 
 recalcFiles <- c(
@@ -130,6 +132,7 @@ recalcFiles <- c(
   "comp_recalc_c_ODmrsl_demersal_FCT_EPC_012916.xlsx",
   #  "comp_recalc_c_OMarn_marineFish_FCT_EPC_012916.xlsx", - not used
   "comp_recalc_cocer_cereals_FCT.xlsx",
+  "comp_recalc_c_OPelag_Pelagic_FCT_EPC_012916.xlsx",
   "comp_recalc_copul_pulses__FCT.xlsx",
   "comp_recalc_cothr_othcrops_treenuts_FCT.xlsx",
   "comp_recalc_csubf_fruits_Subtrop.xlsx",

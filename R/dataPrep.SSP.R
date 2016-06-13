@@ -38,9 +38,9 @@ file.remove(temp)
 data.table::setnames(dt.SSP, make.names(names(dt.SSP)))
 
 # drop all years except those in keepYearList, created in dataPrep.setup.R
-colKeepList <-
+keepListCol <-
   c("MODEL", "SCENARIO", "REGION", "VARIABLE", "UNIT", keepYearList)
-dt.SSP <- dt.SSP[, colKeepList, with = FALSE]
+dt.SSP <- dt.SSP[, keepListCol, with = FALSE]
 #make all names lower case and change region to ISO_code
 oldNameList <- names(dt.SSP)
 newNameList <- c("model", "scenario","ISO_code",  "variable", "unit", keepYearList)

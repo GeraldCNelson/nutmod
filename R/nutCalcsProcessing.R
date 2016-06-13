@@ -127,6 +127,10 @@ f.ratios.all <- function(region, req){
   outName <- paste(reqShortName, "all.sum", sep = ".")
   cleanup(inDT, outName, fileloc("resData"))
 
+  inDT <- dt.sum.req.wide
+  outName <- paste(reqShortName, "sum.req.ratio", sep = ".")
+  cleanup(inDT, outName, fileloc("resData"))
+
   inDT <- dt.all.ratio.wide
   outName <- paste(reqShortName, "all.ratio", sep = ".")
   cleanup(inDT, outName, fileloc("resData"))
@@ -136,11 +140,11 @@ f.ratios.all <- function(region, req){
   cleanup(inDT, outName, fileloc("resData"))
 
   inDT <- data.table::as.data.table(colMax(dt.all.req.ratio.wide))
-  outName <- "all.req.ratio.cMax"
+  outName <- "all.req.ratioCMax"
   cleanup(inDT, outName, fileloc("resData"))
 
   inDT <- data.table::as.data.table(colMin(dt.all.req.ratio.wide))
-  outName <- "all.req.ratio.cMin"
+  outName <- "all.req.ratioCMin"
   cleanup(inDT, outName, fileloc("resData"))
 }
 

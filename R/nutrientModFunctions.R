@@ -361,7 +361,7 @@ metadata <- function() {
   metadata[(nrow(metadata) + 1), ] <-
     c(
       "http://www.nal.usda.gov/fnic/DRI/DRI_Tables/recommended_intakes_individuals.pdf",
-      "Source of EARS"
+      "Source of EARS, RDAs, and ULs"
     )
   metadata[(nrow(metadata) + 1), ] <-
     c(fileNameList("CSEs"), "Consumer Surplus Equivalents for IMPACT commodities")
@@ -391,10 +391,10 @@ metadata <- function() {
     c(fileNameList("SSPcsv"), "csv file inside the SSP zip file")
   metadata[(nrow(metadata) + 1), ] <-
     c(fileNameList("modelListPop"),
-      "List of SSP models to extract population info from")
+      "List of SSP models to extract population from")
   metadata[(nrow(metadata) + 1), ] <-
     c(fileNameList("modelListGDP"),
-      "List of SSP models to extract population info from")
+      "List of SSP models to extract GDP data from")
   metadata[(nrow(metadata) + 1), ] <-
     c(fileNameList("SSP_DRI_ageGroupLU"),
       "lookup tables for SSP to DRI age and gender groups")
