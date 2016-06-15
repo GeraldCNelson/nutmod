@@ -16,7 +16,10 @@
 # GNU General Public License for more details at http://www.gnu.org/licenses/.
 # options(warn=2)
 #' @include nutrientModFunctions.R
-if (!exists("getNewestVersion", mode = "function")) {source("R/nutrientModFunctions.R")}
+if (!exists("getNewestVersion", mode = "function"))
+{source("R/nutrientModFunctions.R")
+  source("R/workbookFunctions.R")
+  source("R/nutrientCalcFunctions.R")}
 FBSyearsToAverage <- keyVariable("FBSyearsToAverage")
 keepYearList <- keyVariable("keepYearList")
 #need to include the n-1 year for the elasticity calculations

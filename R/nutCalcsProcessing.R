@@ -17,11 +17,11 @@
 
 #' @include nutrientModFunctions.R
 #' @include nutrientCalcFunctions.R
-if (!exists("getNewestVersion", mode = "function")) {
-  source("R/nutrientModFunctions.R")
+if (!exists("getNewestVersion", mode = "function"))
+{source("R/nutrientModFunctions.R")
   source("R/workbookFunctions.R")
-  source("R/nutrientCalcFunctions.R")
-}
+  source("R/nutrientCalcFunctions.R")}
+
 options(warn = 1) # can be deleted after development is finished. This changes warnings to errors and stops execution.
 # choose a grouping of countries -----
 region <- keyVariable("region")
@@ -35,7 +35,7 @@ reqList <-
     "req.UL.minrls.percap"
   )
 
-# req <- "req.UL.vits.percap" # for testing
+# req <- "req.EAR.percap" # for testing
 #get just nutrient list from req
 # temp <- gsub("req.", "", req)
 # reqShortName <- gsub(".percap", "", temp)
@@ -68,13 +68,16 @@ f.ratios.all <- function(region, req){
   nutList.ratio.all <-   paste(nutList, "ratio.all", sep = ".")
   # the ratio of daily consumption of each nutrient by the nutrient requirement
   nutList.req.ratio.all <- paste(nutList, "req.ratio.all", sep = ".")
+  # the ratio of daily consumption of each nutrient by the nutrient requirement
+  nutList.req.ratio.all <- paste(nutList, "req.ratio.all", sep = ".")
+
   # the list of columns to keep for each group of data tables
   keepListCol.sum.all <-    c(basicKey, nutList.sum.all)
   keepListCol.ratio.all <-   c(sumKey, nutList.ratio.all)
   keepListCol.req.ratio.all <- c(sumKey, nutList.req.ratio.all)
 
   # create the data table and remove unneeded columns
-  dt.all.sum <- dt.food.agg[,    keepListCol.sum.all, with = FALSE]
+  dt.all.sum <- dt.food.agg[,keepListCol.sum.all, with = FALSE]
   data.table::setkey(dt.all.sum)
   dt.all.sum <- unique(dt.all.sum)
   dt.all.ratio <- dt.food.agg[,   keepListCol.ratio.all, with = FALSE]
@@ -83,19 +86,43 @@ f.ratios.all <- function(region, req){
   dt.all.req.ratio <- dt.food.agg[, keepListCol.req.ratio.all, with = FALSE]
   data.table::setkey(dt.all.req.ratio)
   dt.all.req.ratio <- unique(dt.all.req.ratio)
+
+  # calculate the ratio of nutrient consumption for all commodities to the requirement
+  temp1 <- data.table::as.data.table(stringi::stri_split_fixed(dt.all.sum$scenario, "-", simplify = TRUE))
+  data.table::setnames(temp1, old = c("V1","V2"), new = c("scenario","climate_model"))
+  dt.sum.copy <- data.table::copy(dt.all.sum)
+  dt.sum.copy[,scenario := NULL]
+  dt.sum.copy <- cbind(temp1,dt.sum.copy)
+  dt.nuts.temp <- dt.nutsReqPerCap[scenario %in% unique(dt.sum.copy$scenario),]
+  temp <- merge(dt.sum.copy,dt.nuts.temp, by = c("scenario", "region_code.IMPACT159", "year"), all.x = TRUE)
+  nutListSum <- as.vector(paste(nutList,".sum.all", sep = ""))
+  nutListReqRatio <- as.vector(paste(nutList,"_reqRatio", sep = ""))
+  nutListVector <- as.vector(nutList)
+  # explained at http://stackoverflow.com/questions/37802687/r-data-table-divide-list-of-columns-by-a-second-list-of-columns
+  temp[, (nutListReqRatio) := Map(`/`, mget(nutListSum), mget(nutListVector))]
+  keepListCol <- c("scenario", "climate_model", region, "year",  nutListReqRatio)
+  dt.sum.req.ratio <- temp[, keepListCol, with = FALSE]
+
   #reshape the results to get years in columns
   dt.all.sum.long <- data.table::melt(
     dt.all.sum,  id.vars = basicKey, measure.vars = nutList.sum.all, variable.name = "nutrient",
     value.name = "nut_share", variable.factor = FALSE)
 
+  dt.sum.req.ratio.long <- data.table::melt(
+    dt.sum.req.ratio,
+    id.vars = c("scenario", "climate_model" ,"region_code.IMPACT159", "year"),
+    measure.vars = nutListReqRatio, variable.name = "nutrientReq",
+    value.name = "req_share", variable.factor = FALSE)
+
   dt.all.ratio.long <- data.table::melt(
-    dt.all.ratio, id.vars = sumKey, measure.vars = nutList.ratio.all,
+    dt.all.ratio, id.vars = sumKey,
+    measure.vars = nutList.ratio.all,
     variable.name = "nutrient",
     value.name = "nut_share", variable.factor = FALSE)
 
   dt.all.req.ratio.long <- data.table::melt(
     dt.all.req.ratio,
-    id.vars = sumKey,
+    id.vars =  c("scenario", region, "year", "IMPACT_code"),
     measure.vars = nutList.req.ratio.all,
     variable.name = "nutrient",
     value.name = "nut_share",
@@ -106,6 +133,13 @@ f.ratios.all <- function(region, req){
     data = dt.all.sum.long,
     formula = formula.sum.all,
     value.var = "nut_share",
+    variable.factor = FALSE)
+
+  formula.sum.req.all <- paste("scenario + climate_model + ", region, " + nutrientReq ~ year")
+  dt.sum.req.ratio.wide <- data.table::dcast.data.table(
+    data = dt.sum.req.ratio.long,
+    formula = formula.sum.req.all,
+    value.var = "req_share",
     variable.factor = FALSE)
 
   formula.ratio.all <- paste("scenario + ", region, " + nutrient + IMPACT_code ~ year")
@@ -127,7 +161,7 @@ f.ratios.all <- function(region, req){
   outName <- paste(reqShortName, "all.sum", sep = ".")
   cleanup(inDT, outName, fileloc("resData"))
 
-  inDT <- dt.sum.req.wide
+  inDT <- dt.sum.req.ratio.wide
   outName <- paste(reqShortName, "sum.req.ratio", sep = ".")
   cleanup(inDT, outName, fileloc("resData"))
 
@@ -140,11 +174,11 @@ f.ratios.all <- function(region, req){
   cleanup(inDT, outName, fileloc("resData"))
 
   inDT <- data.table::as.data.table(colMax(dt.all.req.ratio.wide))
-  outName <- "all.req.ratioCMax"
+  outName <- "all.req.ratio.cMax"
   cleanup(inDT, outName, fileloc("resData"))
 
   inDT <- data.table::as.data.table(colMin(dt.all.req.ratio.wide))
-  outName <- "all.req.ratioCMin"
+  outName <- "all.req.ratio.cMin"
   cleanup(inDT, outName, fileloc("resData"))
 }
 

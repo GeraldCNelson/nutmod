@@ -26,7 +26,11 @@
 # GNU General Public License for more details at http://www.gnu.org/licenses/.
 
 #' @include nutrientModFunctions.R
-if (!exists("getNewestVersion", mode = "function")) {source("R/nutrientModFunctions.R")}
+if (!exists("getNewestVersion", mode = "function"))
+{source("R/nutrientModFunctions.R")
+  source("R/workbookFunctions.R")
+  source("R/nutrientCalcFunctions.R")}
+
 FBSyearsToAverage <- keyVariable("FBSyearsToAverage")
 keepYearList <- keyVariable("keepYearList")
 #need to include the n-1 year for the elasticity calculations
@@ -130,7 +134,7 @@ cleanup(inDT,outName, fileloc("iData"))
 
 # set up dt to hold the results
 dt.final <- data.table::data.table(scenario = character(0),
-            region_code.SSP = character(0), year = character(0))
+                                   region_code.SSP = character(0), year = character(0))
 dt.final[, (IMPACTalcohol_code) := 0]
 
 for (scenarioChoice in scenarioListSSP.GDP) {

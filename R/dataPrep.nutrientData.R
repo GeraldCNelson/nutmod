@@ -151,7 +151,12 @@ for (i in fctFiles) {
   filePath <- paste("data-raw/NutrientData/nutrientDetails/", i, sep = "")
   dt.fct <- data.table::as.data.table(openxlsx::read.xlsx(filePath, colNames = TRUE, cols = NULL))
   dt.fct <- dt.fct[-nrow(dt.fct),]
-  dt.fct <- dt.fct[,nutList, with = FALSE]
+  keepListCol <- c("edible_share",nutList)
+  dt.fct <- dt.fct[,keepListCol, with = FALSE]
+   dt.fct[, (nutList) := lapply(.SD, function(x)
+    x * dt.fct[['edible_share']]/100 ), .SDcols = nutList]
+   dt.fct[,edible_share := NULL]
+
   # get mean of each column for this commodity
   temp <- dt.fct[, lapply(.SD, mean, na.rm = TRUE)]
   # get original row for this commodity
@@ -174,13 +179,12 @@ for (i in recalcFiles) {
   dt.fct <- data.table::as.data.table(openxlsx::read.xlsx(filePath, colNames = TRUE, cols = NULL, sheet = "FCT"))
 
   dt.commod <- data.table::as.data.table(openxlsx::read.xlsx(filePath, colNames = TRUE, cols = NULL,
-                                                             sheet = 1))
+                    sheet = commodName))
 # delete first column which just has notes
   dt.commod <- dt.commod[,1 := NULL]
-  #dt.commod <- dt.commod[!is.na(usda_code),]
-  keepListCol <- c("item_name", "usda_code","include","pcn_fdsupply_avg")
+  keepListCol <- c("item_name", "usda_code", "include", "pcn_fdsupply_avg")
   dt.commod <- dt.commod[,keepListCol, with = FALSE]
-  dt.fct <- dt.fct[, c("item_name","usda_code","edible_share", nutList), with = FALSE]
+  dt.fct <- dt.fct[, c("item_name", "usda_code", "edible_share", nutList), with = FALSE]
   dt.joined <- merge(dt.commod,dt.fct, by = c("item_name","usda_code"))
   temp <- dt.joined[include == 1,]
   # multiple each nutrient by its share of production (pcn_fdsupply_avg) and reduce by its edible share

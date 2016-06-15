@@ -460,7 +460,7 @@ fileNameList <- function(variableName) {
   IMPACTData      <- fileloc("IMPACTData")
   NutrientData    <- fileloc("NutrientData")
   SSPData         <- fileloc("SSPData")
-  EARFileName     <- "DRI_IOM_V5.xlsx"
+  EARFileName     <- "DRI_IOM_V6.xlsx"
   mData <- fileloc("mData")
   EARs            <- paste(NutrientData, EARFileName, sep = "/")
   # CSE - consumer support equivalent

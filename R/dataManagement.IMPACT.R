@@ -4,7 +4,9 @@
 #' @name dataPrep.IMPACT.R
 #' @include nutrientModFunctions.R
 if (!exists("getNewestVersion", mode = "function"))
-{source("R/nutrientModFunctions.R")}
+{source("R/nutrientModFunctions.R")
+  source("R/workbookFunctions.R")
+  source("R/nutrientCalcFunctions.R")}
 
 # Intro -------------------------------------------------------------------
 

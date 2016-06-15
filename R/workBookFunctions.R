@@ -15,9 +15,10 @@
 # http://www.gnu.org/licenses/.
 
 #' @include nutrientModFunctions.R
-if (!exists("getNewestVersion", mode = "function")) {
-  source("R/nutrientModFunctions.R")
-}
+if (!exists("getNewestVersion", mode = "function"))
+{source("R/nutrientModFunctions.R")
+  source("R/workbookFunctions.R")
+  source("R/nutrientCalcFunctions.R")}
 
 numStyle <- openxlsx::createStyle(numFmt = "0.00")
 numStyle3 <- openxlsx::createStyle(numFmt = "0.000")

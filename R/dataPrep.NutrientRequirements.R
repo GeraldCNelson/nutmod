@@ -23,8 +23,10 @@
 #' The requirements are imported in dataPrep.nutrientData.R and saved as df.nutrients
 
 #' @include nutrientModFunctions.R
-if (!exists("getNewestVersion", mode = "function")) {source("R/nutrientModFunctions.R")}
-
+if (!exists("getNewestVersion", mode = "function"))
+{source("R/nutrientModFunctions.R")
+  source("R/workbookFunctions.R")
+  source("R/nutrientCalcFunctions.R")}
 options(encoding = "UTF-8")
 
 # nutrients spreadsheet; otherwise the next line is fine

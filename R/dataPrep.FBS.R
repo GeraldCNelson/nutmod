@@ -5,7 +5,11 @@
 #' @source \url{http://faostat3.fao.org/download/FB/FBS/E}
 #'
 #' @include nutrientModFunctions.R
-if (!exists("getNewestVersion", mode = "function")) {source("R/nutrientModFunctions.R")}
+if (!exists("getNewestVersion", mode = "function"))
+{source("R/nutrientModFunctions.R")
+  source("R/workbookFunctions.R")
+  source("R/nutrientCalcFunctions.R")}
+
 # Intro -------------------------------------------------------------------
 #' \description{
 #' This script reads in the FAO Food Balance Sheet information from a zip file, does

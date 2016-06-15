@@ -18,7 +18,10 @@
 #     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE, See the
 #     GNU General Public License for more details at http://www.gnu.org/licenses/.
 #' @include nutrientModFunctions.R
-if (!exists("getNewestVersion", mode = "function")) {source("R/nutrientModFunctions.R")}
+if (!exists("getNewestVersion", mode = "function"))
+{source("R/nutrientModFunctions.R")
+  source("R/workbookFunctions.R")
+  source("R/nutrientCalcFunctions.R")}
 
 SSPcsv <-         fileNameList("SSPcsv")
 SSPdataZip <-     fileNameList("SSPdataZip")
@@ -26,7 +29,7 @@ keepYearList <-   keyVariable("keepYearList")
 #need to include the n-1 year for the elasticity calculations
 year1 <- as.numeric(substr(keepYearList[1], 2, 5)); year2 <- as.numeric(substr(keepYearList[2], 2, 5))
 year0 <- year1 - (year2 - year1)
-year0 <- paste("X",year0,sep="")
+year0 <- paste("X",year0,sep = "")
 keepYearList <- c(year0,keepYearList)
 modelListGDP <-   fileNameList("modelListGDP")
 modelListPop <-     fileNameList("modelListPop")
