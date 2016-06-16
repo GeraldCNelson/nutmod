@@ -31,7 +31,9 @@ reqList <-
     "req.RDA.minrls.percap",
     "req.RDA.macro.percap",
     "req.UL.vits.percap",
-    "req.UL.minrls.percap"
+    "req.UL.minrls.percap",
+    "req.AMDR.hi",
+    "req.AMDR.lo"
   )
 scenario <- "SSP2-GFDL" # for testing
 scenarioResults <- function(scenario) {}

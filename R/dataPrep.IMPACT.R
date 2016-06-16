@@ -3,8 +3,10 @@
 #' @title Import IMPACT data from a gdx file
 #' @name dataPrep.IMPACT.R
 #' @include nutrientModFunctions.R
-if (!exists("getNewestVersion", mode = "function")) {source("R/nutrientModFunctions.R")}
-
+if (!exists("getNewestVersion", mode = "function"))
+{source("R/nutrientModFunctions.R")
+  source("R/workbookFunctions.R")
+  source("R/nutrientCalcFunctions.R")}
 # Intro -------------------------------------------------------------------
 
 #Copyright (C) 2015 Gerald C. Nelson, except where noted

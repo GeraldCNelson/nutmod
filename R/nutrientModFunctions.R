@@ -256,7 +256,7 @@ cleanup <- function(inDT, outName, dir, writeFiles) {
 #' @param scenarioListSSP.pop - list of scenarios in the SSP pop data
 #' @param scenarioListSSP.GDP - list of scenarios in the SSP GDP|PPP data
 #' @param DinY - number of days in a year
-#' @param reqSSP - nutrient requirements by SSP age groups
+#' @param reqListSSP - nutrient requirements by SSP age groups
 #' @param ctyDeleteList
 #' @param useCookingRetnValues - apply the cooking retention values to the nutrient content
 #' @param userName - Name of person running the scripts and generating results
@@ -315,8 +315,18 @@ keyVariable <- function(variableName) {
   #' FSM - Micronesia, Federated States of
   #' GRD - Grenada
   #' PRK - Korea, Democratic People's Republic of
-
-  reqSSP <- c("req.EAR.ssp", "req.RDA.vits.ssp","req.RDA.minrls.ssp", "req.RDA.macro.ssp","req.UL.vits.ssp", "req.UL.minrls.ssp")
+  reqList <-
+    c(
+      "req.EAR.percap",
+      "req.RDA.vits.percap" ,
+      "req.RDA.minrls.percap",
+      "req.RDA.macro.percap",
+      "req.UL.vits.percap",
+      "req.UL.minrls.percap",
+      "req.AMDR.hi",
+      "req.AMDR.lo"
+    )
+  reqListSSP <- paste(gsub(".percap", "", reqList),".ssp", sep = "")
   commonList <- c( "common.EAR", "common.RDA.vits", "common.RDA.minrls", "common.RDA.macro", "common.UL.vits","common.UL.minrls")
   ctyDeleteList <- c("FSM", "GRD", "PRK")
   useCookingRetnValues <- "yes"
@@ -337,7 +347,7 @@ keyVariable <- function(variableName) {
         "scenarioListSSP.GDP",
         "scenarioListIMPACT",
         "DinY",
-        "reqSSP",
+        "reqListSSP",
         "ctyDeleteList",
         "useCookingRetnValues",
         "commonList",
@@ -460,7 +470,7 @@ fileNameList <- function(variableName) {
   IMPACTData      <- fileloc("IMPACTData")
   NutrientData    <- fileloc("NutrientData")
   SSPData         <- fileloc("SSPData")
-  EARFileName     <- "DRI_IOM_V6.xlsx"
+  EARFileName     <- "DRI_IOM_V7.xlsx"
   mData <- fileloc("mData")
   EARs            <- paste(NutrientData, EARFileName, sep = "/")
   # CSE - consumer support equivalent
@@ -489,7 +499,7 @@ fileNameList <- function(variableName) {
   IMPACTalcoholInfo    <- "Alcohol Elasticities and Quantities IMPACT.xlsx"
   IMPACTalcohol        <- paste(IMPACTData, IMPACTalcoholInfo, sep = "/")
   IMPACTfoodFileName <- "dt.IMPACTfood"
-  IMPACTfoodFileInfo <-  paste(mData,"/IMPACTData/",IMPACTfoodFileName,sep="")
+  IMPACTfoodFileInfo <-  paste(mData,"/IMPACTData/",IMPACTfoodFileName,sep = "")
   # nutrient data ------
   nutrientFileName <- "USDA GFS IMPACT V18.xlsx"
   nutrientLU       <- paste(NutrientData, nutrientFileName, sep = "/")

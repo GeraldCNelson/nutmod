@@ -22,7 +22,10 @@
 #     GNU General Public License for more details at http://www.gnu.org/licenses/.
 
 #' @include nutrientModFunctions.R
-if (!exists("getNewestVersion", mode = "function")) {source("R/nutrientModFunctions.R")}
+if (!exists("getNewestVersion", mode = "function"))
+{source("R/nutrientModFunctions.R")
+  source("R/workbookFunctions.R")
+  source("R/nutrientCalcFunctions.R")}
 nutrientLU <- fileNameList("nutrientLU")
 foodGroupLU <- fileNameList("foodGroupLU")
 
