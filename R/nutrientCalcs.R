@@ -70,24 +70,14 @@ dt.IMPACTfood <- unique(dt.IMPACTfood)
 # convert food availability from per year to per day
 dt.IMPACTfood[, foodAvailpDay := FoodAvailability / keyVariable("DinY")][,FoodAvailability := NULL]
 
-# reqList is a list of the requirements types. Each has a different set of nutrients. These are a subset
+# reqsList is a list of the requirements types. Each has a different set of nutrients. These are a subset
 # of what are in the nutrients requirements tables from IOM. They are the nutrients common to
 # both the IOM and nutrient content lookup spreadsheet
 
 # the .percap data are for a representative consumer
 
-reqList <-
-  c(
-    "req.EAR.percap",
-    "req.RDA.vits.percap" ,
-    "req.RDA.minrls.percap",
-    "req.RDA.macro.percap",
-    "req.UL.vits.percap",
-    "req.UL.minrls.percap",
-    "req.AMDR.hi.percap",
-    "req.AMDR.lo.percap"
-  )
-#reqList <- reqList[4] # just for testing!!! XXX
+reqsList <- keyVariable("reqsListPercap")
+#reqsList <- reqsList[4] # just for testing!!! XXX
 #IMPACTscenarioList <- "SSP2-MIROC" # just for testing!!! XXX
 #req <- "req.EAR.percap" # just for testing!!! XXX
 
@@ -257,7 +247,7 @@ generateResults <- function(req,dt.IMPACTfood,IMPACTscenarioList,dt.nuts,region)
 }
 # end of generateResults function
 
-for (i in 1:length(reqList)) {
-  generateResults(reqList[i],dt.IMPACTfood,IMPACTscenarioList, dt.nuts,region)
-  print(paste("Done with ", reqList[i], ". ", length(reqList) - i," sets of requirements to go.", sep = ""))
+for (i in 1:length(reqsList)) {
+  generateResults(reqsList[i],dt.IMPACTfood,IMPACTscenarioList, dt.nuts,region)
+  print(paste("Done with ", reqsList[i], ". ", length(reqsList) - i," sets of requirements to go.", sep = ""))
 }

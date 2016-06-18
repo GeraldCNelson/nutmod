@@ -117,16 +117,27 @@ req.UL.minrls <-
   )
 reqsList <- c(reqsList,"req.UL.minrls")
 
-#' @param req.AMDR - Acceptable Macronutrient Distribution Range
-req.AMDR <-
+#' @param req.AMDR.hi - Acceptable Macronutrient Distribution Range, hi version
+req.AMDR.hi <-
   openxlsx::read.xlsx(
     reqsFile,
-    sheet = "AMDR",
+    sheet = "AMDR_hi",
     startRow = 1,
     cols = 3:13,
     colNames = TRUE
   )
-reqsList <- c(reqsList,"req.AMDR")
+
+#' @param req.AMDR.lo - Acceptable Macronutrient Distribution Range, lo version
+req.AMDR.lo <-
+  openxlsx::read.xlsx(
+    reqsFile,
+    sheet = "AMDR_lo",
+    startRow = 1,
+    cols = 3:13,
+    colNames = TRUE
+  )
+
+reqsList <- c(reqsList,"req.AMDR.hi", "req.AMDR.lo")
 
 # make lists of nutrients common to the food nutrient list and the
 # requirements list ---
@@ -142,8 +153,11 @@ common.UL.vits <-
   intersect(sort(colnames(nutrients)), sort(colnames(req.UL.vits)))
 common.UL.minrls <-
   intersect(sort(colnames(nutrients)), sort(colnames(req.UL.minrls)))
-common.AMDR <-
-  intersect(sort(colnames(nutrients)), sort(colnames(req.AMDR)))  # this is empty right now
+common.AMDR.hi <-
+  intersect(sort(colnames(nutrients)), sort(colnames(req.AMDR.hi)))
+common.AMDR.lo <-
+  intersect(sort(colnames(nutrients)), sort(colnames(req.AMDR.lo)))
+
 
 # keep only the nutrients common to the dt.nutrients and the list of nutrients covered in a nutrient requirements list
 req.EAR <- req.EAR[, c("ageGenderCode", common.EAR)]
@@ -155,7 +169,8 @@ req.RDA.macro <-
 req.UL.vits <- req.UL.vits[, c("ageGenderCode", common.UL.vits)]
 req.UL.minrls <-
   req.UL.minrls[, c("ageGenderCode", common.UL.minrls)]
-req.AMDR <- req.AMDR[, c("ageGenderCode", common.AMDR)]
+req.AMDR.hi <- req.AMDR.hi[, c("ageGenderCode", common.AMDR.hi)]
+req.AMDR.lo <- req.AMDR.lo[, c("ageGenderCode", common.AMDR.lo)]
 
 #' naming conventions ---------- M - Male, F- Female, X - children of
 #' both genders,
@@ -173,7 +188,7 @@ df.ageGroupLU <- openxlsx::read.xlsx(fileNameList("SSP_DRI_ageGroupLU"))
 
 children <- c("Inf0_0.5", "Inf0.5_1", "Chil1_3")
 
-reqsList <-
+reqsList <- keyVariable("reqsList")
   c(
     "req.EAR",
     "req.RDA.vits",
@@ -278,35 +293,3 @@ for (j in reqsList) {
   cleanup(inDT,outName,fileloc("mData"))
 }
 
-remove(
-  "temp",
-  "temp2",
-  "children",
-  "chldrn.male",
-  "chldrn.male.SSP",
-  "chldrn.female.SSP",
-  "preg.potent",
-  "preg",
-  "lact",
-  "req.EAR.nutlist",
-  "req.RDA.macro.nutlist",
-  "req.UL.minrls.nutlist",
-  "req.RDA.minrls.nutlist",
-  "req.RDA.vits.nutlist",
-  "req.UL.vits.nutlist",
-  "nutlistname"
-)
-
-# these have been replaced by their equivalent with SSP age categories
-remove(
-  req.EAR,
-  req.RDA.vits,
-  req.RDA.minrls,
-  req.RDA.macro,
-  req.UL.vits,
-  req.UL.minrls,
-  req.AMDR
-)
-
-# remove(common.EAR, common.RDA.vits, common.RDA.minrls,
-# common.RDA.macro, common.UL.vits, common.UL.minrls, common.AMDR )

@@ -256,7 +256,8 @@ cleanup <- function(inDT, outName, dir, writeFiles) {
 #' @param scenarioListSSP.pop - list of scenarios in the SSP pop data
 #' @param scenarioListSSP.GDP - list of scenarios in the SSP GDP|PPP data
 #' @param DinY - number of days in a year
-#' @param reqListSSP - nutrient requirements by SSP age groups
+#' @param reqsList - nutrient requirements basic list
+#' @param reqsListSSP - nutrient requirements by SSP age groups
 #' @param ctyDeleteList
 #' @param useCookingRetnValues - apply the cooking retention values to the nutrient content
 #' @param userName - Name of person running the scripts and generating results
@@ -315,19 +316,22 @@ keyVariable <- function(variableName) {
   #' FSM - Micronesia, Federated States of
   #' GRD - Grenada
   #' PRK - Korea, Democratic People's Republic of
-  reqList <-
+  reqsList <-
     c(
-      "req.EAR.percap",
-      "req.RDA.vits.percap" ,
-      "req.RDA.minrls.percap",
-      "req.RDA.macro.percap",
-      "req.UL.vits.percap",
-      "req.UL.minrls.percap",
+      "req.EAR",
+      "req.RDA.vits",
+      "req.RDA.minrls",
+      "req.RDA.macro",
+      "req.UL.vits",
+      "req.UL.minrls",
       "req.AMDR.hi",
       "req.AMDR.lo"
     )
-  reqListSSP <- paste(gsub(".percap", "", reqList),".ssp", sep = "")
-  commonList <- c( "common.EAR", "common.RDA.vits", "common.RDA.minrls", "common.RDA.macro", "common.UL.vits","common.UL.minrls")
+  reqsListPercap <- paste(reqsList,".percap", sep = "")
+  reqsListSSP <- paste(reqsList,".ssp", sep = "")
+
+  commonList <- paste("common.", reqsList, sep = "")
+    c( "common.EAR", "common.RDA.vits", "common.RDA.minrls", "common.RDA.macro", "common.UL.vits","common.UL.minrls")
   ctyDeleteList <- c("FSM", "GRD", "PRK")
   useCookingRetnValues <- "yes"
   userName <- "Gerald C. Nelson"

@@ -24,7 +24,7 @@ if (!exists("getNewestVersion", mode = "function"))
 options(warn = 1) # can be deleted after development is finished. This changes warnings to errors and stops execution.
 
 region <- keyVariable("region")
-reqList <-
+reqsList <- keyVariable("reqsListPercap")
   c(
     "req.EAR.percap",
     "req.RDA.vits.percap" ,
@@ -37,7 +37,7 @@ reqList <-
   )
 scenario <- "SSP2-GFDL" # for testing
 scenarioResults <- function(scenario) {}
-for (req in reqList) {
+for (req in reqsList) {
   #req <- "req.UL.vits.percap" # for testing
   #get just nutrient list from req
   temp <- gsub("req.","",req); reqShortName <- gsub(".percap","",temp)

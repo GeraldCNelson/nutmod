@@ -32,7 +32,9 @@ reqList <-
     "req.RDA.minrls.percap",
     "req.RDA.macro.percap",
     "req.UL.vits.percap",
-    "req.UL.minrls.percap"
+    "req.UL.minrls.percap",
+    "req.AMDR.hi.percap",
+    "req.AMDR.lo.percap"
   )
 
 # req <- "req.EAR.percap" # for testing
