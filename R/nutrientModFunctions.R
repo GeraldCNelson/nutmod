@@ -371,7 +371,7 @@ metadata <- function() {
       stringsAsFactors = FALSE
     )
   metadata[(nrow(metadata) + 1), ] <-
-    c(fileNameList("EARs"), "data on nutrient requirements")
+    c(fileNameList("DRIs"), "data on nutrient requirements")
   metadata[(nrow(metadata) + 1), ] <-
     c(
       "http://www.nal.usda.gov/fnic/DRI/DRI_Tables/recommended_intakes_individuals.pdf",
@@ -437,8 +437,8 @@ metadata <- function() {
 
 #' Title fileNameList returns a list of filenames, with or without complete paths
 #'
-#' @param EARFileName - the name of the spreadsheet with the EAR data
-#' @param EARs - the path to and the name of the EAR data file
+#' @param DRIFileName - the name of the spreadsheet with the DRI data
+#' @param DRIs - the path to and the name of the DRI data file
 #' @param CSEFileName - the name of the file with consumer support equivalents (CSEs)
 #' @param CSEs - the path to and the file name for the CSE data
 #' @param IMPACT159regionsFileName - the file name with the IMPACT159 regions names
@@ -474,9 +474,9 @@ fileNameList <- function(variableName) {
   IMPACTData      <- fileloc("IMPACTData")
   NutrientData    <- fileloc("NutrientData")
   SSPData         <- fileloc("SSPData")
-  EARFileName     <- "DRI_IOM_V7.xlsx"
+  DRIFileName     <- "DRI_IOM_V7.xlsx"
   mData <- fileloc("mData")
-  EARs            <- paste(NutrientData, EARFileName, sep = "/")
+  DRIs            <- paste(NutrientData, DRIFileName, sep = "/")
   # CSE - consumer support equivalent
   #Note: the price a consumer pays is Pc * (1-CSE)
   CSEFileName     <- "CSEs20150824.xlsx"
@@ -505,7 +505,7 @@ fileNameList <- function(variableName) {
   IMPACTfoodFileName <- "dt.IMPACTfood"
   IMPACTfoodFileInfo <-  paste(mData,"/IMPACTData/",IMPACTfoodFileName,sep = "")
   # nutrient data ------
-  nutrientFileName <- "USDA GFS IMPACT V18.xlsx"
+  nutrientFileName <- "USDA GFS IMPACT V19.xlsx"
   nutrientLU       <- paste(NutrientData, nutrientFileName, sep = "/")
   commodityFoodGroupLookupFileName <-
     "food commodity to food group table V3.xlsx"
@@ -525,8 +525,8 @@ fileNameList <- function(variableName) {
   if (variableName == "list") {
     #list of variables that can be returned
     return(
-      c("EARFileName",
-        "EARs",
+      c("DRIFileName",
+        "DRIs",
         "CSEFileName",
         "CSEs",
         "IMPACT159regionsFileName",

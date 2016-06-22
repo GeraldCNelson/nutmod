@@ -25,19 +25,10 @@ if (!exists("getNewestVersion", mode = "function"))
 options(warn = 1) # can be deleted after development is finished. This changes warnings to errors and stops execution.
 # choose a grouping of countries -----
 region <- keyVariable("region")
-reqList <-
-  c(
-    "req.EAR.percap",
-    "req.RDA.vits.percap" ,
-    "req.RDA.minrls.percap",
-    "req.RDA.macro.percap",
-    "req.UL.vits.percap",
-    "req.UL.minrls.percap",
-    "req.AMDR.hi.percap",
-    "req.AMDR.lo.percap"
-  )
+reqList <- keyVariable("reqsList")
 
-# req <- "req.EAR.percap" # for testing
+
+# req <- "req.EAR" # for testing
 #get just nutrient list from req
 # temp <- gsub("req.", "", req)
 # reqShortName <- gsub(".percap", "", temp)
@@ -54,11 +45,11 @@ reqList <-
 # individual food function
 f.ratios.all <- function(region, req){
   print(paste("------ working on all for ", req))
-  temp <- gsub("req.", "", req)
-  reqShortName <- gsub(".percap", "", temp)
+  reqShortName <- gsub("req.", "", req)
+#  reqShortName <- gsub(".percap", "", temp)
   temp <- paste("food.agg.", reqShortName, sep = "")
   dt.food.agg <- getNewestVersion(temp, fileloc("resData"))
-  dt.nutsReqPerCap <- getNewestVersion(req)
+  dt.nutsReqPerCap <- getNewestVersion(paste(req,"percap",sep = "."))
   # get list of nutrients from dt.nutsReqPerCap for the req set of requirements
   nutList <- names( dt.nutsReqPerCap)[4:length(names(dt.nutsReqPerCap))]
   basicKey <- c("scenario", region, "year")
@@ -156,8 +147,8 @@ f.ratios.all <- function(region, req){
     formula = formula.ratio.all,
     value.var = "nut_share")
 
-  temp <- gsub("req.", "", req)
-  reqShortName <- gsub(".percap", "", temp)
+  reqShortName <- gsub("req.", "", req)
+  #reqShortName <- gsub(".percap", "", temp)
 
   inDT <- dt.all.sum.wide
   outName <- paste(reqShortName, "all.sum", sep = ".")
@@ -187,11 +178,11 @@ f.ratios.all <- function(region, req){
 # foodGroup function
 f.ratios.FG <- function(region, req) {
   print(paste("------ working on foood groups for", req))
-  temp <- gsub("req.", "", req)
-  reqShortName <- gsub(".percap", "", temp)
+  reqShortName <- gsub("req.", "", req)
+  #reqShortName <- gsub(".percap", "", temp)
   temp <- paste("food.agg.", reqShortName, sep = "")
   dt.food.agg <- getNewestVersion(temp, fileloc("resData"))
-  dt.nutsReqPerCap <- getNewestVersion(req)
+  dt.nutsReqPerCap <- getNewestVersion(paste(req,"percap",sep = "."))
   # get list of nutrients from dt.nutsReqPerCap for the req set of requirements
   nutList <- names( dt.nutsReqPerCap)[4:length(names(dt.nutsReqPerCap))]
   basicKey <-   c("scenario", region, "year")
@@ -253,8 +244,8 @@ f.ratios.FG <- function(region, req) {
     value.var = "nut_share",
     variable.factor = FALSE
   )
-  temp <- gsub("req.", "", req)
-  reqShortName <- gsub(".percap", "", temp)
+  reqShortName <- gsub("req.", "", req)
+  #reqShortName <- gsub(".percap", "", temp)
 
   inDT <- dt.foodGroup.ratio.wide
   outName <- paste(reqShortName, "FG.ratio", sep = ".")
@@ -276,11 +267,11 @@ f.ratios.FG <- function(region, req) {
 # staples function
 f.ratios.staples <- function(region, req) {
   print(paste("------ working on staples", req))
-  temp <- gsub("req.", "", req)
-  reqShortName <- gsub(".percap", "", temp)
+  reqShortName <- gsub("req.", "", req)
+  #reqShortName <- gsub(".percap", "", temp)
   temp <- paste("food.agg.", reqShortName, sep = "")
   dt.food.agg <- getNewestVersion(temp, fileloc("resData"))
-  dt.nutsReqPerCap <- getNewestVersion(req)
+  dt.nutsReqPerCap <- getNewestVersion(paste(req,"percap",sep = "."))
   # get list of nutrients from dt.nutsReqPerCap for the req set of requirements
   nutList <- names( dt.nutsReqPerCap)[4:length(names(dt.nutsReqPerCap))]
   basicKey <- c("scenario", region, "year")
@@ -346,8 +337,8 @@ f.ratios.staples <- function(region, req) {
     value.var = "nut_share",
     variable.factor = FALSE
   )
-  temp <- gsub("req.", "", req)
-  reqShortName <- gsub(".percap", "", temp)
+  reqShortName <- gsub("req.", "", req)
+  #reqShortName <- gsub(".percap", "", temp)
 
   inDT <- dt.staples.sum.wide
   outName <- paste(reqShortName, "staples.sum", sep = ".")
@@ -379,3 +370,64 @@ for (i in reqList) {
   f.ratios.staples(region, i)
   f.ratios.FG(region, i)
 }
+
+# fats, etc share of total kcals ------
+# source of conversion http://www.convertunits.com/from/joules/to/calorie+[thermochemical]
+# fat 37kJ/g - 8.8432122371 kCal
+fatKcals <- 8.8432122371
+# protein 17kJ/g - 4.0630975143 kCal
+proteinKcals <- 4.0630975143
+# carbs 16kJ/g) - 3.8240917782
+carbsKcals <- 3.8240917782
+# 1 kJ = 0.23900573614 thermochemical /food calorie (kCal)
+# 1 Kcal = 4.184 kJ
+dt.nutSum <- getNewestVersion("dt.nutrients.sum", fileloc("resData"))
+nutList <- names(dt.nutSum)[4:ncol(dt.nutSum)]
+nutListShort <- gsub(".sum.all","",nutList)
+data.table::setnames(dt.nutSum, old = c(nutList), new = c(nutListShort))
+
+basicInfo <- c("scenario", region,"year")
+macro <- c("energy_kcal", "protein_g", "carbohydrate_g", "totalfiber_g", "sugar_g", "fat_g" )
+minrls <- c("calcium_mg", "iron_mg", "magnesium_mg", "phosphorus_mg", "potassium_g", "sodium_g")
+vits <- c("niacin_mg", "riboflavin_mg", "folate_µg", "thiamin_mg",
+          "vit_a_rae_µg", "vit_b12_µg", "vit_b6_mg", "vit_c_mg",
+          "vit_d_μg", "vit_e_mg", "vit_k_µg")
+ftyAcids <-  c("ft_acds_tot_sat_g", "ft_acds_mono_unsat_g", "ft_acds_plyunst_g",
+              "cholesterol_mg", "ft_acds_tot_trans_g" )
+
+keepListCol <- c(basicInfo, macro)
+dt.nutSum <- dt.nutSum[,keepListCol, with = FALSE]
+macroKcals <- c("protein_g", "carbohydrate_g", "sugar_g", "fat_g")
+nutList.kcals <- paste(macroKcals,".kcal", sep = "")
+nutList.ratio <- paste(macroKcals,"_reqRatio", sep = "")
+
+dt.nutSum[, protein_g.kcal := protein_g * proteinKcals][, fat_g.kcal := fat_g * fatKcals][, sugar_g.kcal := sugar_g * carbsKcals][, carbohydrate_g.kcal := carbohydrate_g * carbsKcals]
+dt.nutSum[, (c("protein_g", "carbohydrate_g", "totalfiber_g", "sugar_g", "fat_g" )) := NULL]
+# Note. sum.kcals differs from energy_kcal because alcohol is not included in carbohydrates. Maybe other reasons too
+dt.nutSum[, sum.kcals := protein_g.kcal + fat_g.kcal + carbohydrate_g.kcal]
+dt.nutSum[, diff.kcals := dt.nutSum$energy_kcal - dt.nutSum$sum.kcals]
+dt.nutSum[, (nutList.ratio) := lapply(.SD, "/", dt.nutSum$energy_kcal), .SDcols = (nutList.kcals)]
+keepListCol <- c("scenario", region, "year", "protein_g.ratio", "fat_g.ratio", "carbohydrate_g.ratio")
+dt.nutSum[, keepListCol, with = FALSE]
+basicKey <- c("scenario", region, "year")
+dt.nutSum.long <- data.table::melt(
+  dt.nutSum, id.vars = basicKey,
+  measure.vars = nutList.ratio,
+  variable.name = "nutrientReq",
+  value.name = "nut_ratio", variable.factor = FALSE)
+
+formula.sum.all <- paste("scenario + ", region, " + nutrientReq ~ year")
+dt.nutSum.wide <- data.table::dcast.data.table(
+  data = dt.nutSum.long,
+  formula = formula.sum.all,
+  value.var = "nut_ratio",
+  variable.factor = FALSE)
+
+temp1 <- data.table::as.data.table(stringi::stri_split_fixed(dt.nutSum.wide$scenario, "-", simplify = TRUE))
+data.table::setnames(temp1, old = c("V1","V2"), new = c("scenario","climate_model"))
+dt.nutSum.wide[,scenario := NULL]
+dt.nutSum.wide <- cbind(temp1,dt.nutSum.wide)
+
+inDT <- dt.nutSum.wide
+outName <- "dt.energy.ratios"
+cleanup(inDT, outName, fileloc("resData"))

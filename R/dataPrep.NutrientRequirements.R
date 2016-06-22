@@ -33,21 +33,14 @@ options(encoding = "UTF-8")
 #' @param nutrients - list of nutrient data generated in dataPrep.nutrientData.R
 nutrients <- getNewestVersion("dt.nutrients")
 
-# This is the list of food group codes as of June 28, 2015 beverages <-
-# c('beverages') cereals <- c('cereals') dairy <- c('dairy') eggs <-
-# c('eggs') fish <- c('fish') fruits <- c('fruits') meats <- c('meats')
-# oils <-c('fats and oils') oilSeeds <- c('oil seeds') pulses <-
-# c('pulses') roots <- c('roots and tubers') sweeteners <- c('sugar and
-# sweeteners') vegetables <-c('vegetables')
-
 #' @param allFoodGroups - list of all food groups
 allFoodGroups <- unique(nutrients$food.group.code)
 
 # Read in and set up the nutrient requirements data -----
 
-# getSheetNames(EARFileName)
+# getSheetNames(DRIFileName)
 #' @param req.metadata - meta data for the nutrient requirements
-reqsFile <- fileNameList("EARs")
+reqsFile <- fileNameList("DRIs")
 req.metadata <- openxlsx::read.xlsx(reqsFile, sheet = "Reference", colNames = FALSE)
 format(req.metadata, justify = c("left"))
 

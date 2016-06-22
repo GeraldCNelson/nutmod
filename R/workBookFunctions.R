@@ -41,7 +41,7 @@ f.createGeneralWorksheet <- function() {
   creationInfo <- rbind(creationInfo, paste("IMPACT data:", fileNameList("IMPACTgdx")))
   creationInfo <- rbind(creationInfo, paste("Nutrient data:", fileNameList("nutrientFileName")))
   creationInfo <- rbind(creationInfo, paste("Nutrient requirements data:",
-                                            fileNameList("EARFileName")))
+                                            fileNameList("DRIFileName")))
   creationInfo <- rbind(creationInfo, paste("SSP data:", fileNameList("SSPdataZip")))
   openxlsx::addWorksheet(wbGeneral, sheetName = "creation_Info")
   openxlsx::writeData(wbGeneral, creationInfo, sheet = "creation_Info",
@@ -66,9 +66,9 @@ f.createGeneralWorksheet <- function() {
 
   # create a worksheet with info on the nutrient sources
 
-  EARs <- fileNameList("EARs")
-  req.metadata <- openxlsx::read.xlsx(EARs, sheet = "Reference", colNames = FALSE)
-  # openxlsx::read.xlsx(EARFileName, sheet = 1, colNames = FALSE)
+  DRIs <- fileNameList("DRIs")
+  req.metadata <- openxlsx::read.xlsx(DRIs, sheet = "Reference", colNames = FALSE)
+  # openxlsx::read.xlsx(DRIFileName, sheet = 1, colNames = FALSE)
   openxlsx::addWorksheet(wbGeneral, sheetName = "MetaDataNutrnts")
 
   openxlsx::writeData(wbGeneral, req.metadata, sheet = "MetaDataNutrnts",

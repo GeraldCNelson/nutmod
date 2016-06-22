@@ -245,9 +245,9 @@ creationInfo <- rbind(creationInfo,
 nutrientFileName <- fileNameList("nutrientFileName")
 creationInfo <- rbind(creationInfo,
                       paste("Nutrient data:", nutrientFileName))
-EARFileName <- fileNameList("EARFileName")
+DRIFileName <- fileNameList("DRIFileName")
 creationInfo <- rbind(creationInfo,
-                      paste("Nutrient requirements data:", EARFileName))
+                      paste("Nutrient requirements data:", DRIFileName))
 SSPdataZip <- fileNameList("SSPdataZip")
 creationInfo <- rbind(creationInfo,
                       paste("SSP.regions data:", SSPdataZip))
