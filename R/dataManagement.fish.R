@@ -230,7 +230,7 @@ dt.final[, (IMPACTfish_code) := 0]
 # scenarioListSSP.GDP <- c("SSP1_v9_130325","SSP2_v9_130325") # for testing
 for (scenarioChoice in scenarioListSSP.GDP) {
   for (ctyChoice in ctyList) {
-    print(paste(scenarioChoice,ctyChoice))
+    #print(paste(scenarioChoice,ctyChoice))
     # create a data table with FBS fish perCapKg values for one country
     keylist <- c("region_code.SSP", "IMPACT_code")
     data.table::setkeyv(dt.FBS.kgPerCap, keylist)

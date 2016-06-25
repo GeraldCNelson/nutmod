@@ -22,7 +22,6 @@ if (!exists("getNewestVersion", mode = "function"))
   source("R/workbookFunctions.R")
   source("R/nutrientCalcFunctions.R")}
 
-options(warn = 1) # can be deleted after development is finished. This changes warnings to errors and stops execution.
 # choose a grouping of countries -----
 region <- keyVariable("region")
 reqList <- keyVariable("reqsList")
@@ -43,16 +42,22 @@ reqList <- keyVariable("reqsList")
 # nutList <- names( dt.nutsReqPerCap)[4:length(names( dt.nutsReqPerCap))]
 
 # individual food function
+req <- "req.EAR" # - for testing purposes
 f.ratios.all <- function(region, req){
   print(paste("------ working on all for ", req))
   reqShortName <- gsub("req.", "", req)
 #  reqShortName <- gsub(".percap", "", temp)
   temp <- paste("food.agg.", reqShortName, sep = "")
   dt.food.agg <- getNewestVersion(temp, fileloc("resData"))
+  scenarioComponents <- c("SSP", "climate_model", "experiment", "RCP")
+
+  dt.food.agg[, (scenarioComponents) := data.table::tstrsplit(scenario, "-", , fixed=TRUE)]
+
   dt.nutsReqPerCap <- getNewestVersion(paste(req,"percap",sep = "."))
+
   # get list of nutrients from dt.nutsReqPerCap for the req set of requirements
   nutList <- names( dt.nutsReqPerCap)[4:length(names(dt.nutsReqPerCap))]
-  basicKey <- c("scenario", region, "year")
+  basicKey <- c(scenarioComponents, "RCP", region, "year")
   sumKey <-  c(basicKey, "IMPACT_code")
 
   # the total daily consumption of each nutrient
@@ -81,11 +86,7 @@ f.ratios.all <- function(region, req){
   dt.all.req.ratio <- unique(dt.all.req.ratio)
 
   # calculate the ratio of nutrient consumption for all commodities to the requirement
-  temp1 <- data.table::as.data.table(stringi::stri_split_fixed(dt.all.sum$scenario, "-", simplify = TRUE))
-  data.table::setnames(temp1, old = c("V1","V2"), new = c("scenario","climate_model"))
-  dt.sum.copy <- data.table::copy(dt.all.sum)
-  dt.sum.copy[,scenario := NULL]
-  dt.sum.copy <- cbind(temp1,dt.sum.copy)
+   dt.sum.copy <- data.table::copy(dt.all.sum)
   dt.nuts.temp <- dt.nutsReqPerCap[scenario %in% unique(dt.sum.copy$scenario),]
   temp <- merge(dt.sum.copy,dt.nuts.temp, by = c("scenario", "region_code.IMPACT159", "year"), all.x = TRUE)
   nutListSum <- as.vector(paste(nutList,".sum.all", sep = ""))
@@ -185,7 +186,7 @@ f.ratios.FG <- function(region, req) {
   dt.nutsReqPerCap <- getNewestVersion(paste(req,"percap",sep = "."))
   # get list of nutrients from dt.nutsReqPerCap for the req set of requirements
   nutList <- names( dt.nutsReqPerCap)[4:length(names(dt.nutsReqPerCap))]
-  basicKey <-   c("scenario", region, "year")
+  scenarioComponents <- c("SSP", "climate_model", "experiment", "RCP")
   foodGroupKey <- c(basicKey, "food.group.code")
   # nutList.sum.foodGroup <-    paste(nutList, "sum.foodGroup", sep = ".")
   nutList.ratio.foodGroup <-   paste(nutList, "ratio.foodGroup", sep = ".")
@@ -274,7 +275,8 @@ f.ratios.staples <- function(region, req) {
   dt.nutsReqPerCap <- getNewestVersion(paste(req,"percap",sep = "."))
   # get list of nutrients from dt.nutsReqPerCap for the req set of requirements
   nutList <- names( dt.nutsReqPerCap)[4:length(names(dt.nutsReqPerCap))]
-  basicKey <- c("scenario", region, "year")
+  scenarioComponents <- c("SSP", "climate_model", "experiment", "RCP")
+  basicKey <- c(scenarioComponents, region, "year")
   stapleKey <- c(basicKey, "staple.code")
   # the total daily consumption of each staple
   nutList.sum.staple <-    paste(nutList, "sum.staple", sep = ".")
@@ -409,7 +411,8 @@ dt.nutSum[, diff.kcals := dt.nutSum$energy_kcal - dt.nutSum$sum.kcals]
 dt.nutSum[, (nutList.ratio) := lapply(.SD, "/", dt.nutSum$energy_kcal), .SDcols = (nutList.kcals)]
 keepListCol <- c("scenario", region, "year", "protein_g.ratio", "fat_g.ratio", "carbohydrate_g.ratio")
 dt.nutSum[, keepListCol, with = FALSE]
-basicKey <- c("scenario", region, "year")
+scenarioComponents <- c("SSP", "climate_model", "experiment", "RCP")
+basicKey <- c(scenarioComponents, region, "year")
 dt.nutSum.long <- data.table::melt(
   dt.nutSum, id.vars = basicKey,
   measure.vars = nutList.ratio,
@@ -422,11 +425,6 @@ dt.nutSum.wide <- data.table::dcast.data.table(
   formula = formula.sum.all,
   value.var = "nut_ratio",
   variable.factor = FALSE)
-
-temp1 <- data.table::as.data.table(stringi::stri_split_fixed(dt.nutSum.wide$scenario, "-", simplify = TRUE))
-data.table::setnames(temp1, old = c("V1","V2"), new = c("scenario","climate_model"))
-dt.nutSum.wide[,scenario := NULL]
-dt.nutSum.wide <- cbind(temp1,dt.nutSum.wide)
 
 inDT <- dt.nutSum.wide
 outName <- "dt.energy.ratios"

@@ -51,8 +51,8 @@ keepListCol <-
 cookretn <- nutrients.clean[,keepListCol]
 cookretn.cols <- names(cookretn)[2:length(cookretn)]
 cookretn[is.na(cookretn[keepListCol])] <- 1.0
-inDT <- cookretn
-outName <- "cookingRet"
+inDT <- data.table::as.data.table(cookretn)
+outName <- "dt.cookingRet"
 cleanup(inDT,outName,fileloc("mData"))
 #get list of nutrients in the food nutrient lookup table
 #create list of columns that are not nutrients
@@ -100,7 +100,7 @@ foodGroupsInfo <- openxlsx::read.xlsx(
   colNames = TRUE
 )
 tmp <- foodGroupsInfo[, c("IMPACT_code", "food.group.code","staple.code", "white.starch.code")]
-df.nutrients <- merge(nutrients, tmp, by = "IMPACT_code", all = TRUE)
+dt.nutrients <- data.table::as.data.table(merge(nutrients, tmp, by = "IMPACT_code", all = TRUE))
 #-----------------------
 # code to import composite information from spreadsheets ------
 fctFiles <- c("comp_fct_beans_cbean.xlsx",
@@ -122,7 +122,6 @@ recalcFiles <- c(
   "comp_recalc_ctool_oilcrops_FCT.xlsx",
   "comp_recalc_cvege_vegetables_FCT.xlsx")
 
-dt.nutrients <- data.table::as.data.table(df.nutrients)
 nutList <- names(dt.nutrients)
 removeList <- c("IMPACT_code", "composite_code", "food.group.code", "staple.code", "white.starch.code")
 nutList <- nutList[!nutList %in% removeList]

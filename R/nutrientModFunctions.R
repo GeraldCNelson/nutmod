@@ -271,18 +271,7 @@ keyVariable <- function(variableName) {
   fixFish <- "TRUE"
   changeElasticity <- "TRUE"
   region <- "region_code.IMPACT159"
-  keepYearList <-
-    c(
-      "X2010",
-      "X2015",
-      "X2020",
-      "X2025",
-      "X2030",
-      "X2035",
-      "X2040",
-      "X2045",
-      "X2050"
-    )
+  keepYearList <- c("X2010", "X2015", "X2020", "X2025", "X2030", "X2035", "X2040", "X2045", "X2050")
   keepYearList.FBS <- c("X2000", "X2001", "X2002", "X2003", "X2004", "X2005",
                         "X2006", "X2007", "X2008", "X2009", "X2010", "X2011")
   FBSyearsToAverage <- c("X2004", "X2005", "X2006")
@@ -333,7 +322,7 @@ keyVariable <- function(variableName) {
   commonList <- paste("common.", reqsList, sep = "")
     c( "common.EAR", "common.RDA.vits", "common.RDA.minrls", "common.RDA.macro", "common.UL.vits","common.UL.minrls")
   ctyDeleteList <- c("FSM", "GRD", "PRK")
-  useCookingRetnValues <- "yes"
+  useCookingRetnValues <- "TRUE"
   userName <- "Gerald C. Nelson"
   if (variableName == "list") {
     return(
@@ -493,8 +482,8 @@ fileNameList <- function(variableName) {
   IMPACTstdRegionsFileName <- "IMPACT-agg-regionsFeb2016.xlsx"
   IMPACTstdRegions <-
     paste(IMPACTData, IMPACTstdRegionsFileName, sep = "/")
-  # IMPACTgdxfileName <- "Micronutrient-Inputs20160404.gdx"  #- new larger gdx
-  IMPACTgdxfileName <- "Demand Results20150817.gdx"
+   IMPACTgdxfileName <- "Micronutrient-Inputs20160404.gdx"  #- new larger gdx
+  #IMPACTgdxfileName <- "Demand Results20150817.gdx"
   IMPACTgdx         <- paste(IMPACTData, IMPACTgdxfileName, sep = "/")
   gdxLib            <- "/Applications/GAMS/gams24.5_osx_x64_64_sfx"
   R_GAMS_SYSDIR     <- "/Applications/GAMS/gams24.5_osx_x64_64_sfx"

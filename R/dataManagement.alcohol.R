@@ -41,7 +41,7 @@ keepYearList <- c(year0,keepYearList)
 IMPACTalcohol_code <- keyVariable("IMPACTalcohol_code")
 scenarioListSSP.pop <- keyVariable("scenarioListSSP.pop")
 scenarioListSSP.GDP <- keyVariable("scenarioListSSP.GDP")
-options(warn=2)
+
 #load the SSP GDP data -----
 dt.SSPGDP <- getNewestVersion("dt.SSPGDPClean")
 
@@ -139,7 +139,7 @@ dt.final[, (IMPACTalcohol_code) := 0]
 
 for (scenarioChoice in scenarioListSSP.GDP) {
   for (ctyChoice in ctyList) {
-    print(paste(scenarioChoice,ctyChoice))
+   # print(paste(scenarioChoice,ctyChoice))
     # create a data table with FBS alc perCapKg values for one country
     keylist <- c("region_code.SSP", "IMPACT_code")
     data.table::setkeyv(dt.FBS.kgPerCap, keylist)

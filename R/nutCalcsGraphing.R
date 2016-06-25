@@ -21,7 +21,6 @@ if (!exists("getNewestVersion", mode = "function"))
 {source("R/nutrientModFunctions.R")
   source("R/workbookFunctions.R")
   source("R/nutrientCalcFunctions.R")}
-options(warn = 1) # can be deleted after development is finished. This changes warnings to errors and stops execution.
 
 region <- keyVariable("region")
 reqsList <- keyVariable("reqsListPercap")

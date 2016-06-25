@@ -20,7 +20,7 @@
 #' @description - This script calculates nutrient requirements for SSP age group categories
 #' The source of the requirements is
 #' @source \url{http://www.nal.usda.gov/fnic/DRI/DRI_Tables/recommended_intakes_individuals.pdf}
-#' The requirements are imported in dataPrep.nutrientData.R and saved as df.nutrients
+#' The requirements are imported in dataPrep.nutrientData.R and saved as dt.nutrients
 
 #' @include nutrientModFunctions.R
 if (!exists("getNewestVersion", mode = "function"))
@@ -30,11 +30,11 @@ if (!exists("getNewestVersion", mode = "function"))
 options(encoding = "UTF-8")
 
 # nutrients spreadsheet; otherwise the next line is fine
-#' @param nutrients - list of nutrient data generated in dataPrep.nutrientData.R
-nutrients <- getNewestVersion("dt.nutrients")
+#' @param dt.nutrients - list of nutrient data generated in dataPrep.nutrientData.R
+dt.nutrients <- getNewestVersion("dt.nutrients")
 
 #' @param allFoodGroups - list of all food groups
-allFoodGroups <- unique(nutrients$food.group.code)
+allFoodGroups <- unique(dt.nutrients$food.group.code)
 
 # Read in and set up the nutrient requirements data -----
 
@@ -46,124 +46,87 @@ format(req.metadata, justify = c("left"))
 
 #' @param req.EAR - Estimated Average Requirements (EAR) data
 req.EAR <-
-  openxlsx::read.xlsx(
-    reqsFile,
-    sheet = "EAR",
-    startRow = 1,
-    cols = 3:24,
-    colNames = TRUE
-  )
+  openxlsx::read.xlsx(reqsFile, startRow = 1,  colNames = TRUE,
+                      sheet = "EAR", cols = 3:24)
 reqsList <- "req.EAR"
 
 #' @param req.RDA.vits - Recommended Daily Allowance (RDA) data for vitamins
 req.RDA.vits <-
-  openxlsx::read.xlsx(
-    reqsFile,
-    sheet = "RDAorAI_vitamins",
-    startRow = 1,
-    cols = 3:17,
-    colNames = TRUE
-  )
+  openxlsx::read.xlsx(reqsFile, startRow = 1,  colNames = TRUE,
+                      sheet = "RDAorAI_vitamins", cols = 3:17)
 reqsList <- c(reqsList,"req.RDA.vits")
 
 #' @param req.RDA.minrls - Recommended Daily Allowance (RDA) data for minerals
 req.RDA.minrls <-
-  openxlsx::read.xlsx(
-    reqsFile,
-    sheet = "RDAorAI_minerals",
-    startRow = 1,
-    cols = 3:18,
-    colNames = TRUE
-  )
+  openxlsx::read.xlsx(reqsFile, startRow = 1,  colNames = TRUE,
+                      sheet = "RDAorAI_minerals", cols = 3:18)
 reqsList <- c(reqsList,"req.RDA.minrls")
 
 #' @param req.RDA.macro - Recommended Daily Allowance (RDA) data for macro nutrients
 req.RDA.macro <-
-  openxlsx::read.xlsx(
-    reqsFile,
-    sheet = "RDAorAI_macro",
-    startRow = 1,
-    cols = 3:10,
-    colNames = TRUE
-  )
+  openxlsx::read.xlsx(reqsFile, startRow = 1, colNames = TRUE,
+                      sheet = "RDAorAI_macro", cols = 3:10)
 reqsList <- c(reqsList,"req.RDA.macro")
 
 #' @param req.UL.vits - Recommended Upper Limit (UL) data for vitamins
 req.UL.vits <-
-  openxlsx::read.xlsx(
-    reqsFile,
-    sheet = "UL_vitamins",
-    startRow = 1,
-    cols = 3:18,
-    colNames = TRUE
-  )
+  openxlsx::read.xlsx(reqsFile, startRow = 1,  colNames = TRUE,
+                      sheet = "UL_vitamins", cols = 3:18)
 reqsList <- c(reqsList,"req.UL.vits")
 
 #' @param req.UL.minrls - Recommended Upper Limit (UL) data for minerals
 req.UL.minrls <-
-  openxlsx::read.xlsx(
-    reqsFile,
-    sheet = "UL_minerals",
-    startRow = 1,
-    cols = 3:22,
-    colNames = TRUE
-  )
+  openxlsx::read.xlsx(reqsFile, startRow = 1,  colNames = TRUE,
+                      sheet = "UL_minerals", cols = 3:22)
 reqsList <- c(reqsList,"req.UL.minrls")
 
 #' @param req.AMDR.hi - Acceptable Macronutrient Distribution Range, hi version
 req.AMDR.hi <-
-  openxlsx::read.xlsx(
-    reqsFile,
-    sheet = "AMDR_hi",
-    startRow = 1,
-    cols = 3:13,
-    colNames = TRUE
-  )
+  req.AMDR.lo <-
+  openxlsx::read.xlsx(reqsFile, startRow = 1,  colNames = TRUE,
+                      sheet = "AMDR_hi", cols = 3:13)
 
 #' @param req.AMDR.lo - Acceptable Macronutrient Distribution Range, lo version
 req.AMDR.lo <-
-  openxlsx::read.xlsx(
-    reqsFile,
-    sheet = "AMDR_lo",
-    startRow = 1,
-    cols = 3:13,
-    colNames = TRUE
-  )
+  openxlsx::read.xlsx(reqsFile, startRow = 1,  colNames = TRUE,
+                      sheet = "AMDR_lo", cols = 3:13)
 
 reqsList <- c(reqsList,"req.AMDR.hi", "req.AMDR.lo")
 
 # make lists of nutrients common to the food nutrient list and the
-# requirements list ---
-common.EAR <-
-  intersect(sort(colnames(nutrients)), sort(colnames(req.EAR)))
-common.RDA.vits <-
-  intersect(sort(colnames(nutrients)), sort(colnames(req.RDA.vits)))
-common.RDA.minrls <-
-  intersect(sort(colnames(nutrients)), sort(colnames(req.RDA.minrls)))
-common.RDA.macro <-
-  intersect(sort(colnames(nutrients)), sort(colnames(req.RDA.macro)))
-common.UL.vits <-
-  intersect(sort(colnames(nutrients)), sort(colnames(req.UL.vits)))
-common.UL.minrls <-
-  intersect(sort(colnames(nutrients)), sort(colnames(req.UL.minrls)))
-common.AMDR.hi <-
-  intersect(sort(colnames(nutrients)), sort(colnames(req.AMDR.hi)))
-common.AMDR.lo <-
-  intersect(sort(colnames(nutrients)), sort(colnames(req.AMDR.lo)))
-
-
-# keep only the nutrients common to the dt.nutrients and the list of nutrients covered in a nutrient requirements list
-req.EAR <- req.EAR[, c("ageGenderCode", common.EAR)]
-req.RDA.vits <- req.RDA.vits[, c("ageGenderCode", common.RDA.vits)]
-req.RDA.minrls <-
-  req.RDA.minrls[, c("ageGenderCode", common.RDA.minrls)]
-req.RDA.macro <-
-  req.RDA.macro[, c("ageGenderCode", common.RDA.macro)]
-req.UL.vits <- req.UL.vits[, c("ageGenderCode", common.UL.vits)]
-req.UL.minrls <-
-  req.UL.minrls[, c("ageGenderCode", common.UL.minrls)]
-req.AMDR.hi <- req.AMDR.hi[, c("ageGenderCode", common.AMDR.hi)]
-req.AMDR.lo <- req.AMDR.lo[, c("ageGenderCode", common.AMDR.lo)]
+# requirements list  and keep only the common nutrients in the req list---
+for (i in reqsList) {
+commonListName <- paste("common", gsub("req.", "", i), sep = ".")
+  temp <- intersect(sort(colnames(dt.nutrients)), sort(colnames(eval(parse(text = i)))))
+  assign(commonListName, temp)
+  j <- eval(parse(text = i))
+  j <- j[, c("ageGenderCode", temp)]
+  assign(i,j)
+#
+# common.RDA.vits <-
+#   intersect(sort(colnames(dt.nutrients)), sort(colnames(req.RDA.vits)))
+# common.RDA.minrls <-
+#   intersect(sort(colnames(dt.nutrients)), sort(colnames(req.RDA.minrls)))
+# common.RDA.macro <-
+#   intersect(sort(colnames(dt.nutrients)), sort(colnames(req.RDA.macro)))
+# common.UL.vits <-
+#   intersect(sort(colnames(dt.nutrients)), sort(colnames(req.UL.vits)))
+# common.UL.minrls <-
+#   intersect(sort(colnames(dt.nutrients)), sort(colnames(req.UL.minrls)))
+# common.AMDR.hi <-
+#   intersect(sort(colnames(dt.nutrients)), sort(colnames(req.AMDR.hi)))
+# common.AMDR.lo <-
+#   intersect(sort(colnames(dt.nutrients)), sort(colnames(req.AMDR.lo)))
+}
+# # keep only the nutrients common to the dt.nutrients and the list of nutrients covered in a nutrient requirements list
+# req.EAR <- req.EAR[, c("ageGenderCode", common.EAR)]
+# req.RDA.vits <- req.RDA.vits[, c("ageGenderCode", common.RDA.vits)]
+# req.RDA.minrls <- req.RDA.minrls[, c("ageGenderCode", common.RDA.minrls)]
+# req.RDA.macro <- req.RDA.macro[, c("ageGenderCode", common.RDA.macro)]
+# req.UL.vits <- req.UL.vits[, c("ageGenderCode", common.UL.vits)]
+# req.UL.minrls <- req.UL.minrls[, c("ageGenderCode", common.UL.minrls)]
+# req.AMDR.hi <- req.AMDR.hi[, c("ageGenderCode", common.AMDR.hi)]
+# req.AMDR.lo <- req.AMDR.lo[, c("ageGenderCode", common.AMDR.lo)]
 
 #' naming conventions ---------- M - Male, F- Female, X - children of
 #' both genders,
@@ -182,50 +145,43 @@ df.ageGroupLU <- openxlsx::read.xlsx(fileNameList("SSP_DRI_ageGroupLU"))
 children <- c("Inf0_0.5", "Inf0.5_1", "Chil1_3")
 
 reqsList <- keyVariable("reqsList")
-  c(
-    "req.EAR",
-    "req.RDA.vits",
-    "req.RDA.minrls",
-    "req.RDA.macro",
-    "req.UL.vits",
-    "req.UL.minrls"
-  )
+
 for (j in reqsList) {
-  temp2 <- eval(parse(text = j))
-  temp2[is.na(temp2)] <- 0
-  #males
+  j <- eval(parse(text = j))
+  j[is.na(j)] <- 0
+  #males xxx need to fix the js here
   for (i in 1:nrow(df.ageGroupLU)) {
-    temp <- temp2[temp2$ageGenderCode == df.ageGroupLU[i, 2], ]
+    j <- j[j$ageGenderCode == df.ageGroupLU[i, 2], ]
     temp[1, 1] <- df.ageGroupLU[i, 1]
     # print(temp[1,1])
-    temp2 <- rbind(temp2, temp)
+    j <- rbind(j, temp)
   }
   #females
   for (i in 1:nrow(df.ageGroupLU)) {
-    temp <- temp2[temp2$ageGenderCode == df.ageGroupLU[i, 4], ]
+    temp <- j[j$ageGenderCode == df.ageGroupLU[i, 4], ]
     temp[1, 1] <- df.ageGroupLU[i, 3]
     # print(temp[1,1])
-    temp2 <- rbind(temp2, temp)
+    j <- rbind(j, temp)
   }
   # children calcs for nutrient needs SSPF0_4 <- Inf0_0.5*(1/6) +
   # Inf0.5_1*(1/6 + Chil1_3)*(4/6) SSPM0_4 <- Inf0_0.5*(1/6) +
   # Inf0.5_1*(1/6 + Chil1_3)*(4/6) 0 to 4 is four years. Divide into 8 6
   # month intervals.
-  chldrn.male <- temp2[temp2$ageGenderCode %in% children, ]
+  chldrn.male <- j[j$ageGenderCode %in% children, ]
   chldrn.male.SSP <-
     chldrn.male[chldrn.male$ageGenderCode == "Inf0_0.5",
-    2:length(temp)] * 1 / 8 +
+                2:length(temp)] * 1 / 8 +
     chldrn.male[chldrn.male$ageGenderCode == "Inf0.5_1",
-    2:length(chldrn.male)] * 1 / 8 +
+                2:length(chldrn.male)] * 1 / 8 +
     chldrn.male[chldrn.male$ageGenderCode == "Chil1_3",
-    2:length(chldrn.male)] * 6 / 8
+                2:length(chldrn.male)] * 6 / 8
   chldrn.male.SSP$ageGenderCode <- "SSPM0_4"
 
   # female children are the same as male children
   chldrn.female.SSP <- chldrn.male.SSP
   chldrn.female.SSP$ageGenderCode <- "SSPF0_4"
-  temp2 <-
-    dplyr::bind_rows(list(temp2, chldrn.male.SSP, chldrn.female.SSP))
+  j <-
+    dplyr::bind_rows(list(j, chldrn.male.SSP, chldrn.female.SSP))
 
   # calculations needed for the pregnant and lactating women results ----
   # SSPF15_49 <- (F14_18 + F19_30 + F31_50)/3 SSPLact <- (Lact14_18 +
@@ -233,8 +189,8 @@ for (j in reqsList) {
   # Preg31_50)/3
 
   preg.potent <-
-    temp2[temp2$ageGenderCode %in% c("F14_18", "F19_30",
-                                     "F31_50"), ]
+    j[j$ageGenderCode %in% c("F14_18", "F19_30",
+                             "F31_50"), ]
   preg.potent <-
     preg.potent[preg.potent$ageGenderCode == "F14_18", 2:length(preg.potent)] /
     3 +
@@ -245,8 +201,8 @@ for (j in reqsList) {
   preg.potent$ageGenderCode <- "SSPF15_49"
 
   lact <-
-    temp2[temp2$ageGenderCode %in% c("Lact14_18", "Lact19_30",
-                                     "Lact31_50"), ]
+    j[j$ageGenderCode %in% c("Lact14_18", "Lact19_30",
+                             "Lact31_50"), ]
   lact <-
     lact[lact$ageGenderCode == "Lact14_18", 2:length(lact)] / 3 +
     lact[lact$ageGenderCode == "Lact19_30", 2:length(lact)] / 3 +
@@ -254,31 +210,30 @@ for (j in reqsList) {
   lact$ageGenderCode <- "SSPLact"
 
   preg <-
-    temp2[temp2$ageGenderCode %in% c("Preg14_18", "Preg19_30", "Preg31_50"), ]
+    j[j$ageGenderCode %in% c("Preg14_18", "Preg19_30", "Preg31_50"), ]
   preg <-
     preg[preg$ageGenderCode == "Preg14_18", 2:length(preg)] / 3 +
     preg[preg$ageGenderCode == "Preg19_30", 2:length(preg)] / 3 +
     preg[preg$ageGenderCode == "Preg31_50", 2:length(preg)] / 3
   preg$ageGenderCode <- "SSPPreg"
 
-  temp2 <-
-    as.data.frame(dplyr::bind_rows(list(temp2, preg.potent, lact, preg)))
+  j <-
+    as.data.frame(dplyr::bind_rows(list(j, preg.potent, lact, preg)))
 
   # delete extraneous rows
-  temp2 <-
-    temp2[(
-      !temp2$ageGenderCode %in% df.ageGroupLU[, 2] &
-        !temp2$ageGenderCode %in% df.ageGroupLU[, 4] &
-        !temp2$ageGenderCode %in% children &
-        !temp2$ageGenderCode %in% c("Preg14_18", "Preg19_30", "Preg31_50") &
-        !temp2$ageGenderCode %in%
-        c("Lact14_18", "Lact19_30", "Lact31_50")
-    ), ]
+  j <- j[(
+    !j$ageGenderCode %in% df.ageGroupLU[, 2] &
+      !j$ageGenderCode %in% df.ageGroupLU[, 4] &
+      !j$ageGenderCode %in% children &
+      !j$ageGenderCode %in% c("Preg14_18", "Preg19_30", "Preg31_50") &
+      !j$ageGenderCode %in%
+      c("Lact14_18", "Lact19_30", "Lact31_50")
+  ), ]
   newDFname <- paste(j, ".ssp", sep = "")
-  nutlistname <- paste()
-  assign(newDFname, temp2)
+  #nutlistname <- paste()
+  assign(newDFname, j)
   nutlistname <- paste(j, ".nutlist", sep = "")
-  nutlist <- colnames(temp2[, 2:length(temp2)])
+  nutlist <- colnames(j[, 2:length(j)])
   assign(nutlistname, nutlist)
   inDT <- eval(parse(text = newDFname))
   print(newDFname)

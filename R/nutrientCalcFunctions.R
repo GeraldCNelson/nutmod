@@ -73,12 +73,12 @@
 #'   dt.temp <- dt.staples.sum[dt.nutsReqPerCap]
 #' }
 
-cookingRet <- function(applyCookingRetention) {
-  # df.nutrients is in nutrient per 100 grams of the edible portion
+cookingRetFishCorrect <- function(useCookingRetnValues, fixFish) {
+  # dt.nutrients is in nutrient per 100 grams of the edible portion
   dt.nutrients <- getNewestVersion("dt.nutrients")
-  if (applyCookingRetention == "yes") {
+  if (useCookingRetnValues == "TRUE") {
     # get cooking retention values
-    dt.cookRetn <- data.table::as.data.table(getNewestVersion("cookingRet"))
+    dt.cookRetn <- getNewestVersion("dt.cookingRet")
     data.table::setkey(dt.nutrients,IMPACT_code)
     data.table::setkey(dt.cookRetn,IMPACT_code)
     dt.temp <- dt.nutrients[dt.cookRetn]
@@ -93,6 +93,10 @@ cookingRet <- function(applyCookingRetention) {
     }
     dt.nutrients <- dt.temp[,(c("composite_code",nutrientsWcookingRet)) := NULL]
   }
+  if (fixFish == "TRUE")  {
+      deleteListRow <- c("c_Shrimp", "c_Tuna", "c_Salmon")
+      dt.nutrients <- dt.nutrients[!IMPACT_code %in% deleteListRow,]
+    }
   return(dt.nutrients)
 }
 
