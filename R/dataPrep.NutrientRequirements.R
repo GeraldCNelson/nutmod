@@ -93,151 +93,66 @@ req.AMDR.lo <-
 
 reqsList <- c(reqsList,"req.AMDR.hi", "req.AMDR.lo")
 
-# make lists of nutrients common to the food nutrient list and the
-# requirements list  and keep only the common nutrients in the req list---
+# create lists of nutrients common to the food nutrient and  requirements lists ------
+# keep only the common nutrients in the req list---
+# i is the name of the requirement; j is a copy of the requirement data table
+# also combine groups of children and for pregnant and lactating women
+# children calcs for nutrient needs
+# SSPF0_4 <- Inf0_0.5*(1/6) + Inf0.5_1*(1/6 + Chil1_3)*(4/6)
+# SSPM0_4 <- Inf0_0.5*(1/6) + Inf0.5_1*(1/6 + Chil1_3)*(4/6)
+# 0 to 4 is four years. Divide into 8 6-month intervals.
+# chldrn.male <- j[j$ageGenderCode %in% Chil0_3, ]
+# chldrn.male.SSP <-
+#   chldrn.male[chldrn.male$ageGenderCode == "Inf0_0.5",
+#               2:length(temp)] * 1 / 8 +
+#   chldrn.male[chldrn.male$ageGenderCode == "Inf0.5_1",
+#               2:length(chldrn.male)] * 1 / 8 +
+#   chldrn.male[chldrn.male$ageGenderCode == "Chil1_3",
+#               2:length(chldrn.male)] * 6 / 8
+# chldrn.male.SSP$ageGenderCode <- "SSPM0_4"
+
+# # female children are the same as male children
+# chldrn.female.SSP <- chldrn.male.SSP
+# chldrn.female.SSP$ageGenderCode <- "SSPF0_4"
+# j <-
+#   dplyr::bind_rows(list(j, chldrn.male.SSP, chldrn.female.SSP))
+
+# calculations needed for the pregnant and lactating women results ----
+# SSPF15_49 <- (F14_18 + F19_30 + F31_50)/3
+# SSPLact <- (Lact14_18 + Lact19_30 + Lact31_50)/3
+# SSPPreg <- (Preg14_18 + Preg19_30 + Preg31_50)/3
+dt.ageGroupLU <- data.table::as.data.table(openxlsx::read.xlsx(fileNameList("SSP_DRI_ageGroupLU")))
 for (i in reqsList) {
 commonListName <- paste("common", gsub("req.", "", i), sep = ".")
   temp <- intersect(sort(colnames(dt.nutrients)), sort(colnames(eval(parse(text = i)))))
   assign(commonListName, temp)
   j <- eval(parse(text = i))
+  # Note: EARS include Reference_weight_kg. This is removed in the next line of code.
   j <- j[, c("ageGenderCode", temp)]
-  assign(i,j)
-#
-# common.RDA.vits <-
-#   intersect(sort(colnames(dt.nutrients)), sort(colnames(req.RDA.vits)))
-# common.RDA.minrls <-
-#   intersect(sort(colnames(dt.nutrients)), sort(colnames(req.RDA.minrls)))
-# common.RDA.macro <-
-#   intersect(sort(colnames(dt.nutrients)), sort(colnames(req.RDA.macro)))
-# common.UL.vits <-
-#   intersect(sort(colnames(dt.nutrients)), sort(colnames(req.UL.vits)))
-# common.UL.minrls <-
-#   intersect(sort(colnames(dt.nutrients)), sort(colnames(req.UL.minrls)))
-# common.AMDR.hi <-
-#   intersect(sort(colnames(dt.nutrients)), sort(colnames(req.AMDR.hi)))
-# common.AMDR.lo <-
-#   intersect(sort(colnames(dt.nutrients)), sort(colnames(req.AMDR.lo)))
-}
-# # keep only the nutrients common to the dt.nutrients and the list of nutrients covered in a nutrient requirements list
-# req.EAR <- req.EAR[, c("ageGenderCode", common.EAR)]
-# req.RDA.vits <- req.RDA.vits[, c("ageGenderCode", common.RDA.vits)]
-# req.RDA.minrls <- req.RDA.minrls[, c("ageGenderCode", common.RDA.minrls)]
-# req.RDA.macro <- req.RDA.macro[, c("ageGenderCode", common.RDA.macro)]
-# req.UL.vits <- req.UL.vits[, c("ageGenderCode", common.UL.vits)]
-# req.UL.minrls <- req.UL.minrls[, c("ageGenderCode", common.UL.minrls)]
-# req.AMDR.hi <- req.AMDR.hi[, c("ageGenderCode", common.AMDR.hi)]
-# req.AMDR.lo <- req.AMDR.lo[, c("ageGenderCode", common.AMDR.lo)]
+  j[is.na(j)] = 0
+  # now do the adjustment for the differences in infant age groupd
+  nutList <- names(j)[2:ncol(j)]
+  req.transpose <- data.table::as.data.table(data.table::dcast(data.table::melt(j, id.vars = "ageGenderCode", measure.vars = nutList, variable.name = "nutrient"), nutrient ~ ageGenderCode))
 
-#' naming conventions ---------- M - Male, F- Female, X - children of
-#' both genders,
-#' Preg - pregnant,
-#' Lact - lactating
-#' nonPL- women in the 15-49 age group that are neither pregnant or lactating
-
-# assuming the population statistics have the number of children 5-9
-# years and the EAR is for 4-8 years… you could make a new population
-# estimate for 4-8 years by taking 20% of the population for 0-4 year
-# olds (this is the number of 4 year olds) plus 80% of the population
-# of 5-9 year olds (this is number of 5-8 year olds) – and then adjust
-# all the others in a similar manner.
-df.ageGroupLU <- openxlsx::read.xlsx(fileNameList("SSP_DRI_ageGroupLU"))
-
-children <- c("Inf0_0.5", "Inf0.5_1", "Chil1_3")
-
-reqsList <- keyVariable("reqsList")
-
-for (j in reqsList) {
-  j <- eval(parse(text = j))
-  j[is.na(j)] <- 0
-  #males xxx need to fix the js here
-  for (i in 1:nrow(df.ageGroupLU)) {
-    j <- j[j$ageGenderCode == df.ageGroupLU[i, 2], ]
-    temp[1, 1] <- df.ageGroupLU[i, 1]
-    # print(temp[1,1])
-    j <- rbind(j, temp)
-  }
-  #females
-  for (i in 1:nrow(df.ageGroupLU)) {
-    temp <- j[j$ageGenderCode == df.ageGroupLU[i, 4], ]
-    temp[1, 1] <- df.ageGroupLU[i, 3]
-    # print(temp[1,1])
-    j <- rbind(j, temp)
-  }
-  # children calcs for nutrient needs SSPF0_4 <- Inf0_0.5*(1/6) +
-  # Inf0.5_1*(1/6 + Chil1_3)*(4/6) SSPM0_4 <- Inf0_0.5*(1/6) +
-  # Inf0.5_1*(1/6 + Chil1_3)*(4/6) 0 to 4 is four years. Divide into 8 6
-  # month intervals.
-  chldrn.male <- j[j$ageGenderCode %in% children, ]
-  chldrn.male.SSP <-
-    chldrn.male[chldrn.male$ageGenderCode == "Inf0_0.5",
-                2:length(temp)] * 1 / 8 +
-    chldrn.male[chldrn.male$ageGenderCode == "Inf0.5_1",
-                2:length(chldrn.male)] * 1 / 8 +
-    chldrn.male[chldrn.male$ageGenderCode == "Chil1_3",
-                2:length(chldrn.male)] * 6 / 8
-  chldrn.male.SSP$ageGenderCode <- "SSPM0_4"
-
-  # female children are the same as male children
-  chldrn.female.SSP <- chldrn.male.SSP
-  chldrn.female.SSP$ageGenderCode <- "SSPF0_4"
-  j <-
-    dplyr::bind_rows(list(j, chldrn.male.SSP, chldrn.female.SSP))
-
-  # calculations needed for the pregnant and lactating women results ----
-  # SSPF15_49 <- (F14_18 + F19_30 + F31_50)/3 SSPLact <- (Lact14_18 +
-  # Lact19_30 + Lact31_50)/3 SSPPreg <- (Preg14_18 + Preg19_30 +
-  # Preg31_50)/3
-
-  preg.potent <-
-    j[j$ageGenderCode %in% c("F14_18", "F19_30",
-                             "F31_50"), ]
-  preg.potent <-
-    preg.potent[preg.potent$ageGenderCode == "F14_18", 2:length(preg.potent)] /
-    3 +
-    preg.potent[preg.potent$ageGenderCode == "F19_30", 2:length(preg.potent)] /
-    3 +
-    preg.potent[preg.potent$ageGenderCode == "F31_50", 2:length(preg.potent)] /
-    3
-  preg.potent$ageGenderCode <- "SSPF15_49"
-
-  lact <-
-    j[j$ageGenderCode %in% c("Lact14_18", "Lact19_30",
-                             "Lact31_50"), ]
-  lact <-
-    lact[lact$ageGenderCode == "Lact14_18", 2:length(lact)] / 3 +
-    lact[lact$ageGenderCode == "Lact19_30", 2:length(lact)] / 3 +
-    lact[lact$ageGenderCode == "Lact31_50", 2:length(lact)] / 3
-  lact$ageGenderCode <- "SSPLact"
-
-  preg <-
-    j[j$ageGenderCode %in% c("Preg14_18", "Preg19_30", "Preg31_50"), ]
-  preg <-
-    preg[preg$ageGenderCode == "Preg14_18", 2:length(preg)] / 3 +
-    preg[preg$ageGenderCode == "Preg19_30", 2:length(preg)] / 3 +
-    preg[preg$ageGenderCode == "Preg31_50", 2:length(preg)] / 3
-  preg$ageGenderCode <- "SSPPreg"
-
-  j <-
-    as.data.frame(dplyr::bind_rows(list(j, preg.potent, lact, preg)))
-
-  # delete extraneous rows
-  j <- j[(
-    !j$ageGenderCode %in% df.ageGroupLU[, 2] &
-      !j$ageGenderCode %in% df.ageGroupLU[, 4] &
-      !j$ageGenderCode %in% children &
-      !j$ageGenderCode %in% c("Preg14_18", "Preg19_30", "Preg31_50") &
-      !j$ageGenderCode %in%
-      c("Lact14_18", "Lact19_30", "Lact31_50")
-  ), ]
-  newDFname <- paste(j, ".ssp", sep = "")
-  #nutlistname <- paste()
-  assign(newDFname, j)
-  nutlistname <- paste(j, ".nutlist", sep = "")
-  nutlist <- colnames(j[, 2:length(j)])
-  assign(nutlistname, nutlist)
-  inDT <- eval(parse(text = newDFname))
-  print(newDFname)
-  outName <- newDFname
+  req.transpose[, Chil0_3 :=  1/6 * (Inf0_0.5 * 1 + Inf0.5_1 * 1 + Chil1_3 * 4)]
+  req.transpose[, LactTot := (Lact14_18 + Lact19_30 + Lact31_50)/3]
+  req.transpose[, PregTot := (Preg14_18 + Preg19_30 + Preg31_50)/3]
+  req.transpose[, SSPF15_49 := (F14_18 + F19_30 + F31_50)/3 ]
+  deleteListCol <- c("Inf0_0.5", "Inf0.5_1", "Chil1_3")
+  req.transpose[, (deleteListCol) := NULL]
+  ageGroupList <- colnames(req.transpose)[2:ncol(req.transpose)]
+  #move Chil0_3 to the beginning of the data table
+  ageGroupList <- ageGroupList[ageGroupList != "Chil0_3"]
+  data.table::setcolorder(req.transpose, c("nutrient", "Chil0_3", ageGroupList))
+  j <- data.table::dcast(data.table::melt(req.transpose, id.vars = "nutrient", variable.name = "ageGenderCode"), ageGenderCode ~ nutrient)
+  j <- merge(j, dt.ageGroupLU, by.y = "dri", by.x = "ageGenderCode")
+  j[, ageGenderCode := NULL]
+  data.table::setnames(j, old = "ssp", new = "ageGenderCode")
+    # assign (i, j) give the original req name to j
+  assign(paste(i,"ssp", sep = "."), j)
+  inDT <- j
+  outName <- paste(i,"ssp", sep = ".")
   cleanup(inDT,outName,fileloc("mData"))
 }
+
 

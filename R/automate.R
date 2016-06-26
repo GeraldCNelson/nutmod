@@ -30,10 +30,10 @@ source("R/dataManagement.IMPACT.R")
 source("R/dataPrep.FBS.R") # - creates dt.FBS, mData
 source("R/dataPrep.SSP.R")
 # - creates files in mData
-# dt.SSPGDPClean
+# dt.SSPGDPClean - SSP GDP data
 # dt.SSP.pop.tot
-# dt.SSPPopClean
-# dt.IMPACT159.pop.tot
+# dt.SSPPopClean - SSP population data including age and gender groups
+# dt.IMPACT159.pop.tot - total population by IMPACT 159 region from the SSP population data set
 
 source("R/dataPrep.nutrientData.R") # - creates dt.cookingRet and dt.nutrients, mData
 source("R/dataPrep.NutrientRequirements.R")
