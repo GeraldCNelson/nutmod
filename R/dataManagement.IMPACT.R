@@ -46,6 +46,9 @@ combineIMPACTData <- function() {
   keepYearList <- keyVariable("keepYearList")
   dt.FoodAvail <- getNewestVersionIMPACT("dt.FoodAvail")
   dt.FoodAvail <- dt.FoodAvail[year %in% keepYearList, ]
+  # next 2 lines are mainly to get rid of ctoml for ZMB
+  IMPACTfoodCommodList <- keyVariable("IMPACTfoodCommodList")
+  dt.FoodAvail <- dt.FoodAvail[IMPACT_code %in% IMPACTfoodCommodList, ]
   dt.regions.all <- getNewestVersion("dt.regions.all")
   # get the list of scenarios in the IMPACT data for use below
   scenarioListIMPACT <- keyVariable("scenarioListIMPACT")
@@ -156,16 +159,9 @@ combineIMPACTData <- function() {
   #[scenario == scen, ]
   dt.PCX0.food <- createFood("dt.PCX0")
   #[scenario == scen, ]
-  dt.PCX0.food <- dt.PCX0.food
-  #[scenario == scen, ]
   dt.CSEs.food <- createFood("dt.CSEs")
   dt.pcGDPX0 <- getNewestVersionIMPACT("dt.pcGDPX0")
   #[scenario == scen, ]
-
-  # # rename the scenarios
-  #  dt.PWX0.food[, scenario := substring(scenario, 1, 4)]
-  #  dt.PCX0.food[, scenario := substring(scenario, 1, 4)]
-  #  dt.PCX0.food[, scenario := substring(scenario, 1, 4)]
 
   data.table::setkeyv(dt.PWX0.food, c("scenario",         "IMPACT_code", "year"))
   data.table::setkeyv(dt.CSEs.food, c(            "region_code.IMPACT159", "IMPACT_code"))

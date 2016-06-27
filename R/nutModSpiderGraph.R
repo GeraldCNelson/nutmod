@@ -47,7 +47,7 @@ nutSpiderGraph <- function(reqType,country, scenario, climModel) {
   reqRatios.long <- data.table::melt(
     data = reqRatios,  id.vars = idVars, measure.vars = measureVars, variable.name = "year",
     value.name = "value", variable.factor = FALSE)
-  reqRatios.wide <- data.table::dcast.data.table(
+  reqRatios.wide <- data.table::dcast(
     reqRatios.long,
     scenario + climate_model + region_code.IMPACT159 +  year ~ nutrientReq,
     value.var = "value")

@@ -66,7 +66,7 @@ dt.IMPACTfood[, foodAvailpDay := FoodAvailability / keyVariable("DinY")][,FoodAv
 reqsListPercap <- keyVariable("reqsListPercap")
 #reqPercap <- reqsListPercap[4] # just for testing!!! XXX
 #IMPACTscenarioList <- "SSP2-MIROC" # just for testing!!! XXX
-#req <- "req.EAR.percap" # just for testing!!! XXX
+req <- "req.EAR.percap" # just for testing!!! XXX
 
 generateResults <- function(req,dt.IMPACTfood,IMPACTscenarioList,dt.nutrients,region) {
   # use dt.food only in the function
@@ -90,7 +90,7 @@ generateResults <- function(req,dt.IMPACTfood,IMPACTscenarioList,dt.nutrients,re
   for (i in IMPACTscenarioList) {
     temp <- as.character(i) # i starts out as a factor
     climModel <- unlist(strsplit(temp, "-"))[2] # get climate model abbrev
-    experiment <- unlist(strsplit(temp, "-"))[4] # get climate model abbrev
+    experiment <- unlist(strsplit(temp, "-"))[4] # get experiment abbrev
 
     temp.nuts <- data.table::copy(dt.nutsReqPerCap)
     if (is.na(experiment)) {

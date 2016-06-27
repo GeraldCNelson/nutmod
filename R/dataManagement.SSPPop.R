@@ -58,10 +58,6 @@ dt.SSP.scen <- data.table::copy(dt.SSP.regions)
 # # start process of creating a separate list for pregnant and lactating (P/L) women----
 # #this list is for females who could be pregnant and lactating and have for the most part
 # #identical nutrient needs if they are not P/L
-# ageRowsToSum <- c(
-#   "F15_19", "F20_24", "F25_29", "F30_34", "F35_39", "F40_44", "F45_49")
-# ageRowsToSumSSP <- paste("SSP",ageRowsToSum,sep = "")
-#
 
 #check to see if population totals are the same. Uncomment to test
 # dt.tmp <- data.table::copy(dt.SSP.scen)
@@ -81,7 +77,7 @@ dt.SSP.scen <- data.table::copy(dt.SSP.regions)
 
 # convert rows of age gender groups to columns to make the addition process straightforward
 formula.wide <- paste("scenario + ", region, " + year ~ ageGenderCode")
-dt.SSP.scen.wide <- data.table::dcast.data.table(
+dt.SSP.scen.wide <- data.table::dcast(
   data = dt.SSP.scen,
   formula = formula.wide,
   value.var = "value")
@@ -157,13 +153,6 @@ repCons <- function(dt.pop, nutReqName,ageRowsToSum,region) {
   dt.temp.sum <- unique(dt.temp[, c("scenario",region, "year",
                                     paste(reqlist, "sum", sep = ".")), with = FALSE])
 
-  # data.table::setkeyv(dt.pop, c(region, "year"))
-  # dt.popTot <- dt.pop[, sum(pop.value), by = eval(data.table::key(dt.pop))]
-  # data.table::setnames(dt.popTot, old = "V1", new = "pop.tot")
-  # data.table::setkeyv(dt.popTot, c(region, "year"))
-  # data.table::setkeyv(dt.temp.sum, c(region, "year"))
-  # dt.temp <- dt.popTot[dt.temp.sum]
-
   sumlist <- paste(common.nut, "prod.sum", sep = ".")
   finlist <- paste(common.nut, "fin", sep = ".")
   #divide every element in sumlist by pop.value and put in corresponding variable in finlist
@@ -185,21 +174,13 @@ repCons <- function(dt.pop, nutReqName,ageRowsToSum,region) {
   outName <- paste(gsub(".ssp","",nutReqName),"percap",sep = ".")
   cleanup(inDT,outName,fileloc("mData"))
 
-  temp <- data.table::dcast.data.table(
+  temp <- data.table::dcast(
     dt.temp.melt,
     scenario + region_code.IMPACT159 + nutrient ~ year,
     fun = NULL,
     value.var = "value")
   return(temp)
 }
-# #convert every 5 years data to every year. this is not working so commented out.
-# data.table::setkey(dt.temp.dcast,"region","nutrient")
-# yrs <- seq(2010,2050,5)
-# lin.interp <- function(y,yrs) predict(lm(y~yrs),data.frame(yrs = min(yrs):max(yrs)))
-# dt.temp.dcast[, paste0("X",min(yrs):max(yrs)) :=  apply(.SD,FUN = lin.interp, yrs, MARGIN = 1), .SDcols = yearList, key = dt.temp.dcast]
-#
-# p1 <- as.data.frame(apply(temp.preg[,2:4],1,lin.interp,yrs))
-# names(p1) <- paste0("X",min(yrs):max(yrs))
 
 #nutrient requirements are calculated in dataPrep.nutrientRequirements.R.
 reqsSSP <- keyVariable("reqsListSSP")
