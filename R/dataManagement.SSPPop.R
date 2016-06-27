@@ -4,12 +4,12 @@
 #' and does manipulations
 #' to align the SSP population data with the nutrient requirements age and gender structure data
 #' Creates the following files
-#'   req.EAR.ssp - results/req.EAR.percap.rds
-#'   req.RDA.vits.ssp - results/req.RDA.vits.percap.rds
-#'   req.RDA.minrls.ssp - results/req.RDA.minrls.percap.rds
-#'   req.RDA.macro.ssp - results/req.RDA.macro.percap.rds
-#'   req.UL.vits.ssp - results/req.UL.vits.percap.rds
-#'   req.UL.minrls.ssp - results/req.UL.minrls.percap.rds"
+#'   req.EAR.ssp - data/req.EAR.percap.rds
+#'   req.RDA.vits.ssp - data/req.RDA.vits.percap.rds
+#'   req.RDA.minrls.ssp - data/req.RDA.minrls.percap.rds
+#'   req.RDA.macro.ssp - data/req.RDA.macro.percap.rds
+#'   req.UL.vits.ssp - data/req.UL.vits.percap.rds
+#'   req.UL.minrls.ssp - data/req.UL.minrls.percap.rds"
 
 #' @source \url{https://tntcat.ac.at/SspDb/download/common/SspDb_country_data_2013-06-12.csv.zip}
 #Copyright (C) 2015 Gerald C. Nelson, except where noted
@@ -49,104 +49,80 @@ dt.SSPPop <- dt.SSPPop[!is.na(scenario),]
 
 # aggregation of the SSP data to the regions is done here
 data.table::setkeyv(dt.SSPPop, c("scenario", region,"ageGenderCode","year"))
-dt.SSP.regions <- dt.SSPPop[, sum(value), by = eval(data.table::key(dt.SSPPop))]
-data.table::setnames(dt.SSP.regions, old = "V1", new = "value")
+dt.SSP.regions <- dt.SSPPop[, value := sum(value), by = eval(data.table::key(dt.SSPPop))]
+dt.SSP.regions <- unique(dt.SSP.regions) # needed because the sum process leaves extra rows
 
 # Extract lists of the scenarios, regions, and data variables ------------------------------------
-# scenarios <- unique(dt.SSP.regions$scenario)
-# scen <- scenarios[2] #"SSP2_v9_130115"
-# #mdl <- "IIASA-WiC POP"
-# dt.SSP.scen <- dt.SSP.regions[scenario = = scen, ]
-# above is commented out. Want to include all scenarios
-dt.SSP.scen <- dt.SSP.regions
-# start process of creating a separate list for pregnant and lactating (P/L) women----
-#this list is for females who could be pregnant and lactating and have for the most part
-#identical nutrient needs if they are not P/L
-ageRowsToSum <- c(
-  "F15_19", "F20_24", "F25_29", "F30_34", "F35_39", "F40_44", "F45_49")
-ageRowsToSumSSP <- paste("SSP",ageRowsToSum,sep = "")
 
-#pull out the relevant rows
-dt.SSP.scen.F15_49 <- dt.SSP.scen[ageGenderCode %in% ageRowsToSum,]
-data.table::setkeyv(dt.SSP.scen.F15_49,c("scenario", region,"year"))
-#sum the relevant rows (females aged 15-49 as those that could be pregnant or lactating) by region
-dt.SSP.scen.F15_49.sum <- dt.SSP.scen.F15_49[, sum(value), by = eval(data.table::key(dt.SSP.scen.F15_49))]
-data.table::setnames(dt.SSP.scen.F15_49.sum, old = "V1", new = "F15_49")
-
-#get rid of now extraneous rows in dt.SSP.scen.pop so no double counting
-dt.SSP.scen <- dt.SSP.scen[!ageGenderCode %in% ageRowsToSum, ]
-# #add the dt.SSP.regionsF15_49 row to dt.SSP.scen.pop
-# dt.SSP.scen <- rbind(dt.SSP.scen, dt.SSP.scen.F15_49.sum)
-# #sort by region
-# dt.SSP.scen <- dt.SSP.scen[order(region_code.IMPACT159), ]
+dt.SSP.scen <- data.table::copy(dt.SSP.regions)
+# # start process of creating a separate list for pregnant and lactating (P/L) women----
+# #this list is for females who could be pregnant and lactating and have for the most part
+# #identical nutrient needs if they are not P/L
+# ageRowsToSum <- c(
+#   "F15_19", "F20_24", "F25_29", "F30_34", "F35_39", "F40_44", "F45_49")
+# ageRowsToSumSSP <- paste("SSP",ageRowsToSum,sep = "")
+#
 
 #check to see if population totals are the same. Uncomment to test
-# dt.tmp <- dt.SSP.scen
+# dt.tmp <- data.table::copy(dt.SSP.scen)
 # data.table::setkeyv(dt.tmp, c("scenario", region,"year"))
 # pop.temp <- dt.tmp[, sum(value), by = key(dt.tmp)]
 # data.table::setnames(pop.temp, old = "V1", new = "value")
-# dt.SSP.pop.tot <- getNewestVersion("dt.SSP.pop.tot")
+# dt.SSP.pop.tot <- getNewestVersion("dt.IMPACT159.pop.tot")
 # #check with AFG and for scenario = = SSP3
 # dt.SSP.pop.tot.AFG <- dt.SSP.pop.tot[ISO_code = = "AFG" & scenario = = "SSP3_v9_130115",value]
 # pop.temp.AFG <- pop.temp[region_code.IMPACT159 = = "AFG" & scenario = = "SSP3_v9_130115",value]
 # temp <- dt.SSP.pop.tot.AFG - pop.temp.AFG
 # summary(temp) #the differences should be very small
 
-#now estimate the number of pregnant women and lactating women and add them
-#the estimate is based on the number of children aged 0 to 4.
+#  Estimate the number of pregnant women and lactating women -----
+# the estimate is based on the number of children aged 0 to 4.
 #sum boys and girls 0 to 4
-MF_0_4 <- c("F0_4", "M0_4")
-#keepListCol <- c("scenario",region,"ageGenderCode","year","value")
-#create a temporary data frame with just those rows
-dt.MF_0_4 <- dt.SSP.scen[ageGenderCode %in% MF_0_4,]
-data.table::setkeyv(dt.MF_0_4,c("scenario", region,"year"))
-dt.MF_0_4.sum <- dt.MF_0_4[, sum(value), by = eval(data.table::key(dt.MF_0_4))]
-data.table::setnames(dt.MF_0_4.sum, old = "V1", new = "MF_0_4")
 
+# convert rows of age gender groups to columns to make the addition process straightforward
+formula.wide <- paste("scenario + ", region, " + year ~ ageGenderCode")
+dt.SSP.scen.wide <- data.table::dcast.data.table(
+  data = dt.SSP.scen,
+  formula = formula.wide,
+  value.var = "value")
+
+ageRowsToSum <- c(
+  "F15_19", "F20_24", "F25_29", "F30_34", "F35_39", "F40_44", "F45_49")
+dt.SSP.scen.wide[, F15_49 := rowSums(.SD), .SDcols = ageRowsToSum]
 #pregnant and lactating women are a constant share of kids 0 to 4. This is a *kludge*!!!
 share.preg <- 0.2
 share.lact <- 0.2
-# temp.preg <-
-#  as.data.frame(dt.kids.sum[, lapply(.SD, function(x)
-#   x * share.preg), by = "region"])
-dt.MF_0_4.sum[,Preg := MF_0_4 * share.preg][,Lact := MF_0_4 * share.lact]
-data.table::setkey(dt.MF_0_4.sum)
-data.table::setkey(dt.SSP.scen.F15_49.sum)
-dt.temp <- cbind(dt.MF_0_4.sum,F15_49 = dt.SSP.scen.F15_49.sum$F15_49)
-data.table::setkey(dt.temp)
-deleteListCol <- c("MF_0_4","F15_49")
-dt.temp[,nonPL := F15_49 - Preg - Lact][,(deleteListCol) := NULL]
-data.table::setnames(dt.temp,old = "nonPL",new = "F15_49")
+dt.SSP.scen.wide[,Preg := (F0_4 + M0_4) * share.preg][,Lact := (F0_4 + M0_4) * share.lact][,nonPL := F15_49 - Preg - Lact]
+data.table::setkey(dt.SSP.scen.wide)
+# get rid of temporary column
+deleteListCol <- c("F15_49")
+dt.SSP.scen.wide[,(deleteListCol) := NULL]
+data.table::setnames(dt.SSP.scen.wide, old = "nonPL",new = "F15_49")
 idVarsPop <- c("scenario",region,"year" )
-measureVarsPop <- c("Preg","Lact","F15_49")
-dt.temp.melt <- data.table::melt(dt.temp,
+measureVarsPop <- names(dt.SSP.scen.wide)[4:ncol(dt.SSP.scen.wide)]
+dt.pop <- data.table::melt(dt.SSP.scen.wide,
                                  id.vars = idVarsPop,
                                  variable.name = "ageGenderCode",
                                  measure.vars = measureVarsPop,
                                  value.name = "value",
                                  variable.factor = FALSE)
 
-#add new rows to dt.SSP.scen and rename
-dt.pop <- rbind(dt.SSP.scen, dt.temp.melt)
 #change names of age groups; prepend SSP
-# somehow this next line of code adds SSP to the front of all the ageGenderCode s
-#dt.pop[, ageGenderCode := stringi::stri_replace_all_fixed("SSPM", "M", ageGenderCode)]
 dt.pop[, ageGenderCode := paste("SSP", ageGenderCode, sep = "")]
 data.table::setnames(dt.pop,old = "value",new = "pop.value")
 
-# dt.pop[, ageGenderCode := lapply(dt.pop[,ageGenderCode,with = FALSE],
-#              function(x) gsub(" ", "_", x))]
 data.table::setkeyv(dt.SSP.scen,c(region,"year"))
-dt.popTot <- dt.SSP.scen[, sum(value), by = eval(data.table::key(dt.SSP.scen))]
-data.table::setnames(dt.popTot, old = "V1", new = "pop.tot")
+dt.popTot <- dt.SSP.scen[, pop.tot := sum(value), by = eval(data.table::key(dt.SSP.scen))]
+dt.popTot[,ageGenderCode := NULL]
+dt.popTot <- unique(dt.popTot)
 #a temporary line of code for testing
 #nutReqName <- "req.UL.minrls.ssp"
-#common.nut <- getNewestVersion()
+
 
 #' Title repCons
 #' Short for Representative Consumer
 #' @param dt.pop - data table with population data for one scenario (at least for now)
-#' @param nutReq - the short name of a nutrients requirement dataframe, eg. req.EAR.ssp
+#' @param nutReqName - the short name of a nutrients requirement dataframe, eg. req.EAR.ssp
 #' that has been converted to SSP age and gender groups
 #' @param common.nut - list of nutrients common to the food nutrient list and the
 #' requirements list
@@ -159,18 +135,18 @@ data.table::setnames(dt.popTot, old = "V1", new = "pop.tot")
 repCons <- function(dt.pop, nutReqName,ageRowsToSum,region) {
   # remove the nutrient requirements for the female age groups in ageRowsToSum
   # because they are already in dt.SSP.regionsF15_49
-  nutReq <- getNewestVersion(nutReqName)
-  dt.nutReq <- data.table::as.data.table(nutReq[!(nutReq$ageGenderCode %in% ageRowsToSumSSP), ])
+  dt.nutReq <- getNewestVersion(nutReqName)
+#  dt.nutReq <- data.table::as.data.table(nutReq[!(nutReq$ageGenderCode %in% ageRowsToSumSSP), ])
   common.nut <- names(dt.nutReq)[2:length(dt.nutReq)]
   data.table::setkey(dt.pop, ageGenderCode)
   data.table::setkey(dt.nutReq, ageGenderCode)
   # dt.temp <- cbind(dt.pop,dt.nutReq)
-  dt.temp <- merge(dt.pop,dt.nutReq, all = TRUE)
+  dt.temp <- merge(dt.pop,dt.nutReq, by = "ageGenderCode", all.y = TRUE)
   keyValues <- c("scenario", region, "year", "ageGenderCode","pop.value")
   data.table::setkeyv(dt.temp,keyValues)
   # multiply the number of people be age and gender group by the nutritional requirements of that group
-  dt.temp[, (paste(common.nut, "prod", sep = ".")) := lapply(.SD, function(x)
-    x * dt.temp$pop.value), .SDcols = (common.nut)][,(common.nut) := NULL]
+  dt.temp[, (paste(common.nut, "prod", sep = ".")) :=
+            lapply(.SD, function(x) x * dt.temp$pop.value), .SDcols = (common.nut)][,(common.nut) := NULL]
   keyValues <- c("scenario", region, "year")
   data.table::setkeyv(dt.temp, keyValues)
   reqlist <- c(paste(common.nut, "prod", sep = "."),"pop.value")
@@ -226,7 +202,7 @@ repCons <- function(dt.pop, nutReqName,ageRowsToSum,region) {
 # names(p1) <- paste0("X",min(yrs):max(yrs))
 
 #nutrient requirements are calculated in dataPrep.nutrientRequirements.R.
-reqs <- keyVariable("reqsListSSP")
+reqsSSP <- keyVariable("reqsListSSP")
 #The list of nutrients for each is common.EAR, common.RDA.vits, common.RDA.minrls, common.RDA.macro, common.UL.vits,
 #    common.UL.minrls, common.AMDR
 common <- keyVariable("commonList")
@@ -293,18 +269,14 @@ openxlsx::addStyle(
 )
 
 # for loop for the nutrient requirements worksheets ----
-for (i in 1:length(reqs)) {
-  #nutReq <- paste(reqs[i], "dt.SSP.regions", sep = ".")
+for (i in 1:length(reqsSSP)) {
+  #nutReq <- paste(reqsSSP[i], "dt.SSP.regions", sep = ".")
   #nutReq <- eval(parse(text = nutReq))
   dt.temp.internal <-
-    repCons(dt.pop, reqs[i],ageRowsToSum,region)
+    repCons(dt.pop, reqsSSP[i],ageRowsToSum,region)
   data.table::setkeyv(dt.temp.internal, c("nutrient", region))
 
-  # don't think this is needed anymore
-  # dt.temp.internal$nutrient <-
-  #  gsub(".fin", "", dt.temp.internal$nutrient)
-
-  dt.name <- paste(reqs[i], "percap", sep = ".")
+  dt.name <- paste(reqsSSP[i], "percap", sep = ".")
   #print(dt.name)
   openxlsx::addWorksheet(wb = wbGeneral, sheetName = dt.name)
   openxlsx::addStyle(

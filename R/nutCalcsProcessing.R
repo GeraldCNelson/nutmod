@@ -49,9 +49,11 @@ f.ratios.all <- function(region, req){
 #  reqShortName <- gsub(".percap", "", temp)
   temp <- paste("food.agg.", reqShortName, sep = "")
   dt.food.agg <- getNewestVersion(temp, fileloc("resData"))
-  scenarioComponents <- c("SSP", "climate_model", "experiment", "RCP")
-
-  dt.food.agg[, (scenarioComponents) := data.table::tstrsplit(scenario, "-", , fixed=TRUE)]
+  dt.food.agg[, scenario := gsub("IRREXP-WUE2", "IRREXP_WUE2", scenario)]
+  dt.food.agg[, scenario := gsub("PHL-DEV2", "PHL_DEV2", scenario)]
+  dt.food.agg[, RCP := "RCP8.5"]
+  scenarioComponents <- c("SSP", "climate_model", "experiment")
+  dt.food.agg[, (scenarioComponents) := data.table::tstrsplit(scenario, "-", fixed = TRUE)]
 
   dt.nutsReqPerCap <- getNewestVersion(paste(req,"percap",sep = "."))
 
@@ -87,7 +89,7 @@ f.ratios.all <- function(region, req){
 
   # calculate the ratio of nutrient consumption for all commodities to the requirement
    dt.sum.copy <- data.table::copy(dt.all.sum)
-  dt.nuts.temp <- dt.nutsReqPerCap[scenario %in% unique(dt.sum.copy$scenario),]
+  dt.nuts.temp <- dt.nutsReqPerCap[scenario %in% unique(dt.sum.copy$SSP),]
   temp <- merge(dt.sum.copy,dt.nuts.temp, by = c("scenario", "region_code.IMPACT159", "year"), all.x = TRUE)
   nutListSum <- as.vector(paste(nutList,".sum.all", sep = ""))
   nutListReqRatio <- as.vector(paste(nutList,"_reqRatio", sep = ""))

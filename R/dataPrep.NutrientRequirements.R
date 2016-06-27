@@ -148,6 +148,7 @@ commonListName <- paste("common", gsub("req.", "", i), sep = ".")
   j <- merge(j, dt.ageGroupLU, by.y = "dri", by.x = "ageGenderCode")
   j[, ageGenderCode := NULL]
   data.table::setnames(j, old = "ssp", new = "ageGenderCode")
+  data.table::setcolorder(j, c("ageGenderCode", nutList))
     # assign (i, j) give the original req name to j
   assign(paste(i,"ssp", sep = "."), j)
   inDT <- j

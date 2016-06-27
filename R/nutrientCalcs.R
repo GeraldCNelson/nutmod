@@ -29,11 +29,15 @@ region <- keyVariable("region")
 # Read in all data first and standardize variable names -----
 # Read in IMPACT food data ----------
 dt.IMPACTfood <- getNewestVersionIMPACT("dt.IMPACTfood")
+IMPACTscenarioList <- unique(dt.IMPACTfood$scenario)
 dt.IMPACTfood <- dt.IMPACTfood[!region_code.IMPACT159 %in% c("GRL","SDN")]
 # this should not be necessary
 # dt.IMPACTfood <- dt.IMPACTfood[IMPACT_code %in% keyVariable("IMPACTfoodCommodList"),]
 # get the list of scenarios in the IMPACT data for use below
 IMPACTscenarioList <- keyVariable("scenarioListIMPACT")
+IMPACTscenarioList <- gsub("IRREXP-WUE2", "IRREXP_WUE2", IMPACTscenarioList)
+IMPACTscenarioList <- gsub("PHL-DEV2", "PHL_DEV2", IMPACTscenarioList)
+
 #IMPACTscenarioList <- IMPACTscenarioList[1] # just for testing. !!!XXX
 
 # read in nutrients data and optionally apply cooking retention values -----
@@ -53,14 +57,14 @@ dt.IMPACTfood <- unique(dt.IMPACTfood)
 # convert food availability from per year to per day
 dt.IMPACTfood[, foodAvailpDay := FoodAvailability / keyVariable("DinY")][,FoodAvailability := NULL]
 
-# reqsList is a list of the requirements types. Each has a different set of nutrients. These are a subset
+# reqsListPercap is a list of the requirements types. Each has a different set of nutrients. These are a subset
 # of what are in the nutrients requirements tables from IOM. They are the nutrients common to
 # both the IOM and nutrient content lookup spreadsheet
 
-# the .percap data are for a representative consumer
+# the .percap data are for a representative consumer. They are generated in dataManagement.SSP
 
-reqsList <- keyVariable("reqsListPercap")
-#reqsList <- reqsList[4] # just for testing!!! XXX
+reqsListPercap <- keyVariable("reqsListPercap")
+#reqPercap <- reqsListPercap[4] # just for testing!!! XXX
 #IMPACTscenarioList <- "SSP2-MIROC" # just for testing!!! XXX
 #req <- "req.EAR.percap" # just for testing!!! XXX
 
@@ -72,22 +76,28 @@ generateResults <- function(req,dt.IMPACTfood,IMPACTscenarioList,dt.nutrients,re
   dt.food <- dt.food[scenario %in% IMPACTscenarioList,]
   # read in the nutrient requirements data  for a representative consumer -----
   # Note that these are for SSP categories and thus vary by SSP category and year for each region
-  dt.nutsReqPerCap <- getNewestVersion(req)
+  dt.nutsReqPerCap <- getNewestVersion("req.EAR.percap")
   # get list of nutrients from dt.nutsReqPerCap for the req set of requirements
   nutListReq <- names( dt.nutsReqPerCap)[4:length(names( dt.nutsReqPerCap))]
   #nutListReq <- nutListReq[3:4] # Here just for testing. !!! be sure to comment out!!!XXX
 
   # dt.nutsReqPerCap has values for the 5 SSP scenarios. To align with the IMPACT data we need to
-  # add the climate model name to the SSP scenario name (SSP1 - 5).
+  # add the climate model and experiment names to the SSP scenario name (SSP1 - 5).
   # add copies of dt.nutsReqPerCap for each of the climate models
   # this for loop adds copies of the nutrient requirements for each climate model used. May end up
   # with more than needed because it has all 5 SSP scenarios.
   dt.temp <- data.table::copy(dt.nutsReqPerCap[FALSE,])
   for (i in IMPACTscenarioList) {
-    climModel <- gsub(substr((i),1,5),"",i) # get climate model abbrev
-    print(i)
+    temp <- as.character(i) # i starts out as a factor
+    climModel <- unlist(strsplit(temp, "-"))[2] # get climate model abbrev
+    experiment <- unlist(strsplit(temp, "-"))[4] # get climate model abbrev
+
     temp.nuts <- data.table::copy(dt.nutsReqPerCap)
-    temp.nuts[,scenario := paste(scenario,climModel,sep = "-")]
+    if (is.na(experiment)) {
+      temp.nuts[,scenario := paste(scenario,climModel, sep = "-")]
+    } else {
+      temp.nuts[,scenario := paste(scenario,climModel, experiment, sep = "-")]
+    }
     dt.temp <- rbind(dt.temp, temp.nuts)
   }
   # keep just the nutrient requirements scenarios that are in the IMPACT data
@@ -137,7 +147,8 @@ generateResults <- function(req,dt.IMPACTfood,IMPACTscenarioList,dt.nutrients,re
 
   # multiply the food item by the nutrients it contains and copy into a table called dt.food.agg
   dt.food.agg <- data.table::copy(dt.foodnNuts[, (nutListReq.Q) := lapply(.SD, function(x)
-    (x * dt.foodnNuts[['foodAvailpDay']])), .SDcols = nutListReq][,(nutListReq) := NULL])
+    (x * dt.foodnNuts[['foodAvailpDay']])), .SDcols = nutListReq])
+    #[,(nutListReq) := NULL])
 
   # calculate sums and ratios, for all food items, by staples, and by food groups -----
   # these keys are used to determine what is summed over or ratio made with
@@ -193,10 +204,10 @@ generateResults <- function(req,dt.IMPACTfood,IMPACTscenarioList,dt.nutrients,re
 
   data.table::setkeyv(dt.food.agg,allKey)
   data.table::setkeyv(dt.nutsReqPerCap,allKey)
-  dt.food.agg <- merge(dt.food.agg,dt.nutsReqPerCap, by = allKey, all = TRUE)
+  dt.food.agg <- merge(dt.food.agg,dt.nutsReqPerCap, by = c(allKey,nutListReq), all = TRUE)
   oldOrder <- names(dt.food.agg)
   moveitems <- c(sumKey,"food.group.code","staple.code","foodAvailpDay",nutListReq)
-  remainder <- oldOrder[!oldOrder %in% moveitems]
+  remainder <- oldOrder[!(oldOrder %in% moveitems)]
   data.table::setcolorder(dt.food.agg,c(moveitems,remainder))
   #  ratio of nutrient from each food item to the requirement
   for (k in 1:length(nutListReq)) {
@@ -266,9 +277,9 @@ generateSum <- function(dt.IMPACTfood,IMPACTscenarioList,region) {
   outName <- "dt.nutrients.sum"
   cleanup(inDT,outName, fileloc("resData"))
 }
-
-for (i in 1:length(reqsList)) {
-  generateResults(reqsList[i],dt.IMPACTfood,IMPACTscenarioList, dt.nutrients,region)
-  print(paste("Done with ", reqsList[i], ". ", length(reqsList) - i," sets of requirements to go.", sep = ""))
+# run the generateSum script -----
+for (i in 1:length(reqsListPercap)) {
+  generateResults(reqsListPercap[i],dt.IMPACTfood,IMPACTscenarioList, dt.nutrients,region)
+  print(paste("Done with ", reqsListPercap[i], ". ", length(reqsListPercap) - i," sets of requirements to go.", sep = ""))
 }
 generateSum(dt.IMPACTfood, IMPACTscenarioList, region)
