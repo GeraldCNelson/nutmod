@@ -76,7 +76,7 @@ generateResults <- function(req,dt.IMPACTfood,IMPACTscenarioList,dt.nutrients,re
   dt.food <- dt.food[scenario %in% IMPACTscenarioList,]
   # read in the nutrient requirements data  for a representative consumer -----
   # Note that these are for SSP categories and thus vary by SSP category and year for each region
-  dt.nutsReqPerCap <- getNewestVersion("req.EAR.percap")
+  dt.nutsReqPerCap <- getNewestVersion(req)
   # get list of nutrients from dt.nutsReqPerCap for the req set of requirements
   nutListReq <- names( dt.nutsReqPerCap)[4:length(names( dt.nutsReqPerCap))]
   #nutListReq <- nutListReq[3:4] # Here just for testing. !!! be sure to comment out!!!XXX
@@ -90,8 +90,9 @@ generateResults <- function(req,dt.IMPACTfood,IMPACTscenarioList,dt.nutrients,re
   for (i in IMPACTscenarioList) {
     temp <- as.character(i) # i starts out as a factor
     climModel <- unlist(strsplit(temp, "-"))[2] # get climate model abbrev
-    experiment <- unlist(strsplit(temp, "-"))[4] # get experiment abbrev
-
+    experiment <- unlist(strsplit(temp, "-"))[3] # get experiment abbrev
+   # print(experiment)
+    # may need to add the RCP column later. Currently it's not included in the scenario name.
     temp.nuts <- data.table::copy(dt.nutsReqPerCap)
     if (is.na(experiment)) {
       temp.nuts[,scenario := paste(scenario,climModel, sep = "-")]
@@ -148,7 +149,11 @@ generateResults <- function(req,dt.IMPACTfood,IMPACTscenarioList,dt.nutrients,re
   # multiply the food item by the nutrients it contains and copy into a table called dt.food.agg
   dt.food.agg <- data.table::copy(dt.foodnNuts[, (nutListReq.Q) := lapply(.SD, function(x)
     (x * dt.foodnNuts[['foodAvailpDay']])), .SDcols = nutListReq])
-    #[,(nutListReq) := NULL])
+  #[,(nutListReq) := NULL])
+  leadingCols <- c("scenario", "region_code.IMPACT159",
+                   "year", "IMPACT_code", "foodAvailpDay", "food.group.code", "staple.code")
+  laggingCols <- names(dt.food.agg)[!names(dt.food.agg) %in% leadingCols]
+  data.table::setcolorder(dt.food.agg, c(leadingCols, laggingCols))
 
   # calculate sums and ratios, for all food items, by staples, and by food groups -----
   # these keys are used to determine what is summed over or ratio made with
@@ -198,20 +203,30 @@ generateResults <- function(req,dt.IMPACTfood,IMPACTscenarioList,dt.nutrients,re
     dt.food.agg[,nutListReq.ratio.foodGroup[k] := get(nutListReq.sum.foodGroup[k]) / get(nutListReq.sum.all[k])]
   }
 
+  leadingCols <- c("scenario", "region_code.IMPACT159",
+                   "year", "IMPACT_code", "foodAvailpDay", "food.group.code", "staple.code")
+  laggingCols <- names(dt.food.agg)[!names(dt.food.agg) %in% leadingCols]
+  data.table::setcolorder(dt.food.agg, c(leadingCols, laggingCols))
+  #xxxxx
   # now do ratios with nutrient requirements
   print(paste("calculating nutrient requirement ratios for ", req, sep = ""))
   print(proc.time())
 
+   # change nutrient names in dt.nutsReqPerCap so they differ from those in nutListReq
+  nutListReq.Req <- paste(nutListReq,"req", sep = ".")
+  data.table::setnames(dt.nutsReqPerCap, old = nutListReq, new = nutListReq.Req)
   data.table::setkeyv(dt.food.agg,allKey)
   data.table::setkeyv(dt.nutsReqPerCap,allKey)
-  dt.food.agg <- merge(dt.food.agg,dt.nutsReqPerCap, by = c(allKey,nutListReq), all = TRUE)
-  oldOrder <- names(dt.food.agg)
-  moveitems <- c(sumKey,"food.group.code","staple.code","foodAvailpDay",nutListReq)
-  remainder <- oldOrder[!(oldOrder %in% moveitems)]
-  data.table::setcolorder(dt.food.agg,c(moveitems,remainder))
+ # temp <- merge(dt.food.agg,dt.nutsReqPerCap, by = c(allKey,nutListReq), all.x = TRUE)
+  dt.food.agg <- merge(dt.food.agg,dt.nutsReqPerCap, by = c(allKey), all.x = TRUE)
+  leadingCols <- c("scenario", "region_code.IMPACT159",
+                   "year", "IMPACT_code", "foodAvailpDay", "food.group.code", "staple.code")
+  laggingCols <- names(dt.food.agg)[!names(dt.food.agg) %in% leadingCols]
+  data.table::setcolorder(dt.food.agg, c(leadingCols, laggingCols))
+
   #  ratio of nutrient from each food item to the requirement
   for (k in 1:length(nutListReq)) {
-    dt.food.agg[,nutListReq.req.ratio.all[k] := get(nutListReq.Q[k]) / get(nutListReq[k])]
+    dt.food.agg[,nutListReq.req.ratio.all[k] := get(nutListReq.Q[k]) / get(nutListReq.Req[k])]
   }
 
   print(paste("finished with ratio for each food item ", req, sep = ""))
@@ -219,16 +234,16 @@ generateResults <- function(req,dt.IMPACTfood,IMPACTscenarioList,dt.nutrients,re
 
   #  ratio of nutrient from each staple item to the requirement
   for (k in 1:length(nutListReq)) {
-    dt.food.agg[,nutListReq.req.ratio.staples[k] := get(nutListReq.sum.staples[k]) / get(nutListReq[k])]
+    dt.food.agg[,nutListReq.req.ratio.staples[k] := get(nutListReq.sum.staples[k]) / get(nutListReq.Req[k])]
   }
   print(paste("finished with ratio for the staple/non staple categories ", req, sep = ""))
   print(proc.time())
 
   #  ratio of nutrient from each food group item to the requirement
   for (k in 1:length(nutListReq)) {
-    dt.food.agg[,nutListReq.req.ratio.foodGroup[k] := get(nutListReq.sum.foodGroup[k]) / get(nutListReq[k])]
+    dt.food.agg[,nutListReq.req.ratio.foodGroup[k] := get(nutListReq.sum.foodGroup[k]) / get(nutListReq.Req[k])]
   }
-  print(paste("finished with ratio for the food group categories ", req, sep = ""))
+  print(paste("finished with requirement ratio for the food group categories ", req, sep = ""))
   print(proc.time())
   inDT <- dt.food.agg
 
