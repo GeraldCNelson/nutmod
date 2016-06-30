@@ -85,10 +85,11 @@ getNewestVersion <- function(fileShortName, directory) {
          value = TRUE,
          perl = TRUE)
   newestFile <- filesList[length(filesList)]
-  #print(newestFile)
-  #  load(file = paste(mData, newestFile, sep = "/"))
-  temp <- paste(mData, newestFile, sep = "/")
-  return(readRDS(temp))
+  if (length(newestFile) == 0) {
+    stop(sprintf("There is no file that begins with '%s' in directory %s", fileShortName, mData))
+  }
+  outFile = readRDS(paste(mData,newestFile, sep = "/"))
+  return(outFile)
 }
 
 #' Title getNewestVersionIMPACT
@@ -320,7 +321,7 @@ keyVariable <- function(variableName) {
   reqsListSSP <- paste(reqsList,".ssp", sep = "")
 
   commonList <- paste("common.", reqsList, sep = "")
-    c( "common.EAR", "common.RDA.vits", "common.RDA.minrls", "common.RDA.macro", "common.UL.vits","common.UL.minrls")
+  c( "common.EAR", "common.RDA.vits", "common.RDA.minrls", "common.RDA.macro", "common.UL.vits","common.UL.minrls")
   ctyDeleteList <- c("FSM", "GRD", "PRK")
   useCookingRetnValues <- "TRUE"
   userName <- "Gerald C. Nelson"
@@ -482,7 +483,7 @@ fileNameList <- function(variableName) {
   IMPACTstdRegionsFileName <- "IMPACT-agg-regionsFeb2016.xlsx"
   IMPACTstdRegions <-
     paste(IMPACTData, IMPACTstdRegionsFileName, sep = "/")
-   IMPACTgdxfileName <- "Micronutrient-Inputs20160404.gdx"  #- new larger gdx
+  IMPACTgdxfileName <- "Micronutrient-Inputs20160404.gdx"  #- new larger gdx
   #IMPACTgdxfileName <- "Demand Results20150817.gdx"
   IMPACTgdx         <- paste(IMPACTData, IMPACTgdxfileName, sep = "/")
   gdxLib            <- "/Applications/GAMS/gams24.5_osx_x64_64_sfx"
@@ -865,4 +866,14 @@ colMax <- function(dataIn) {
 }
 colMin <- function(dataIn) {
   lapply(dataIn, min, na.rm = TRUE)
+}
+
+countryNameLookup <- function(countryCode) {
+  dt.regions.all <- getNewestVersion('dt.regions.all')
+  if (!countryCode %in% dt.regions.all$region_code.IMPACT159) {
+    stop(sprintf("The country code you entered (%s) is not in the lookup table", countryCode))
+  } else {
+    countryName <- dt.regions.all[region_code.IMPACT159 == countryCode,region_name.IMPACT159]
+    return(countryName)
+  }
 }

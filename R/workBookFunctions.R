@@ -76,7 +76,6 @@ f.createGeneralWorksheet <- function() {
   wbInfoGeneral[(nrow(wbInfoGeneral) + 1), ] <- c("MetaDataNutrnts",
                                                   "Information about the requirements sources")
 
-
   # create a worksheet with info on the commodities and nutrients
   openxlsx::addWorksheet(wbGeneral, sheetName = "IMPACTCommdlist")
   # commodityNames <- cbind(nutrients[c('Name','IMPACT_code')])
@@ -115,8 +114,7 @@ f.finalizeWB <- function(wb, wbInf, file.name) {
     # openxlsx::writeFormula(wb, "sheetInfo",
     #                        x = f.hyperlink(wbInf[i,1],
     #                           wbInf[i, 1]), startCol = 1, startRow = i)
-    openxlsx::writeFormula(wb, "sheetInfo",
-                           x = linkInfo)
+    openxlsx::writeFormula(wb, "sheetInfo", x = linkInfo)
 
   }
 

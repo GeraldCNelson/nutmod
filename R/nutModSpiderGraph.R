@@ -11,7 +11,25 @@ if (!exists("getNewestVersion", mode = "function"))
 library(fmsb)
 library(radarchart)
 region <- keyVariable("region")
-nutSpiderGraph <- function(reqType,country, scenario, climModel) {
+
+datasetup <- function(reqType,country, SSP, climModel, experiment, years) {
+
+  scenarioName <- paste(SSP, climModel, experiment, sep = "-")
+  scenarioListIMPACT <- keyVariable("scenarioListIMPACT")
+  errorMessage <- cbind(paste("Your combination of ", scenarioName,
+                              "is not allowed. Please choose from one of the following combinations: ", sep = " "),
+                        paste(shQuote(as.character(scenarioListIMPACT), type = "sh"), collapse = ", "))
+   if (experiment %in% "REF" & !scenarioName %in% c("SSP2-HGEM2-REF", "SSP2-IPSL2-REF", "SSP2-NoCC-REF")) {
+    stop(errorMessage)
+   }
+   if (!experiment %in% "REF" & !scenarioName %in% scenarioListIMPACT) {
+     stop(errorMessage)
+   }
+  # need to do this to match up with what the experiment names are in the data files
+  if (experiment %in% "IRREXP-WUE2") {experiment = "IRREXP_WUE2"}
+  if (experiment %in% "PHL-DEV2") {experiment = "PHL_DEV2"}
+  scenarioName <- paste(SSP, climModel, experiment, sep = "-")
+
   if (reqType == "RDA_macro") {
     reqRatios <- getNewestVersion("RDA.macro.sum.req.ratio", fileloc("resData"))
     reqType <- "RDA, macronutrients"
@@ -42,17 +60,19 @@ nutSpiderGraph <- function(reqType,country, scenario, climModel) {
     reqType <- "Share of Kcals"
   }
 
-  idVars <- c("scenario","climate_model", region, "nutrientReq")
+  idVars <- c("scenario", "SSP","climate_model", "experiment", region, "nutrientReq")
   measureVars <- keyVariable("keepYearList")
   reqRatios.long <- data.table::melt(
     data = reqRatios,  id.vars = idVars, measure.vars = measureVars, variable.name = "year",
     value.name = "value", variable.factor = FALSE)
+
+  formula.ratios <- paste("scenario + SSP + climate_model + experiment + ", region, "  +  year ~ nutrientReq")
   reqRatios.wide <- data.table::dcast(
     reqRatios.long,
-    scenario + climate_model + region_code.IMPACT159 +  year ~ nutrientReq,
+    formula = formula.ratios,
     value.var = "value")
 
-  nutList <- names(reqRatios.wide)[5:ncol(reqRatios.wide)]
+  nutList <- unique(reqRatios$nutrientReq)
   nutListShort <- gsub("_reqRatio","",nutList)
   nutListShort <- gsub("vit_","vit ",nutListShort)
   nutListShort <- gsub("_µg","",nutListShort)
@@ -61,12 +81,20 @@ nutSpiderGraph <- function(reqType,country, scenario, climModel) {
   nutListShort <- gsub("_g"," ",nutListShort)
 
   i <- country
-  j <- scenario
+  j <- SSP
   k <- climModel
+  m <- experiment
+  l <- years
+
   #l <- c("X2010","X2015","X2020","X2025","X2030","X2035","X2040","X2045","X2050")
-  l <- c("X2010","X2030","X2050")
-  reqRatios.wide.nuts <- reqRatios.wide[region_code.IMPACT159 == i & scenario == j & climate_model == k & year %in% l, c("year",nutList), with = FALSE]
-  data.table::setnames(reqRatios.wide.nuts,old = names(reqRatios.wide.nuts), new = gsub("_reqRatio","",names(reqRatios.wide.nuts)))
+  reqRatios.wide.nuts <- reqRatios.wide[region_code.IMPACT159 %in% i &
+                                          SSP %in% j &
+                                          climate_model %in% k &
+                                          experiment == m &
+                                          year %in% l,
+                                        c( "year",nutList), with = FALSE]
+  data.table::setnames(reqRatios.wide.nuts,old = names(reqRatios.wide.nuts),
+                       new = gsub("_reqRatio","",names(reqRatios.wide.nuts)))
 
   # include the requirement ratio as a row in calculating the col mins and maxs
   reqRatioRow <- as.list(c("Req",rep(1,ncol(reqRatios.wide.nuts) - 1)))
@@ -83,27 +111,22 @@ nutSpiderGraph <- function(reqType,country, scenario, climModel) {
 
   temp <- rbind(colMaxs, colMins, reqRatioRow, reqRatios.wide.nuts)
   temp[, (changeCols) := lapply(.SD, as.numeric), .SDcols = changeCols]
-  temp <- temp[,(changeCols) := round(.SD,1), .SDcols = changeCols]
+  temp <- temp[,(changeCols) := round(.SD,2), .SDcols = changeCols]
+  return(list(temp, nutListShort))
+}
 
-  #colMaxs <- temp[, lapply(.SD, max, na.rm=TRUE)] [,year := "Max" ]
+nutSpiderGraph <- function(reqType, country, SSP, climModel, experiment, years) {
+  temp <- datasetup(reqType,country, SSP, climModel, experiment, years)
+nutListShort <- temp[[2]]
+inputData <- temp[[1]]
+#  chartTitle <- paste(reqType,"for\n", country, SSP, climModel, experiment, sep = " ")
+chartTitle <- reqType
 
-  # par(mar = c(1, 1, 2, 1)) #decrease default margin
-  # layout(matrix(1:4, ncol = 2)) #draw 4 plots to device
-  # #loop over rows to draw them, add 1 as max and 0 as min for each var
-  # chartTitle <- paste("Share of RDA\nmacro requirements for",i, j,  k,"\n", l, sep = " ")
-  # lapply(1:5, function(m) {
-  #   radarchart(rbind(colMins, colMaxs, reqRatios.wide.nuts[m,]),
-  #              title = chartTitle[m],
-  #              vlabels = nutListShort,
-  #              vlcex = .75,
-  #              palcex = .75)
-  # })
-  chartTitle <- paste(reqType,"for\n", i, j, k, sep = " ")
   #temp1 <- rbind(colMins, colMaxs, reqRatioRow, reqRatios.wide.nuts)
   colors_border <- c(  "black", rgb(0.2,0.5,0.5,0.9), rgb(0.8,0.2,0.5,0.9), rgb(0.7,0.5,0.1,0.9) )
   colors_in <- c( "black", rgb(0.2,0.5,0.5,0.4), rgb(0.8,0.2,0.5,0.4), rgb(0.7,0.5,0.1,0.4) )
   lineType <- c(3, 1, 1, 1)
-  radarchart(temp[,!1, with = FALSE], axistype = 2,
+  radarchart(inputData[,!1, with = FALSE], axistype = 2,
              title = chartTitle,
              vlabels = nutListShort,
              seg = cMax,
@@ -114,7 +137,7 @@ nutSpiderGraph <- function(reqType,country, scenario, climModel) {
              #custom labels
              vlcex = 0.8
   )
-  legend(x = 1.1, y = -.5, legend = gsub("X","",temp[3:nrow(temp),year]), bty = "n", pch = 20,
+  legend(x = 1.1, y = -.5, legend = gsub("X","",inputData[3:nrow(inputData),years]), bty = "n", pch = 20,
          col = colors_in, text.col = "black", cex = .8, pt.cex = .8, pt.lwd = 1,
          y.intersp = .8)
 }
@@ -122,20 +145,55 @@ nutSpiderGraph <- function(reqType,country, scenario, climModel) {
 #nutSpiderGraph(reqType,country, scenario, climModel)
 
 #reqType choices are RDA_macro, RDA_vits, RDA_minrls, EAR, UL _vits, UL_minrls, kcal_ratios
-country = "USA"
-scenario = "SSP2"
-climModel = "GFDL"
-plot.new()
-par(mar = c(1, 1, 2, 1)) #decrease default margin
-layout(matrix(1:6, ncol = 2)) #draw 4 plots to device
-title(paste("Ratio of consumption to requirement for\n",
-            "country: ", country,
-            ", economic and population scenario: ", scenario,
-            ", climate model: ", climModel, sep = ""))
+country = "TZA"
+SSP = "SSP2" # the only choice at the moment
+climModel = "HGEM2" # choices are "HGEM"  "HGEM2" "IPSL"  "IPSL2" "NoCC"
+experiment = "REF" # choices are "HiNARS2", "HiREFF2", "HiYld2", "IRREXP2", "IRREXP-WUE2", "LoYld2", "RegYld2", "SWHC2", "REF", PHL-DEV2
+years <- c("X2010","X2030","X2050")
+# note: the combination of SSP, climModel, and experiment must come from the following list
+# SSP2-HGEM-HiNARS2     SSP2-HGEM-HiREFF2     SSP2-HGEM-HiYld2      SSP2-HGEM-IRREXP_WUE2
+# SSP2-HGEM-IRREXP2     SSP2-HGEM-LoYld2      SSP2-HGEM-PHL-DEV2    SSP2-HGEM-RegYld2
+# SSP2-HGEM-SWHC2       SSP2-HGEM2            SSP2-IPSL-IRREXP-WUE2 SSP2-IPSL-IRREXP2
+# SSP2-IPSL-SWHC2       SSP2-IPSL2            SSP2-NoCC-IRREXP-WUE2 SSP2-NoCC-IRREXP2
+# SSP2-NoCC-SWHC2       SSP2-NoCC
 
-nutSpiderGraph("RDA_macro", country, scenario, climModel)
-nutSpiderGraph("RDA_vits", country, scenario, climModel)
-nutSpiderGraph("RDA_minrls", country, scenario, climModel)
-nutSpiderGraph("UL_minrls", country, scenario, climModel)
-nutSpiderGraph("UL_vits", country, scenario, climModel)
-nutSpiderGraph("kcal_ratios", country, scenario, climModel)
+
+plot.new()
+par(mar = c(1, 1, 7, 1)) #decrease default margin
+layout(matrix(1:6, ncol = 2, byrow = TRUE)) #draw 4 plots to device
+
+nutSpiderGraph("RDA_macro", country, SSP, climModel, experiment, years)
+nutSpiderGraph("RDA_vits", country, SSP, climModel, experiment, years)
+nutSpiderGraph("RDA_minrls", country, SSP, climModel, experiment, years)
+nutSpiderGraph("UL_minrls", country, SSP, climModel, experiment, years)
+nutSpiderGraph("UL_vits", country, SSP, climModel, experiment, years)
+nutSpiderGraph("kcal_ratios", country, SSP, climModel, experiment, years)
+titleText <- sprintf("Ratio of consumption to requirement for\n country: %s, economic and population scenario: %s, climate model: , %s ",
+                     countryNameLookup(country), SSP, climModel)
+title(paste(titleText), outer = TRUE, line = -2)
+
+# nutStackedBarGraph
+reqType <- "kcal_ratios"
+temp <- datasetup(reqType,country, SSP, climModel, experiment, years)
+nuts.matrix <- as.matrix(temp[year %in% (l),2:ncol(reqRatios.wide.nuts), with = FALSE])
+temp <- t(nuts.matrix)
+colList <- c("grey","green","red")
+barTitleMain <- paste("Share of macronutrients in total energy consumption\n",
+                  "Country:", country,
+                  ", Climate model:", climModel,
+                  "\nSocioeconomic scenario:", SSP,
+                  ", Experiment:", experiment, sep = " ")
+# mainTitle = "Share of macronutrients in total energy consumption"
+# subTitle <- paste("Country:" , country,
+#                   ", Climate model:", climModel,
+#                   "\nSocioeconomic scenario:", SSP,
+#                   ", Experiment:", experiment, sep = " ")
+barplot(temp, main = barTitleMain, xlab = "Years", names.arg = gsub("X", "",l),
+        col = colList, border = NA)
+legendText <- gsub("_g", "", rownames(temp))
+legend("topleft", legend = legendText, text.col = "black", cex = .6, pt.cex = .6,
+       pt.lwd = 1, pch = 20,
+       col = colList)
+
+# reqRatioDelta
+
