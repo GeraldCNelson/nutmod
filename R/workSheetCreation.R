@@ -1,7 +1,12 @@
 # A 'subroutine' of nutrientCalcs.R
 # Creates and populates several worksheets of an excel file that holds modeling results
 #create styles to format the worksheets
-source("workBookFunctions.R")
+#' @include nutrientModFunctions.R
+#' @include nutrientCalcFunctions.R
+if (!exists("getNewestVersion", mode = "function"))
+{source("R/nutrientModFunctions.R")
+  source("R/workbookFunctions.R")
+  source("R/nutrientCalcFunctions.R")}
 
 #spreadsheet to output budget share
 tmp <- f.createGeneralWorksheet()

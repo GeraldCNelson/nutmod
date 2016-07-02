@@ -104,15 +104,14 @@ nutrients <- nutrients.clean[, !(names(nutrients.clean) %in% deleteListCol)]
 # add food groups, staples, and white starches codes to the nutrients table ---
 foodGroupsInfo <- openxlsx::read.xlsx(
   foodGroupLU, sheet = 1, startRow = 1, cols = 1:6,
-  colNames = TRUE
-)
+  colNames = TRUE)
 tmp <- foodGroupsInfo[, c("IMPACT_code", "food.group.code","staple.code", "white.starch.code")]
 dt.nutrients <- data.table::as.data.table(merge(nutrients, tmp, by = "IMPACT_code", all = TRUE))
 #-----------------------
 # code to import composite information from spreadsheets ------
 fctFiles <- c("comp_fct_beans_cbean.xlsx",
               "comp_fct_mutton and goat_clamb.xlsx",
-              "comp_fct_other fruits_ctemf.xlsx",
+ #             "comp_fct_other fruits_ctemf.xlsx", - because the comp_recalc file below is what should be used
               "comp_fct_rape and mustard oil_crpol.xlsx")
 
 recalcFiles <- c(

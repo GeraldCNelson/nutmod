@@ -19,12 +19,12 @@ datasetup <- function(reqType,country, SSP, climModel, experiment, years) {
   errorMessage <- cbind(paste("Your combination of ", scenarioName,
                               "is not allowed. Please choose from one of the following combinations: ", sep = " "),
                         paste(shQuote(as.character(scenarioListIMPACT), type = "sh"), collapse = ", "))
-   if (experiment %in% "REF" & !scenarioName %in% c("SSP2-HGEM2-REF", "SSP2-IPSL2-REF", "SSP2-NoCC-REF")) {
+  if (experiment %in% "REF" & !scenarioName %in% c("SSP2-HGEM2-REF", "SSP2-IPSL2-REF", "SSP2-NoCC-REF")) {
     stop(errorMessage)
-   }
-   if (!experiment %in% "REF" & !scenarioName %in% scenarioListIMPACT) {
-     stop(errorMessage)
-   }
+  }
+  if (!experiment %in% "REF" & !scenarioName %in% scenarioListIMPACT) {
+    stop(errorMessage)
+  }
   # need to do this to match up with what the experiment names are in the data files
   if (experiment %in% "IRREXP-WUE2") {experiment = "IRREXP_WUE2"}
   if (experiment %in% "PHL-DEV2") {experiment = "PHL_DEV2"}
@@ -130,10 +130,10 @@ chartTitleCleanup <- function(reqType) {
 
 nutSpiderGraph <- function(reqType, country, SSP, climModel, experiment, years) {
   temp <- datasetup(reqType,country, SSP, climModel, experiment, years)
-nutListShort <- temp[[2]]
-inputData <- temp[[1]]
-print(inputData)
-chartTitle <- chartTitleCleanup(reqType)
+  nutListShort <- temp[[2]]
+  inputData <- temp[[1]]
+  head(inputData)
+  chartTitle <- chartTitleCleanup(reqType)
 
   #temp1 <- rbind(colMins, colMaxs, reqRatioRow, reqRatios.wide.nuts)
   colors_border <- c(  "black", rgb(0.2,0.5,0.5,0.9), rgb(0.8,0.2,0.5,0.9), rgb(0.7,0.5,0.1,0.9) )
@@ -142,7 +142,7 @@ chartTitle <- chartTitleCleanup(reqType)
   radarchart(inputData[,!1, with = FALSE], axistype = 2,
              title = chartTitle,
              vlabels = nutListShort,
-             seg = cMax,
+             seg = 3,
              #custom polygon
              pcol = colors_border, plwd = 1, plty = lineType,
              #custom the grid
@@ -150,7 +150,7 @@ chartTitle <- chartTitleCleanup(reqType)
              #custom labels
              vlcex = 0.8
   )
-  legend(x = 1.1, y = -.5, legend = gsub("X","",inputData[3:nrow(inputData),years]), bty = "n", pch = 20,
+  legend(x = 1.2, y = -.55, legend = gsub("X","",inputData[3:nrow(inputData),years]), bty = "n", pch = 20,
          col = colors_in, text.col = "black", cex = .8, pt.cex = .8, pt.lwd = 1,
          y.intersp = .8)
 }

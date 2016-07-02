@@ -172,8 +172,8 @@ cleanup <- function(inDT, outName, dir, writeFiles) {
 
   #mData <- fileloc("mData")
   #convert inDT to a standard order
-  print(paste("start cleanup for ", outName, sep = ""))
-  print(proc.time())
+  sprintf("start cleanup for %s", outName)
+  #print(proc.time())
 
   oldOrder <- names(inDT)
   startOrder <- c("scenario",keyVariable("region"),"year")
@@ -182,24 +182,24 @@ cleanup <- function(inDT, outName, dir, writeFiles) {
     data.table::setcolorder(inDT,c(startOrder,remainder))
     data.table::setorderv(inDT,c(startOrder,remainder))
   }
-  print(paste("removing old versions of ", outName, sep = ""))
-  print(proc.time())
+ # print(paste("removing old versions of ", outName, sep = ""))
+  #print(proc.time())
 
   removeOldVersions(outName,dir)
   #  removeOldVersions.xlsx(outName,dir)
   # save(inDT,
   #      file = paste(dir, "/", outName, ".", Sys.Date(), ".RData", sep = ""))
-  print(paste("writing the rds for ", outName, " to ",dir, sep = ""))
-  print(proc.time())
+  sprintf("writing the rds for %s to %s ", outName, dir)
+ # print(proc.time())
   # next line removes any key left in the inDT data table; this may be an issue if a df is used
   data.table::setkey(inDT, NULL)
   saveRDS(inDT,
           file = paste(dir, "/", outName, ".", Sys.Date(), ".rds", sep = ""))
 
-  print(proc.time())
+  #print(proc.time())
   if (missing(writeFiles)) {writeFiles = "xlsx"}
   if (nrow(inDT) > 50000) {
-    print(paste("number of rows in the data, ", nrow(inDT), ", greater than 50,000. Not writing xlsx or csv", sep = ""))
+    sprintf("number of rows in the data, %s, greater than 50,000. Not writing xlsx or csv", nrow(inDT))
     writeFiles <- writeFiles[!writeFiles %in% c("xlsx", "csv")]
   }
   if ("csv"  %in% writeFiles) {
@@ -854,7 +854,7 @@ flagMissingFiles <- function() {
       grep(shortNameList$name[i], list.files(mData), value = TRUE)
     if (length(filesList) == 0) {
       rowNumber <- which(grepl(shortNameList$name[i], shortNameList$name))
-      print(paste("Missing data file", shortNameList$name[i]))
+      print(paste("Missing data file ", shortNameList$name[i]))
       print(paste(" run R/", shortNameList$script[rowNumber], sep = ""))
       return()
     }

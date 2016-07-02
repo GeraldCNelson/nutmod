@@ -47,7 +47,7 @@ source("R/nutrientCalcs.R")
 # paste("food.agg.",reqShortName,sep = "") fileloc("resData"), "csv")
 # "dt.nutrients.sum", fileloc("resData"))
 
-source("nutCalcsProcessing.R")
+source("R/nutCalcsProcessing.R")
 #writes
 # paste(reqShortName, "all.sum", sep = ".")
 # paste(reqShortName, "sum.req.ratio", sep = ".")
