@@ -31,11 +31,21 @@ foodGroupLU <- fileNameList("foodGroupLU")
 
 # Data loading code for nutrientCalcs -------------------------------------
 #' @param nutrients.raw - nutrient content of IMPACT 3 commodities, including fish and alcoholic beverages
-nutrients.raw <- openxlsx::read.xlsx(nutrientLU, sheet = 1, rows = 3:68, cols = 1:63, colNames = TRUE)
+LUcolNames <- c("name", "IMPACT_code", "usda_code", "USDA_code_desc", "composite_code", "AUS_code", "comment",
+                "edible_share", "inedible_share", "IMPACT_conversion", "proximates", "water_g", "energy_kcal",
+                "protein_g", "fat_g", "carbohydrate_g", "totalfiber_g", "sugar_g", "minerals", "calcium_mg",
+                "iron_mg", "magnesium_mg", "phosphorus_mg", "potassium_g", "sodium_g", "zinc_mg", "vitamins", "vit_c_mg",
+                "thiamin_mg", "riboflavin_mg", "niacin_mg", "vit_b6_mg", "folate_µg", "vit_b12_µg", "vit_a_rae_µg",
+                "vit_e_mg", "vit_d_μg", "vit_k_µg", "lipids", "ft_acds_tot_sat_g", "ft_acds_mono_unsat_g",
+                "ft_acds_plyunst_g", "cholesterol_mg", "other", "caffeine_mg", "ft_acds_tot_trans_g", "retentioncode_aus",
+                "RetentionDescription", "thiamin_mg_cr", "vit_b12_µg_cr", "riboflavin_mg_cr", "niacin_mg_cr", "vit_b6_mg_cr",
+                "calcium_mg_cr", "iron_mg_cr", "folate_µg_cr", "potassium_g_cr", "magnesium_mg_cr", "sodium_g_cr",
+                "phosphorus_mg_cr", "vit_a_rae_µg_cr", "vit_c_mg_cr", "vit_e_mg_cr", "zinc_mg_cr")
+nutrients.raw <- openxlsx::read.xlsx(nutrientLU, sheet = 1, rows = 3:68,  colNames = TRUE)
 
 #' @param nutrientNames_Units - units for the nutrients in IMPACT159 nutrient list
-nutrientNames_Units <- openxlsx::read.xlsx(nutrientLU,sheet = 1,rows = 1:3,cols = 10:46,colNames = FALSE)
-
+nutrientNames_Units <- openxlsx::read.xlsx(nutrientLU,sheet = 1,rows = 2:3, colNames = FALSE)
+colnames(nutrientNames_Units) <- LUcolNames
 #remove columns that are dividers, etc. This leaves only the IMPACT_code, edible share, IMPACT_conversion,
 # the nutrient values, and the cooking retention values
 deleteListCol <-
@@ -44,7 +54,7 @@ deleteListCol <-
   )
 #' @param nutrients.clean - IMPACT_code, edible share, IMPACT_conversion,  nutrient values, and cooking retention values
 nutrients.clean <- nutrients.raw[, !(names(nutrients.raw) %in% deleteListCol)]
-
+nutrientNames_Units <- nutrientNames_Units[, !(names(nutrientNames_Units) %in% deleteListCol)]
 #' @param cookretn.cols - the list of column names that contain cooking retention values
 keepListCol <-
   c("IMPACT_code",colnames(nutrients.clean[, grep('_cr', names(nutrients.clean))]))
@@ -93,10 +103,7 @@ nutrients <- nutrients.clean[, !(names(nutrients.clean) %in% deleteListCol)]
 
 # add food groups, staples, and white starches codes to the nutrients table ---
 foodGroupsInfo <- openxlsx::read.xlsx(
-  foodGroupLU,
-  sheet = 1,
-  startRow = 1,
-  cols = 1:6,
+  foodGroupLU, sheet = 1, startRow = 1, cols = 1:6,
   colNames = TRUE
 )
 tmp <- foodGroupsInfo[, c("IMPACT_code", "food.group.code","staple.code", "white.starch.code")]

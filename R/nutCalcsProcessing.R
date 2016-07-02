@@ -287,7 +287,7 @@ f.ratios.FG <- function(region, req) {
 
 # staples function
 f.ratios.staples <- function(region, req) {
-  print(paste("------ working on staples", req))
+  print(paste("------ working on staples for", req))
   reqShortName <- gsub("req.", "", req)
   #reqShortName <- gsub(".percap", "", temp)
   temp <- paste("food.agg.", reqShortName, sep = "")
@@ -307,7 +307,7 @@ f.ratios.staples <- function(region, req) {
 
   # get list of nutrients from dt.nutsReqPerCap for the req set of requirements
   nutList <- names( dt.nutsReqPerCap)[4:length(names(dt.nutsReqPerCap))]
-  basicKey <- c("scenario", scenarioComponents, RCP, region, "year")
+  basicKey <- c("scenario", scenarioComponents, "RCP", region, "year")
   stapleKey <- c(basicKey, "staple.code")
   # the total daily consumption of each staple
   nutList.sum.staple <-    paste(nutList, "sum.staple", sep = ".")

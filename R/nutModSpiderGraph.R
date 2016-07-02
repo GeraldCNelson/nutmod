@@ -57,6 +57,7 @@ datasetup <- function(reqType,country, SSP, climModel, experiment, years) {
 
   if (reqType == "kcal_ratios") {
     reqRatios <- getNewestVersion("dt.energy.ratios", fileloc("resData"))
+    reqRatios <- reqRatios[!nutrientReq %in% "sugar_g_reqRatio",]
     reqType <- "Share of Kcals"
   }
 
@@ -79,6 +80,7 @@ datasetup <- function(reqType,country, SSP, climModel, experiment, years) {
   nutListShort <- gsub("_mg","",nutListShort)
   nutListShort <- gsub("_rae"," rae",nutListShort)
   nutListShort <- gsub("_g"," ",nutListShort)
+  nutListShort <- gsub("totalfiber","total fiber",nutListShort)
 
   i <- country
   j <- SSP
@@ -115,12 +117,23 @@ datasetup <- function(reqType,country, SSP, climModel, experiment, years) {
   return(list(temp, nutListShort))
 }
 
+chartTitleCleanup <- function(reqType) {
+  if (reqType == "RDA_macro")  {fullName <- "RDA, macronutrients"}
+  if (reqType == "RDA_vits")   {fullName <- "RDA, vitamins"}
+  if (reqType == "RDA_minrls") {fullName <- "RDA, minerals"}
+  if (reqType == "EAR")        {fullName <- "Estimated average requirements"}
+  if (reqType == "UL_minrls") {fullName <- "Upper limit, minerals"}
+  if (reqType == "UL_vits") {fullName <- "Upper limit, vitamins"}
+  if (reqType == "kcal_ratios") {fullName <- "nutrient share in energy intake"}
+  return(fullName)
+}
+
 nutSpiderGraph <- function(reqType, country, SSP, climModel, experiment, years) {
   temp <- datasetup(reqType,country, SSP, climModel, experiment, years)
 nutListShort <- temp[[2]]
 inputData <- temp[[1]]
-#  chartTitle <- paste(reqType,"for\n", country, SSP, climModel, experiment, sep = " ")
-chartTitle <- reqType
+print(inputData)
+chartTitle <- chartTitleCleanup(reqType)
 
   #temp1 <- rbind(colMins, colMaxs, reqRatioRow, reqRatios.wide.nuts)
   colors_border <- c(  "black", rgb(0.2,0.5,0.5,0.9), rgb(0.8,0.2,0.5,0.9), rgb(0.7,0.5,0.1,0.9) )
@@ -145,7 +158,7 @@ chartTitle <- reqType
 #nutSpiderGraph(reqType,country, scenario, climModel)
 
 #reqType choices are RDA_macro, RDA_vits, RDA_minrls, EAR, UL _vits, UL_minrls, kcal_ratios
-country = "TZA"
+country = "KEN"
 SSP = "SSP2" # the only choice at the moment
 climModel = "HGEM2" # choices are "HGEM"  "HGEM2" "IPSL"  "IPSL2" "NoCC"
 experiment = "REF" # choices are "HiNARS2", "HiREFF2", "HiYld2", "IRREXP2", "IRREXP-WUE2", "LoYld2", "RegYld2", "SWHC2", "REF", PHL-DEV2
@@ -157,9 +170,8 @@ years <- c("X2010","X2030","X2050")
 # SSP2-IPSL-SWHC2       SSP2-IPSL2            SSP2-NoCC-IRREXP-WUE2 SSP2-NoCC-IRREXP2
 # SSP2-NoCC-SWHC2       SSP2-NoCC
 
-
 plot.new()
-par(mar = c(1, 1, 7, 1)) #decrease default margin
+par(mar = c(1, 1, 5, 1)) #decrease default margin
 layout(matrix(1:6, ncol = 2, byrow = TRUE)) #draw 4 plots to device
 
 nutSpiderGraph("RDA_macro", country, SSP, climModel, experiment, years)
@@ -168,21 +180,20 @@ nutSpiderGraph("RDA_minrls", country, SSP, climModel, experiment, years)
 nutSpiderGraph("UL_minrls", country, SSP, climModel, experiment, years)
 nutSpiderGraph("UL_vits", country, SSP, climModel, experiment, years)
 nutSpiderGraph("kcal_ratios", country, SSP, climModel, experiment, years)
-titleText <- sprintf("Ratio of consumption to requirement for\n country: %s, economic and population scenario: %s, climate model: , %s ",
-                     countryNameLookup(country), SSP, climModel)
+titleText <- sprintf("Ratio of consumption to requirement for %s \n SSP scenario: %s, climate model: %s, experiment %s",
+                     countryNameLookup(country), SSP, climModel, experiment)
 title(paste(titleText), outer = TRUE, line = -2)
 
 # nutStackedBarGraph
 reqType <- "kcal_ratios"
 temp <- datasetup(reqType,country, SSP, climModel, experiment, years)
-nuts.matrix <- as.matrix(temp[year %in% (l),2:ncol(reqRatios.wide.nuts), with = FALSE])
+nutListShort <- temp[[2]]
+inputData <- temp[[1]]
+nuts.matrix <- as.matrix(inputData[year %in% (l),2:ncol(reqRatios.wide.nuts), with = FALSE])
 temp <- t(nuts.matrix)
 colList <- c("grey","green","red")
-barTitleMain <- paste("Share of macronutrients in total energy consumption\n",
-                  "Country:", country,
-                  ", Climate model:", climModel,
-                  "\nSocioeconomic scenario:", SSP,
-                  ", Experiment:", experiment, sep = " ")
+barTitleMain <- sprintf("Ratio of macronutrients in energy intake for %s \n SSP scenario: %s, climate model: %s, experiment %s",
+                        countryNameLookup(country), SSP, climModel, experiment)
 # mainTitle = "Share of macronutrients in total energy consumption"
 # subTitle <- paste("Country:" , country,
 #                   ", Climate model:", climModel,
@@ -190,7 +201,7 @@ barTitleMain <- paste("Share of macronutrients in total energy consumption\n",
 #                   ", Experiment:", experiment, sep = " ")
 barplot(temp, main = barTitleMain, xlab = "Years", names.arg = gsub("X", "",l),
         col = colList, border = NA)
-legendText <- gsub("_g", "", rownames(temp))
+legendText <- gsub("_g", "", nutListShort)
 legend("topleft", legend = legendText, text.col = "black", cex = .6, pt.cex = .6,
        pt.lwd = 1, pch = 20,
        col = colList)

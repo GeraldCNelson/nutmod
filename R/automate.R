@@ -41,4 +41,23 @@ source("R/dataPrep.NutrientRequirements.R")
 
 source("R/dataManagement.SSPPop.R")
 #paste(gsub(".ssp","",nutReqName),"percap",sep = "."), mData - Nutrient requirements adjusted for population distribution, example is req.EAR.percap.2016-06-24.rds
+
+source("R/nutrientCalcs.R")
+#writes
+# paste("food.agg.",reqShortName,sep = "") fileloc("resData"), "csv")
+# "dt.nutrients.sum", fileloc("resData"))
+
+source("nutCalcsProcessing.R")
+#writes
+# paste(reqShortName, "all.sum", sep = ".")
+# paste(reqShortName, "sum.req.ratio", sep = ".")
+# paste(reqShortName, "all.ratio", sep = ".")
+# paste(reqShortName, "all.req.ratio", sep = ".")
+# cleanup(inDT, outName, fileloc("resData"))
+# "all.req.ratio.cMax"
+# cleanup(inDT, outName, fileloc("resData"))
+"all.req.ratio.cMin"
+# dt.energy.ratios - ratio of kcals from specific sources to total kcals
+
+
 proc.time() - ptm

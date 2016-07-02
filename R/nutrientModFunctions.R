@@ -87,9 +87,10 @@ getNewestVersion <- function(fileShortName, directory) {
   newestFile <- filesList[length(filesList)]
   if (length(newestFile) == 0) {
     stop(sprintf("There is no file that begins with '%s' in directory %s", fileShortName, mData))
-  }
+  } else {
   outFile = readRDS(paste(mData,newestFile, sep = "/"))
   return(outFile)
+  }
 }
 
 #' Title getNewestVersionIMPACT
@@ -202,11 +203,11 @@ cleanup <- function(inDT, outName, dir, writeFiles) {
     writeFiles <- writeFiles[!writeFiles %in% c("xlsx", "csv")]
   }
   if ("csv"  %in% writeFiles) {
-    print(paste("writing the csv for ", outName, " to ",dir, sep = ""))
+#    print(paste("writing the csv for ", outName, " to ",dir, sep = ""))
     write.csv(inDT,file = paste(dir, "/", outName, ".", Sys.Date(), ".csv", sep = ""))
   }
   if ("xlsx"  %in% writeFiles) {
-    print(paste("write the xlsx for ", outName, " to ", dir, sep = ""))
+#    print(paste("writing the xlsx for ", outName, " to ", dir, sep = ""))
     wbGeneral <- openxlsx::createWorkbook()
     openxlsx::addWorksheet(wb = wbGeneral, sheetName = outName)
 
@@ -240,9 +241,8 @@ cleanup <- function(inDT, outName, dir, writeFiles) {
 
     xcelOutFileName = paste(dir, "/", outName, ".", Sys.Date(), ".xlsx", sep = "")
     openxlsx::saveWorkbook(wbGeneral, xcelOutFileName, overwrite = TRUE)
-    print(paste("done writing the xlsx for ", outName, sep = ""))
-    print(proc.time())
-    flush.console()
+ #   print(paste("done writing the xlsx for ", outName, sep = ""))
+  #  print(proc.time())
   }
 }
 
@@ -463,10 +463,11 @@ metadata <- function() {
 fileNameList <- function(variableName) {
   IMPACTData      <- fileloc("IMPACTData")
   NutrientData    <- fileloc("NutrientData")
+  nutrientDataDetails <- "data-raw/NutrientData/nutrientDetails"
   SSPData         <- fileloc("SSPData")
   DRIFileName     <- "DRI_IOM_V7.xlsx"
   mData <- fileloc("mData")
-  DRIs            <- paste(NutrientData, DRIFileName, sep = "/")
+  DRIs            <- paste(nutrientDataDetails, DRIFileName, sep = "/")
   # CSE - consumer support equivalent
   #Note: the price a consumer pays is Pc * (1-CSE)
   CSEFileName     <- "CSEs20150824.xlsx"
@@ -495,12 +496,12 @@ fileNameList <- function(variableName) {
   IMPACTfoodFileName <- "dt.IMPACTfood"
   IMPACTfoodFileInfo <-  paste(mData,"/IMPACTData/",IMPACTfoodFileName,sep = "")
   # nutrient data ------
-  nutrientFileName <- "USDA GFS IMPACT V19.xlsx"
-  nutrientLU       <- paste(NutrientData, nutrientFileName, sep = "/")
+  nutrientFileName <- "USDA GFS IMPACT V20.xlsx"
+  nutrientLU       <- paste(nutrientDataDetails, nutrientFileName, sep = "/")
   commodityFoodGroupLookupFileName <-
     "food commodity to food group table V3.xlsx"
   foodGroupLU      <-
-    paste(NutrientData, commodityFoodGroupLookupFileName, sep = "/")
+    paste(nutrientDataDetails, commodityFoodGroupLookupFileName, sep = "/")
   # SSP information ----
   SSPdataZipFile   <- "SspDb_country_data_2013-06-12.csv.zip"
   SSPdataZip       <- paste(SSPData, SSPdataZipFile, sep = "/")
@@ -511,7 +512,7 @@ fileNameList <- function(variableName) {
   modelListGDP    <- "OECD Env-Growth"
   SSP_DRI_ageGroupLUFileName <-  "SSP_DRI_ageGroupLookUp.xlsx"
   SSP_DRI_ageGroupLU <-
-    paste(NutrientData, SSP_DRI_ageGroupLUFileName, sep = "/")
+    paste(nutrientDataDetails, SSP_DRI_ageGroupLUFileName, sep = "/")
   if (variableName == "list") {
     #list of variables that can be returned
     return(
