@@ -7,6 +7,8 @@ if (!exists("getNewestVersion", mode = "function"))
 {source("R/nutrientModFunctions.R")
   source("R/workbookFunctions.R")
   source("R/nutrientCalcFunctions.R")}
+
+source("R/gdxrrfunctions.R")
 # Intro -------------------------------------------------------------------
 
 #Copyright (C) 2015 Gerald C. Nelson, except where noted
@@ -44,6 +46,9 @@ if (!exists("getNewestVersion", mode = "function"))
 #' @param IMPACTgdx - name of the gdx file
 #' @return null
 #' @export
+
+gamsSetup()
+
 getGDXmetaData <- function(gamsDir,IMPACTgdx) {
   R_GAMS_SYSDIR <-  gamsDir
   gdxrrw::igdx(gamsSysDir = R_GAMS_SYSDIR)
@@ -66,6 +71,7 @@ getGDXmetaData <- function(gamsDir,IMPACTgdx) {
   outName <- "dt.IMPACTmetaData"
   cleanup(inDT,outName,fileloc("iData"))
 }
+
 getGDXmetaData(fileNameList("R_GAMS_SYSDIR"),fileNameList("IMPACTgdx"))
 
 #' Title processIMPACT159Data - read in from the IMPACT gdx file and write out rds and excel files for a single param
@@ -85,7 +91,7 @@ processIMPACT159Data <- function(gdxFileName, varName, catNames) {
   dt.IMPACTregions <- unique(dt.temp)
   dt.ptemp <- data.table::as.data.table(gdxrrw::rgdx.param(IMPACTgdx, varName,
                                                            ts = TRUE, names = catNames))
- dt.ptemp[, year := paste("X", dt.ptemp$year, sep = "")]
+  dt.ptemp[, year := paste("X", dt.ptemp$year, sep = "")]
   #dt.ptemp <- dt.ptemp[year %in% keepYearList]
   dt.ptemp <- data.table::as.data.table(rapply(dt.ptemp, as.character, classes = "factor", how = "replace"))
   #setorder(dt.temp, scenario, IMPACT_code, region_code.IMPACT159, year)

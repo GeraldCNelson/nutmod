@@ -256,8 +256,8 @@ generateResults <- function(req,dt.IMPACTfood,IMPACTscenarioList,dt.nutrients,re
 
 
 generateSum <- function(dt.IMPACTfood,IMPACTscenarioList,region) {
-  print("Loading dt.IMPACT.food")
-  print(proc.time())
+  print("Creating sum for all nutrients")
+  #print(proc.time())
   dt.food <- data.table::copy(dt.IMPACTfood)
   dt.food <- dt.food[scenario %in% IMPACTscenarioList,]
 
@@ -292,9 +292,11 @@ generateSum <- function(dt.IMPACTfood,IMPACTscenarioList,region) {
   outName <- "dt.nutrients.sum"
   cleanup(inDT,outName, fileloc("resData"))
 }
-# run the generateSum script -----
+# run the generateResults script -----
 for (i in 1:length(reqsListPercap)) {
   generateResults(reqsListPercap[i],dt.IMPACTfood,IMPACTscenarioList, dt.nutrients,region)
   print(paste("Done with ", reqsListPercap[i], ". ", length(reqsListPercap) - i," sets of requirements to go.", sep = ""))
 }
+
+# run the generateSum script -----
 generateSum(dt.IMPACTfood, IMPACTscenarioList, region)

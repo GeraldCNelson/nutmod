@@ -59,5 +59,5 @@ source("R/nutCalcsProcessing.R")
 "all.req.ratio.cMin"
 # dt.energy.ratios - ratio of kcals from specific sources to total kcals
 
-
+source("R/copyFilestoNutrientModeling.R") # move results needed for the shiny app.R in the nutrientModeling folder
 proc.time() - ptm
