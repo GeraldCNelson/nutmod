@@ -7,6 +7,11 @@
 #   resData - results
 
 ptm <- proc.time()
+source("R/nutrientModFunctions.R")
+source("R/workbookFunctions.R")
+source("R/nutrientCalcFunctions.R")
+
+metadata()
 source("R/dataPrep.regions.R") # - creates dt.regions.all, mData
 source("R/dataPrep.IMPACT.R")
 # - creates files in iData

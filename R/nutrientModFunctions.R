@@ -905,7 +905,7 @@ reqRatiodatasetup <- function(reqType,country, SSP, climModel, experiment, years
   errorMessage <- cbind(paste("Your combination of ", scenarioName,
                               "is not allowed. Please choose from one of the following combinations: ", sep = " "),
                         paste(shQuote(as.character(scenarioListIMPACT), type = "sh"), collapse = ", "))
-  if (experiment %in% "REF" & !scenarioName %in% c("SSP2-HGEM2-REF", "SSP2-IPSL2-REF", "SSP2-NoCC-REF")) {
+  if (experiment %in% "REF" & !scenarioName %in% c("SSP2-HGEM-REF", "SSP2-IPSL2-REF", "SSP2-NoCC-REF")) {
     stop(errorMessage)
   }
   if (!experiment %in% "REF" & !scenarioName %in% scenarioListIMPACT) {
@@ -946,7 +946,7 @@ reqRatiodatasetup <- function(reqType,country, SSP, climModel, experiment, years
     reqRatios <- reqRatios[!nutrientReq %in% "sugar_g_reqRatio",]
     reqType <- "Share of Kcals"
   }
-
+region <- keyVariable("region")
   idVars <- c("scenario", "SSP","climate_model", "experiment", region, "nutrientReq")
   measureVars <- keyVariable("keepYearList")
   reqRatios.long <- data.table::melt(

@@ -52,8 +52,9 @@ f.ratios.all <- function(region, req){
   cols.foodGroup <- names(dt.food.agg)[grep(".foodGroup", names(dt.food.agg))]
   deleteListCol <- c(cols.staple, cols.foodGroup)
   dt.food.agg[, (deleteListCol) := NULL]
-  dt.food.agg[, scenario := gsub("IRREXP-WUE2", "IRREXP_WUE2", scenario)]
-  dt.food.agg[, scenario := gsub("PHL-DEV2", "PHL_DEV2", scenario)]
+  # dt.food.agg[, scenario := gsub("IRREXP-WUE2", "IRREXP_WUE2", scenario)]
+  # dt.food.agg[, scenario := gsub("PHL-DEV2", "PHL_DEV2", scenario)]
+  # dt.food.agg[, scenario := gsub("HGEM2", "HGEM", scenario)]
   dt.food.agg[, RCP := "RCP8.5"]
   scenarioComponents <- c("SSP", "climate_model", "experiment") # RCP added above
   dt.food.agg[, (scenarioComponents) := data.table::tstrsplit(scenario, "-", fixed = TRUE)]

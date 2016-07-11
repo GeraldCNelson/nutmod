@@ -126,6 +126,6 @@ budgetShare <- function(dt.IMPACTfood,region) {
   dt.budget[, incSharePCX0 := budget.PCX0 / pcGDPX0 ]
   data.table::setkeyv(dt.budget, c("scenario", region, "year"))
   inDT <- dt.budget
-  outName <- "budgetShare"
+  outName <- "dt.budgetShare"
   cleanup(inDT,outName,fileloc("resData"))
 }

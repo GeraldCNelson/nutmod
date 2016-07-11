@@ -30,7 +30,7 @@ copyListFromResults <- c("EAR.sum.req.ratio","dt.energy.ratios", "budgetShare",
                          "RDA.macro.sum.req.ratio", "RDA.vits.sum.req.ratio", "RDA.minrls.sum.req.ratio",
                          "RDA.macro.staples.ratio","RDA.vits.staples.ratio", "RDA.minrls.staples.ratio",
                          "RDA.macro.FG.ratio","RDA.vits.FG.ratio", "RDA.minrls.FG.ratio",
-                         "UL.vits.sum.req.ratio", "UL.minrls.sum.req.ratio")
+                         "UL.vits.sum.req.ratio", "UL.minrls.sum.req.ratio", "metadata")
 
 copyListFromData <- c("dt.regions.all", "dt.ptemp")
 

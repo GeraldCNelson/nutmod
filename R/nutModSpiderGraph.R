@@ -9,19 +9,18 @@ if (!exists("getNewestVersion", mode = "function"))
   source("R/nutrientCalcFunctions.R")}
 
 library(fmsb)
-library(radarchart)
 region <- keyVariable("region")
 
 #reqType choices are RDA_macro, RDA_vits, RDA_minrls, EAR, UL _vits, UL_minrls, kcal_ratios
 country = "NGA"
 SSP = "SSP2" # the only choice at the moment
-climModel = "HGEM2" # choices are "HGEM"  "HGEM2" "IPSL"  "IPSL2" "NoCC"
+climModel = "HGEM" # choices are "HGEM" "IPSL"  "IPSL2" "NoCC"
 experiment = "REF" # choices are "HiNARS2", "HiREFF2", "HiYld2", "IRREXP2", "IRREXP-WUE2", "LoYld2", "RegYld2", "SWHC2", "REF", PHL-DEV2
 years <- c("X2010","X2030","X2050")
 # note: the combination of SSP, climModel, and experiment must come from the following list
 # SSP2-HGEM-HiNARS2     SSP2-HGEM-HiREFF2     SSP2-HGEM-HiYld2      SSP2-HGEM-IRREXP_WUE2
 # SSP2-HGEM-IRREXP2     SSP2-HGEM-LoYld2      SSP2-HGEM-PHL-DEV2    SSP2-HGEM-RegYld2
-# SSP2-HGEM-SWHC2       SSP2-HGEM2            SSP2-IPSL-IRREXP-WUE2 SSP2-IPSL-IRREXP2
+# SSP2-HGEM-SWHC2       SSP2-HGEM            SSP2-IPSL-IRREXP-WUE2 SSP2-IPSL-IRREXP2
 # SSP2-IPSL-SWHC2       SSP2-IPSL2            SSP2-NoCC-IRREXP-WUE2 SSP2-NoCC-IRREXP2
 # SSP2-NoCC-SWHC2       SSP2-NoCC
 
