@@ -92,6 +92,7 @@ processIMPACT159Data <- function(gdxFileName, varName, catNames) {
   dt.IMPACTregions <- unique(dt.temp)
   dt.ptemp <- data.table::as.data.table(gdxrrw::rgdx.param(IMPACTgdx, varName,
                                                            ts = TRUE, names = catNames))
+  dt.ptemp[,year := paste("X",year, sep = "")]
   dt.ptemp <- dt.ptemp[year %in% keepYearList]
   dt.ptemp <- data.table::as.data.table(rapply(dt.ptemp, as.character, classes = "factor", how = "replace"))
   #setorder(dt.temp, scenario, IMPACT_code, region_code.IMPACT159, year)
