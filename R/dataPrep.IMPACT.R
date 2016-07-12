@@ -47,6 +47,7 @@ source("R/gdxrrfunctions.R")
 #' @return null
 #' @export
 
+#writes out scenarioListIMPACT to a csv file in the data directory
 gamsSetup()
 
 getGDXmetaData <- function(gamsDir,IMPACTgdx) {
@@ -91,8 +92,7 @@ processIMPACT159Data <- function(gdxFileName, varName, catNames) {
   dt.IMPACTregions <- unique(dt.temp)
   dt.ptemp <- data.table::as.data.table(gdxrrw::rgdx.param(IMPACTgdx, varName,
                                                            ts = TRUE, names = catNames))
-  dt.ptemp[, year := paste("X", dt.ptemp$year, sep = "")]
-  #dt.ptemp <- dt.ptemp[year %in% keepYearList]
+  dt.ptemp <- dt.ptemp[year %in% keepYearList]
   dt.ptemp <- data.table::as.data.table(rapply(dt.ptemp, as.character, classes = "factor", how = "replace"))
   #setorder(dt.temp, scenario, IMPACT_code, region_code.IMPACT159, year)
   data.table::setorderv(dt.ptemp, cols = catNames)
@@ -105,6 +105,8 @@ processIMPACT159Data <- function(gdxFileName, varName, catNames) {
     # set the region code of South Sudan to the code for Sudan, if it has not already been done
     # dt.ptemp[region_code.IMPACT159  == "SDN", region_code.IMPACT159 := "SDP"]
   }
+
+  dt.ptemp <- cleanupScenarioNames(dt.ptemp)
   inDT <- dt.ptemp
   outName <- paste("dt",varName, sep = ".")
   cleanup(inDT,outName,fileloc("iData"))
@@ -121,7 +123,7 @@ processIMPACT159Data <- function(gdxFileName, varName, catNames) {
 #' @export
 generateResults <- function(vars,catNames){
   #dtlist.land <- lapply(vars.land,processIMPACT159Data,catNames = catNames.land)
-  for (i in vars){
+  for (i in vars) {
     processIMPACT159Data(fileNameList("IMPACTgdx"),i, catNames)
   }
 }
@@ -167,7 +169,7 @@ inDT <- dt.CSEs
 outName <- "dt.CSEs"
 cleanup(inDT,outName,fileloc("iData"))
 
-dt.ptemp <- data.table::as.data.table(gdxrrw::rgdx.param(fileNameList("IMPACTgdx"), vars.world,
-                                                         ts = TRUE, names = catNames.world))
-scenarioList <- unique(dt.ptemp$scenario)
+# dt.ptemp <- data.table::as.data.table(gdxrrw::rgdx.param(fileNameList("IMPACTgdx"), vars.world,
+#                                                          ts = TRUE, names = catNames.world))
+# scenarioList <- unique(dt.ptemp$scenario)
 

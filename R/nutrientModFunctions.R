@@ -307,8 +307,8 @@ keyVariable <- function(variableName) {
   # gdxrrw::igdx(gamsSysDir = R_GAMS_SYSDIR, silent = TRUE)
   # dt.ptemp <- data.table::as.data.table(gdxrrw::rgdx.param(fileNameList("IMPACTgdx"), "PWX0",ts = TRUE,
   #                                                          names = c("scenario", "IMPACT_code", "year", "value")))
-  dt.ptemp <- getNewestVersion("dt.ptemp", fileloc("mData"))
-  scenarioListIMPACT <- unique(dt.ptemp$scenario)
+
+  scenarioListIMPACT <- as.character(read.csv(file = paste(fileloc("mData"),"scenarioListIMPACT.csv", sep = "/"), stringsAsFactors = FALSE)[,1])
   DinY <- 365 #see http://stackoverflow.com/questions/9465817/count-days-per-year for a way to deal with leap years
   #' #' countries to remove because of poor data
   #' FSM - Micronesia, Federated States of
@@ -1041,4 +1041,10 @@ nutSpiderGraph <- function(reqType, country, SSP, climModel, experiment, years, 
          y.intersp = .8)
 }
 
+cleanupScenarioNames <- function(dt.ptemp) {
+  dt.ptemp[, scenario := gsub("IRREXP-WUE2", "IRREXP_WUE2", scenario)]
+  dt.ptemp[, scenario := gsub("PHL-DEV2", "PHL_DEV2", scenario)]
+  dt.ptemp[, scenario := gsub("HGEM2", "HGEM", scenario)]
+  return(dt.ptemp)
+}
 

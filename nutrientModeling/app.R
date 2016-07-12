@@ -12,7 +12,7 @@ rsconnect::setAccountInfo(name = 'nutrientmodeling', token = 'D0257883A5409984C3
 dt.regions <- getNewestVersion("dt.regions.all",fileloc("mData"))
 countryNames <- sort(unique(dt.regions$region_name.IMPACT159))
 
-climateModelNames <- c("NoCC", "HGEM", "HGEM2", "IPSL", "IPSL2")
+climateModelNames <- c("NoCC", "HGEM", "IPSL", "IPSL2")
 SSPNames <- "SSP2"
 RCPNames <- "RCP8.5"
 experimentNames <- c("HiNARS2", "HiREFF2", "HiYld2", "IRREXP2", "IRREXP-WUE2", "LoYld2", "RegYld2", "SWHC2", "REF", "PHL-DEV2")

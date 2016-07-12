@@ -1,8 +1,8 @@
 # code to produce country specific output for the paper
-ctyList <- c("ARG", "BRA", "ETH", "IND", "GHA","KEN", "FRP", "VNM", "USA", "ZAF")
+ctyList <- c("NIC", "BRA", "CHM", "ETH", "IND", "GHA","TZA", "FRP", "VNM", "USA", "ZAF")
 yearList <- c("X2010", "X2050")
 scenarioList <- c("SSP2-NoCC", "SSP2-HGEM","SSP2-HGEM-HiNARS2", "SSP2-HGEM-HiREFF2",
-                  "SSP2-HGEM-HiYld2", "SSP2-HGEM-IRREXP-WUE2", "SSP2-HGEM-IRREXP2",
+                  "SSP2-HGEM-HiYld2", "SSP2-HGEM-IRREXP_WUE2", "SSP2-HGEM-IRREXP2",
                   "SSP2-HGEM-LoYld2", "SSP2-HGEM-SWHC2")
 dt.regions.all <- getNewestVersion("dt.regions.all")
 
@@ -17,3 +17,4 @@ dt.IMPACTfood <- dt.IMPACTfood[region_code.IMPACT159 %in% ctyList &
 dt.budgetShare <- dt.budgetShare[region_code.IMPACT159 %in% ctyList &
                                    year %in% yearList,]
 dt.regions.all <- unique(dt.regions.all[region_code.IMPACT159 %in% ctyList,c("region_code.IMPACT159", "region_name.IMPACT159"), with = FALSE])
+
