@@ -86,7 +86,7 @@ getGDXmetaData(fileNameList("R_GAMS_SYSDIR"),fileNameList("IMPACTgdx"))
 processIMPACT159Data <- function(gdxFileName, varName, catNames) {
   dt.regions.all <- getNewestVersion("dt.regions.all")
   IMPACTgdx <- gdxFileName
-  #  keepYearList  <- keyVariable("keepYearList")
+  keepYearList  <- keyVariable("keepYearList")
   dt.temp <- dt.regions.all[,c("region_code.IMPACT159","region_name.IMPACT159"), with = FALSE]
   data.table::setkey(dt.temp,region_code.IMPACT159)
   dt.IMPACTregions <- unique(dt.temp)
