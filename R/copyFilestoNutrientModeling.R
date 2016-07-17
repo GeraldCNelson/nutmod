@@ -32,7 +32,7 @@ copyListFromResults <- c("EAR.sum.req.ratio","dt.energy.ratios", "budgetShare",
                          "RDA.macro.FG.ratio","RDA.vits.FG.ratio", "RDA.minrls.FG.ratio",
                          "UL.vits.sum.req.ratio", "UL.minrls.sum.req.ratio", "metaData")
 
-copyListFromData <- c("dt.regions.all", "dt.ptemp")
+copyListFromData <- c("dt.regions.all")
 copyListFromiData <- "dt.IMPACTmetaData"
 
 for (i in copyListFromResults) {
@@ -46,5 +46,5 @@ for (i in copyListFromiData) {
   copyFile(i, fileloc("iData"),"nutrientModeling/data", "rds")
 }
 
-
+file.copy("data/scenarioListIMPACT.csv", "nutrientModeling/data/scenarioListIMPACT.csv", overwrite = TRUE)
 file.copy("R/nutrientModFunctions.R", "nutrientModeling/global.R", overwrite = TRUE)

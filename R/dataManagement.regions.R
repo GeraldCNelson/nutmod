@@ -33,7 +33,7 @@ missingSSP <- setdiff(dt.regions.all$ISO_code,dt.regions.all$region_code.SSP)
 dt.regions.all <- dt.regions.all[!ISO_code %in% missingSSP,]
 data.table::setkey(dt.regions.all)
 
-region <- keyVariable("region")
+# region <- keyVariable("region")
 region <-  "region_code.IMPACTstandard" #for testing
 keepYearList <- keyVariable("keepYearList")
 scenarioListIMPACT <- keyVariable("scenarioListIMPACT")

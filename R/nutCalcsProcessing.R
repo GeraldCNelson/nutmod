@@ -23,7 +23,8 @@ if (!exists("getNewestVersion", mode = "function"))
   source("R/nutrientCalcFunctions.R")}
 
 # choose a grouping of countries -----
-region <- keyVariable("region")
+# #region <- keyVariable("region")
+
 reqList <- keyVariable("reqsList")
 
 #get just nutrient list from req
@@ -31,9 +32,9 @@ reqList <- keyVariable("reqsList")
 # reqShortName <- gsub(".percap", "", temp)
 # ##### This probably needs to be changed
 # temp <- paste("food.agg.", reqShortName, sep = "")
-# dt.food.agg <- getNewestVersion(temp, fileloc("resData"))
+# dt.food.agg <- getNewestVersion(temp, fileloc("resData"), "csv")
 # # get per capita consumption of each nutrient
-# #dt.nuts.sum <- getNewestVersion("all.sum", fileloc("resData"))
+# #dt.nuts.sum <- getNewestVersion("all.sum", fileloc("resData"), "csv")
 #
 # dt.nutsReqPerCap <- getNewestVersion(req)
 # # get list of nutrients from dt.nutsReqPerCap for the req set of requirements
@@ -46,7 +47,7 @@ f.ratios.all <- function(region, req){
   reqShortName <- gsub("req.", "", req)
   #  reqShortName <- gsub(".percap", "", temp)
   temp <- paste("food.agg.", reqShortName, sep = "")
-  dt.food.agg <- getNewestVersion(temp, fileloc("resData"))
+  dt.food.agg <- getNewestVersion(temp, fileloc("resData"), "csv")
   cols.all <- names(dt.food.agg)[grep(".all", names(dt.food.agg))]
   cols.staple <- names(dt.food.agg)[grep(".staple", names(dt.food.agg))]
   cols.foodGroup <- names(dt.food.agg)[grep(".foodGroup", names(dt.food.agg))]
@@ -64,7 +65,7 @@ f.ratios.all <- function(region, req){
 
   # get list of nutrients from dt.nutsReqPerCap for the req set of requirements
   nutList <- names( dt.nutsReqPerCap)[4:length(names(dt.nutsReqPerCap))]
-  basicKey <- c("scenario", scenarioComponents, "RCP", region, "year")
+  basicKey <- c("scenario", scenarioComponents, "RCP", "region_code.IMPACT159", "year")
   sumKey <-  c(basicKey, "IMPACT_code")
 
   # the total daily consumption of each nutrient
@@ -132,7 +133,7 @@ f.ratios.all <- function(region, req){
     value.name = "nut_share",
     variable.factor = FALSE)
 
-  formula.sum.all <- paste("scenario + SSP + climate_model + experiment + RCP + ", region, " + nutrient ~ year")
+  formula.sum.all <- paste("scenario + SSP + climate_model + experiment + RCP + region_code.IMPACT159 + nutrient ~ year")
 
   dt.all.sum.wide <- data.table::dcast(
     data = dt.all.sum.long,
@@ -140,7 +141,7 @@ f.ratios.all <- function(region, req){
     value.var = "nut_share",
     variable.factor = FALSE)
 
-  formula.reqRatio <- paste("scenario + SSP + climate_model + experiment + RCP + ", region, " + nutrientReq ~ year")
+  formula.reqRatio <- paste("scenario + SSP + climate_model + experiment + RCP + region_code.IMPACT159 + nutrientReq ~ year")
 
   dt.sum.req.ratio.wide <- data.table::dcast(
     data = dt.sum.req.ratio.long,
@@ -148,7 +149,7 @@ f.ratios.all <- function(region, req){
     value.var = "req_share",
     variable.factor = FALSE)
 
-  formula.all.ratio <- paste("scenario + SSP + climate_model + experiment + RCP + IMPACT_code + ", region, " + nutrient ~ year")
+  formula.all.ratio <- paste("scenario + SSP + climate_model + experiment + RCP + IMPACT_code + region_code.IMPACT159 + nutrient ~ year")
 
   data.table::setkey(dt.all.ratio.long)
   dt.all.ratio.wide <- data.table::dcast(
@@ -166,27 +167,27 @@ f.ratios.all <- function(region, req){
 
   inDT <- dt.all.sum.wide
   outName <- paste(reqShortName, "all.sum", sep = ".")
-  cleanup(inDT, outName, fileloc("resData"))
+  cleanup(inDT, outName, fileloc("resData"), "csv")
 
   inDT <- dt.sum.req.ratio.wide
   outName <- paste(reqShortName, "sum.req.ratio", sep = ".")
-  cleanup(inDT, outName, fileloc("resData"))
+  cleanup(inDT, outName, fileloc("resData"), "csv")
 
   inDT <- dt.all.ratio.wide
   outName <- paste(reqShortName, "all.ratio", sep = ".")
-  cleanup(inDT, outName, fileloc("resData"))
+  cleanup(inDT, outName, fileloc("resData"), "csv")
 
   inDT <- dt.all.req.ratio.wide
   outName <- paste(reqShortName, "all.req.ratio", sep = ".")
-  cleanup(inDT, outName, fileloc("resData"))
+  cleanup(inDT, outName, fileloc("resData"), "csv")
 
   inDT <- data.table::as.data.table(colMax(dt.all.req.ratio.wide))
   outName <- "all.req.ratio.cMax"
-  cleanup(inDT, outName, fileloc("resData"))
+  cleanup(inDT, outName, fileloc("resData"), "csv")
 
   inDT <- data.table::as.data.table(colMin(dt.all.req.ratio.wide))
   outName <- "all.req.ratio.cMin"
-  cleanup(inDT, outName, fileloc("resData"))
+  cleanup(inDT, outName, fileloc("resData"), "csv")
 }
 
 # foodGroup function
@@ -195,7 +196,7 @@ f.ratios.FG <- function(region, req) {
   reqShortName <- gsub("req.", "", req)
   #reqShortName <- gsub(".percap", "", temp)
   temp <- paste("food.agg.", reqShortName, sep = "")
-  dt.food.agg <- getNewestVersion(temp, fileloc("resData"))
+  dt.food.agg <- getNewestVersion(temp, fileloc("resData"), "csv")
   cols.all <- names(dt.food.agg)[grep(".all", names(dt.food.agg))]
   cols.staple <- names(dt.food.agg)[grep(".staple", names(dt.food.agg))]
   cols.foodGroup <- names(dt.food.agg)[grep(".foodGroup", names(dt.food.agg))]
@@ -211,7 +212,7 @@ f.ratios.FG <- function(region, req) {
 
   # get list of nutrients from dt.nutsReqPerCap for the req set of requirements
   nutList <- names( dt.nutsReqPerCap)[4:length(names(dt.nutsReqPerCap))]
-  basicKey <- c("scenario", scenarioComponents, "RCP", region, "year")
+  basicKey <- c("scenario", scenarioComponents, "RCP", "region_code.IMPACT159", "year")
   foodGroupKey <- c(basicKey, "food.group.code")
   # nutList.sum.foodGroup <-    paste(nutList, "sum.foodGroup", sep = ".")
   nutList.ratio.foodGroup <-   paste(nutList, "ratio.foodGroup", sep = ".")
@@ -252,7 +253,7 @@ f.ratios.FG <- function(region, req) {
     variable.factor = FALSE
   )
 
-  formula.foodGroup <- paste("scenario + SSP + climate_model + experiment + RCP + ", region, " + nutrient+ food.group.code ~ year")
+  formula.foodGroup <- paste("scenario + SSP + climate_model + experiment + RCP + region_code.IMPACT159 + nutrient+ food.group.code ~ year")
 
   dt.foodGroup.ratio.wide <- data.table::dcast(
     data = dt.foodGroup.ratio.long,
@@ -271,19 +272,19 @@ f.ratios.FG <- function(region, req) {
 
   inDT <- dt.foodGroup.ratio.wide
   outName <- paste(reqShortName, "FG.ratio", sep = ".")
-  cleanup(inDT, outName, fileloc("resData"))
+  cleanup(inDT, outName, fileloc("resData"), "csv")
 
   inDT <- dt.foodGroup.req.ratio.wide
   outName <- paste(reqShortName, "FG.req.ratio", sep = ".")
-  cleanup(inDT, outName, fileloc("resData"))
+  cleanup(inDT, outName, fileloc("resData"), "csv")
 
   inDT <- data.table::as.data.table(colMax(dt.foodGroup.req.ratio.wide))
   outName <- "FG.req.ratio.cMax"
-  cleanup(inDT, outName, fileloc("resData"))
+  cleanup(inDT, outName, fileloc("resData"), "csv")
 
   inDT <- data.table::as.data.table(colMin(dt.foodGroup.req.ratio.wide))
   outName <- "FG.req.ratio.cMin"
-  cleanup(inDT, outName, fileloc("resData"))
+  cleanup(inDT, outName, fileloc("resData"), "csv")
 }
 
 # staples function
@@ -292,7 +293,7 @@ f.ratios.staples <- function(region, req) {
   reqShortName <- gsub("req.", "", req)
   #reqShortName <- gsub(".percap", "", temp)
   temp <- paste("food.agg.", reqShortName, sep = "")
-  dt.food.agg <- getNewestVersion(temp, fileloc("resData"))
+  dt.food.agg <- getNewestVersion(temp, fileloc("resData"), "csv")
   cols.all <- names(dt.food.agg)[grep(".all", names(dt.food.agg))]
   cols.staple <- names(dt.food.agg)[grep(".staple", names(dt.food.agg))]
   cols.foodGroup <- names(dt.food.agg)[grep(".foodGroup", names(dt.food.agg))]
@@ -308,7 +309,7 @@ f.ratios.staples <- function(region, req) {
 
   # get list of nutrients from dt.nutsReqPerCap for the req set of requirements
   nutList <- names( dt.nutsReqPerCap)[4:length(names(dt.nutsReqPerCap))]
-  basicKey <- c("scenario", scenarioComponents, "RCP", region, "year")
+  basicKey <- c("scenario", scenarioComponents, "RCP", "region_code.IMPACT159", "year")
   stapleKey <- c(basicKey, "staple.code")
   # the total daily consumption of each staple
   nutList.sum.staple <-    paste(nutList, "sum.staple", sep = ".")
@@ -354,7 +355,7 @@ f.ratios.staples <- function(region, req) {
     variable.factor = FALSE
   )
 
-  formula.staple <- paste("scenario + SSP + climate_model + experiment + RCP + ", region, " + nutrient+ staple.code ~ year")
+  formula.staple <- paste("scenario + SSP + climate_model + experiment + RCP + region_code.IMPACT159 + nutrient+ staple.code ~ year")
 
   dt.staples.sum.wide <- data.table::dcast(
     data = dt.staples.sum.long,
@@ -379,30 +380,30 @@ f.ratios.staples <- function(region, req) {
 
   inDT <- dt.staples.sum.wide
   outName <- paste(reqShortName, "staples.sum", sep = ".")
-  cleanup(inDT, outName, fileloc("resData"))
+  cleanup(inDT, outName, fileloc("resData"), "csv")
 
   inDT <- dt.staples.ratio.wide
   outName <- paste(reqShortName, "staples.ratio", sep = ".")
-  cleanup(inDT, outName, fileloc("resData"))
+  cleanup(inDT, outName, fileloc("resData"), "csv")
 
   inDT <- dt.staples.req.ratio.wide
   outName <- paste(reqShortName, "staples.req.ratio", sep = ".")
-  cleanup(inDT, outName, fileloc("resData"))
+  cleanup(inDT, outName, fileloc("resData"), "csv")
 
   inDT <- data.table::as.data.table(colMax(dt.staples.req.ratio.wide))
   outName <- "staples.req.ratio.cMax"
-  cleanup(inDT, outName, fileloc("resData"))
+  cleanup(inDT, outName, fileloc("resData"), "csv")
 
   inDT <- data.table::as.data.table(colMin(dt.staples.req.ratio.wide))
   outName <- "staples.req.ratio.cMin"
-  cleanup(inDT, outName, fileloc("resData"))
+  cleanup(inDT, outName, fileloc("resData"), "csv")
 }
 
 for (i in reqList) {
 
-  f.ratios.all(region, i)
-  f.ratios.staples(region, i)
-  f.ratios.FG(region, i)
+  f.ratios.all(region_code.IMPACT159, i)
+  f.ratios.staples(region_code.IMPACT159, i)
+  f.ratios.FG(region_code.IMPACT159, i)
 }
 
 # fats, etc share of total kcals ------
@@ -446,7 +447,7 @@ deleteListCol <- c("c_beer","c_spirits","c_wine")
 dt.alc.wide[, (deleteListCol) := NULL]
 
 # now get rest of nutrient items
-dt.nutSum <- getNewestVersion("dt.nutrients.sum", fileloc("resData"))
+dt.nutSum <- getNewestVersion("dt.nutrients.sum", fileloc("resData"), "csv")
 dt.nutSum[, scenario := gsub("IRREXP-WUE2", "IRREXP_WUE2", scenario)]
 dt.nutSum[, scenario := gsub("PHL-DEV2", "PHL_DEV2", scenario)]
 dt.nutSum[, RCP := "RCP8.5"]
@@ -506,4 +507,24 @@ dt.nutSum.wide <- data.table::dcast(
 
 inDT <- dt.nutSum.wide
 outName <- "dt.energy.ratios"
-cleanup(inDT, outName, fileloc("resData"))
+cleanup(inDT, outName, fileloc("resData"), "csv")
+
+# calculate Shannon diversity ratio
+#SD = - sum(s_i * ln(s_i)
+keepListCol <- c("scenario","region_code.IMPACT159", "year", "IMPACT_code", "FoodAvailability")
+dt.SDfood <- dt.IMPACTfood[,keepListCol, with = FALSE]
+dt.SDfood[,foodQ.sum := sum(FoodAvailability), by = c("scenario","region_code.IMPACT159", "year")]
+dt.SDfood[,foodQ.ratio := FoodAvailability/foodQ.sum]
+dt.SDfood[,lnfoodQ.ratio := foodQ.ratio * log(foodQ.ratio)]
+dt.SDfood[is.na(lnfoodQ.ratio),lnfoodQ.ratio := 0]
+dt.SDfood[,SD := -sum(lnfoodQ.ratio), by = c("scenario","region_code.IMPACT159", "year")]
+keepListCol <- c("scenario","region_code.IMPACT159", "year", "SD")
+dt.SDfood <- unique(dt.SDfood[, keepListCol, with = FALSE])
+foodList <- unique(dt.IMPACTfood$IMPACT_code)
+dt.SDfood[, SDnorm := SD * 100/log(length(foodList))]
+
+inDT <- dt.SDfood
+outName <- "dt.shannonDiversity"
+cleanup(inDT, outName, fileloc("resData"), "csv")
+
+

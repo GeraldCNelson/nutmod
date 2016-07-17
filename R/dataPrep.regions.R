@@ -43,6 +43,9 @@ if (!exists("getNewestVersion", mode = "function"))
   source("R/workbookFunctions.R")
   source("R/nutrientCalcFunctions.R")}
 
+#only run in the dataPrep.regions.R script
+source("R/createIMPACT159Regions.R")
+
 IMPACTfish <-     fileNameList("IMPACTfish")
 IMPACTalcohol <-     fileNameList("IMPACTalcohol")
 IMPACTstdRegions <- fileNameList("IMPACTstdRegions")
@@ -192,33 +195,16 @@ regions.all <-
         by = "ISO_code",
         all = TRUE)
 newColOrder <- c("ISO_code", "region_code.SSP", "FAOSTAT_code","region_code.IMPACT115",
-  "region_code.IMPACT159", "region_code.IMPACTstandard", "country_name.ISO",
-  "region_name.IMPACT115", "region_name.IMPACT159", "region_name.IMPACTstandard",
-  "Short.name", "Official.name", "ISO2_code", "UNI_code", "UNDP_code",
-  "GAUL_code")
+                 "region_code.IMPACT159", "region_code.IMPACTstandard", "country_name.ISO",
+                 "region_name.IMPACT115", "region_name.IMPACT159", "region_name.IMPACTstandard",
+                 "Short.name", "Official.name", "ISO2_code", "UNI_code", "UNDP_code",
+                 "GAUL_code")
 regions.all <- regions.all[newColOrder]
-
-# remove a pesky 'country' JEY (Jersey); this should be done elsewhere
-# deleteListRow <- c("JEY")
-# regions.all <-
-#   regions.all[!regions.all$ISO_code %in% deleteListRow, ]
 regions.all <- regions.all[order(regions.all$ISO_code), ]
 
-# #rearrange the column order
-# regions.all <- regions.all[c(
-#   "ISO_code",
-#   "region_code.SSP",
-#   "region_code.IMPACT115",
-#   "region_code.IMPACT159",
-#   "region_code.IMPACTstandard",
-#   "country_name.ISO",
-#   "region_name.IMPACT115",
-#   "region_name.IMPACT159",
-#   "region_name.IMPACTstandard"
-# )]
 dt.regions.all <- data.table::as.data.table(regions.all)
 newRegions <- openxlsx::read.xlsx(IMPACTregionsUpdateJun2016, sheet = 2, cols = 1:7, colNames = TRUE)
-inDT <- merge(dt.regions.all,newRegions, by = "region_code.IMPACT159")
+inDT <- merge(dt.regions.all,newRegions, by = "region_code.IMPACT159", all = TRUE)
 outName <- "dt.regions.all"
 cleanup(inDT,outName,fileloc("mData"))
 

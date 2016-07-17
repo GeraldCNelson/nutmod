@@ -42,7 +42,7 @@ data.table::setkey(dt.regionsLU, ISO_code)
 dt.SSPPop <- dt.SSPPop[dt.regionsLU]
 
 # Read in the region to aggregate to -----
-region <- keyVariable("region")
+# region <- keyVariable("region")
 keepListCol <- c("scenario","ageGenderCode","year", "value",region)
 dt.SSPPop <- dt.SSPPop[, keepListCol, with = FALSE]
 dt.SSPPop <- dt.SSPPop[!is.na(scenario),]
@@ -76,7 +76,7 @@ dt.SSP.scen <- data.table::copy(dt.SSP.regions)
 #sum boys and girls 0 to 4
 
 # convert rows of age gender groups to columns to make the addition process straightforward
-formula.wide <- paste("scenario + ", region, " + year ~ ageGenderCode")
+formula.wide <- paste("scenario + region_code.IMPACT159 + year ~ ageGenderCode")
 dt.SSP.scen.wide <- data.table::dcast(
   data = dt.SSP.scen,
   formula = formula.wide,
@@ -138,19 +138,18 @@ repCons <- function(dt.pop, nutReqName,ageRowsToSum,region) {
   data.table::setkey(dt.nutReq, ageGenderCode)
   # dt.temp <- cbind(dt.pop,dt.nutReq)
   dt.temp <- merge(dt.pop,dt.nutReq, by = "ageGenderCode", all.y = TRUE)
-  keyValues <- c("scenario", region, "year", "ageGenderCode","pop.value")
+  keyValues <- c("scenario", region_code.IMPACT159, "year", "ageGenderCode","pop.value")
   data.table::setkeyv(dt.temp,keyValues)
   # multiply the number of people be age and gender group by the nutritional requirements of that group
   dt.temp[, (paste(common.nut, "prod", sep = ".")) :=
             lapply(.SD, function(x) x * dt.temp$pop.value), .SDcols = (common.nut)][,(common.nut) := NULL]
-  keyValues <- c("scenario", region, "year")
+  keyValues <- c("scenario", "region_code.IMPACT159", "year")
   data.table::setkeyv(dt.temp, keyValues)
   reqlist <- c(paste(common.nut, "prod", sep = "."),"pop.value")
   # sum the nutritional requirements for all groups
   dt.temp[, (paste(reqlist, "sum", sep = ".")) := lapply(.SD, sum), by =
             keyValues, .SDcols = c(reqlist)][, c(reqlist) := NULL]
-  # c("scenario",region, "year", "ageGenderCode"), .SDcols = c(reqlist)]
-  dt.temp.sum <- unique(dt.temp[, c("scenario",region, "year",
+  dt.temp.sum <- unique(dt.temp[, c("scenario","region_code.IMPACT159", "year",
                                     paste(reqlist, "sum", sep = ".")), with = FALSE])
 
   sumlist <- paste(common.nut, "prod.sum", sep = ".")
@@ -162,7 +161,7 @@ repCons <- function(dt.pop, nutReqName,ageRowsToSum,region) {
   data.table::setnames(dt.temp.sum,old = finlist, new = common.nut)
   dt.temp.melt <- data.table::melt(
     dt.temp.sum,
-    id.vars = c("scenario",region, "year"),
+    id.vars = c("scenario","region_code.IMPACT159", "year"),
     measure.vars = common.nut,
     variable.name = "nutrient",
     variable.factor = FALSE,
@@ -283,7 +282,7 @@ for (i in 1:length(reqsSSP)) {
     c(dt.name, sheetDesc)
 
   dt.temp.melt <- data.table::melt(dt.temp.internal,
-                                   id.vars = c(region, "nutrient"),
+                                   id.vars = c("region_code.IMPACT159", "nutrient"),
                                    measure.vars = keepYearList,
                                    value.name = "value",
                                    variable.factor = FALSE)

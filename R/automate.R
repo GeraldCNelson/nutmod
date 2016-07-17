@@ -6,6 +6,7 @@
 #   iData - data/IMPACTdata - directory with IMPACT data
 #   resData - results
 
+print(paste("start time is" , proc.time(), sep = ""))
 ptm <- proc.time()
 source("R/nutrientModFunctions.R")
 source("R/workbookFunctions.R")
@@ -19,11 +20,9 @@ source("R/dataPrep.IMPACT.R")
 # paste(dt,varName, sep = ".") - one file for each IMPACT variable, example is dt.PerCapKCAL.2016-06-21.rds
 # dt.CSEs
 
-source("R/dataManagement.fish.R")
+source("R/dataManagement.fishnAlc.R")
 # dt.fishIncElast, iData - to have a record of what fish income elasticities were used
 # dt.fishScenarios, mData
-
-source("R/dataManagement.alcohol.R")
 # dt.alcIncElast, iData - to have a record of what alcohol income elasticities were used
 # dt.alcScenarios, mData - alcohol consumption scenarios, for input into dataManagement.IMPACT.R
 
@@ -65,4 +64,5 @@ source("R/nutCalcsProcessing.R")
 # dt.energy.ratios - ratio of kcals from specific sources to total kcals
 
 source("R/copyFilestoNutrientModeling.R") # move results needed for the shiny app.R in the nutrientModeling folder
+
 proc.time() - ptm

@@ -44,7 +44,7 @@ combineIMPACTData <- function() {
   # combineIMPACTData <- function(region, scenSSP, climModel, RCP) {
   #  scen <- paste(scenSSP, "-", climModel, sep = "")
   keepYearList <- keyVariable("keepYearList")
-  dt.FoodAvail <- getNewestVersionIMPACT("dt.FoodAvail")
+  dt.FoodAvail <- getNewestVersionIMPACT("dt.FoodAvailability") # created in dataPrep.IMPACT
   dt.FoodAvail <- dt.FoodAvail[year %in% keepYearList, ]
   # next 2 lines are mainly to get rid of ctoml for ZMB
   IMPACTfoodCommodList <- keyVariable("IMPACTfoodCommodList")
@@ -96,6 +96,8 @@ combineIMPACTData <- function() {
   # reduce scenario name to just SSPx
   dt.alcScenarios.melt[, scenario := substring(scenario, 1, 4)]
 
+  # aggregate to IMPACT159 regions -------
+  # pop.share is the share of a country's population in the IMPACT region population
   dt.alcScenarios.melt <- merge(dt.alcScenarios.melt, dt.pop, by = c("scenario", "region_code.SSP", "region_code.IMPACT159", "year"))
   data.table::setkeyv(dt.alcScenarios.melt, c("scenario", "region_code.IMPACT159", "year", "IMPACT_code"))
   dt.alcScenarios.melt[, FoodAvailability := sum(FoodAvailability * pop.share), by = eval(data.table::key(dt.alcScenarios.melt))]
@@ -141,7 +143,7 @@ combineIMPACTData <- function() {
   for (i in scenario.list) {
     climModel <- gsub(substr((i), 1, 5), "", i)
     #   SSPNum <- substr((i), 1, 4)
-    print(i)
+    # print(i)
     temp.fish <- data.table::copy(dt.fishScenarios.melt)
     temp.alc <- data.table::copy(dt.alcScenarios.melt)
     temp.fish[, scenario := paste(scenario, climModel, sep = "-")]
@@ -179,6 +181,7 @@ combineIMPACTData <- function() {
   dt.IMPACTfood <- dt.IMPACTfood[!is.na(pcGDPX0),]
   data.table::setorderv(dt.IMPACTfood, cols = c("scenario",  "region_code.IMPACT159", "IMPACT_code", "year"))
   data.table::setkeyv(dt.IMPACTfood, c("scenario",  "region_code.IMPACT159", "IMPACT_code"))
+  dt.IMPACTfood <- dt.IMPACTfood[!region_code.IMPACT159 %in% keyVariable("dropListCty")]
 
   inDT <- dt.IMPACTfood
   outName <- "dt.IMPACTfood"

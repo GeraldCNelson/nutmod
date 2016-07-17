@@ -34,7 +34,7 @@ if (!exists("getNewestVersion", mode = "function"))
 # Read in the FBS data from a zip file
 # FAO changed the structure of the zip file some time in 2015.
 # Code to read in the old structure remains below but is commented out
-# dt.FBSrawData <- as.data.table(read.csv(unzip(FBSdataZip, file = FBScsv),
+# dt.FBS.rawData <- as.data.table(read.csv(unzip(FBSdataZip, file = FBScsv),
 #                        stringsAsFactors = FALSE,
 #                        colClasses = list((character=1:7))))
 
@@ -47,7 +47,7 @@ colCharacter = c("Country Code", "Country","Item Code","Item","Element Code","El
 FBSdataZip <- filelocFBS("FBSdataZip")
 FBScsv <- filelocFBS("FBScsv")
 temp <- unzip(paste(getwd(),FBSdataZip,sep = "/"), files = FBScsv)
-dt.FBSrawData <- data.table::fread(temp, header = TRUE)
+dt.FBS.rawData <- data.table::fread(temp, header = TRUE)
 file.remove(temp)
 
 #temp <- read.csv("data-raw/FBSData/FoodBalanceSheets_E_All_Data.csv",nrows = 10)
@@ -57,7 +57,7 @@ file.remove(temp)
 # colnames(FBSrawData) <- c("FAOSTAT_country_code", "country_name", "item_code", "item",
 # "element_group", "variable_code", "element","year", "unit", "value", "flag")
 
-colnames(dt.FBSrawData) <- c("FAOSTAT_country_code", "country_name", "item_code", "item",
+colnames(dt.FBS.rawData) <- c("FAOSTAT_country_code", "country_name", "item_code", "item",
                           "variable_code", "element","unit",
                           "X1961","X1961F","X1962","X1962F","X1963","X1963F","X1964","X1964F","X1965","X1965F",
                           "X1966","X1966F","X1967","X1967F","X1968","X1968F","X1969","X1969F","X1970","X1970F",
@@ -86,22 +86,22 @@ colKeepList <- c("FAOSTAT_country_code", "country_name", "item_code", "item",
                  "X2006","X2007","X2008","X2009","X2010",
                  "X2011","X2012","X2013","X2014","X2015")
 
-dt.FBSraw <- dt.FBSrawData[,colKeepList, with = FALSE]
+dt.FBS.raw <- dt.FBS.rawData[,colKeepList, with = FALSE]
 
 # improve on some element names
-dt.FBSraw[element=="Food", element := "foodMT"]
-dt.FBSraw[element=="Food supply quantity (kg/capita/yr)", element := "perCapKg"]
-dt.FBSraw[element=="Food supply (kcal/capita/day)",element := "perCapKcal"]
-          dt.FBSraw[element=="Protein supply quantity (g/capita/day)", element := "perCapProt"]
-dt.FBSraw[element=="Fat supply quantity (g/capita/day)", element := "perCapFat"]
+dt.FBS.raw[element == "Food", element := "foodMT"]
+dt.FBS.raw[element == "Food supply quantity (kg/capita/yr)", element := "perCapKg"]
+dt.FBS.raw[element == "Food supply (kcal/capita/day)",element := "perCapKcal"]
+dt.FBS.raw[element == "Protein supply quantity (g/capita/day)", element := "perCapProt"]
+dt.FBS.raw[element == "Fat supply quantity (g/capita/day)", element := "perCapFat"]
 
 # change 'element' to 'variable' to make it consistent with other data sources
-data.table::setnames(dt.FBSraw,old=c("element","variable_code"),new = c("variable","variable_code"))
+data.table::setnames(dt.FBS.raw,old = c("element","variable_code"),new = c("variable","variable_code"))
 
 #how to drop years with the previous version of the FBS data
 # remove years before 2010. The latest year is 2011 currently.
-# setkey(dt.FBSraw,year)
-# dt.FBSraw <- dt.FBSraw[year > 2009,]
+# setkey(dt.FBS.raw,year)
+# dt.FBS.raw <- dt.FBS.raw[year > 2009,]
 
 #keep just the years in keepYearList.FBS
 keepYearList.FBS  <- keyVariable("keepYearList.FBS")
@@ -109,17 +109,14 @@ colKeepListYears <- c("FAOSTAT_country_code", "country_name", "item_code", "item
                  "variable_code", "variable","unit",
                  keepYearList.FBS)
 
-dt.FBSraw <- dt.FBSraw[,colKeepListYears, with = FALSE]
+dt.FBS.raw <- dt.FBS.raw[,colKeepListYears, with = FALSE]
 
-#old version of convert selected columns to character class
-#charConvertList <- c("FAOSTAT_country_code","variable_code","item_code","unit","year")
-
-#old version of convert selected columns to numeric class
+#convert selected columns to numeric class
 charConvertList <- c("FAOSTAT_country_code","variable_code","item_code","unit")
-dt.FBSraw[,(keepYearList.FBS) := lapply(.SD, as.numeric), .SDcols=keepYearList.FBS]
+dt.FBS.raw[,(keepYearList.FBS) := lapply(.SD, as.numeric), .SDcols=keepYearList.FBS]
 
 #add X to beginning of the year (X2009 instead of 2009), old version of the FBS data
-#dt.FBSraw[, year := paste("X", dt.FBSraw$year, sep = "")]
+#dt.FBS.raw[, year := paste("X", dt.FBS.raw$year, sep = "")]
 
 # Read in a worksheet with the list of FBS food items by code, name, definition, and IMPACT commodity code
 FBSCommodityInfo <- filelocFBS("FBSCommodityInfo")
@@ -149,10 +146,19 @@ dt.FBSNameLookup <- data.table::as.data.table(openxlsx::read.xlsx(FAOCountryName
 charConvertList <- c("ISO3","FAOSTAT")
 dt.FBSNameLookup <- dt.FBSNameLookup[, lapply(.SD, as.character), .SDcols = charConvertList]
 data.table::setnames(dt.FBSNameLookup,c("ISO3","FAOSTAT"),c("ISO_code","FAOSTAT_country_code"))
+# deal with Sudan and Sudan (former issue)
+# the old country Sudan (SDN) split into two parts in 2011. A new country called Sudan (SDN) and a second
+# country called South Sudan (SSD). The old country data are under the name Sudan (former) in the FBS
+# data set, with the FAOSTAT numeric code of 206 in the FBS data. But in the name lookup table they are
+# listed as 276 and 277.
+# Currently there are no data for South Sudan at all and only up to 2011 for Sudan.
+# So I'm going to change the code for Sudan in the name lookup to 206 and see what happens
+dt.FBSNameLookup[FAOSTAT_country_code == "276", FAOSTAT_country_code := "206"]
 
-data.table::setkey(dt.FBSraw,FAOSTAT_country_code)
+
+data.table::setkey(dt.FBS.raw,FAOSTAT_country_code)
 data.table::setkey(dt.FBSNameLookup,FAOSTAT_country_code)
-dt.FBS <- dt.FBSraw[dt.FBSNameLookup]
+dt.FBS <- dt.FBS.raw[dt.FBSNameLookup]
 
 # # Check for aggregations of countries; this should have no content
 # FBSDat.countryAggs <- subset(dt.FBS,!(ISO_code %in% regions.ISO$ISO_code))
@@ -217,13 +223,13 @@ dt.FBS.commods.melt[,value.sum := sum(value), by = list(ISO_code,variable, IMPAC
 #now get rid of info that is not needed
 keepListCol <- c("country_name", "variable_code", "variable", "unit", "ISO_code",
 "IMPACT_code", "year", "value.sum")
-dt.temp <- dt.FBS.commods.melt[,keepListCol, with=FALSE]
+dt.temp <- dt.FBS.commods.melt[,keepListCol, with = FALSE]
 data.table::setkey(dt.temp)
 dt.FBS.commods.final <-
 #  unique(dt.temp[, c(eval(data.table::key(dt.temp)), keepListCol), with = FALSE])
 unique(dt.temp[, (keepListCol), with = FALSE])
 data.table::setnames(dt.FBS.commods.final,old = "value.sum", new = "value")
-dt.FBS.commods.final[order(ISO_code)]
+data.table::setorder(dt.FBS.commods.final, ISO_code)
 inDT <- dt.FBS.commods.final
 outName <- "dt.FBS"
 cleanup(inDT,outName,fileloc("mData"))

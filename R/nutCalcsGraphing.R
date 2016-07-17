@@ -22,7 +22,7 @@ if (!exists("getNewestVersion", mode = "function"))
   source("R/workbookFunctions.R")
   source("R/nutrientCalcFunctions.R")}
 
-region <- keyVariable("region")
+# region <- keyVariable("region")
 reqsList <- keyVariable("reqsListPercap")
   c(
     "req.EAR.percap",

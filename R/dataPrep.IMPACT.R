@@ -92,6 +92,10 @@ processIMPACT159Data <- function(gdxFileName, varName, catNames) {
   dt.IMPACTregions <- unique(dt.temp)
   dt.ptemp <- data.table::as.data.table(gdxrrw::rgdx.param(IMPACTgdx, varName,
                                                            ts = TRUE, names = catNames))
+  #if the data set contains SDN (the old Sudan) data, convert the code to SDP
+  if (!varName %in% "PWX0") {
+      dt.ptemp[region_code.IMPACT159 == "SDN", region_code.IMPACT159 := "SDP"]
+  }
   dt.ptemp[,year := paste("X",year, sep = "")]
   dt.ptemp <- dt.ptemp[year %in% keepYearList]
   dt.ptemp <- data.table::as.data.table(rapply(dt.ptemp, as.character, classes = "factor", how = "replace"))

@@ -9,7 +9,7 @@ if (!exists("getNewestVersion", mode = "function"))
   source("R/nutrientCalcFunctions.R")}
 
 library(fmsb)
-region <- keyVariable("region")
+# region <- keyVariable("region")
 
 #reqType choices are RDA_macro, RDA_vits, RDA_minrls, EAR, UL _vits, UL_minrls, kcal_ratios
 country = "NGA"
