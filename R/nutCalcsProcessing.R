@@ -47,7 +47,7 @@ f.ratios.all <- function(region, req){
   reqShortName <- gsub("req.", "", req)
   #  reqShortName <- gsub(".percap", "", temp)
   temp <- paste("food.agg.", reqShortName, sep = "")
-  dt.food.agg <- getNewestVersion(temp, fileloc("resData"), "csv")
+  dt.food.agg <- getNewestVersion(temp, fileloc("resData"))
   cols.all <- names(dt.food.agg)[grep(".all", names(dt.food.agg))]
   cols.staple <- names(dt.food.agg)[grep(".staple", names(dt.food.agg))]
   cols.foodGroup <- names(dt.food.agg)[grep(".foodGroup", names(dt.food.agg))]
@@ -196,7 +196,7 @@ f.ratios.FG <- function(region, req) {
   reqShortName <- gsub("req.", "", req)
   #reqShortName <- gsub(".percap", "", temp)
   temp <- paste("food.agg.", reqShortName, sep = "")
-  dt.food.agg <- getNewestVersion(temp, fileloc("resData"), "csv")
+  dt.food.agg <- getNewestVersion(temp, fileloc("resData"))
   cols.all <- names(dt.food.agg)[grep(".all", names(dt.food.agg))]
   cols.staple <- names(dt.food.agg)[grep(".staple", names(dt.food.agg))]
   cols.foodGroup <- names(dt.food.agg)[grep(".foodGroup", names(dt.food.agg))]
@@ -293,7 +293,7 @@ f.ratios.staples <- function(region, req) {
   reqShortName <- gsub("req.", "", req)
   #reqShortName <- gsub(".percap", "", temp)
   temp <- paste("food.agg.", reqShortName, sep = "")
-  dt.food.agg <- getNewestVersion(temp, fileloc("resData"), "csv")
+  dt.food.agg <- getNewestVersion(temp, fileloc("resData"))
   cols.all <- names(dt.food.agg)[grep(".all", names(dt.food.agg))]
   cols.staple <- names(dt.food.agg)[grep(".staple", names(dt.food.agg))]
   cols.foodGroup <- names(dt.food.agg)[grep(".foodGroup", names(dt.food.agg))]
@@ -436,7 +436,7 @@ ethanolkcals <- 6.9
 ethanol.beer <- .04
 ethanol.wine <- .12
 ethanol.spirits <- .47
-formula.wide <- paste("scenario + ", region, " + year ~ IMPACT_code")
+formula.wide <- paste("scenario + region_code.IMPACT159 + year ~ IMPACT_code")
 dt.alc.wide <- data.table::dcast(data = dt.alc,
                                  formula = formula.wide,
                                  value.var = "FoodAvailability")
@@ -447,7 +447,7 @@ deleteListCol <- c("c_beer","c_spirits","c_wine")
 dt.alc.wide[, (deleteListCol) := NULL]
 
 # now get rest of nutrient items
-dt.nutSum <- getNewestVersion("dt.nutrients.sum", fileloc("resData"), "csv")
+dt.nutSum <- getNewestVersion("dt.nutrients.sum", fileloc("resData"))
 dt.nutSum[, scenario := gsub("IRREXP-WUE2", "IRREXP_WUE2", scenario)]
 dt.nutSum[, scenario := gsub("PHL-DEV2", "PHL_DEV2", scenario)]
 dt.nutSum[, RCP := "RCP8.5"]
@@ -455,7 +455,7 @@ scenarioComponents <- c("SSP", "climate_model", "experiment")
 dt.nutSum[, (scenarioComponents) := data.table::tstrsplit(scenario, "-", fixed = TRUE)]
 dt.nutSum[is.na(experiment), experiment := "REF"]
 
-basicInfo <- c("scenario",  "SSP", "climate_model", "experiment","RCP", region,"year")
+basicInfo <- c("scenario",  "SSP", "climate_model", "experiment","RCP", "region_code.IMPACT159", "year")
 macro <- c("energy_kcal", "protein_g", "carbohydrate_g", "totalfiber_g", "sugar_g", "fat_g" )
 minrls <- c("calcium_mg", "iron_mg", "magnesium_mg", "phosphorus_mg", "potassium_g", "sodium_g", "zinc_mg")
 vits <- c("niacin_mg", "riboflavin_mg", "folate_µg", "thiamin_mg",
@@ -488,7 +488,7 @@ keepListCol <- c(basicInfo, nutList.ratio)
 dt.nutSum <- dt.nutSum[, keepListCol, with = FALSE]
 
 scenarioComponents <- c("SSP", "climate_model", "experiment")
-basicKey <- c("scenario", scenarioComponents, "RCP", region, "year")
+basicKey <- c("scenario", scenarioComponents, "RCP", "region_code.IMPACT159", "year")
 
 dt.nutSum.long <- data.table::melt(
   dt.nutSum, id.vars = basicKey,
@@ -497,7 +497,7 @@ dt.nutSum.long <- data.table::melt(
   value.name = "nut_ratio",
   variable.factor = FALSE)
 
-formula.sum.all <- paste("scenario + SSP + climate_model + experiment + RCP + ", region, " + nutrientReq ~ year")
+formula.sum.all <- paste("scenario + SSP + climate_model + experiment + RCP + region_code.IMPACT159 + nutrientReq ~ year")
 
 dt.nutSum.wide <- data.table::dcast(
   data = dt.nutSum.long,

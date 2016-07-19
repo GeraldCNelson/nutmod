@@ -6,19 +6,30 @@
 #   iData - data/IMPACTdata - directory with IMPACT data
 #   resData - results
 
-print(paste("start time is" , proc.time(), sep = ""))
+# print(paste("start time is " , proc.time(), sep = ""))
 ptm <- proc.time()
 source("R/nutrientModFunctions.R")
 source("R/workbookFunctions.R")
 source("R/nutrientCalcFunctions.R")
 
-metadata()
-source("R/dataPrep.regions.R") # - creates dt.regions.all, mData
 source("R/dataPrep.IMPACT.R")
 # - creates files in iData
 # dt.IMPACTmetaData
 # paste(dt,varName, sep = ".") - one file for each IMPACT variable, example is dt.PerCapKCAL.2016-06-21.rds
 # dt.CSEs
+
+source("R/dataPrep.SSP.R")
+# - creates files in mData
+# dt.SSPGDPClean - SSP GDP data
+# dt.SSP.pop.tot
+# dt.SSPPopClean - SSP population data including age and gender groups
+# dt.IMPACT159.pop.tot - total population by IMPACT 159 region from the SSP population data set; not any more
+
+source("R/dataPrep.regions.R") # - creates dt.regions.all and the list of scenarios
+
+metadata()
+
+source("R/dataPrep.FBS.R") # - creates dt.FBS, mData
 
 source("R/dataManagement.fishnAlc.R")
 # dt.fishIncElast, iData - to have a record of what fish income elasticities were used
@@ -30,14 +41,6 @@ source("R/dataManagement.IMPACT.R")
 # adds fish and alcohol data, writes out IMPACT variables just for food items (names begin with c), and dt.IMPACTfood file
 #paste(fileShortName, "food, sep = "."), iData - just data for food commodities, example is dt.CSEs.food.2016-06-21.rds
 #dt.IMPACTfood, iData
-
-source("R/dataPrep.FBS.R") # - creates dt.FBS, mData
-source("R/dataPrep.SSP.R")
-# - creates files in mData
-# dt.SSPGDPClean - SSP GDP data
-# dt.SSP.pop.tot
-# dt.SSPPopClean - SSP population data including age and gender groups
-# dt.IMPACT159.pop.tot - total population by IMPACT 159 region from the SSP population data set
 
 source("R/dataPrep.nutrientData.R") # - creates dt.cookingRet and dt.nutrients, mData
 source("R/dataPrep.NutrientRequirements.R")

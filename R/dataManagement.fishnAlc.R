@@ -29,6 +29,7 @@ year0 <- paste("X",year0, sep = "")
 keepYearList <- c(year0,keepYearList)
 IMPACTfish <- fileNameList("IMPACTfish")
 IMPACTfish_code <- keyVariable("IMPACTfish_code")
+IMPACTalcohol_code <- keyVariable("IMPACTalcohol_code")
 scenarioListSSP.pop <- keyVariable("scenarioListSSP.pop")
 scenarioListSSP.GDP <- keyVariable("scenarioListSSP.GDP")
 

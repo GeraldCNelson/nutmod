@@ -95,8 +95,8 @@ getNewestVersion <- function(fileShortName, directory) {
   if (length(newestFile) == 0) {
     stop(sprintf("There is no file that begins with '%s' in directory %s", fileShortName, mData))
   } else {
-  outFile = readRDS(paste(mData,newestFile, sep = "/"))
-  return(outFile)
+    outFile = readRDS(paste(mData,newestFile, sep = "/"))
+    return(outFile)
   }
 }
 
@@ -106,21 +106,7 @@ getNewestVersion <- function(fileShortName, directory) {
 #' @return The most recent .rds file of IMPACT data
 #' @export
 getNewestVersionIMPACT <- function(fileShortName) {
-  iData <- fileloc("iData")
-  # see
-  # http://stackoverflow.com/questions/7381641/regex-matching-beginning-and-end-strings
-  # for an explanation of this regex expression
-  # regExp <- paste("(?=^", fileShortName, ")(?=.*RData$)", sep = "")
-  regExp <- paste("(?=^", fileShortName, ")(?=.*rds$)", sep = "")
-  filesList <-
-    grep(regExp,
-         list.files(iData),
-         value = TRUE,
-         perl = TRUE)
-  newestFile <- filesList[length(filesList)]
-  print(newestFile)
-  #  return(load(file = paste(iData, newestFile, sep = "/")))
-  return(readRDS(paste(iData, newestFile, sep = "/")))
+  getNewestVersion(fileShortName, fileloc("iData"))
 }
 
 #' Title removeOldVersions - removes old version of an RData file
@@ -189,7 +175,7 @@ cleanup <- function(inDT, outName, dir, writeFiles) {
     data.table::setcolorder(inDT,c(startOrder,remainder))
     data.table::setorderv(inDT,c(startOrder,remainder))
   }
- # print(paste("removing old versions of ", outName, sep = ""))
+  # print(paste("removing old versions of ", outName, sep = ""))
   #print(proc.time())
 
   removeOldVersions(outName,dir)
@@ -197,7 +183,7 @@ cleanup <- function(inDT, outName, dir, writeFiles) {
   # save(inDT,
   #      file = paste(dir, "/", outName, ".", Sys.Date(), ".RData", sep = ""))
   sprintf("writing the rds for %s to %s ", outName, dir)
- # print(proc.time())
+  # print(proc.time())
   # next line removes any key left in the inDT data table; this may be an issue if a df is used
   data.table::setkey(inDT, NULL)
   saveRDS(inDT,
@@ -210,11 +196,11 @@ cleanup <- function(inDT, outName, dir, writeFiles) {
     writeFiles <- writeFiles[!writeFiles %in% c("xlsx", "csv")]
   }
   if ("csv"  %in% writeFiles) {
-#    print(paste("writing the csv for ", outName, " to ",dir, sep = ""))
+    #    print(paste("writing the csv for ", outName, " to ",dir, sep = ""))
     write.csv(inDT,file = paste(dir, "/", outName, ".", Sys.Date(), ".csv", sep = ""))
   }
   if ("xlsx"  %in% writeFiles) {
-#    print(paste("writing the xlsx for ", outName, " to ", dir, sep = ""))
+    #    print(paste("writing the xlsx for ", outName, " to ", dir, sep = ""))
     wbGeneral <- openxlsx::createWorkbook()
     openxlsx::addWorksheet(wb = wbGeneral, sheetName = outName)
 
@@ -248,8 +234,8 @@ cleanup <- function(inDT, outName, dir, writeFiles) {
 
     xcelOutFileName = paste(dir, "/", outName, ".", Sys.Date(), ".xlsx", sep = "")
     openxlsx::saveWorkbook(wbGeneral, xcelOutFileName, overwrite = TRUE)
- #   print(paste("done writing the xlsx for ", outName, sep = ""))
-  #  print(proc.time())
+    #   print(paste("done writing the xlsx for ", outName, sep = ""))
+    #  print(proc.time())
   }
 }
 
@@ -687,27 +673,43 @@ countryCodeLookup <- function(countryName, directory) {
   if (!countryName %in% dt.regions$region_name.IMPACT159) {
     stop(sprintf("The country name you entered (%s) is not in the lookup table", countryName))
   } else {
+    # region159codes <- dt.regions$region_code.IMPACT159
+    # rowNum <- dt.regions[region_name.IMPACT159 == countryName, which = TRUE]
+    # countryCode <- region159codes[rowNum]
     countryCode <- dt.regions[region_name.IMPACT159 == countryName, region_code.IMPACT159]
     return(countryCode)
   }
 }
 
-reqRatiodatasetup <- function(reqType,country, SSP, climModel, experiment, years, dir) {
+# test data for reqRatiodatasetup
+country <- "AFG"; years <- c("X2010", "X2030", "X2050")
+reqType <- "RDA_macro"; dir <- fileloc("resData"); scenarioName <- "SSP2-HGEM-HiNARS2"
 
-  scenarioName <- paste(SSP, climModel, experiment, sep = "-")
-  scenarioListIMPACT <- keyVariable("scenarioListIMPACT")
-  errorMessage <- cbind(paste("Your combination of ", scenarioName,
-                              "is not allowed. Please choose from one of the following combinations: ", sep = " "),
-                        paste(shQuote(as.character(scenarioListIMPACT), type = "sh"), collapse = ", "))
-  if (experiment %in% "REF" & !scenarioName %in% c("SSP2-HGEM-REF", "SSP2-IPSL2-REF", "SSP2-NoCC-REF")) {
-    stop(errorMessage)
-  }
-  if (!experiment %in% "REF" & !scenarioName %in% scenarioListIMPACT) {
-    stop(errorMessage)
-  }
+reqRatiodatasetup <- function(reqType,country, scenarioName, years, dir) {
+  # reqRatiodatasetup <- function(reqType,country, SSP, climModel, experiment, years, dir) {
+  #
+  #   scenarioName <- paste(SSP, climModel, experiment, sep = "-")
+  #   scenarioListIMPACT <- keyVariable("scenarioListIMPACT")
+  #   errorMessage <- cbind(paste("Your combination of ", scenarioName,
+  #                               "is not allowed. Please choose from one of the following combinations: ", sep = " "),
+  #                         paste(shQuote(as.character(scenarioListIMPACT), type = "sh"), collapse = ", "))
+  #   if (experiment %in% "REF" & !scenarioName %in% c("SSP2-HGEM-REF", "SSP2-IPSL-REF", "SSP2-NoCC-REF")) {
+  #     stop(errorMessage)
+  #   }
+  #   if (!experiment %in% "REF" & !scenarioName %in% scenarioListIMPACT) {
+  #     stop(errorMessage)
+  #   }
   # need to do this to match up with what the experiment names are in the data files
-   scenarioName <- paste(SSP, climModel, experiment, sep = "-")
+  # scenarioName <- paste(SSP, climModel, experiment, sep = "-")
 
+  SSP <- stringi::stri_split_fixed(scenarioName, "-", simplify = TRUE)[1]
+  climModel <- stringi::stri_split_fixed(scenarioName, "-", simplify = TRUE)[2]
+  temp <- stringi::stri_split_fixed(scenarioName, "-", simplify = TRUE)[3]
+  if (is.na(temp)) {
+    experiment <- "REF"
+  } else {
+    experiment <- stringi::stri_split_fixed(scenarioName, "-", simplify = TRUE)[3]
+  }
   if (reqType == "RDA_macro") {
     reqRatios <- getNewestVersion("RDA.macro.sum.req.ratio", dir)
     reqType <- "RDA, macronutrients"
@@ -738,14 +740,16 @@ reqRatiodatasetup <- function(reqType,country, SSP, climModel, experiment, years
     reqRatios <- reqRatios[!nutrientReq %in% "sugar_g_reqRatio",]
     reqType <- "Share of Kcals"
   }
-# region <- keyVariable("region")
-  idVars <- c("scenario", "SSP","climate_model", "experiment", region, "nutrientReq")
+#  region <- keyVariable("region")
+#  region <- "region_code.IMPACT159"
+  idVars <- c("scenario", "SSP","climate_model", "experiment", "region_code.IMPACT159", "nutrientReq")
+  # idVars <- c("scenario", region, "nutrientReq")
   measureVars <- keyVariable("keepYearList")
   reqRatios.long <- data.table::melt(
     data = reqRatios,  id.vars = idVars, measure.vars = measureVars, variable.name = "year",
     value.name = "value", variable.factor = FALSE)
 
-  formula.ratios <- paste("scenario + SSP + climate_model + experiment + ", region, "  +  year ~ nutrientReq")
+  formula.ratios <- paste("scenario + SSP + climate_model + experiment + region_code.IMPACT159  +  year ~ nutrientReq")
   reqRatios.wide <- data.table::dcast(
     reqRatios.long,
     formula = formula.ratios,
@@ -760,19 +764,13 @@ reqRatiodatasetup <- function(reqType,country, SSP, climModel, experiment, years
   nutListShort <- gsub("_g"," ",nutListShort)
   nutListShort <- gsub("totalfiber","total fiber",nutListShort)
 
-  i <- country
-  j <- SSP
-  k <- climModel
-  m <- experiment
-  l <- years
+  i <- country; j <- SSP; k <- climModel; m <- experiment; l <- years
 
   #l <- c("X2010","X2015","X2020","X2025","X2030","X2035","X2040","X2045","X2050")
-  reqRatios.wide.nuts <- reqRatios.wide[region_code.IMPACT159 %in% i &
-                                          SSP %in% j &
-                                          climate_model %in% k &
-                                          experiment == m &
-                                          year %in% l,
-                                        c( "year",nutList), with = FALSE]
+  reqRatios.wide.nuts <-
+    reqRatios.wide[region_code.IMPACT159 %in% i & SSP %in% j & climate_model %in% k &
+                     experiment == m & year %in% l,
+                   c( "year",nutList), with = FALSE]
   data.table::setnames(reqRatios.wide.nuts,old = names(reqRatios.wide.nuts),
                        new = gsub("_reqRatio","",names(reqRatios.wide.nuts)))
 
@@ -806,8 +804,10 @@ cleanUpreqType <- function(reqType) {
   return(fullName)
 }
 
-nutSpiderGraph <- function(reqType, country, SSP, climModel, experiment, years, dir) {
-  temp <- reqRatiodatasetup(reqType,country, SSP, climModel, experiment, years, dir)
+# nutSpiderGraph <- function(reqType, country, SSP, climModel, experiment, years, dir) {
+#   temp <- reqRatiodatasetup(reqType,country, SSP, climModel, experiment, years, dir)
+nutSpiderGraph <- function(reqType, country, scenario, years, dir) {
+  temp <- reqRatiodatasetup(reqType,country, scenario, years, dir)
   nutListShort <- temp[[2]]
   inputData <- temp[[1]]
   head(inputData)
@@ -817,19 +817,22 @@ nutSpiderGraph <- function(reqType, country, SSP, climModel, experiment, years, 
   colors_border <- c(  "black", rgb(0.2,0.5,0.5,0.9), rgb(0.8,0.2,0.5,0.9), rgb(0.7,0.5,0.1,0.9) )
   colors_in <- c( "black", rgb(0.2,0.5,0.5,0.4), rgb(0.8,0.2,0.5,0.4), rgb(0.7,0.5,0.1,0.4) )
   lineType <- c(3, 1, 1, 1)
+  # plot.new()
+  par(mar = c(1, 2, 2, 1))
   radarchart(inputData[,!1, with = FALSE], axistype = 2,
              title = chartTitle,
              vlabels = nutListShort,
              seg = 3,
              #custom polygon
              pcol = colors_border, plwd = 1, plty = lineType,
-             #custom the grid
+             #customgrid colors
              cglcol = "grey", cglty = 1, axislabcol = "grey", caxislabels = seq(0,20,5), cglwd = 0.8,
              #custom labels
              vlcex = 0.8
   )
-  legend(x = 1.2, y = -.55, legend = gsub("X","",inputData[3:nrow(inputData),years]), bty = "n", pch = 20,
-         col = colors_in, text.col = "black", cex = .8, pt.cex = .8, pt.lwd = 1,
+  #  title(main = chartTitle)
+  legend(x = "bottomright", y = NULL, legend = gsub("X","",inputData[3:nrow(inputData),years]), bty = "n", pch = 20,
+         col = colors_in, text.col = "black", cex = .6, pt.cex = .8, pt.lwd = 1,
          y.intersp = .8)
 }
 
@@ -837,6 +840,7 @@ cleanupScenarioNames <- function(dt.ptemp) {
   dt.ptemp[, scenario := gsub("IRREXP-WUE2", "IRREXP_WUE2", scenario)]
   dt.ptemp[, scenario := gsub("PHL-DEV2", "PHL_DEV2", scenario)]
   dt.ptemp[, scenario := gsub("HGEM2", "HGEM", scenario)]
+  dt.ptemp[, scenario := gsub("IPSL2", "IPSL", scenario)]
   return(dt.ptemp)
 }
 

@@ -205,6 +205,7 @@ regions.all <- regions.all[order(regions.all$ISO_code), ]
 dt.regions.all <- data.table::as.data.table(regions.all)
 newRegions <- openxlsx::read.xlsx(IMPACTregionsUpdateJun2016, sheet = 2, cols = 1:7, colNames = TRUE)
 inDT <- merge(dt.regions.all,newRegions, by = "region_code.IMPACT159", all = TRUE)
+data.table::setorder(inDT, ISO_code)
 outName <- "dt.regions.all"
 cleanup(inDT,outName,fileloc("mData"))
 

@@ -25,7 +25,7 @@ if (!exists("getNewestVersion", mode = "function")) {
 }
 # choose a grouping of countries -----
 # region <- keyVariable("region")
-
+region <- "region_code.IMPACT159"
 # Read in all data first and standardize variable names -----
 # Read in IMPACT food data ----------
 dt.IMPACTfood <- getNewestVersionIMPACT("dt.IMPACTfood")

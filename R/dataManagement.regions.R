@@ -27,34 +27,20 @@ if (!exists("getNewestVersion", mode = "function"))
 
 # load regions info ----
 dt.regions.all <- getNewestVersion("dt.regions.all")
+# region <- keyVariable("region")
+region <-  "region_code.IMPACT159"
+
 # list of countries not in SSP data set so no age gender info
 missingSSP <- setdiff(dt.regions.all$ISO_code,dt.regions.all$region_code.SSP)
 #remove them from list of countries
 dt.regions.all <- dt.regions.all[!ISO_code %in% missingSSP,]
 data.table::setkey(dt.regions.all)
 
-# region <- keyVariable("region")
-region <-  "region_code.IMPACTstandard" #for testing
 keepYearList <- keyVariable("keepYearList")
 scenarioListIMPACT <- keyVariable("scenarioListIMPACT")
 
 dt.pop <- getNewestVersion("dt.IMPACT.pop3.tot")
 dt.pop[,scenario := substr((scenario),1,4)] # keep just the SSP scenario info
-
-# now aggregate population to the region, if its more aggregated than IMPACT159
-if (!region %in% names(dt.pop)) {
-  # add value.sum - sum of population over each region and pop.share - share of each country's population in the total of its region
-# See http://stackoverflow.com/questions/25204859/error-while-merging-data-frames-using-data-table-package
-  keepListCol <- c(region, "region_code.IMPACT159")
-  dt.regions.all <- dt.regions.all[, keepListCol, with = FALSE]
-  data.table::setkey(dt.regions.all)
-  dt.regions.all <- unique(dt.regions.all)
-  dt.temp <- merge(dt.pop,dt.regions.all, by = "region_code.IMPACT159")
-  keepListCol <- c(names(dt.pop),region)
-  dt.pop <- dt.temp[,keepListCol, with = FALSE]
-  data.table::setkeyv(dt.pop, c("scenario", region, "year"))
-  dt.pop[,pop.sum := sum(value), by = eval(data.table::key(dt.pop))][,pop.share := value/pop.sum]
-}
 
 # population doesn't vary by climate model so reproduce the pop data for each of the climate model results
 dt.pop.complete <- dt.pop[FALSE,]

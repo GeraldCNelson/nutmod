@@ -8,7 +8,10 @@ if (!exists("getNewestVersion", mode = "function"))
   source("R/workbookFunctions.R")
   source("R/nutrientCalcFunctions.R")}
 
-source("R/gdxrrfunctions.R")
+# this script needs to be separate because shiny can't deal with the gams package.
+source("R/gdxrrwSetup.R")
+
+#source("R/gdxrrfunctions.R")
 # Intro -------------------------------------------------------------------
 
 #Copyright (C) 2015 Gerald C. Nelson, except where noted
@@ -32,8 +35,6 @@ source("R/gdxrrfunctions.R")
 #' the install.packages command will find it.
 #' @import gdxrrw
 
-# needed at the moment because I can't install the gdxrrw file to the nutmod project directory
-#packrat::opts$external.packages("gdxrrw")
 #' Title importIMPACT - Import data from the IMPACT model and write out rds and excel files
 #' @description Read IMPACT159 data from a gdx file
 #'
@@ -47,20 +48,19 @@ source("R/gdxrrfunctions.R")
 #' @return null
 #' @export
 
-#writes out scenarioListIMPACT to a csv file in the data directory
-gamsSetup()
 
-getGDXmetaData <- function(gamsDir,IMPACTgdx) {
-  R_GAMS_SYSDIR <-  gamsDir
-  gdxrrw::igdx(gamsSysDir = R_GAMS_SYSDIR)
+gamsSetup() # to load GAMs stuff and create the list of IMPACT scenarios
+
+#getGDXmetaData <- function(gamsDir,IMPACTgdx) {
+  getGDXmetaData <- function(IMPACTgdx) {
+    #  R_GAMS_SYSDIR <-  gamsDir
+#  gdxrrw::igdx(gamsSysDir = R_GAMS_SYSDIR) maybe not needed because done in gamsSetup
   # read in the gdx information to temp
   temp <-
     gdxrrw::gdxInfo(
-      gdxName = IMPACTgdx,
-      dump = FALSE,
-      returnList = FALSE,
-      returnDF = TRUE
+      gdxName = IMPACTgdx, dump = FALSE, returnList = FALSE, returnDF = TRUE
     )
+
   # convert to data table and extract just the list of parameters
   dt.gdx.param <- data.table::as.data.table(temp$parameters)
   keepListCol <-
@@ -73,7 +73,8 @@ getGDXmetaData <- function(gamsDir,IMPACTgdx) {
   cleanup(inDT,outName,fileloc("iData"))
 }
 
-getGDXmetaData(fileNameList("R_GAMS_SYSDIR"),fileNameList("IMPACTgdx"))
+#getGDXmetaData(fileNameList("R_GAMS_SYSDIR"),fileNameList("IMPACTgdx"))
+getGDXmetaData(fileNameList("IMPACTgdx"))
 
 #' Title processIMPACT159Data - read in from the IMPACT gdx file and write out rds and excel files for a single param
 
@@ -84,12 +85,12 @@ getGDXmetaData(fileNameList("R_GAMS_SYSDIR"),fileNameList("IMPACTgdx"))
 #' @export
 #'
 processIMPACT159Data <- function(gdxFileName, varName, catNames) {
-  dt.regions.all <- getNewestVersion("dt.regions.all")
+#  dt.regions.all <- getNewestVersion("dt.regions.all")
   IMPACTgdx <- gdxFileName
   keepYearList  <- keyVariable("keepYearList")
-  dt.temp <- dt.regions.all[,c("region_code.IMPACT159","region_name.IMPACT159"), with = FALSE]
-  data.table::setkey(dt.temp,region_code.IMPACT159)
-  dt.IMPACTregions <- unique(dt.temp)
+#  dt.temp <- dt.regions.all[,c("region_code.IMPACT159","region_name.IMPACT159"), with = FALSE]
+ # data.table::setkey(dt.temp,region_code.IMPACT159)
+  # dt.IMPACTregions <- unique(dt.temp)
   dt.ptemp <- data.table::as.data.table(gdxrrw::rgdx.param(IMPACTgdx, varName,
                                                            ts = TRUE, names = catNames))
   #if the data set contains SDN (the old Sudan) data, convert the code to SDP
@@ -103,13 +104,11 @@ processIMPACT159Data <- function(gdxFileName, varName, catNames) {
   data.table::setorderv(dt.ptemp, cols = catNames)
   data.table::setnames(dt.ptemp,"value",varName)
   # this if statement keeps the region code and name from being added since PW is only for the world
-  if (!varName == "PWX0") {
-    data.table::setkey(dt.ptemp, region_code.IMPACT159)
-    dt.temp <-
-      merge(dt.ptemp, dt.IMPACTregions, by = "region_code.IMPACT159", all = TRUE)
-    # set the region code of South Sudan to the code for Sudan, if it has not already been done
-    # dt.ptemp[region_code.IMPACT159  == "SDN", region_code.IMPACT159 := "SDP"]
-  }
+  # if (!varName == "PWX0") {
+  #   data.table::setkey(dt.ptemp, region_code.IMPACT159)
+  #   dt.temp <-
+  #     merge(dt.ptemp, dt.IMPACTregions, by = "region_code.IMPACT159", all = TRUE)
+  # }
 
   dt.ptemp <- cleanupScenarioNames(dt.ptemp)
   inDT <- dt.ptemp

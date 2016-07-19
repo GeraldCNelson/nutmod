@@ -177,7 +177,7 @@ combineIMPACTData <- function() {
   # needed because fish and alcohol don't have prices
   data.table::set(dt.IMPACTfood, which(is.na(dt.IMPACTfood[["PCX0"]])), "PCX0", 0)
   data.table::set(dt.IMPACTfood, which(is.na(dt.IMPACTfood[["PWX0"]])), "PWX0", 0)
-  dt.IMPACTfood[IMPACT_code %in% keyVariable("IMPACTfoodCommodList")]
+  dt.IMPACTfood <- dt.IMPACTfood[IMPACT_code %in% keyVariable("IMPACTfoodCommodList")]
   dt.IMPACTfood <- dt.IMPACTfood[!is.na(pcGDPX0),]
   data.table::setorderv(dt.IMPACTfood, cols = c("scenario",  "region_code.IMPACT159", "IMPACT_code", "year"))
   data.table::setkeyv(dt.IMPACTfood, c("scenario",  "region_code.IMPACT159", "IMPACT_code"))

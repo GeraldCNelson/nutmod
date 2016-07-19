@@ -37,18 +37,18 @@ dt.SSPPop <- getNewestVersion("dt.SSPPopClean")
 dt.SSPPop <- dt.SSPPop[year %in% keepYearList,]
 
 data.table::setkey(dt.SSPPop, ISO_code)
-dt.regionsLU <- getNewestVersion("dt.regions.all")
-data.table::setkey(dt.regionsLU, ISO_code)
-dt.SSPPop <- dt.SSPPop[dt.regionsLU]
+dt.regions.all <- getNewestVersion("dt.regions.all")
+data.table::setkey(dt.regions.all, ISO_code)
+dt.SSPPop <- dt.SSPPop[dt.regions.all]
 
 # Read in the region to aggregate to -----
 # region <- keyVariable("region")
-keepListCol <- c("scenario","ageGenderCode","year", "value",region)
+keepListCol <- c("scenario","ageGenderCode","year", "value", "region_code.IMPACT159")
 dt.SSPPop <- dt.SSPPop[, keepListCol, with = FALSE]
 dt.SSPPop <- dt.SSPPop[!is.na(scenario),]
 
 # aggregation of the SSP data to the regions is done here
-data.table::setkeyv(dt.SSPPop, c("scenario", region,"ageGenderCode","year"))
+data.table::setkeyv(dt.SSPPop, c("scenario", "region_code.IMPACT159", "ageGenderCode","year"))
 dt.SSP.regions <- dt.SSPPop[, value := sum(value), by = eval(data.table::key(dt.SSPPop))]
 dt.SSP.regions <- unique(dt.SSP.regions) # needed because the sum process leaves extra rows
 
@@ -94,7 +94,7 @@ data.table::setkey(dt.SSP.scen.wide)
 deleteListCol <- c("F15_49")
 dt.SSP.scen.wide[,(deleteListCol) := NULL]
 data.table::setnames(dt.SSP.scen.wide, old = "nonPL",new = "F15_49")
-idVarsPop <- c("scenario",region,"year" )
+idVarsPop <- c("scenario", "region_code.IMPACT159", "year" )
 measureVarsPop <- names(dt.SSP.scen.wide)[4:ncol(dt.SSP.scen.wide)]
 dt.pop <- data.table::melt(dt.SSP.scen.wide,
                                  id.vars = idVarsPop,
@@ -107,12 +107,12 @@ dt.pop <- data.table::melt(dt.SSP.scen.wide,
 dt.pop[, ageGenderCode := paste("SSP", ageGenderCode, sep = "")]
 data.table::setnames(dt.pop,old = "value",new = "pop.value")
 
-data.table::setkeyv(dt.SSP.scen,c(region,"year"))
+data.table::setkeyv(dt.SSP.scen,c("region_code.IMPACT159", "year"))
 dt.popTot <- dt.SSP.scen[, pop.tot := sum(value), by = eval(data.table::key(dt.SSP.scen))]
 dt.popTot[,ageGenderCode := NULL]
 dt.popTot <- unique(dt.popTot)
 #a temporary line of code for testing
-#nutReqName <- "req.UL.minrls.ssp"
+# nutReqName <- "req.UL.minrls.ssp"
 
 
 #' Title repCons
@@ -128,8 +128,9 @@ dt.popTot <- unique(dt.popTot)
 #' @param region - code for the region over which the operations should be done; e.g., region_code.IMPACT159
 #' @return
 #' @export
-repCons <- function(dt.pop, nutReqName,ageRowsToSum,region) {
-  # remove the nutrient requirements for the female age groups in ageRowsToSum
+# repCons <- function(dt.pop, nutReqName, ageRowsToSum, region) {
+  repCons <- function(dt.pop, nutReqName, ageRowsToSum) {
+    # remove the nutrient requirements for the female age groups in ageRowsToSum
   # because they are already in dt.SSP.regionsF15_49
   dt.nutReq <- getNewestVersion(nutReqName)
 #  dt.nutReq <- data.table::as.data.table(nutReq[!(nutReq$ageGenderCode %in% ageRowsToSumSSP), ])
@@ -138,7 +139,7 @@ repCons <- function(dt.pop, nutReqName,ageRowsToSum,region) {
   data.table::setkey(dt.nutReq, ageGenderCode)
   # dt.temp <- cbind(dt.pop,dt.nutReq)
   dt.temp <- merge(dt.pop,dt.nutReq, by = "ageGenderCode", all.y = TRUE)
-  keyValues <- c("scenario", region_code.IMPACT159, "year", "ageGenderCode","pop.value")
+  keyValues <- c("scenario", "region_code.IMPACT159", "year", "ageGenderCode","pop.value")
   data.table::setkeyv(dt.temp,keyValues)
   # multiply the number of people be age and gender group by the nutritional requirements of that group
   dt.temp[, (paste(common.nut, "prod", sep = ".")) :=
@@ -253,17 +254,15 @@ for (i in 1:length(reqsSSP)) {
   #nutReq <- paste(reqsSSP[i], "dt.SSP.regions", sep = ".")
   #nutReq <- eval(parse(text = nutReq))
   dt.temp.internal <-
-    repCons(dt.pop, reqsSSP[i],ageRowsToSum,region)
-  data.table::setkeyv(dt.temp.internal, c("nutrient", region))
+#    repCons(dt.pop, reqsSSP[i],ageRowsToSum,"region_code.IMPACT159")
+  repCons(dt.pop, reqsSSP[i],ageRowsToSum)
+  data.table::setkeyv(dt.temp.internal, c("nutrient", "region_code.IMPACT159"))
 
   dt.name <- paste(reqsSSP[i], "percap", sep = ".")
   #print(dt.name)
   openxlsx::addWorksheet(wb = wbGeneral, sheetName = dt.name)
   openxlsx::addStyle(
-    wb = wbGeneral,
-    sheet = dt.name,
-    style = numStyle,
-    rows = 2:nrow(dt.temp.internal),
+    wb = wbGeneral, sheet = dt.name, style = numStyle, rows = 2:nrow(dt.temp.internal),
     cols = 3:(ncol(dt.temp.internal)),
     gridExpand = TRUE
   )
@@ -271,10 +270,7 @@ for (i in 1:length(reqsSSP)) {
     wb = wbGeneral,
     x = dt.temp.internal,
     sheet = dt.name,
-    startRow = 1,
-    startCol = 1,
-    rowNames = FALSE,
-    colNames = TRUE
+    startRow = 1, startCol = 1, rowNames = FALSE, colNames = TRUE
   )
   nutrientList <- paste(unique(dt.temp.internal$nutrient), collapse = ", ")
   sheetDesc <- paste("nutrients included: ", nutrientList)
