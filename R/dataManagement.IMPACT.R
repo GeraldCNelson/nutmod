@@ -52,6 +52,7 @@ combineIMPACTData <- function() {
   dt.regions.all <- getNewestVersion("dt.regions.all")
   # get the list of scenarios in the IMPACT data for use below
   scenarioListIMPACT <- keyVariable("scenarioListIMPACT")
+  dt.FoodAvail <- dt.FoodAvail[scenario %in% scenarioListIMPACT,]
   data.table::setkey(dt.FoodAvail, "scenario", "year", "region_code.IMPACT159", "IMPACT_code")
 
   # aggregate to IMPACT159 regions

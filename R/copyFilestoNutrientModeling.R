@@ -26,7 +26,7 @@ copyFile <- function(fileShortName, sourceDir, destDir, fileType) {
   file.copy(from = paste(sourceDir, oldVersionList, sep = "/"), to = destDir, overwrite = TRUE)
 }
 
-copyListFromResults <- c("EAR.sum.req.ratio","dt.energy.ratios", "budgetShare",
+copyListFromResults <- c("EAR.sum.req.ratio","dt.energy.ratios", "dt.budgetShare",
                          "RDA.macro.sum.req.ratio", "RDA.vits.sum.req.ratio", "RDA.minrls.sum.req.ratio",
                          "RDA.macro.staples.ratio","RDA.vits.staples.ratio", "RDA.minrls.staples.ratio",
                          "RDA.macro.FG.ratio","RDA.vits.FG.ratio", "RDA.minrls.FG.ratio",
@@ -48,3 +48,12 @@ for (i in copyListFromiData) {
 
 file.copy("data/scenarioListIMPACT.csv", "nutrientModeling/data/scenarioListIMPACT.csv", overwrite = TRUE)
 file.copy("R/nutrientModFunctions.R", "nutrientModeling/global.R", overwrite = TRUE)
+
+# zip up csv files in the results directory
+
+zipFileName <- paste("results/resultsCSVzip", Sys.Date(), "zip", sep = "." )
+     regExp <- paste("(?=^", ")(?=.*csv$)", sep = "")
+ zipList <-     grep(regExp, list.files(fileloc("resData")), value = TRUE,  perl = TRUE)
+ zipList <- paste("results", zipList, sep = "/")
+zip(zipfile = zipFileName, files = zipList, flags = "-r9X", extras = "",  zip = Sys.getenv("R_ZIPCMD", "zip"))
+

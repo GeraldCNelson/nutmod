@@ -26,6 +26,8 @@ dt.shannonDiversity <- dt.shannonDiversity[region_code.IMPACT159 %in% ctyList & 
 keepListCol <-  c("scenario", "region_code.IMPACT159", "year", "pcGDPX0", "budget.PCX0", "incSharePCX0")
 dt.budgetShare <- dt.budgetShare[region_code.IMPACT159 %in% ctyList & scenario %in% scenarioList &
                                    year %in% yearList,keepListCol, with = FALSE]
+
 dt.regions.all <- unique(dt.regions.all[region_code.IMPACT159 %in% ctyList,c("region_code.IMPACT159", "region_name.IMPACT159"), with = FALSE])
 dt.regions.all <- dt.regions.all[,region_name.IMPACT159 := gsub(" plus", "", dt.regions.all$region_name.IMPACT159)]
-temp <- merge(dt.budgetShare, dt.regions.all, by = "region_code.IMPACT159")
+dt.budgetShare <- merge(dt.budgetShare, dt.regions.all, by = "region_code.IMPACT159")
+dt.shannonDiversity <- merge(dt.shannonDiversity, dt.regions.all, by = "region_code.IMPACT159")

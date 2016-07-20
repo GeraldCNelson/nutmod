@@ -314,7 +314,7 @@ keyVariable <- function(variableName) {
     )
   reqsListPercap <- paste(reqsList,".percap", sep = "")
   reqsListSSP <- paste(reqsList,".ssp", sep = "")
-  dropListCty <- c("GRL", "FSM", "GRD", "PRK", "JEY")
+  dropListCty <- c("GRL", "FSM", "GRD", "PRK")
   commonList <- paste("common.", reqsList, sep = "")
   c( "common.EAR", "common.RDA.vits", "common.RDA.minrls", "common.RDA.macro", "common.UL.vits","common.UL.minrls")
   useCookingRetnValues <- "TRUE"
@@ -478,7 +478,7 @@ fileNameList <- function(variableName) {
   IMPACTstdRegionsFileName <- "IMPACT-agg-regionsFeb2016.xlsx"
   IMPACTstdRegions <-
     paste(IMPACTData, IMPACTstdRegionsFileName, sep = "/")
-  IMPACTgdxfileName <- "Micronutrient-Inputs20160404.gdx"  #- new larger gdx
+  IMPACTgdxfileName <- "Micronutrient-Inputs.gdx"  #- new larger gdx
   #IMPACTgdxfileName <- "Demand Results20150817.gdx"
   IMPACTgdx         <- paste(IMPACTData, IMPACTgdxfileName, sep = "/")
   gdxLib            <- "/Applications/GAMS/gams24.5_osx_x64_64_sfx"
@@ -831,7 +831,8 @@ nutSpiderGraph <- function(reqType, country, scenario, years, dir) {
              vlcex = 0.8
   )
   #  title(main = chartTitle)
-  legend(x = "bottomright", y = NULL, legend = gsub("X","",inputData[3:nrow(inputData),years]), bty = "n", pch = 20,
+  yearList <- gsub("X","",inputData[3:nrow(inputData),years])
+  legend(x = "bottomright", y = NULL, legend = c("REQ", yearList), bty = "n", pch = 20,
          col = colors_in, text.col = "black", cex = .6, pt.cex = .8, pt.lwd = 1,
          y.intersp = .8)
 }

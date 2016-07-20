@@ -29,7 +29,7 @@ region <- "region_code.IMPACT159"
 # Read in all data first and standardize variable names -----
 # Read in IMPACT food data ----------
 dt.IMPACTfood <- getNewestVersionIMPACT("dt.IMPACTfood")
-IMPACTscenarioList <- unique(dt.IMPACTfood$scenario)
+#IMPACTscenarioList <- unique(dt.IMPACTfood$scenario)
 # dt.IMPACTfood <- dt.IMPACTfood[!region_code.IMPACT159 %in% c("GRL","SDN")]
 # this should not be necessary
 # dt.IMPACTfood <- dt.IMPACTfood[IMPACT_code %in% keyVariable("IMPACTfoodCommodList"),]
