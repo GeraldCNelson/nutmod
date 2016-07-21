@@ -201,7 +201,7 @@ ui <- fluidPage(title = "Nutrient modeling",
                       temp <- dt.budgetShare[region_code.IMPACT159 %in% countryCode &
                                                year %in% years,keepListCol, with = FALSE]
                       temp[,incSharePCX0 := incSharePCX0*100]
-                      setnames(temp, old = c("pcGDPX0", "budget.PCX0", "incSharePCX0"), new = c("Per capita GDP","Budget", "Expend. share (%"))
+                      setnames(temp, old = c("pcGDPX0", "budget.PCX0", "incSharePCX0"), new = c("Per capita GDP","Budget", "Expend. share (%)"))
                       temp
                     })
                 }
