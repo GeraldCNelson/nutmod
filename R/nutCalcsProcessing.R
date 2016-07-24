@@ -113,7 +113,8 @@ f.ratios.all <- function(region, req){
   dt.sum.req.ratio.long <- data.table::melt(
     dt.sum.req.ratio,
     id.vars = basicKey,
-    measure.vars = nutListReqRatio, variable.name = "nutrientReq",
+ #   measure.vars = nutListReqRatio, variable.name = "nutrientReq",
+    measure.vars = nutListReqRatio, variable.name = "nutrient",
     value.name = "req_share", variable.factor = FALSE)
 
   dt.all.ratio.long <- data.table::melt(
@@ -138,7 +139,8 @@ f.ratios.all <- function(region, req){
     value.var = "nut_share",
     variable.factor = FALSE)
 
-  formula.reqRatio <- paste("scenario + SSP + climate_model + experiment + RCP + region_code.IMPACT159 + nutrientReq ~ year")
+ # formula.reqRatio <- paste("scenario + SSP + climate_model + experiment + RCP + region_code.IMPACT159 + nutrientReq ~ year")
+  formula.reqRatio <- paste("scenario + SSP + climate_model + experiment + RCP + region_code.IMPACT159 + nutrient ~ year")
 
   dt.sum.req.ratio.wide <- data.table::dcast(
     data = dt.sum.req.ratio.long,
@@ -490,11 +492,13 @@ basicKey <- c("scenario", scenarioComponents, "RCP", "region_code.IMPACT159", "y
 dt.nutSum.long <- data.table::melt(
   dt.nutSum, id.vars = basicKey,
   measure.vars = nutList.ratio,
-  variable.name = "nutrientReq",
+#  variable.name = "nutrientReq",
+  variable.name = "nutrient",
   value.name = "nut_ratio",
   variable.factor = FALSE)
 
-formula.sum.all <- paste("scenario + SSP + climate_model + experiment + RCP + region_code.IMPACT159 + nutrientReq ~ year")
+#formula.sum.all <- paste("scenario + SSP + climate_model + experiment + RCP + region_code.IMPACT159 + nutrientReq ~ year")
+formula.sum.all <- paste("scenario + SSP + climate_model + experiment + RCP + region_code.IMPACT159 + nutrient ~ year")
 
 dt.nutSum.wide <- data.table::dcast(
   data = dt.nutSum.long,

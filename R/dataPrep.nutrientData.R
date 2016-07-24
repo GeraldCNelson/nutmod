@@ -226,4 +226,7 @@ data.table::setorder(dt.nutrients,IMPACT_code)
 inDT <- dt.nutrients
 outName <- "dt.nutrients"
 cleanup(inDT,outName,fileloc("mData"))
-#nutrients.out <- iconv(nutrients, from = "UTF-8", to = "Windows-1252") #to deal with mu
+
+# write csv file into the data directory
+foodGroupsInfo <- openxlsx::read.xlsx(foodGroupLU, sheet = 1, startRow = 1, cols = 1:6, colNames = TRUE)
+write.csv(foodGroupsInfo, "data/foodGroupLookup.csv")

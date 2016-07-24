@@ -30,23 +30,28 @@ copyListFromResults <- c("EAR.sum.req.ratio","dt.energy.ratios", "dt.budgetShare
                          "RDA.macro.sum.req.ratio", "RDA.vits.sum.req.ratio", "RDA.minrls.sum.req.ratio",
                          "RDA.macro.staples.ratio","RDA.vits.staples.ratio", "RDA.minrls.staples.ratio",
                          "RDA.macro.FG.ratio","RDA.vits.FG.ratio", "RDA.minrls.FG.ratio",
-                         "UL.vits.sum.req.ratio", "UL.minrls.sum.req.ratio", "metaData")
+                         "UL.vits.sum.req.ratio", "UL.minrls.sum.req.ratio",  "dt.shannonDiversity", "metaData",
+                         "UL.minrls.FG.ratio", "UL.vits.FG.ratio")
 
 copyListFromData <- c("dt.regions.all")
 copyListFromiData <- "dt.IMPACTmetaData"
+copyCsvFromData <- c("ResultFileLookup.csv", "foodGroupLookup.csv", "scenarioListIMPACT.csv")
 
 for (i in copyListFromResults) {
   print(sprintf("copying file %s from results to nutrientModeling/data", i))
   copyFile(i, fileloc("resultsDir"), "nutrientModeling/data", "rds")
 }
 for (i in copyListFromData) {
+  print(sprintf("copying file %s from %s to nutrientModeling/data", i, fileloc("mData")))
   copyFile(i, fileloc("mData"),"nutrientModeling/data", "rds")
 }
 for (i in copyListFromiData) {
   copyFile(i, fileloc("iData"),"nutrientModeling/data", "rds")
 }
+for (i in copyCsvFromData) {
+  copyFile(i, fileloc("mData"),"nutrientModeling/data", "csv")
+}
 
-file.copy("data/scenarioListIMPACT.csv", "nutrientModeling/data/scenarioListIMPACT.csv", overwrite = TRUE)
 file.copy("R/nutrientModFunctions.R", "nutrientModeling/global.R", overwrite = TRUE)
 
 # zip up csv files in the results directory
@@ -55,5 +60,5 @@ zipFileName <- paste("results/resultsCSVzip", Sys.Date(), "zip", sep = "." )
      regExp <- paste("(?=^", ")(?=.*csv$)", sep = "")
  zipList <-     grep(regExp, list.files(fileloc("resData")), value = TRUE,  perl = TRUE)
  zipList <- paste("results", zipList, sep = "/")
-zip(zipfile = zipFileName, files = zipList, flags = "-r9X", extras = "",  zip = Sys.getenv("R_ZIPCMD", "zip"))
+# zip(zipfile = zipFileName, files = zipList, flags = "-r9X", extras = "",  zip = Sys.getenv("R_ZIPCMD", "zip"))
 

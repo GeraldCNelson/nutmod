@@ -27,7 +27,7 @@
 #'
 #' @param variableName Name of variable holding a path
 #'
-#' @param RData - raw data directory
+#' @param rawData - raw data directory
 #'
 #' @param mData - main data directory
 #' @param iData - directory with IMPACT data
@@ -41,21 +41,22 @@
 #'
 #' @export
 fileloc <- function(variableName) {
-  RData <- "data-raw"
+  rawData <- "data-raw"
   mData <- "data"
   iData <- "data/IMPACTData"
+  nutData <- "data-raw/NutrientData"
   resData <- "results"
   resultsDir <- "results"
   shinyApp <- "nutrientModeling"
   shinyAppData <- "nutrientModeling/data"
-  FBSData <- paste(RData, "FBSData", sep = "/")
-  SSPData <- paste(RData, "SSPData", sep = "/")
-  IMPACTData <- paste(RData, "IMPACTData", sep = "/")
+  FBSData <- paste(rawData, "FBSData", sep = "/")
+  SSPData <- paste(rawData, "SSPData", sep = "/")
+  IMPACTData <- paste(rawData, "IMPACTData", sep = "/")
   IMPACTDataClean <- paste(mData, "IMPACTData", sep = "/")
-  NutrientData <- paste(RData, "NutrientData", sep = "/")
+  NutrientData <- paste(rawData, "NutrientData", sep = "/")
   if (variableName == "list") {
     return(c(
-      "RData",
+      "rawData",
       "mData",
       "iData",
       "resData",
@@ -79,13 +80,15 @@ fileloc <- function(variableName) {
 #' @return The most recent file.
 #'
 #' @export
-getNewestVersion <- function(fileShortName, directory) {
+getNewestVersion <- function(fileShortName, directory, fileType) {
   if (missing(directory)) {mData <- fileloc("mData")} else {mData <- directory}
+  if (missing(fileType)) {fileType <- "rds"}
+
   # see
   # http://stackoverflow.com/questions/7381641/regex-matching-beginning-and-end-strings
   # for an explanation of this regex expression
-  # regExp <- paste("(?=^", fileShortName, ")(?=.*RData$)", sep = "")
-  regExp <- paste("(?=^", fileShortName, ")(?=.*rds$)", sep = "")
+  # regExp <- paste("(?=^", fileShortName, ")(?=.*rawData$)", sep = "")
+  regExp <- paste("(?=^", fileShortName, ")(?=.*", fileType, "$)", sep = "")
   filesList <-
     grep(regExp,
          list.files(mData),
@@ -109,7 +112,7 @@ getNewestVersionIMPACT <- function(fileShortName) {
   getNewestVersion(fileShortName, fileloc("iData"))
 }
 
-#' Title removeOldVersions - removes old version of an RData file
+#' Title removeOldVersions - removes old version of an rawData file
 #'
 #' @param fileShortName - short name of the file to be removed
 #' @param dir - directory of the file to be removed
@@ -125,8 +128,8 @@ removeOldVersions <- function(fileShortName,dir) {
       file.remove(paste(dir, oldVersionList, sep = "/"))
     }
   }
-  # remove .Rdata versions
-  regExp <- paste("(?=^", fileShortName, ")(?=.*RData$)", sep = "")
+  # remove .rawData versions
+  regExp <- paste("(?=^", fileShortName, ")(?=.*rawData$)", sep = "")
   removeFcn(regExp)
   # remove .rds versions
   regExp <- paste("(?=^", fileShortName, ")(?=.*rds$)", sep = "")
@@ -181,7 +184,7 @@ cleanup <- function(inDT, outName, dir, writeFiles) {
   removeOldVersions(outName,dir)
   #  removeOldVersions.xlsx(outName,dir)
   # save(inDT,
-  #      file = paste(dir, "/", outName, ".", Sys.Date(), ".RData", sep = ""))
+  #      file = paste(dir, "/", outName, ".", Sys.Date(), ".rawData", sep = ""))
   sprintf("writing the rds for %s to %s ", outName, dir)
   # print(proc.time())
   # next line removes any key left in the inDT data table; this may be an issue if a df is used
@@ -456,7 +459,7 @@ metadata <- function() {
 
 fileNameList <- function(variableName) {
   IMPACTData      <- fileloc("IMPACTData")
-  NutrientData    <- fileloc("NutrientData")
+  # NutrientData    <- fileloc("NutrientData")gdx
   nutrientDataDetails <- "data-raw/NutrientData/nutrientDetails"
   SSPData         <- fileloc("SSPData")
   DRIFileName     <- "DRI_IOM_V7.xlsx"
@@ -496,6 +499,7 @@ fileNameList <- function(variableName) {
     "food commodity to food group table V3.xlsx"
   foodGroupLU      <-
     paste(nutrientDataDetails, commodityFoodGroupLookupFileName, sep = "/")
+  foodGroupLUAppBased <- paste(mData, commodityFoodGroupLookupFileName, sep = "/")
   # SSP information ----
   SSPdataZipFile   <- "SspDb_country_data_2013-06-12.csv.zip"
   SSPdataZip       <- paste(SSPData, SSPdataZipFile, sep = "/")
@@ -563,7 +567,7 @@ fileNameList <- function(variableName) {
 #' @export
 filelocFBS <- function(variableName) {
   FBSData <- fileloc("FBSData")
-  RData <- fileloc("RData")
+  rawData <- fileloc("rawData")
   #' FBS to ISO lookup table
   FBSlookupTableLink <-
     "http://www.fao.org/countryprofiles/iso3list/en/"
@@ -581,7 +585,7 @@ filelocFBS <- function(variableName) {
   FAOCountryNameCodeLookup <-
     paste(FBSData, FAOCountryNameCodeLookupFile, sep = "/")
   ISOCodesFile <- "ISOCountrycodes.xlsx"
-  ISOCodes <- paste(RData, ISOCodesFile, sep = "/")
+  ISOCodes <- paste(rawData, ISOCodesFile, sep = "/")
 
   #These regions are reported as their individual member countries during the relevant
   # time period (e.g. after 1999 for Belgium-Luxembourg). Their data entries are all NA.
@@ -682,157 +686,113 @@ countryCodeLookup <- function(countryName, directory) {
 }
 
 # test data for reqRatiodatasetup
-country <- "AFG"; years <- c("X2010", "X2030", "X2050")
-reqType <- "RDA_macro"; dir <- fileloc("resData"); scenarioName <- "SSP2-HGEM-HiNARS2"
+countryCode <- "AFG"; years <- c("X2010", "X2030", "X2050")
+reqTypeName <- "RDA.macro"
+dir <- fileloc("resData"); scenarioName <- "SSP2-HGEM-HiNARS2"
 
-reqRatiodatasetup <- function(reqType,country, scenarioName, years, dir) {
-  # reqRatiodatasetup <- function(reqType,country, SSP, climModel, experiment, years, dir) {
-  #
-  #   scenarioName <- paste(SSP, climModel, experiment, sep = "-")
-  #   scenarioListIMPACT <- keyVariable("scenarioListIMPACT")
-  #   errorMessage <- cbind(paste("Your combination of ", scenarioName,
-  #                               "is not allowed. Please choose from one of the following combinations: ", sep = " "),
-  #                         paste(shQuote(as.character(scenarioListIMPACT), type = "sh"), collapse = ", "))
-  #   if (experiment %in% "REF" & !scenarioName %in% c("SSP2-HGEM-REF", "SSP2-IPSL-REF", "SSP2-NoCC-REF")) {
-  #     stop(errorMessage)
-  #   }
-  #   if (!experiment %in% "REF" & !scenarioName %in% scenarioListIMPACT) {
-  #     stop(errorMessage)
-  #   }
-  # need to do this to match up with what the experiment names are in the data files
-  # scenarioName <- paste(SSP, climModel, experiment, sep = "-")
-
-  SSP <- stringi::stri_split_fixed(scenarioName, "-", simplify = TRUE)[1]
+nutReqDataPrep <- function(reqTypeName, countryCode, scenario, years, dir) {
+  resultFileLookup <- data.table::as.data.table(read.csv("data/ResultFileLookup.csv"))
+  reqRatioList <- resultFileLookup[1:6, reqTypeName] # list of req types that include are based on a requirement
+  SSPname <- stringi::stri_split_fixed(scenarioName, "-", simplify = TRUE)[1]
   climModel <- stringi::stri_split_fixed(scenarioName, "-", simplify = TRUE)[2]
-  temp <- stringi::stri_split_fixed(scenarioName, "-", simplify = TRUE)[3]
-  if (is.na(temp)) {
-    experiment <- "REF"
-  } else {
-    experiment <- stringi::stri_split_fixed(scenarioName, "-", simplify = TRUE)[3]
-  }
-  if (reqType == "RDA_macro") {
-    reqRatios <- getNewestVersion("RDA.macro.sum.req.ratio", dir)
-    reqType <- "RDA, macronutrients"
-  }
-  if (reqType == "RDA_vits") {
-    reqRatios <- getNewestVersion("RDA.vits.sum.req.ratio", dir)
-    reqType <- "RDA, vitamins"
-  }
-  if (reqType == "RDA_minrls") {
-    reqRatios <- getNewestVersion("RDA.minrls.sum.req.ratio", dir)
-    reqType <- "RDA, minerals"
-  }
-  if (reqType == "EAR") {
-    reqRatios <- getNewestVersion("EAR.sum.req.ratio", dir)
-    reqType <- "EAR"
-  }
-  if (reqType == "UL_vits") {
-    reqRatios <- getNewestVersion("UL.vits.sum.req.ratio", dir)
-    reqType <- "UL, vitamins"
-  }
-  if (reqType == "UL_minrls") {
-    reqRatios <- getNewestVersion("UL.minrls.sum.req.ratio", dir)
-    reqType <- "UL, minerals"
-  }
+  experiment <- stringi::stri_split_fixed(scenarioName, "-", simplify = TRUE)[3]
+  if (is.na(experiment)) {experiment <- "REF"}
 
-  if (reqType == "kcal_ratios") {
-    reqRatios <- getNewestVersion("dt.energy.ratios", dir)
-    reqRatios <- reqRatios[!nutrientReq %in% "sugar_g_reqRatio",]
-    reqType <- "Share of Kcals"
-  }
-#  region <- keyVariable("region")
-#  region <- "region_code.IMPACT159"
-  idVars <- c("scenario", "SSP","climate_model", "experiment", "region_code.IMPACT159", "nutrientReq")
-  # idVars <- c("scenario", region, "nutrientReq")
-  measureVars <- keyVariable("keepYearList")
+  fileName <- resultFileLookup[reqType == reqTypeName, fileName]
+  reqRatios <- getNewestVersion(fileName, dir)
+  keepListCol <- c("scenario", "SSP", "climate_model", "experiment", "RCP", "region_code.IMPACT159",
+                   "nutrient", years)
+  idVars <- c("scenario", "SSP", "climate_model", "experiment", "region_code.IMPACT159", "nutrient")
+
+  reqRatios <- reqRatios[, keepListCol, with = FALSE]
+  description <- resultFileLookup[reqType == reqTypeName, description]
+
+  measureVars <- years
   reqRatios.long <- data.table::melt(
-    data = reqRatios,  id.vars = idVars, measure.vars = measureVars, variable.name = "year",
+    data = reqRatios, id.vars = idVars, measure.vars = measureVars, variable.name = "year",
     value.name = "value", variable.factor = FALSE)
 
-  formula.ratios <- paste("scenario + SSP + climate_model + experiment + region_code.IMPACT159  +  year ~ nutrientReq")
+  formula.ratios <- paste("scenario + SSP + climate_model + experiment + region_code.IMPACT159 + year ~ nutrient")
   reqRatios.wide <- data.table::dcast(
     reqRatios.long,
     formula = formula.ratios,
     value.var = "value")
 
-  nutList <- unique(reqRatios$nutrientReq)
-  nutListShort <- gsub("_reqRatio","",nutList)
-  nutListShort <- gsub("vit_","vit ",nutListShort)
-  nutListShort <- gsub("_µg","",nutListShort)
-  nutListShort <- gsub("_mg","",nutListShort)
-  nutListShort <- gsub("_rae"," rae",nutListShort)
-  nutListShort <- gsub("_g"," ",nutListShort)
-  nutListShort <- gsub("totalfiber","total fiber",nutListShort)
+  i <- countryCode; j <- SSPname; k <- climModel; m <- experiment; l <- years
 
-  i <- country; j <- SSP; k <- climModel; m <- experiment; l <- years
-
-  #l <- c("X2010","X2015","X2020","X2025","X2030","X2035","X2040","X2045","X2050")
-  reqRatios.wide.nuts <-
+  reqRatios.nuts <-
     reqRatios.wide[region_code.IMPACT159 %in% i & SSP %in% j & climate_model %in% k &
-                     experiment == m & year %in% l,
-                   c( "year",nutList), with = FALSE]
-  data.table::setnames(reqRatios.wide.nuts,old = names(reqRatios.wide.nuts),
-                       new = gsub("_reqRatio","",names(reqRatios.wide.nuts)))
+                     experiment == m]
+  #get rid of year along with the others
+  deleteListCol <- c("scenario", "SSP", "climate_model", "experiment", "region_code.IMPACT159", "year")
+  reqRatios.nuts[,(deleteListCol) := NULL]
+  spokeCols <- names(reqRatios.nuts)
+#  nutListShort <- cleanupNutrientNames(spokeCols)
 
-  # include the requirement ratio as a row in calculating the col mins and maxs
-  reqRatioRow <- as.list(c("Req",rep(1,ncol(reqRatios.wide.nuts) - 1)))
-  temp <- rbind(reqRatios.wide.nuts, reqRatioRow)
-  changeCols <- colnames(temp)[2:ncol(temp)]
-  temp[is.nan(get(changeCols)),  (changeCols) := 0, with = FALSE]
-  colMins <- as.list(c("Min", rep.int(0,ncol(reqRatios.wide.nuts) - 1)))
-  temp[, (changeCols) := lapply(.SD, as.numeric), .SDcols = changeCols]
-  # next few lines to get maximum ratio value for all the nutrients
-  temp[, nmax := max(.SD), .SDcols = colnames(temp)[2:ncol(temp)]]
-  cMax <- round(temp[1,nmax])
-  temp[,nmax := NULL]
-  colMaxs <- as.list(c("Max",rep.int(cMax,ncol(reqRatios.wide.nuts) - 1)))
+  reqRatios.nuts[is.nan(get(spokeCols)),  (spokeCols) := 0, with = FALSE]
+  reqRatios.nuts <- reqRatios.nuts[,(spokeCols) := round(.SD,2), .SDcols = spokeCols]
 
-  temp <- rbind(colMaxs, colMins, reqRatioRow, reqRatios.wide.nuts)
-  temp[, (changeCols) := lapply(.SD, as.numeric), .SDcols = changeCols]
-  temp <- temp[,(changeCols) := round(.SD,2), .SDcols = changeCols]
-  return(list(temp, nutListShort))
+  # radarchart- If maxmin is TRUE, this must include maximum values as row 1 and minimum values as row 2 for each variables
+  colMins <- as.list(c(rep.int(0,ncol(reqRatios.nuts))))
+  reqRatios.nuts[, nmax := max(.SD), .SDcols = spokeCols]
+  cMax <- round(reqRatios.nuts[1,nmax])
+  colMaxs <- as.list(c(rep.int(cMax,ncol(reqRatios.nuts) - 1))) # -1 because nmax is a temporary column
+  reqRatios.nuts[,nmax := NULL]
+
+  # include the requirement ratio of 1
+  reqRatioRow <- as.list(c(rep(1,ncol(reqRatios.nuts))))
+  reqRatios.nuts <- rbind(colMaxs, colMins, reqRatioRow, reqRatios.nuts)
+
+  reqRatios.nuts[, (spokeCols) := lapply(.SD, as.numeric), .SDcols = spokeCols]
+  reqRatios.nuts[is.nan(get(spokeCols)),  (spokeCols) := 0, with = FALSE]
+  data.table::setnames(reqRatios.nuts, old = names(reqRatios.nuts), new = cleanupNutrientNames(names(reqRatios.nuts)))
+  return(reqRatios.nuts)
 }
 
-cleanUpreqType <- function(reqType) {
-  if (reqType == "RDA_macro")  {fullName <- "RDA, macronutrients"}
-  if (reqType == "RDA_vits")   {fullName <- "RDA, vitamins"}
-  if (reqType == "RDA_minrls") {fullName <- "RDA, minerals"}
-  if (reqType == "EAR")        {fullName <- "Estimated average requirements"}
-  if (reqType == "UL_minrls") {fullName <- "Upper limit, minerals"}
-  if (reqType == "UL_vits") {fullName <- "Upper limit, vitamins"}
-  if (reqType == "kcal_ratios") {fullName <- "nutrient share in energy intake"}
-  return(fullName)
-}
+nutReqSpiderGraph <- function(reqTypeName, countryCode, scenario, years, dir) {
+  reqRatios.nuts <- nutReqDataPrep(reqTypeName,countryCode, scenarioName, years, dir)
+  resultFileLookup <- data.table::as.data.table(read.csv("data/ResultFileLookup.csv"))
+  # reqRatioList <- resultFileLookup[1:6, reqType] # list of req types that include are based on a requirement
+  # SSP <- stringi::stri_split_fixed(scenarioName, "-", simplify = TRUE)[1]
+  # climModel <- stringi::stri_split_fixed(scenarioName, "-", simplify = TRUE)[2]
+  # experiment <- stringi::stri_split_fixed(scenarioName, "-", simplify = TRUE)[3]
+  # if (is.na(experiment)) {experiment <- "REF"}
+  #
+  # fileName <- resultFileLookup[reqType == reqTypeName, fileName]
+  # reqRatios <- getNewestVersion(fileName, dir)
+  # keepListCol <- c("scenario", "SSP", "climate_model", "experiment", "RCP", "region_code.IMPACT159",
+  #                  "nutrient", years)
+  # idVars <- c("scenario", "SSP", "climate_model", "experiment", "region_code.IMPACT159", "nutrient")
+  # formula.ratios <- paste("scenario + SSP + climate_model + experiment + region_code.IMPACT159 + year ~ nutrient")
+  #
+  # reqRatios <- reqRatios[, keepListCol, with = FALSE]
+   description <- resultFileLookup[reqType == reqTypeName, description]
 
-# nutSpiderGraph <- function(reqType, country, SSP, climModel, experiment, years, dir) {
-#   temp <- reqRatiodatasetup(reqType,country, SSP, climModel, experiment, years, dir)
-nutSpiderGraph <- function(reqType, country, scenario, years, dir) {
-  temp <- reqRatiodatasetup(reqType,country, scenario, years, dir)
-  nutListShort <- temp[[2]]
-  inputData <- temp[[1]]
-  head(inputData)
-  chartTitle <- cleanUpreqType(reqType)
+ chartTitle <- description
 
   #temp1 <- rbind(colMins, colMaxs, reqRatioRow, reqRatios.wide.nuts)
-  colors_border <- c(  "black", rgb(0.2,0.5,0.5,0.9), rgb(0.8,0.2,0.5,0.9), rgb(0.7,0.5,0.1,0.9) )
-  colors_in <- c( "black", rgb(0.2,0.5,0.5,0.4), rgb(0.8,0.2,0.5,0.4), rgb(0.7,0.5,0.1,0.4) )
+
+    legendText <- c("REQ",years)
+    colors_border <- c(  "black", rgb(0.2,0.5,0.5,0.9), rgb(0.8,0.2,0.5,0.9), rgb(0.7,0.5,0.1,0.9) )
+    colors_in <- c( "black", rgb(0.2,0.5,0.5,0.4), rgb(0.8,0.2,0.5,0.4), rgb(0.7,0.5,0.1,0.4) )
+
   lineType <- c(3, 1, 1, 1)
-  # plot.new()
+   plot.new()
   par(mar = c(1, 2, 2, 1))
-  radarchart(inputData[,!1, with = FALSE], axistype = 2,
+  radarchart(reqRatios.nuts, axistype = 2,
              title = chartTitle,
-             vlabels = nutListShort,
+             vlabels = names(reqRatios.nuts),
              seg = 3,
              #custom polygon
              pcol = colors_border, plwd = 1, plty = lineType,
              #customgrid colors
              cglcol = "grey", cglty = 1, axislabcol = "grey", caxislabels = seq(0,20,5), cglwd = 0.8,
              #custom labels
-             vlcex = 0.8
+             vlcex = 0.8,
+             maxmin = TRUE
   )
-  #  title(main = chartTitle)
-  yearList <- gsub("X","",inputData[3:nrow(inputData),years])
-  legend(x = "bottomright", y = NULL, legend = c("REQ", yearList), bty = "n", pch = 20,
+
+  legend(x = "bottomright", y = NULL, legend = legendText, bty = "n", pch = 20,
          col = colors_in, text.col = "black", cex = .6, pt.cex = .8, pt.lwd = 1,
          y.intersp = .8)
 }
@@ -843,5 +803,135 @@ cleanupScenarioNames <- function(dt.ptemp) {
   dt.ptemp[, scenario := gsub("HGEM2", "HGEM", scenario)]
   dt.ptemp[, scenario := gsub("IPSL2", "IPSL", scenario)]
   return(dt.ptemp)
+}
+
+cleanupNutrientNames <- function(nutList) {
+  nutList <- gsub("_g_reqRatio","",nutList)
+  nutList <- gsub("reqRatio","",nutList)
+  nutList <- gsub("vit_","vit ",nutList)
+  nutList <- gsub("_µg","",nutList)
+  nutList <- gsub("_mg","",nutList)
+  nutList <- gsub("_rae"," rae",nutList)
+  nutList <- gsub("_g","",nutList)
+  nutList <- gsub("totalfiber","total fiber",nutList)
+  nutList <- gsub(".ratio.foodGroup","",nutList)
+  nutList <- gsub("_","",nutList)
+  return(nutList)
+}
+
+# test data for nutSharedatasetup
+country <- "AFG"; years <- c("X2010", "X2030", "X2050")
+reqTypeName <- "FG.minrls";
+dir <- fileloc("resData"); scenarioName <- "SSP2-NoCC"
+nutshareSpiderGraph <- function(reqTypeName, country, scenario, years, dir) {
+  #reqRatiodatasetup <- function(reqTypeName,country, scenarioName, years, dir) {
+  resultFileLookup <- data.table::as.data.table(read.csv("data/ResultFileLookup.csv"))
+  SSP <- stringi::stri_split_fixed(scenarioName, "-", simplify = TRUE)[1]
+  climModel <- stringi::stri_split_fixed(scenarioName, "-", simplify = TRUE)[2]
+  experiment <- stringi::stri_split_fixed(scenarioName, "-", simplify = TRUE)[3]
+  if (is.na(experiment)) {experiment <- "REF"}
+
+  fileName <- resultFileLookup[reqType == reqTypeName, fileName]
+  shareRatios <- getNewestVersion(fileName, dir)
+  keepListCol <- c("scenario", "SSP", "climate_model", "experiment", "RCP", "region_code.IMPACT159",
+                   "nutrient", years)
+  idVars <- c("scenario", "SSP", "climate_model", "experiment", "region_code.IMPACT159", "nutrient")
+
+  if ("food.group.code" %in% names(shareRatios)) {
+    keepListCol <- c("scenario", "SSP", "climate_model", "experiment", "RCP", "region_code.IMPACT159",
+                     "food.group.code", "nutrient", years)
+    idVars <- c("scenario", "SSP", "climate_model", "experiment", "region_code.IMPACT159", "nutrient", "food.group.code")
+    formula.ratios <- paste("scenario + SSP + climate_model + experiment + region_code.IMPACT159 + nutrient + year ~ food.group.code")
+  }
+  if ("staple.code" %in% names(shareRatios)) {
+    keepListCol <- c("scenario", "SSP", "climate_model", "experiment", "RCP", "region_code.IMPACT159",
+                     "staple.code", "nutrient", years)
+    idVars <- c("scenario", "SSP", "climate_model", "experiment", "region_code.IMPACT159", "nutrient", "staple.code")
+    formula.ratios <- paste("scenario + SSP + climate_model + experiment + region_code.IMPACT159 + nutrient + year ~ staple.code")
+  }
+  shareRatios <- shareRatios[, keepListCol, with = FALSE]
+  description <- resultFileLookup[reqType == reqTypeName, description]
+
+  #  measureVars <- keyVariable("keepYearList")
+  measureVars <- years
+  shareRatios.long <- data.table::melt(
+    data = shareRatios, id.vars = idVars, measure.vars = measureVars, variable.name = "year",
+    value.name = "value", variable.factor = FALSE)
+
+  shareRatios.wide <- data.table::dcast(
+    shareRatios.long,
+    formula = formula.ratios,
+    value.var = "value")
+
+  i <- country; j <- SSP; k <- climModel; m <- experiment; l <- years
+
+  shareRatios.nuts <-
+    shareRatios.wide[region_code.IMPACT159 %in% i & SSP %in% j & climate_model %in% k &
+                     experiment == m]
+  # shareRatios.nuts[, year := gsub("X","",year)]
+  #get rid of year along with the others
+  deleteListCol <- c("scenario", "SSP", "climate_model", "experiment", "region_code.IMPACT159", "year")
+  shareRatios.nuts[,(deleteListCol) := NULL]
+  spokeCols <- names(shareRatios.nuts)[2:ncol(shareRatios.nuts)]
+  nutListShort <- cleanupNutrientNames(spokeCols)
+  if (("food.group.code" %in% names(shareRatios)) | ("staple.code" %in% names(shareRatios))) {
+    foodGroupsInfo <- read.csv(paste(fileloc("mData"), "foodGroupLookup.csv", sep = "/"), stringsAsFactors = FALSE)
+    foodGroupList <- sort(unique(foodGroupsInfo$food.group.code))
+    stapleList <- unique(foodGroupsInfo$staple.code)
+    shareRatios.nuts[, nutrient := gsub("_g.ratio.foodGroup","", nutrient)]
+    shareRatios.nuts[, nutrient := gsub("_µg.ratio.foodGroup","", nutrient)]
+    shareRatios.nuts[, nutrient := gsub("_mg.ratio.foodGroup","", nutrient)]
+    shareRatios.nuts[, nutrient := gsub("_"," ", nutrient)]
+    shareRatios.nuts[, nutrient := gsub("vit ","vitamin ", nutrient)]
+  }
+  shareRatios.nuts[is.nan(get(spokeCols)),  (spokeCols) := 0, with = FALSE]
+  shareRatios.nuts <- shareRatios.nuts[,(spokeCols) := round(.SD,2), .SDcols = spokeCols]
+
+  #temp1 <- rbind(colMins, colMaxs, reqRatioRow, shareRatios.wide.nuts)
+
+    legendText <- years
+    colors_border <- c(rgb(0.2,0.5,0.5,0.9), rgb(0.8,0.2,0.5,0.9), rgb(0.7,0.5,0.1,0.9) )
+    colors_in <- c(rgb(0.2,0.5,0.5,0.4), rgb(0.8,0.2,0.5,0.4), rgb(0.7,0.5,0.1,0.4) )
+
+  lineType <- c(3, 1, 1, 1)
+ plot.new()
+ title(description)
+
+ nutrientList <- sort(unique(shareRatios.nuts$nutrient))
+  par(mar = c(1, 2, 2, 1))
+  nrowsGraphs = round(length(nutrientList)/2)
+  par(mfrow = c(nrowsGraphs,2))
+
+  for (i in nutrientList) {
+    temp <- copy(shareRatios.nuts[nutrient %in% i, ])# radarchart- If maxmin is TRUE, this must include maximum values as row 1 and minimum values as row 2 for each variables
+    temp[, nmax := max(.SD), .SDcols = spokeCols]
+    cMax <- round(temp[1,nmax], digits = 2)
+    colMaxs <- as.list(c(rep.int(cMax,ncol(temp) - 1))) # -1 because nmax is a temporary column
+    temp[,nmax := NULL]
+    colMins <- as.list(c(rep.int(0,ncol(temp))))
+
+    temp <- rbind(colMaxs, colMins, temp)
+    temp[, (spokeCols) := lapply(.SD, as.numeric), .SDcols = spokeCols]
+    temp[is.nan(get(spokeCols)),  (spokeCols) := 0, with = FALSE]
+    temp[, nutrient := NULL]
+
+  radarchart(temp, axistype = 2,
+             title = i,
+             vlabels = nutListShort,
+             seg = 3,
+             #custom polygon
+             pcol = colors_border, plwd = 1, plty = lineType,
+             #customgrid colors
+             cglcol = "grey", cglty = 1, axislabcol = "grey", caxislabels = seq(0,20,5), cglwd = 0.8,
+             #custom labels
+             vlcex = 0.8,
+             maxmin = TRUE
+  )
+
+  legend(x = "bottomright", y = NULL, legend = legendText, bty = "n", pch = 20,
+         col = colors_in, text.col = "black", cex = .6, pt.cex = .8, pt.lwd = 1,
+         y.intersp = .8)
+  }
+  return(temp)
 }
 
