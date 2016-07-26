@@ -108,9 +108,9 @@ ui <- fluidPage(title = "Nutrient modeling",
                            titlePanel("Dietary diversity measures "),
                            wellPanel(
                              includeHTML("www/diversityText.html"),
-                             helpText("Choose from the drop downs below to see country-specific shares",
-                                      "expenditures on food by a representative consumer compared",
-                                      "to per capita income."),
+                             # helpText("Choose from the drop down below to see country-specific shares",
+                             #          "expenditures on food by a representative consumer compared",
+                             #          "to per capita income."),
                              selectInput(inputId = "diversityCountryName",
                                          label = "Choose a country",
                                          choices = countryNames,
@@ -210,8 +210,11 @@ server <- function(input, output) {
   output$adequacySpiderGraphP1 <- renderPlot(
     {
       countryName <- input$adequacyCountryName
+      print(countryName)
       scenarioName <- input$adequacyScenarioName
+      print(scenarioName)
       countryCode <- countryCodeLookup(countryName, fileloc("mData"))
+      print(countryCode)
       reqType <- "RDA.macro"
       nutReqSpiderGraph(reqType, countryCode, scenarioName, years, fileloc("mData"))
     })
