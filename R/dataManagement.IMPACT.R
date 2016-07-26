@@ -73,6 +73,8 @@ combineIMPACTData <- function() {
   dt.pop[, pop.sum := sum(pop), by = eval(data.table::key(dt.pop))][, pop.share := pop/pop.sum]
   # reduce scenario name to just SSPx
   dt.pop[, scenario := substring(scenario, 1, 4)]
+  data.table::setkey(dt.pop, NULL)
+  dt.pop <- unique(dt.pop) # added July 25; why wasn't this here before? Because it wasn't needed.
 
   # add alcohol
   dt.alcScenarios <- getNewestVersion("dt.alcScenarios")
@@ -130,18 +132,21 @@ combineIMPACTData <- function() {
     # reduce scenario name to just SSPx
   dt.fishScenarios.melt[, scenario := substring(scenario, 1, 4)]
 
+  # aggregate fish to IMPACT159 regions -------
+  # pop.share is the share of a country's population in the IMPACT region population
+
   dt.fishScenarios.melt <- merge(dt.fishScenarios.melt, dt.pop, by = c("scenario", "region_code.SSP", "region_code.IMPACT159", "year"))
   data.table::setkeyv(dt.fishScenarios.melt, c("scenario", "region_code.IMPACT159", "year", "IMPACT_code"))
   dt.fishScenarios.melt[, FoodAvailability := sum(FoodAvailability * pop.share), by = eval(data.table::key(dt.fishScenarios.melt))]
   deleteListCols = c("region_code.SSP", "pop","pop.sum","pop.share")
   dt.fishScenarios.melt[, (deleteListCols) := NULL]
-  data.table::setkey(dt.fishScenarios.melt)
+  data.table::setkey(dt.fishScenarios.melt, NULL)
   dt.fishScenarios.melt <-  unique(dt.fishScenarios.melt)
 
   #create alcohol and fish data sets for all the IMPACT scenarios
   dt.temp <- dt.alcScenarios.melt[FALSE, ]
-  scenario.list <- unique(dt.FoodAvail$scenario)
-  for (i in scenario.list) {
+  scenarioList <- keyVariable("scenarioListIMPACT")
+  for (i in scenarioList) {
     climModel <- gsub(substr((i), 1, 5), "", i)
     #   SSPNum <- substr((i), 1, 4)
     # print(i)

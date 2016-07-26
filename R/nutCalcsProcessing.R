@@ -32,9 +32,9 @@ reqList <- keyVariable("reqsList")
 # reqShortName <- gsub(".percap", "", temp)
 # ##### This probably needs to be changed
 # temp <- paste("food.agg.", reqShortName, sep = "")
-# dt.food.agg <- getNewestVersion(temp, fileloc("resData"), "csv")
+# dt.food.agg <- getNewestVersion(temp, fileloc("resultsDir"), "csv")
 # # get per capita consumption of each nutrient
-# #dt.nuts.sum <- getNewestVersion("all.sum", fileloc("resData"), "csv")
+# #dt.nuts.sum <- getNewestVersion("all.sum", fileloc("resultsDir"), "csv")
 #
 # dt.nutsReqPerCap <- getNewestVersion(req)
 # # get list of nutrients from dt.nutsReqPerCap for the req set of requirements
@@ -47,7 +47,7 @@ f.ratios.all <- function(region, req){
   reqShortName <- gsub("req.", "", req)
   #  reqShortName <- gsub(".percap", "", temp)
   temp <- paste("food.agg.", reqShortName, sep = "")
-  dt.food.agg <- getNewestVersion(temp, fileloc("resData"))
+  dt.food.agg <- getNewestVersion(temp, fileloc("resultsDir"))
   cols.all <- names(dt.food.agg)[grep(".all", names(dt.food.agg))]
   cols.staple <- names(dt.food.agg)[grep(".staple", names(dt.food.agg))]
   cols.foodGroup <- names(dt.food.agg)[grep(".foodGroup", names(dt.food.agg))]
@@ -166,27 +166,27 @@ f.ratios.all <- function(region, req){
 
   inDT <- dt.all.sum.wide
   outName <- paste(reqShortName, "all.sum", sep = ".")
-  cleanup(inDT, outName, fileloc("resData"), "csv")
+  cleanup(inDT, outName, fileloc("resultsDir"), "csv")
 
   inDT <- dt.sum.req.ratio.wide
   outName <- paste(reqShortName, "sum.req.ratio", sep = ".")
-  cleanup(inDT, outName, fileloc("resData"), "csv")
+  cleanup(inDT, outName, fileloc("resultsDir"), "csv")
 
   inDT <- dt.all.ratio.wide
   outName <- paste(reqShortName, "all.ratio", sep = ".")
-  cleanup(inDT, outName, fileloc("resData"), "csv")
+  cleanup(inDT, outName, fileloc("resultsDir"), "csv")
 
   inDT <- dt.all.req.ratio.wide
   outName <- paste(reqShortName, "all.req.ratio", sep = ".")
-  cleanup(inDT, outName, fileloc("resData"), "csv")
+  cleanup(inDT, outName, fileloc("resultsDir"), "csv")
 
   inDT <- data.table::as.data.table(colMax(dt.all.req.ratio.wide))
   outName <- "all.req.ratio.cMax"
-  cleanup(inDT, outName, fileloc("resData"), "csv")
+  cleanup(inDT, outName, fileloc("resultsDir"), "csv")
 
   inDT <- data.table::as.data.table(colMin(dt.all.req.ratio.wide))
   outName <- "all.req.ratio.cMin"
-  cleanup(inDT, outName, fileloc("resData"), "csv")
+  cleanup(inDT, outName, fileloc("resultsDir"), "csv")
 }
 
 # foodGroup function
@@ -195,7 +195,7 @@ f.ratios.FG <- function(region, req) {
   reqShortName <- gsub("req.", "", req)
   #reqShortName <- gsub(".percap", "", temp)
   temp <- paste("food.agg.", reqShortName, sep = "")
-  dt.food.agg <- getNewestVersion(temp, fileloc("resData"))
+  dt.food.agg <- getNewestVersion(temp, fileloc("resultsDir"))
   cols.all <- names(dt.food.agg)[grep(".all", names(dt.food.agg))]
   cols.staple <- names(dt.food.agg)[grep(".staple", names(dt.food.agg))]
   cols.foodGroup <- names(dt.food.agg)[grep(".foodGroup", names(dt.food.agg))]
@@ -271,19 +271,19 @@ f.ratios.FG <- function(region, req) {
 
   inDT <- dt.foodGroup.ratio.wide
   outName <- paste(reqShortName, "FG.ratio", sep = ".")
-  cleanup(inDT, outName, fileloc("resData"), "csv")
+  cleanup(inDT, outName, fileloc("resultsDir"), "csv")
 
   inDT <- dt.foodGroup.req.ratio.wide
   outName <- paste(reqShortName, "FG.req.ratio", sep = ".")
-  cleanup(inDT, outName, fileloc("resData"), "csv")
+  cleanup(inDT, outName, fileloc("resultsDir"), "csv")
 
   inDT <- data.table::as.data.table(colMax(dt.foodGroup.req.ratio.wide))
   outName <- "FG.req.ratio.cMax"
-  cleanup(inDT, outName, fileloc("resData"), "csv")
+  cleanup(inDT, outName, fileloc("resultsDir"), "csv")
 
   inDT <- data.table::as.data.table(colMin(dt.foodGroup.req.ratio.wide))
   outName <- "FG.req.ratio.cMin"
-  cleanup(inDT, outName, fileloc("resData"), "csv")
+  cleanup(inDT, outName, fileloc("resultsDir"), "csv")
 }
 
 # staples function
@@ -292,7 +292,7 @@ f.ratios.staples <- function(region, req) {
   reqShortName <- gsub("req.", "", req)
   #reqShortName <- gsub(".percap", "", temp)
   temp <- paste("food.agg.", reqShortName, sep = "")
-  dt.food.agg <- getNewestVersion(temp, fileloc("resData"))
+  dt.food.agg <- getNewestVersion(temp, fileloc("resultsDir"))
   cols.all <- names(dt.food.agg)[grep(".all", names(dt.food.agg))]
   cols.staple <- names(dt.food.agg)[grep(".staple", names(dt.food.agg))]
   cols.foodGroup <- names(dt.food.agg)[grep(".foodGroup", names(dt.food.agg))]
@@ -379,23 +379,23 @@ f.ratios.staples <- function(region, req) {
 
   inDT <- dt.staples.sum.wide
   outName <- paste(reqShortName, "staples.sum", sep = ".")
-  cleanup(inDT, outName, fileloc("resData"), "csv")
+  cleanup(inDT, outName, fileloc("resultsDir"), "csv")
 
   inDT <- dt.staples.ratio.wide
   outName <- paste(reqShortName, "staples.ratio", sep = ".")
-  cleanup(inDT, outName, fileloc("resData"), "csv")
+  cleanup(inDT, outName, fileloc("resultsDir"), "csv")
 
   inDT <- dt.staples.req.ratio.wide
   outName <- paste(reqShortName, "staples.req.ratio", sep = ".")
-  cleanup(inDT, outName, fileloc("resData"), "csv")
+  cleanup(inDT, outName, fileloc("resultsDir"), "csv")
 
   inDT <- data.table::as.data.table(colMax(dt.staples.req.ratio.wide))
   outName <- "staples.req.ratio.cMax"
-  cleanup(inDT, outName, fileloc("resData"), "csv")
+  cleanup(inDT, outName, fileloc("resultsDir"), "csv")
 
   inDT <- data.table::as.data.table(colMin(dt.staples.req.ratio.wide))
   outName <- "staples.req.ratio.cMin"
-  cleanup(inDT, outName, fileloc("resData"), "csv")
+  cleanup(inDT, outName, fileloc("resultsDir"), "csv")
 }
 
 for (i in reqList) {
@@ -446,7 +446,7 @@ deleteListCol <- c("c_beer","c_spirits","c_wine")
 dt.alc.wide[, (deleteListCol) := NULL]
 
 # now get rest of nutrient items
-dt.nutSum <- getNewestVersion("dt.nutrients.sum", fileloc("resData"))
+dt.nutSum <- getNewestVersion("dt.nutrients.sum", fileloc("resultsDir"))
 dt.nutSum[, scenario := gsub("IRREXP-WUE2", "IRREXP_WUE2", scenario)]
 dt.nutSum[, scenario := gsub("PHL-DEV2", "PHL_DEV2", scenario)]
 dt.nutSum[, RCP := "RCP8.5"]
@@ -508,7 +508,7 @@ dt.nutSum.wide <- data.table::dcast(
 
 inDT <- dt.nutSum.wide
 outName <- "dt.energy.ratios"
-cleanup(inDT, outName, fileloc("resData"), "csv")
+cleanup(inDT, outName, fileloc("resultsDir"), "csv")
 
 # calculate Shannon diversity ratio
 #SD = - sum(s_i * ln(s_i)
@@ -526,6 +526,6 @@ dt.SDfood[, SDnorm := SD * 100/log(length(foodList))]
 
 inDT <- dt.SDfood
 outName <- "dt.shannonDiversity"
-cleanup(inDT, outName, fileloc("resData"), "csv")
+cleanup(inDT, outName, fileloc("resultsDir"), "csv")
 
 

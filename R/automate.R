@@ -4,7 +4,7 @@
 # file locations -
 #   mData - data
 #   iData - data/IMPACTdata - directory with IMPACT data
-#   resData - results
+#   resultsData - results
 
 # print(paste("start time is " , proc.time(), sep = ""))
 ptm <- proc.time()
@@ -51,8 +51,8 @@ source("R/dataManagement.SSPPop.R")
 
 source("R/nutrientCalcs.R")
 #writes
-# paste("food.agg.",reqShortName,sep = "") fileloc("resData"), "csv")
-# "dt.nutrients.sum", fileloc("resData"))
+# paste("food.agg.",reqShortName,sep = "") fileloc("resultsData"), "csv")
+# "dt.nutrients.sum", fileloc("resultsData"))
 
 source("R/nutCalcsProcessing.R")
 #writes
@@ -60,9 +60,9 @@ source("R/nutCalcsProcessing.R")
 # paste(reqShortName, "sum.req.ratio", sep = ".")
 # paste(reqShortName, "all.ratio", sep = ".")
 # paste(reqShortName, "all.req.ratio", sep = ".")
-# cleanup(inDT, outName, fileloc("resData"))
+# cleanup(inDT, outName, fileloc("resultsData"))
 # "all.req.ratio.cMax"
-# cleanup(inDT, outName, fileloc("resData"))
+# cleanup(inDT, outName, fileloc("resultsData"))
 "all.req.ratio.cMin"
 # dt.energy.ratios - ratio of kcals from specific sources to total kcals
 

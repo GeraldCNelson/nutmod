@@ -1,4 +1,16 @@
 # copy files from the dir directory (typically results) to the nutrientModeling directory.
+
+#Copyright (C) 2016 Gerald C. Nelson, except where noted
+
+#   This program is free software: you can redistribute it and/or modify it
+#   under the terms of the GNU General Public License as published by the Free
+#   Software Foundation, either version 3 of the License, or (at your option)
+#   any later version.
+#
+#   This program is distributed in the hope that it will be useful, but
+#   WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
+#   or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License
+#   for more details at http://www.gnu.org/licenses/.
 #' @include nutrientModFunctions.R
 #' @include workbookFunctions.R
 #' @include nutrientCalcFunctions.R
@@ -58,7 +70,7 @@ file.copy("R/nutrientModFunctions.R", "nutrientModeling/global.R", overwrite = T
 
 zipFileName <- paste("results/resultsCSVzip", Sys.Date(), "zip", sep = "." )
      regExp <- paste("(?=^", ")(?=.*csv$)", sep = "")
- zipList <-     grep(regExp, list.files(fileloc("resData")), value = TRUE,  perl = TRUE)
+ zipList <-     grep(regExp, list.files(fileloc("resultsDir")), value = TRUE,  perl = TRUE)
  zipList <- paste("results", zipList, sep = "/")
 # zip(zipfile = zipFileName, files = zipList, flags = "-r9X", extras = "",  zip = Sys.getenv("R_ZIPCMD", "zip"))
 

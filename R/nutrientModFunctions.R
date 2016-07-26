@@ -31,12 +31,12 @@
 #'
 #' @param mData - main data directory
 #' @param iData - directory with IMPACT data
-#' @param resData - directory with results
+#' @param resultsPaperDir - directory with results for the paper
 #' @param resultsDir - directory for results
 #' @param FBSData - directory where FBS data are kept
 #' @param SSPData - the path to the SSP data directory
-#' @param IMPACTData - the path to the raw IMPACT data directory
-#' @param IMPACTDataClean  - the path to the cleaned up IMPACT data directory
+#' @param IMPACTRawData - the path to the raw IMPACT data directory
+#' @param IMPACTCleanData  - the path to the cleaned up IMPACT data directory
 #' @return Value of the variableName to be assigned in another script
 #'
 #' @export
@@ -45,27 +45,27 @@ fileloc <- function(variableName) {
   mData <- "data"
   iData <- "data/IMPACTData"
   nutData <- "data-raw/NutrientData"
-  resData <- "results"
   resultsDir <- "results"
+  resultsPaperDir <- "results/nutPaper"
   shinyApp <- "nutrientModeling"
   shinyAppData <- "nutrientModeling/data"
   FBSData <- paste(rawData, "FBSData", sep = "/")
   SSPData <- paste(rawData, "SSPData", sep = "/")
-  IMPACTData <- paste(rawData, "IMPACTData", sep = "/")
-  IMPACTDataClean <- paste(mData, "IMPACTData", sep = "/")
+  IMPACTRawData <- paste(rawData, "IMPACTData", sep = "/")
+  IMPACTCleanData <- paste(mData, "IMPACTData", sep = "/")
   NutrientData <- paste(rawData, "NutrientData", sep = "/")
   if (variableName == "list") {
     return(c(
       "rawData",
       "mData",
       "iData",
-      "resData",
       "resultsDir",
+      "resultsPaperDir",
       "shinyApp",
       "shinyAppData",
       "FBSData",
-      "IMPACTData",
-      "IMPACTDataClean",
+      "IMPACTRawData",
+      "IMPACTCleanData",
       "NutrientData",
       "SSPData"
     ))
@@ -205,35 +205,20 @@ cleanup <- function(inDT, outName, dir, writeFiles) {
   if ("xlsx"  %in% writeFiles) {
     #    print(paste("writing the xlsx for ", outName, " to ", dir, sep = ""))
     wbGeneral <- openxlsx::createWorkbook()
+    outName <- strtrim(outName, c(31))
     openxlsx::addWorksheet(wb = wbGeneral, sheetName = outName)
 
     openxlsx::writeDataTable(
       wbGeneral,
-      inDT,
-      sheet = outName,
-      startRow = 1,
-      startCol = 1,
-      rowNames = FALSE,
-      colNames = TRUE,
-      withFilter = TRUE
-    )
+      inDT,  sheet = outName, startRow = 1, startCol = 1, rowNames = FALSE, colNames = TRUE, withFilter = TRUE)
 
     openxlsx::setColWidths(
-      wbGeneral,
-      sheet = outName,
-      cols = 1:ncol(inDT),
-      widths = "auto"
-    )
+      wbGeneral, sheet = outName, cols = 1:ncol(inDT), widths = "auto" )
 
     numStyle <- openxlsx::createStyle(numFmt = "0.000")
     openxlsx::addStyle(
-      wbGeneral,
-      sheet = outName,
-      style = numStyle,
-      rows = 1:nrow(inDT),
-      cols = 2:ncol(inDT),
-      gridExpand = TRUE
-    )
+      wbGeneral, sheet = outName, style = numStyle, rows = 1:nrow(inDT), cols = 2:ncol(inDT),
+      gridExpand = TRUE )
 
     xcelOutFileName = paste(dir, "/", outName, ".", Sys.Date(), ".xlsx", sep = "")
     openxlsx::saveWorkbook(wbGeneral, xcelOutFileName, overwrite = TRUE)
@@ -293,10 +278,6 @@ keyVariable <- function(variableName) {
   scenarioListSSP.GDP <- c("SSP1_v9_130325", "SSP2_v9_130325", "SSP3_v9_130325",
                            "SSP4_v9_130325", "SSP5_v9_130325")
 
-  # R_GAMS_SYSDIR <- fileNameList("R_GAMS_SYSDIR")
-  # gdxrrw::igdx(gamsSysDir = R_GAMS_SYSDIR, silent = TRUE)
-  # dt.ptemp <- data.table::as.data.table(gdxrrw::rgdx.param(fileNameList("IMPACTgdx"), "PWX0",ts = TRUE,
-  #                                                          names = c("scenario", "IMPACT_code", "year", "value")))
 
   scenarioListIMPACT <- as.character(read.csv(file = paste(fileloc("mData"),"scenarioListIMPACT.csv", sep = "/"), stringsAsFactors = FALSE)[,1])
   DinY <- 365 #see http://stackoverflow.com/questions/9465817/count-days-per-year for a way to deal with leap years
@@ -419,7 +400,7 @@ metadata <- function() {
 
   inDT <- metadata
   outName <- "metaData"
-  cleanup(inDT,outName,fileloc("resData"))
+  cleanup(inDT,outName,fileloc("resultsDir"))
 }
 
 #' Title fileNameList returns a list of filenames, with or without complete paths
@@ -458,7 +439,7 @@ metadata <- function() {
 #' @export
 
 fileNameList <- function(variableName) {
-  IMPACTData      <- fileloc("IMPACTData")
+  IMPACTCleanData      <- fileloc("IMPACTCleanData")
   # NutrientData    <- fileloc("NutrientData")gdx
   nutrientDataDetails <- "data-raw/NutrientData/nutrientDetails"
   SSPData         <- fileloc("SSPData")
@@ -468,28 +449,26 @@ fileNameList <- function(variableName) {
   # CSE - consumer support equivalent
   #Note: the price a consumer pays is Pc * (1-CSE)
   CSEFileName     <- "CSEs20150824.xlsx"
-  CSEs            <- paste(IMPACTData, CSEFileName, sep = "/")
+  CSEs            <- paste(fileloc("IMPACTRawData"), CSEFileName, sep = "/")
   IMPACT159regionsFileName <-
     "IMPACTRegionsFeb2016.xlsx" # this file includes Denmark plus (DNP) and Sudan plus (SDP)
   #' IMPACT159regionsFileName <- "IMPACTRegionsMay2015.csv" # this file includes Denmark plus (DNP) and Sudan plus (SDP) and removes Greenland and South Sudan
   #' #IMPACT159regionsFileName <- "IMPACTRegionsJan15tmp.csv" # this file removes Denmark plus (DNP) and South Sudan (SSD) as well as removes Greenland and South Sudan
   IMPACTregionsUpdateJun2016FileName <- "IMPACT regions update June 6 2016.xlsx"
-  IMPACTregionsUpdateJun2016 <-
-    paste(IMPACTData, IMPACTregionsUpdateJun2016FileName, sep = "/")
-  IMPACT159regions <-
-    paste(IMPACTData, IMPACT159regionsFileName, sep = "/")
+  IMPACTregionsUpdateJun2016 <- paste(fileloc("IMPACTRawData"), IMPACTregionsUpdateJun2016FileName, sep = "/")
+  IMPACT159regions <- paste(fileloc("IMPACTRawData"), IMPACT159regionsFileName, sep = "/")
   IMPACTstdRegionsFileName <- "IMPACT-agg-regionsFeb2016.xlsx"
-  IMPACTstdRegions <-
-    paste(IMPACTData, IMPACTstdRegionsFileName, sep = "/")
-  IMPACTgdxfileName <- "Micronutrient-Inputs.gdx"  #- new larger gdx
+  IMPACTstdRegions <- paste(fileloc("IMPACTRawData"), IMPACTstdRegionsFileName, sep = "/")
+ #IMPACTgdxfileName <- "Micronutrient-Inputs-USAID.gdx"  #-  gdx for the USAID results
+  IMPACTgdxfileName <- "Micronutrient-Inputs-07252016.gdx"  #- gdx with SSP1, 2, and 3
   #IMPACTgdxfileName <- "Demand Results20150817.gdx"
-  IMPACTgdx         <- paste(IMPACTData, IMPACTgdxfileName, sep = "/")
+  IMPACTgdx         <- paste(fileloc("IMPACTRawData"), IMPACTgdxfileName, sep = "/")
   gdxLib            <- "/Applications/GAMS/gams24.5_osx_x64_64_sfx"
   R_GAMS_SYSDIR     <- "/Applications/GAMS/gams24.5_osx_x64_64_sfx"
   IMPACTfishInfo    <- "Fish Elasticities and Quantities IMPACT.xlsx"
-  IMPACTfish        <- paste(IMPACTData, IMPACTfishInfo, sep = "/")
+  IMPACTfish        <- paste(fileloc("IMPACTRawData"), IMPACTfishInfo, sep = "/")
   IMPACTalcoholInfo    <- "Alcohol Elasticities and Quantities IMPACT.xlsx"
-  IMPACTalcohol        <- paste(IMPACTData, IMPACTalcoholInfo, sep = "/")
+  IMPACTalcohol        <- paste(fileloc("IMPACTRawData"), IMPACTalcoholInfo, sep = "/")
   IMPACTfoodFileName <- "dt.IMPACTfood"
   IMPACTfoodFileInfo <-  paste(mData,"/IMPACTData/",IMPACTfoodFileName,sep = "")
   # nutrient data ------
@@ -688,7 +667,7 @@ countryCodeLookup <- function(countryName, directory) {
 # test data for reqRatiodatasetup
 countryCode <- "AFG"; years <- c("X2010", "X2030", "X2050")
 reqTypeName <- "RDA.macro"
-dir <- fileloc("resData"); scenarioName <- "SSP2-HGEM-HiNARS2"
+dir <- fileloc("resultsDir"); scenarioName <- "SSP3-NoCC"
 
 nutReqDataPrep <- function(reqTypeName, countryCode, scenario, years, dir) {
   resultFileLookup <- data.table::as.data.table(read.csv("data/ResultFileLookup.csv"))
@@ -822,7 +801,7 @@ cleanupNutrientNames <- function(nutList) {
 # test data for nutSharedatasetup
 country <- "AFG"; years <- c("X2010", "X2030", "X2050")
 reqTypeName <- "FG.minrls";
-dir <- fileloc("resData"); scenarioName <- "SSP2-NoCC"
+dir <- fileloc("resultsDir"); scenarioName <- "SSP2-NoCC"
 nutshareSpiderGraph <- function(reqTypeName, country, scenario, years, dir) {
   #reqRatiodatasetup <- function(reqTypeName,country, scenarioName, years, dir) {
   resultFileLookup <- data.table::as.data.table(read.csv("data/ResultFileLookup.csv"))

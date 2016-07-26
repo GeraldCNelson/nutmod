@@ -9,7 +9,7 @@ if (!exists("getNewestVersion", mode = "function"))
   source("R/nutrientCalcFunctions.R")}
 
 # this script needs to be separate because shiny can't deal with the gams package.
-source("R/gdxrrwSetup.R")
+#source("R/gdxrrwSetup.R")
 
 #source("R/gdxrrfunctions.R")
 # Intro -------------------------------------------------------------------
@@ -48,35 +48,31 @@ source("R/gdxrrwSetup.R")
 #' @return null
 #' @export
 
-
-gamsSetup() # to load GAMs stuff and create the list of IMPACT scenarios
-
-#getGDXmetaData <- function(gamsDir,IMPACTgdx) {
-  getGDXmetaData <- function(IMPACTgdx) {
-    #  R_GAMS_SYSDIR <-  gamsDir
-#  gdxrrw::igdx(gamsSysDir = R_GAMS_SYSDIR) maybe not needed because done in gamsSetup
+gdxFileName <- fileNameList("IMPACTgdxfileName")
+#gamsSetup() # to load GAMs stuff and create the initial list of IMPACT scenarios
+gdxrrw::igdx(gamsSysDir = fileNameList("R_GAMS_SYSDIR"), silent = TRUE)
+gdxFileLoc <- paste(fileloc("IMPACTRawData"),gdxFileName, sep = "/")
+getGDXmetaData <- function(gdxFileName) {
+  #  R_GAMS_SYSDIR <-  gamsDir
+  #  gdxrrw::igdx(gamsSysDir = R_GAMS_SYSDIR) maybe not needed because done in gamsSetup
   # read in the gdx information to temp
-  temp <-
-    gdxrrw::gdxInfo(
-      gdxName = IMPACTgdx, dump = FALSE, returnList = FALSE, returnDF = TRUE
-    )
+  gdxFileLoc <- paste(fileloc("IMPACTRawData"),gdxFileName, sep = "/")
+  temp <- gdxrrw::gdxInfo(
+    gdxName = gdxFileLoc, dump = FALSE, returnList = FALSE, returnDF = TRUE)
 
   # convert to data table and extract just the list of parameters
   dt.gdx.param <- data.table::as.data.table(temp$parameters)
-  keepListCol <-
-    c("name", "text") # remove index, dim, card, doms, and domnames
-  dt.gdx.param <- dt.gdx.param[, keepListCol, with = FALSE]
+  #  keepListCol <- c("catNames", "text") # remove index, dim, card, doms, and domnames
+  deleteListCol <- c("index", "card","doms", "domnames")
+  dt.gdx.param <- dt.gdx.param[, (deleteListCol) := NULL]
 
-  data.table::setnames(dt.gdx.param,old = c("name","text"), new = c("catNames","description"))
+  data.table::setnames(dt.gdx.param,old = c("name","text"), new = c("catNames", "description"))
   inDT <- dt.gdx.param
   outName <- "dt.IMPACTmetaData"
   cleanup(inDT,outName,fileloc("iData"))
 }
-
-#getGDXmetaData(fileNameList("R_GAMS_SYSDIR"),fileNameList("IMPACTgdx"))
-getGDXmetaData(fileNameList("IMPACTgdx"))
-
-#' Title processIMPACT159Data - read in from the IMPACT gdx file and write out rds and excel files for a single param
+getGDXmetaData(gdxFileName)
+#' Title processIMPACT159Data - read in from an IMPACT gdx file and write out rds and excel files for a single param
 
 #' @param gdxFileName - name of the IMPACT gdx file
 #' @param varName - name of the IMPACT parameter to write out
@@ -85,17 +81,19 @@ getGDXmetaData(fileNameList("IMPACTgdx"))
 #' @export
 #'
 processIMPACT159Data <- function(gdxFileName, varName, catNames) {
-#  dt.regions.all <- getNewestVersion("dt.regions.all")
-  IMPACTgdx <- gdxFileName
+  #  dt.regions.all <- getNewestVersion("dt.regions.all")
+  # IMPACTgdx <- gdxFileName
+  gdxFileLoc <- paste(fileloc("IMPACTRawData"),gdxFileName, sep = "/")
+
   keepYearList  <- keyVariable("keepYearList")
-#  dt.temp <- dt.regions.all[,c("region_code.IMPACT159","region_name.IMPACT159"), with = FALSE]
- # data.table::setkey(dt.temp,region_code.IMPACT159)
+  #  dt.temp <- dt.regions.all[,c("region_code.IMPACT159","region_name.IMPACT159"), with = FALSE]
+  # data.table::setkey(dt.temp,region_code.IMPACT159)
   # dt.IMPACTregions <- unique(dt.temp)
-  dt.ptemp <- data.table::as.data.table(gdxrrw::rgdx.param(IMPACTgdx, varName,
+  dt.ptemp <- data.table::as.data.table(gdxrrw::rgdx.param(gdxFileLoc, varName,
                                                            ts = TRUE, names = catNames))
   #if the data set contains SDN (the old Sudan) data, convert the code to SDP
   if (!varName %in% "PWX0") {
-      dt.ptemp[region_code.IMPACT159 == "SDN", region_code.IMPACT159 := "SDP"]
+    dt.ptemp[region_code.IMPACT159 == "SDN", region_code.IMPACT159 := "SDP"]
   }
   dt.ptemp[,year := paste("X",year, sep = "")]
   dt.ptemp <- dt.ptemp[year %in% keepYearList]
@@ -110,11 +108,32 @@ processIMPACT159Data <- function(gdxFileName, varName, catNames) {
   #     merge(dt.ptemp, dt.IMPACTregions, by = "region_code.IMPACT159", all = TRUE)
   # }
 
+  #write scenario names
   dt.ptemp <- cleanupScenarioNames(dt.ptemp)
+  scenarioListIMPACT <- data.table::as.data.table(unique(dt.ptemp$scenario))
+  data.table::setnames(scenarioListIMPACT, old = c("V1"), new = c("scenario"))
+  scenarioComponents <- c("SSP", "climate_model", "experiment")
+  suppressWarnings(
+    scenarioListIMPACT[, (scenarioComponents) := data.table::tstrsplit(scenario, "-", fixed = TRUE)]
+  )
+  # the code above recyles so you end up with the SSP value in experiment if this is a REF scenario
+  # the code below detects this and replaces the SSP value with REF
+  scenarioListIMPACT[(SSP == experiment), experiment := "REF"]
+  scenarioListIMPACT[, scenarioNew := paste(SSP, climate_model, experiment, sep = "-")]
+  dt.ptemp <- merge(dt.ptemp, scenarioListIMPACT, by = "scenario")
+  deleteListCol <- c("SSP", "climate_model", "experiment", "scenario")
+  dt.ptemp[, (deleteListCol) := NULL]
+  data.table::setnames(dt.ptemp, old = c("scenarioNew"), new = c("scenario"))
+  leadingCols <- c("scenario")
+  lagingCols <-  laggingCols <- names(dt.ptemp)[!names(dt.ptemp) %in% leadingCols]
+  data.table::setcolorder(dt.ptemp, c(leadingCols, laggingCols))
   inDT <- dt.ptemp
-  outName <- paste("dt",varName, sep = ".")
+  # this is where dt.FoodAvailability is written out, for example
+  outName <- paste("dt", varName, sep = ".")
   cleanup(inDT,outName,fileloc("iData"))
-  # return(dt.temp)
+
+  write.csv(scenarioListIMPACT$scenarioNew, file = paste(fileloc("mData"),"scenarioListIMPACT.csv",
+                                                      sep = "/"), row.names = FALSE)
 }
 
 #' Title generateResults - send a list of variable with common categories to the
@@ -125,27 +144,20 @@ processIMPACT159Data <- function(gdxFileName, varName, catNames) {
 #'
 #' @return
 #' @export
-generateResults <- function(vars,catNames){
-  #dtlist.land <- lapply(vars.land,processIMPACT159Data,catNames = catNames.land)
+generateResults <- function(gdxFileName, vars,catNames){
   for (i in vars) {
-    processIMPACT159Data(fileNameList("IMPACTgdx"),i, catNames)
+    processIMPACT159Data(gdxFileName,i, catNames)
   }
 }
-#' processIMPACT159Data(fileNameList("IMPACTgdx"),)
 
 vars.land <- c("AREACTYX0", "YLDCTYX0", "ANMLNUMCTYX0")
 catNames.land <- c("scenario","IMPACT_code","region_code.IMPACT159","landUse","year","value")
-
-#' @param commodVars - scenario, region_code.IMPACT159, IMPACT_code,year, value
 vars.commods <-
   c("PCX0", "QSX0", "QSUPX0", "QDX0", "QFX0", "QBFX0",
     "QLX0", "QINTX0", "QOTHRX0", "QEX0", "QMX0","PerCapKCAL_com","FoodAvailability")
 catNames.commod <- c("scenario","IMPACT_code","region_code.IMPACT159","year","value")
-
-#' @param regionVars - parameters included for data at the region (countries and country-aggregates) level
-vars.region <-
-  c("GDPX0", "pcGDPX0",  "TotalMalnourished",
-    "PerCapKCAL", "PopX0", "ShareAtRisk", "PopulationAtRisk")
+vars.region <- c("GDPX0", "pcGDPX0",  "TotalMalnourished",
+                 "PerCapKCAL", "PopX0", "ShareAtRisk", "PopulationAtRisk")
 catNames.region <- c("scenario","region_code.IMPACT159","year","value")
 
 #' @param worldVars - parameters for data at the world level
@@ -154,9 +166,10 @@ catNames.world <- c("scenario", "IMPACT_code", "year", "value")
 
 # comment out lines below to speed up data crunching.
 # generateResults(vars.land,catNames.land)
-generateResults(vars.commods,catNames.commod)
-generateResults(vars.region,catNames.region)
-generateResults(vars.world,catNames.world)
+
+generateResults(gdxFileName, vars.commods,catNames.commod)
+generateResults(gdxFileName, vars.region,catNames.region)
+generateResults(gdxFileName, vars.world,catNames.world)
 
 #' @param dt.CSEs - data table with consumer surplus equivalents
 CSEs <- fileNameList("CSEs")
@@ -173,7 +186,4 @@ inDT <- dt.CSEs
 outName <- "dt.CSEs"
 cleanup(inDT,outName,fileloc("iData"))
 
-# dt.ptemp <- data.table::as.data.table(gdxrrw::rgdx.param(fileNameList("IMPACTgdx"), vars.world,
-#                                                          ts = TRUE, names = catNames.world))
-# scenarioList <- unique(dt.ptemp$scenario)
 

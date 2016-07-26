@@ -41,9 +41,9 @@ for (req in reqsList) {
   #get just nutrient list from req
   temp <- gsub("req.","",req); reqShortName <- gsub(".percap","",temp)
   temp <- paste("food.agg.", reqShortName, sep = "")
-  dt.food.agg <- getNewestVersion(temp, fileloc("resData"))
+  dt.food.agg <- getNewestVersion(temp, fileloc("resultsDir"))
   # get per capita consumption of each nutrient
-  #dt.nuts.sum <- getNewestVersion("all.sum",fileloc("resData"))
+  #dt.nuts.sum <- getNewestVersion("all.sum",fileloc("resultsDir"))
 
   dt.nutsReqPerCap <- getNewestVersion(req)
   # get list of nutrients from dt.nutsReqPerCap for the req set of requirements
@@ -139,8 +139,8 @@ for (req in reqsList) {
         # cMin.all <- data.table::as.data.table(colMin(dt.food.reqs.ratio))
         temp.cMax <- paste(k, "req.ratio.cMax", sep = ".")
         temp.cMin <- paste(k, "req.ratio.cMin", sep = ".")
-        temp.cMax <- getNewestVersion("temp.cMax", fileloc("resData"))
-        temp.cMin <- getNewestVersion("temp.cMin", fileloc("resData"))
+        temp.cMax <- getNewestVersion("temp.cMax", fileloc("resultsDir"))
+        temp.cMin <- getNewestVersion("temp.cMin", fileloc("resultsDir"))
 
         #write the rows that have the max and min values for the current nutrient
         # eval parse needed here to get the which to run. uggh.

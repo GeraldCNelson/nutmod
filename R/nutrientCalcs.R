@@ -87,23 +87,26 @@ generateResults <- function(req,dt.IMPACTfood,IMPACTscenarioList,dt.nutrients,re
   # this for loop adds copies of the nutrient requirements for each climate model used. May end up
   # with more than needed because it has all 5 SSP scenarios.
   dt.temp <- data.table::copy(dt.nutsReqPerCap[FALSE,])
+  IMPACTscenarioList <- as.character(IMPACTscenarioList)
   for (i in IMPACTscenarioList) {
-    temp <- as.character(i) # i starts out as a factor
-    climModel <- unlist(strsplit(temp, "-"))[2] # get climate model abbrev
-    experiment <- unlist(strsplit(temp, "-"))[3] # get experiment abbrev
+    SSPName <- unlist(strsplit(i, "-"))[1] # get SSP abbrev
+    climModel <- unlist(strsplit(i, "-"))[2] # get climate model abbrev
+    experiment <- unlist(strsplit(i, "-"))[3] # get experiment abbrev
+    if (is.na(experiment)) {experiment <- "REF"}
    # print(experiment)
     # may need to add the RCP column later. Currently it's not included in the scenario name.
-    temp.nuts <- data.table::copy(dt.nutsReqPerCap)
-    if (is.na(experiment)) {
-      temp.nuts[,scenario := paste(scenario,climModel, sep = "-")]
-    } else {
-      temp.nuts[,scenario := paste(scenario,climModel, experiment, sep = "-")]
-    }
+     temp.nuts <- data.table::copy(dt.nutsReqPerCap)
+    # if (is.na(experiment)) {
+    #   temp.nuts[,scenario := paste(scenario,climModel, sep = "-")]
+    # } else {
+    #   temp.nuts[,scenario := paste(scenario,climModel, experiment, sep = "-")]
+    # }
+     temp.nuts[,scenario := paste(SSPName, climModel, experiment, sep = "-")]
     dt.temp <- rbind(dt.temp, temp.nuts)
   }
   # keep just the nutrient requirements scenarios that are in the IMPACT data
   #  and the nutrients in nutListReq. And reduce rows to just IMPACT scenarios
-  keepListCol <- c("scenario",region,"year",nutListReq)
+  keepListCol <- c("scenario", region, "year", nutListReq)
   dt.nutsReqPerCap <- dt.temp[,keepListCol, with = FALSE]
   dt.nutsReqPerCap <- dt.nutsReqPerCap[scenario %in% IMPACTscenarioList,]
 
@@ -113,7 +116,6 @@ generateResults <- function(req,dt.IMPACTfood,IMPACTscenarioList,dt.nutrients,re
   dt.nutrients <- data.table::copy(dt.nutrients[,keepListCol, with = FALSE])
   # convert nutrients (in 100 grams of food) to nutrients per kg of food -----
   dt.nutrients[, (nutListReq) := lapply(.SD, function(x) (x * 10)), .SDcols = nutListReq]
-  print(paste("multiplying dt.nutrients by 10 for ", req, sep = ""))
   print(proc.time())
 
   #combine the food availability info with the nutrients for each of the IMPACT commodities
@@ -178,7 +180,7 @@ generateResults <- function(req,dt.IMPACTfood,IMPACTscenarioList,dt.nutrients,re
   print(paste("summing by food group ", req, sep = ""))
   print(proc.time())
 
-  ## individual nutrients by food group
+  ## individual nutrients by food group -----
   data.table::setkeyv(dt.food.agg,foodGroupKey)
   dt.food.agg <- dt.food.agg[, (nutListReq.sum.foodGroup) := lapply(.SD, sum), .SDcols = nutListReq.Q,
                              by = eval(data.table::key(dt.food.agg))]
@@ -250,7 +252,7 @@ generateResults <- function(req,dt.IMPACTfood,IMPACTscenarioList,dt.nutrients,re
   temp <- gsub("req.","",req)
   reqShortName <- gsub(".percap","",temp)
   outName <- paste("food.agg.",reqShortName,sep = "")
-  cleanup(inDT, outName,fileloc("resData"), "csv")
+  cleanup(inDT, outName,fileloc("resultsDir"), "csv")
 }
 # end of generateResults function
 
@@ -290,7 +292,7 @@ generateSum <- function(dt.IMPACTfood,IMPACTscenarioList,region) {
   dt.food.agg[,(deleteListCol) := NULL]
   inDT <- unique(dt.food.agg)
   outName <- "dt.nutrients.sum"
-  cleanup(inDT,outName, fileloc("resData"))
+  cleanup(inDT,outName, fileloc("resultsDir"))
 }
 # run the generateResults script -----
 for (i in 1:length(reqsListPercap)) {

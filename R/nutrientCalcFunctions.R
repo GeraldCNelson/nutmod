@@ -31,7 +31,7 @@
 #'   data.table::setnames(dt.temp,old = names(dt.temp), gsub(".Q.sum","",names(dt.temp)))
 #'   inDT <- dt.temp
 #'   outName <- "food.group"
-#'   cleanup(inDT,outName,fileloc("resData"))
+#'   cleanup(inDT,outName,fileloc("resultsDir"))
 #' }
 #'
 #' #' Title genStapleResults
@@ -65,7 +65,7 @@
 #'
 #'   inDT <- dt.temp
 #'   outName <- "staples"
-#'   cleanup(inDT,outName,fileloc("resData"))
+#'   cleanup(inDT,outName,fileloc("resultsDir"))
 #'
 #'   # now do share of requirements
 #'   data.table::setkeyv(dt.staples.sum,c("staple.code","scenario", region,"year"))
@@ -127,5 +127,5 @@ budgetShare <- function(dt.IMPACTfood,region) {
   data.table::setkeyv(dt.budget, c("scenario", region, "year"))
   inDT <- dt.budget
   outName <- "dt.budgetShare"
-  cleanup(inDT,outName,fileloc("resData"))
+  cleanup(inDT,outName,fileloc("resultsDir"))
 }

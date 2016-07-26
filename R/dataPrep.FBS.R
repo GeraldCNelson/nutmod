@@ -204,8 +204,8 @@ data.table::setkey(dt.FBS.commods,item_code)
 data.table::setkey(dt.FBScommodLookup,item_code)
 
 temp <- dt.FBS.commods[dt.FBScommodLookup]
-deleteColList <- c("FAOSTAT_country_code","IMPACT_missing_code","fish","alcohol")
-temp[,(deleteColList) := NULL]
+deleteListCol <- c("FAOSTAT_country_code","IMPACT_missing_code","fish","alcohol")
+temp[,(deleteListCol) := NULL]
 
 idVars <- c( "country_name","item_code","item",
 "variable_code","variable","unit","ISO_code","item_name","definition",
