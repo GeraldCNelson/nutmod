@@ -24,183 +24,185 @@ FGreqChoices <- reqChoices[grep("FG", reqChoices)]
 
 # Define UI
 
-ui <- fluidPage(title = "Nutrient modeling",
-                tabsetPanel(
-                  # Introduction tab panel -----
-                  tabPanel(title = "Introduction",
-                           mainPanel(width = "100%",
-                                     includeHTML("www/introText.html")
-                           )
-                  ),
-                  # Affordability tab panel ------
-                  tabPanel(title = "Affordability",
-                           titlePanel("Affordability of the current diet"),
-                           wellPanel(
-                             includeHTML("www/affordabilityText.html"),
-                             helpText("Choose from the drop downs below to see country-specific shares",
-                                      "expenditures on food by a representative consumer compared",
-                                      "to per capita income."),
-                             selectInput(inputId = "countryName",
-                                         label = "Choose a country",
-                                         choices = countryNames,
-                                         selected = NULL, multiple = FALSE, selectize = FALSE, width = NULL, size = NULL),
-                             #   selectInput(inputId = "scenarioName",
-                             #               choices = scenarioNames,
-                             #               label = "Choose a scenario",
-                             #               selected = NULL, multiple = FALSE, selectize = FALSE, width = NULL, size = NULL)
-                             # ),
-                             mainPanel( width = "100%",
-                                        fluidRow(
-                                          column(width = 12, div(tableOutput("affordabilityTable"), style = "font-size:80%"))
-                                        )
-                             )
-                           )
-                  ),
-                  # Adequacy tab panel ------
-                  tabPanel(title = "Adequacy",
-                           titlePanel("Nutrient intake and requirements"),
-                           includeHTML("www/adequacyText.html"),
-                           # adequacy tab well panel
-                           wellPanel(
-                             helpText("Choose from the drop downs below to see country-specific spider graphs",
-                                      "of the consumption by a representative consumer compared",
-                                      "to the nutrient requirement. Draft results, not for citation or use, contact nelson.gerald.c@gmail.com for further info"),
-                             selectInput(inputId = "adequacyCountryName",
-                                         label = "Choose a country",
-                                         choices = countryNames,
-                                         selected = NULL, multiple = FALSE, selectize = FALSE, width = NULL, size = NULL),
-                             selectInput(inputId = "adequacyScenarioName",
-                                         choices = scenarioNames,
-                                         label = "Choose a scenario",
-                                         selected = NULL, multiple = FALSE, selectize = FALSE, width = NULL, size = NULL)
-                           ),
-                           # Adequacy tab main panel -----
-                           mainPanel(width = "100%",
-                                     #      tags$head(tags$style("#adequacyTableP1 table {background-color: red; }", media = "screen", type = "text/css")),
-                                     fluidRow(
-                                       column(width = 6, plotOutput("adequacySpiderGraphP1", height = "200px")),
-                                       column(width = 6, plotOutput("adequacySpiderGraphP2", height = "200px"))
-                                     ),
-                                     fluidRow(
-                                       column(width = 6, div(tableOutput("adequacyTableP1"), style = "font-size:60%")),
-                                       column(width = 6, div(tableOutput("adequacyTableP2"), style = "font-size:60%"))
-                                     ),
-                                     fluidRow(
-                                       column(width = 6, plotOutput("adequacySpiderGraphP3", height = "200px")),
-                                       column(width = 6, plotOutput("adequacySpiderGraphP4", height = "200px"))
-                                     ),
-                                     fluidRow(
-                                       column(width = 6, div(tableOutput("adequacyTableP3"), style = "font-size:60%")),
-                                       column(width = 6, div(tableOutput("adequacyTableP4"), style = "font-size:60%"))
-                                     ),
-                                     fluidRow(
-                                       column(width = 6, plotOutput("adequacySpiderGraphP5", height = "200px")),
-                                       column(width = 6)
-                                     ),
-                                     fluidRow(
-                                       column(width = 6, div(tableOutput("adequacyTableP5"), style = "font-size:60%")),
-                                       column(width = 6)
-                                     )
-                           )
-                  ),
-                  # Diversity tab panel ------
-                  tabPanel(title = "Dietary diversity",
-                           titlePanel("Dietary diversity measures "),
-                           wellPanel(
-                             includeHTML("www/diversityText.html"),
-                             # helpText("Choose from the drop down below to see country-specific shares",
-                             #          "expenditures on food by a representative consumer compared",
-                             #          "to per capita income."),
-                             selectInput(inputId = "diversityCountryName",
-                                         label = "Choose a country",
-                                         choices = countryNames,
-                                         selected = NULL, multiple = FALSE, selectize = FALSE, width = NULL, size = NULL)
-                             #   selectInput(inputId = "scenarioName",
-                             #               choices = scenarioNames,
-                             #               label = "Choose a scenario",
-                             #               selected = NULL, multiple = FALSE, selectize = FALSE, width = NULL, size = NULL)
-                             # ),
-                             # Diversity tab main panel -----
-                           ),
-                           mainPanel( width = "100%",
-                                      fluidRow(
-                                        column(width = 12, div(tableOutput("diversityTable"), style = "font-size:80%"))
-                                      )
-                           )
-                  ),
-                  # Food group tab panel ------
-                  tabPanel(title = "Food group diversity",
-                           titlePanel("Nutrient diversity by food groups"),
-                           includeHTML("www/foodGroupSpiderGraphText.html"),
-                           wellPanel(
-                             helpText("Choose from the drop downs below to see country-specific spider graphs",
-                                      "of nutrient sources by food group"),
-                             selectInput(inputId = "FGcountryName",
-                                         label = "Choose a country",
-                                         choices = countryNames,
-                                         selected = NULL, multiple = FALSE, selectize = FALSE, width = NULL, size = NULL),
-                             selectInput(inputId = "FGscenarioName",
-                                         choices = scenarioNames,
-                                         label = "Choose a scenario",
-                                         selected = NULL, multiple = FALSE, selectize = FALSE, width = NULL, size = NULL),
-                             selectInput(inputId = "nutrientGroup",
-                                         choices = FGreqChoices,
-                                         label = "Choose a nutrient group",
-                                         selected = NULL, multiple = FALSE, selectize = FALSE, width = NULL, size = NULL)
-                           ),
-                           # Show some spidergraphs and underlying data tables
-                           mainPanel( width = "100%",
-                                      #      tags$head(tags$style("#adequacyTableP1 table {background-color: red; }", media = "screen", type = "text/css")),
-                                      fluidRow(
-                                        column(width = 12, plotOutput("NutDiverFGspiderGraphP1", height = "1000px"))
-                                      )
-                           )
-                  ),
-                  # ,
-                  # column(width = 6, plotOutput("NutDiverFGspiderGraphP2", height = "200px"))
-                  # fluidRow(
-                  #   column(width = 6, div(tableOutput("NutDiverFGspiderTableP1"), style = "font-size:60%")),
-                  #   column(width = 6, div(tableOutput("NutDiverFGspiderTableP2"), style = "font-size:60%"))
-                  # ),
-                  # fluidRow(
-                  #   column(width = 6, plotOutput("NutDiverFGspiderGraphP3", height = "200px")),
-                  #   column(width = 6, plotOutput("NutDiverFGspiderGraphP4", height = "200px"))
-                  # ),
-                  # fluidRow(
-                  #   column(width = 6, div(tableOutput("NutDiverFGspiderTableP3"), style = "font-size:60%")),
-                  #   column(width = 6, div(tableOutput("NutDiverFGspiderTableP4"), style = "font-size:60%"))
-                  # ),
-                  # fluidRow(
-                  #   column(width = 6, plotOutput("NutDiverFGspiderGraphP5", height = "200px")),
-                  #   column(width = 6)
-                  # ),
-                  # fluidRow(
-                  #   column(width = 6, div(tableOutput("NutDiverFGspiderTableP5"), style = "font-size:60%")),
-                  #   column(width = 6)
-                  # )
+ui <- fluidPage(
+  theme = "cerulean.css",
+  title = "Nutrient modeling",
+  tabsetPanel(
+    # Introduction tab panel -----
+    tabPanel(title = "Introduction",
+             mainPanel(width = "100%",
+                       includeHTML("www/introText.html")
+             )
+    ),
+    # Affordability tab panel ------
+    tabPanel(title = "Affordability",
+             titlePanel("Affordability of the current diet"),
+             wellPanel(
+               includeHTML("www/affordabilityText.html"),
+               helpText("Choose from the drop downs below to see country-specific shares",
+                        "expenditures on food by a representative consumer compared",
+                        "to per capita income."),
+               selectInput(inputId = "countryName",
+                           label = "Choose a country",
+                           choices = countryNames,
+                           selected = NULL, multiple = FALSE, selectize = FALSE, width = NULL, size = NULL),
+               #   selectInput(inputId = "scenarioName",
+               #               choices = scenarioNames,
+               #               label = "Choose a scenario",
+               #               selected = NULL, multiple = FALSE, selectize = FALSE, width = NULL, size = NULL)
+               # ),
+               mainPanel( width = "100%",
+                          fluidRow(
+                            column(width = 12, div(tableOutput("affordabilityTable"), style = "font-size:80%"))
+                          )
+               )
+             )
+    ),
+    # Adequacy tab panel ------
+    tabPanel(title = "Adequacy",
+             titlePanel("Nutrient intake and requirements"),
+             includeHTML("www/adequacyText.html"),
+             # adequacy tab well panel
+             wellPanel(
+               helpText("Choose from the drop downs below to see country-specific spider graphs",
+                        "of the consumption by a representative consumer compared",
+                        "to the nutrient requirement. Draft results, not for citation or use, contact nelson.gerald.c@gmail.com for further info"),
+               selectInput(inputId = "adequacyCountryName",
+                           label = "Choose a country",
+                           choices = countryNames,
+                           selected = NULL, multiple = FALSE, selectize = FALSE, width = NULL, size = NULL),
+               selectInput(inputId = "adequacyScenarioName",
+                           choices = scenarioNames,
+                           label = "Choose a scenario",
+                           selected = NULL, multiple = FALSE, selectize = FALSE, width = NULL, size = NULL)
+             ),
+             # Adequacy tab main panel -----
+             mainPanel(width = "100%",
+                       #      tags$head(tags$style("#adequacyTableP1 table {background-color: red; }", media = "screen", type = "text/css")),
+                       fluidRow(
+                         column(width = 6, plotOutput("adequacySpiderGraphP1", height = "200px")),
+                         column(width = 6, plotOutput("adequacySpiderGraphP2", height = "200px"))
+                       ),
+                       fluidRow(
+                         column(width = 6, div(tableOutput("adequacyTableP1"), style = "font-size:60%")),
+                         column(width = 6, div(tableOutput("adequacyTableP2"), style = "font-size:60%"))
+                       ),
+                       fluidRow(
+                         column(width = 6, plotOutput("adequacySpiderGraphP3", height = "200px")),
+                         column(width = 6, plotOutput("adequacySpiderGraphP4", height = "200px"))
+                       ),
+                       fluidRow(
+                         column(width = 6, div(tableOutput("adequacyTableP3"), style = "font-size:60%")),
+                         column(width = 6, div(tableOutput("adequacyTableP4"), style = "font-size:60%"))
+                       ),
+                       fluidRow(
+                         column(width = 6, plotOutput("adequacySpiderGraphP5", height = "200px")),
+                         column(width = 6)
+                       ),
+                       fluidRow(
+                         column(width = 6, div(tableOutput("adequacyTableP5"), style = "font-size:60%")),
+                         column(width = 6)
+                       )
+             )
+    ),
+    # Diversity tab panel ------
+    tabPanel(title = "Dietary diversity",
+             titlePanel("Dietary diversity measures "),
+             wellPanel(
+               includeHTML("www/diversityText.html"),
+               # helpText("Choose from the drop down below to see country-specific shares",
+               #          "expenditures on food by a representative consumer compared",
+               #          "to per capita income."),
+               selectInput(inputId = "diversityCountryName",
+                           label = "Choose a country",
+                           choices = countryNames,
+                           selected = NULL, multiple = FALSE, selectize = FALSE, width = NULL, size = NULL)
+               #   selectInput(inputId = "scenarioName",
+               #               choices = scenarioNames,
+               #               label = "Choose a scenario",
+               #               selected = NULL, multiple = FALSE, selectize = FALSE, width = NULL, size = NULL)
+               # ),
+               # Diversity tab main panel -----
+             ),
+             mainPanel( width = "100%",
+                        fluidRow(
+                          column(width = 12, div(tableOutput("diversityTable"), style = "font-size:80%"))
+                        )
+             )
+    ),
+    # Food group tab panel ------
+    tabPanel(title = "Food group diversity",
+             titlePanel("Nutrient diversity by food groups"),
+             includeHTML("www/foodGroupSpiderGraphText.html"),
+             wellPanel(
+               helpText("Choose from the drop downs below to see country-specific spider graphs",
+                        "of nutrient sources by food group"),
+               selectInput(inputId = "FGcountryName",
+                           label = "Choose a country",
+                           choices = countryNames,
+                           selected = NULL, multiple = FALSE, selectize = FALSE, width = NULL, size = NULL),
+               selectInput(inputId = "FGscenarioName",
+                           choices = scenarioNames,
+                           label = "Choose a scenario",
+                           selected = NULL, multiple = FALSE, selectize = FALSE, width = NULL, size = NULL),
+               selectInput(inputId = "nutrientGroup",
+                           choices = FGreqChoices,
+                           label = "Choose a nutrient group",
+                           selected = NULL, multiple = FALSE, selectize = FALSE, width = NULL, size = NULL)
+             ),
+             # Show some spidergraphs and underlying data tables
+             mainPanel( width = "100%",
+                        #      tags$head(tags$style("#adequacyTableP1 table {background-color: red; }", media = "screen", type = "text/css")),
+                        fluidRow(
+                          column(width = 12, plotOutput("NutDiverFGspiderGraphP1", height = "1000px"))
+                        )
+             )
+    ),
+    # ,
+    # column(width = 6, plotOutput("NutDiverFGspiderGraphP2", height = "200px"))
+    # fluidRow(
+    #   column(width = 6, div(tableOutput("NutDiverFGspiderTableP1"), style = "font-size:60%")),
+    #   column(width = 6, div(tableOutput("NutDiverFGspiderTableP2"), style = "font-size:60%"))
+    # ),
+    # fluidRow(
+    #   column(width = 6, plotOutput("NutDiverFGspiderGraphP3", height = "200px")),
+    #   column(width = 6, plotOutput("NutDiverFGspiderGraphP4", height = "200px"))
+    # ),
+    # fluidRow(
+    #   column(width = 6, div(tableOutput("NutDiverFGspiderTableP3"), style = "font-size:60%")),
+    #   column(width = 6, div(tableOutput("NutDiverFGspiderTableP4"), style = "font-size:60%"))
+    # ),
+    # fluidRow(
+    #   column(width = 6, plotOutput("NutDiverFGspiderGraphP5", height = "200px")),
+    #   column(width = 6)
+    # ),
+    # fluidRow(
+    #   column(width = 6, div(tableOutput("NutDiverFGspiderTableP5"), style = "font-size:60%")),
+    #   column(width = 6)
+    # )
 
-                  # Metadata tab panel -----
-                  tabPanel(title = "Metadata",
-                           mainPanel(width = "100%",
-                                     "Information for developers",
-                                     " ",
+    # Metadata tab panel -----
+    tabPanel(title = "Metadata",
+             mainPanel(width = "100%",
+                       "Information for developers",
+                       " ",
 
-                                     fluidRow(
-                                       column(width = 12, div(tableOutput("metadataTable"), style = "font-size:80%"))
-                                     )
-                           )
-                  ),
-                  # IMPACT metadata tab panel -----
-                  tabPanel(title = "IMPACT metadata",
-                           mainPanel(width = "100%",
-                                     "Information for developers",
-                                     " ",
-                                     fluidRow(
-                                       column(width = 12, div(tableOutput("IMPACTmetadataTable"), style = "font-size:80%"))
-                                     )
-                           )
-                  )
-                )
+                       fluidRow(
+                         column(width = 12, div(tableOutput("metadataTable"), style = "font-size:80%"))
+                       )
+             )
+    ),
+    # IMPACT metadata tab panel -----
+    tabPanel(title = "IMPACT metadata",
+             mainPanel(width = "100%",
+                       "Information for developers",
+                       " ",
+                       fluidRow(
+                         column(width = 12, div(tableOutput("IMPACTmetadataTable"), style = "font-size:80%"))
+                       )
+             )
+    )
+  )
 )
 
 server <- function(input, output) {
@@ -222,12 +224,12 @@ server <- function(input, output) {
       scenarioName <- input$adequacyScenarioName
       countryCode <- countryCodeLookup(countryName, fileloc("mData"))
       reqType <- "RDA.macro"
-      print(paste(reqType,countryCode, scenarioName, years, sep = ", "))
+      #      print(paste(reqType,countryCode, scenarioName, years, sep = ", "))
       temp <- as.data.table(nutReqDataPrep(reqType, countryCode, scenarioName, years, fileloc("mData")))
       namelist <- colnames(temp)
       temp <- temp[4:nrow(temp)][,year := yearsClean]
       setcolorder(temp, c("year", namelist))
-      print(temp)
+      #      print(temp)
       temp
     }, include.rownames = FALSE)
 
