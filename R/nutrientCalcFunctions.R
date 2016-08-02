@@ -73,7 +73,7 @@
 #'   dt.temp <- dt.staples.sum[dt.nutsReqPerCap]
 #' }
 
-cookingRetFishCorrect <- function(useCookingRetnValues, fixFish) {
+cookingRetFishCorrect <- function(useCookingRetnValues, switch.fixFish) {
   # dt.nutrients is in nutrient per 100 grams of the edible portion
   dt.nutrients <- getNewestVersion("dt.nutrients")
 

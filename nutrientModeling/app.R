@@ -16,8 +16,8 @@ rsconnect::setAccountInfo(name = 'nutrientmodeling', token = 'D0257883A5409984C3
 dt.regions <- getNewestVersion("dt.regions.all",fileloc("mData"))
 countryNames <- sort(unique(dt.regions$region_name.IMPACT159))
 scenarioNames <- sort(keyVariable("scenarioListIMPACT"))
-refScenarios <- c("SSP2-NoCC", "SSP2-HGEM", "SSP2-IPSL")
-scenarioNames <- c(refScenarios, scenarioNames[!scenarioNames %in% refScenarios])
+# refScenarios <- c("SSP2-NoCC", "SSP2-HGEM", "SSP2-IPSL")
+# scenarioNames <- c(refScenarios, scenarioNames[!scenarioNames %in% refScenarios])
 resultFileLookup <- data.table::as.data.table(read.csv("data/ResultFileLookup.csv"))
 reqChoices <- as.character(resultFileLookup$reqType)
 FGreqChoices <- reqChoices[grep("FG", reqChoices)]
@@ -210,11 +210,8 @@ server <- function(input, output) {
   output$adequacySpiderGraphP1 <- renderPlot(
     {
       countryName <- input$adequacyCountryName
-      print(countryName)
       scenarioName <- input$adequacyScenarioName
-      print(scenarioName)
       countryCode <- countryCodeLookup(countryName, fileloc("mData"))
-      print(countryCode)
       reqType <- "RDA.macro"
       nutReqSpiderGraph(reqType, countryCode, scenarioName, years, fileloc("mData"))
     })
@@ -225,10 +222,13 @@ server <- function(input, output) {
       scenarioName <- input$adequacyScenarioName
       countryCode <- countryCodeLookup(countryName, fileloc("mData"))
       reqType <- "RDA.macro"
+      print(paste(reqType,countryCode, scenarioName, years, sep = ", "))
       temp <- as.data.table(nutReqDataPrep(reqType, countryCode, scenarioName, years, fileloc("mData")))
       namelist <- colnames(temp)
       temp <- temp[4:nrow(temp)][,year := yearsClean]
       setcolorder(temp, c("year", namelist))
+      print(temp)
+      temp
     }, include.rownames = FALSE)
 
   output$adequacySpiderGraphP2 <- renderPlot(
@@ -428,7 +428,7 @@ server <- function(input, output) {
       temp$scenario <- reorder.factor(temp$scenario, new.order = scenarioNames)
       temp <- temp %>% arrange(scenario)
       temp
-    })
+    }, include.rownames = FALSE)
 
   # diversityTable -----
   output$diversityTable <- renderTable(
@@ -444,7 +444,7 @@ server <- function(input, output) {
       temp$scenario <- reorder.factor(temp$scenario, new.order = scenarioNames)
       temp <- temp %>% arrange(scenario)
       temp
-    })
+    }, include.rownames = FALSE)
 
   # metadataTable ------
   output$metadataTable <- renderTable(
@@ -460,7 +460,7 @@ server <- function(input, output) {
 
       metaData <- getNewestVersion("dt.IMPACTmetaData", fileloc("mData"))
       metaData
-    })
+    }, include.rownames = FALSE)
 }
 
 

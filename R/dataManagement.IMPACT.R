@@ -74,7 +74,6 @@ combineIMPACTData <- function() {
   # reduce scenario name to just SSPx
   dt.pop[, scenario := substring(scenario, 1, 4)]
   data.table::setkey(dt.pop, NULL)
-  dt.pop <- unique(dt.pop) # added July 25; why wasn't this here before? Because it wasn't needed.
 
   # add alcohol
   dt.alcScenarios <- getNewestVersion("dt.alcScenarios")
@@ -145,15 +144,18 @@ combineIMPACTData <- function() {
 
   #create alcohol and fish data sets for all the IMPACT scenarios
   dt.temp <- dt.alcScenarios.melt[FALSE, ]
-  scenarioList <- keyVariable("scenarioListIMPACT")
-  for (i in scenarioList) {
-    climModel <- gsub(substr((i), 1, 5), "", i)
-    #   SSPNum <- substr((i), 1, 4)
-    # print(i)
+  scenarioListIMPACT <- keyVariable("scenarioListIMPACT")
+  for (i in scenarioListIMPACT) {
+    SSPName <- unlist(strsplit(i, "-"))[1] # get SSP abbrev
+    climModel <- unlist(strsplit(i, "-"))[2] # get climate model abbrev
+    experiment <- unlist(strsplit(i, "-"))[3] # get experiment abbrev
+
     temp.fish <- data.table::copy(dt.fishScenarios.melt)
     temp.alc <- data.table::copy(dt.alcScenarios.melt)
-    temp.fish[, scenario := paste(scenario, climModel, sep = "-")]
-    temp.alc[, scenario := paste(scenario, climModel, sep = "-")]
+    temp.fish <- temp.fish[scenario == SSPName, ]
+    temp.alc <- temp.alc[scenario == SSPName, ]
+    temp.fish[, scenario := paste(SSPName, climModel, experiment, sep = "-")]
+    temp.alc[, scenario := paste(SSPName, climModel, experiment, sep = "-")]
     dtList <- list(dt.temp, temp.fish, temp.alc)
     dt.temp <- data.table::rbindlist(dtList, use.names = TRUE)
   }

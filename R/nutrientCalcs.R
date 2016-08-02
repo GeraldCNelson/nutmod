@@ -27,18 +27,18 @@ if (!exists("getNewestVersion", mode = "function")) {
 # Read in all data first and standardize variable names -----
 # Read in IMPACT food data ----------
 dt.IMPACTfood <- getNewestVersionIMPACT("dt.IMPACTfood")
-#IMPACTscenarioList <- unique(dt.IMPACTfood$scenario)
+#scenarioListIMPACT <- unique(dt.IMPACTfood$scenario)
 # dt.IMPACTfood <- dt.IMPACTfood[!region_code.IMPACT159 %in% c("GRL","SDN")]
 # this should not be necessary
 # dt.IMPACTfood <- dt.IMPACTfood[IMPACT_code %in% keyVariable("IMPACTfoodCommodList"),]
 # get the list of scenarios in the IMPACT data for use below
-IMPACTscenarioList <- keyVariable("scenarioListIMPACT")
+scenarioListIMPACT <- keyVariable("scenarioListIMPACT")
 
-#IMPACTscenarioList <- IMPACTscenarioList[1] # just for testing. !!!XXX
+#scenarioListIMPACT <- scenarioListIMPACT[1] # just for testing. !!!XXX
 
 # read in nutrients data and optionally apply cooking retention values -----
 switch.useCookingRetnValues <- keyVariable("switch.useCookingRetnValues")
-switch.fixFish <- keyVariable("fixFish") #get rid of nutrient info for shrimp, tuna, and salmon because they are not currently in the FBS data
+switch.fixFish <- keyVariable("switch.fixFish") #get rid of nutrient info for shrimp, tuna, and salmon because they are not currently in the FBS data
 dt.nutrients <- cookingRetFishCorrect(switch.useCookingRetnValues, switch.fixFish)
 
 # calculate the share of per capita income spent on IMPACT commodities
@@ -60,15 +60,15 @@ dt.IMPACTfood[, foodAvailpDay := FoodAvailability / keyVariable("DinY")][,FoodAv
 
 reqsListPercap <- keyVariable("reqsListPercap")
 #reqPercap <- reqsListPercap[4] # just for testing!!! XXX
-#IMPACTscenarioList <- "SSP2-MIROC" # just for testing!!! XXX
+#scenarioListIMPACT <- "SSP2-MIROC" # just for testing!!! XXX
 req <- "req.EAR.percap" # just for testing!!! XXX
 
-generateResults <- function(req,dt.IMPACTfood,IMPACTscenarioList,dt.nutrients,region) {
+generateResults <- function(req,dt.IMPACTfood,scenarioListIMPACT,dt.nutrients,region) {
   # use dt.food only in the function
   dt.food <- data.table::copy(dt.IMPACTfood)
   print(paste("loading dt.IMPACT.food for ", req, sep = ""))
   print(proc.time())
-  dt.food <- dt.food[scenario %in% IMPACTscenarioList,]
+  dt.food <- dt.food[scenario %in% scenarioListIMPACT,]
   # read in the nutrient requirements data  for a representative consumer -----
   # Note that these are for SSP categories and thus vary by SSP category and year for each region
   dt.nutsReqPerCap <- getNewestVersion(req)
@@ -76,21 +76,22 @@ generateResults <- function(req,dt.IMPACTfood,IMPACTscenarioList,dt.nutrients,re
   nutListReq <- names( dt.nutsReqPerCap)[4:length(names( dt.nutsReqPerCap))]
   #nutListReq <- nutListReq[3:4] # Here just for testing. !!! be sure to comment out!!!XXX
 
-  # dt.nutsReqPerCap has values for the 5 SSP scenarios. To align with the IMPACT data we need to
+  # dt.nutsReqPerCap has values for the 5 SSP scenarios (but no climate change or experiment effects.
+  # To align with the IMPACT data we need to
   # add the climate model and experiment names to the SSP scenario name (SSP1 - 5).
   # add copies of dt.nutsReqPerCap for each of the climate models
-  # this for loop adds copies of the nutrient requirements for each climate model used. May end up
-  # with more than needed because it has all 5 SSP scenarios.
+  # This for loop adds copies of the nutrient requirements for each climate model used.
   dt.temp <- data.table::copy(dt.nutsReqPerCap[FALSE,])
-  IMPACTscenarioList <- as.character(IMPACTscenarioList)
-  for (i in IMPACTscenarioList) {
+  scenarioListIMPACT <- as.character(scenarioListIMPACT)
+  for (i in scenarioListIMPACT) {
     SSPName <- unlist(strsplit(i, "-"))[1] # get SSP abbrev
     climModel <- unlist(strsplit(i, "-"))[2] # get climate model abbrev
     experiment <- unlist(strsplit(i, "-"))[3] # get experiment abbrev
-    if (is.na(experiment)) {experiment <- "REF"}
+    # if (is.na(experiment)) {experiment <- "REF"}
     # print(experiment)
     # may need to add the RCP column later. Currently it's not included in the scenario name.
     temp.nuts <- data.table::copy(dt.nutsReqPerCap)
+    temp.nuts <- temp.nuts[scenario == SSPName, ]
     # if (is.na(experiment)) {
     #   temp.nuts[,scenario := paste(scenario,climModel, sep = "-")]
     # } else {
@@ -103,8 +104,7 @@ generateResults <- function(req,dt.IMPACTfood,IMPACTscenarioList,dt.nutrients,re
   #  and the nutrients in nutListReq. And reduce rows to just IMPACT scenarios
   keepListCol <- c("scenario", "region_code.IMPACT159", "year", nutListReq)
   dt.nutsReqPerCap <- dt.temp[,keepListCol, with = FALSE]
-  dt.nutsReqPerCap <- dt.nutsReqPerCap[scenario %in% IMPACTscenarioList,]
-  dt.nutsReqPerCap <- unique(dt.nutsReqPerCap) # not sure why this is necessary, Somehow 2010 values are duplicated for some countries
+  dt.nutsReqPerCap <- dt.nutsReqPerCap[scenario %in% scenarioListIMPACT,]
 
   # reduce calculations to just the nutrients in nutListReq
   keepListCol <- c("IMPACT_code","food.group.code","staple.code",nutListReq)
@@ -254,16 +254,16 @@ generateResults <- function(req,dt.IMPACTfood,IMPACTscenarioList,dt.nutrients,re
 # end of generateResults function
 
 
-generateSum <- function(dt.IMPACTfood,IMPACTscenarioList,region) {
+generateSum <- function(dt.IMPACTfood,scenarioListIMPACT,region) {
   print("Creating sum for all nutrients")
   #print(proc.time())
   dt.food <- data.table::copy(dt.IMPACTfood)
-  dt.food <- dt.food[scenario %in% IMPACTscenarioList,]
+  dt.food <- dt.food[scenario %in% scenarioListIMPACT,]
 
   # read in nutrients data and optionally apply cooking retention values -----
   switch.useCookingRetnValues <- keyVariable("switch.useCookingRetnValues")
   switch.fixFish <- keyVariable("switch.fixFish") #get rid of nutrient info for shrimp, tuna, and salmon because they are not currently in the FBS data
-  dt.nutrients <- cookingRetFishCorrect(useCookingRetnValues, fixFish)
+  dt.nutrients <- cookingRetFishCorrect(switch.useCookingRetnValues, switch.fixFish)
 
   nutListReq <- names(dt.nutrients)[2:(ncol(dt.nutrients) - 3)]
   nutListReq.Q <-   paste(nutListReq, "Q", sep = ".")
@@ -293,9 +293,9 @@ generateSum <- function(dt.IMPACTfood,IMPACTscenarioList,region) {
 }
 # run the generateResults script -----
 for (i in 1:length(reqsListPercap)) {
-  generateResults(reqsListPercap[i],dt.IMPACTfood,IMPACTscenarioList, dt.nutrients,region)
+  generateResults(reqsListPercap[i],dt.IMPACTfood,scenarioListIMPACT, dt.nutrients,region)
   print(paste("Done with ", reqsListPercap[i], ". ", length(reqsListPercap) - i," sets of requirements to go.", sep = ""))
 }
 
 # run the generateSum script -----
-generateSum(dt.IMPACTfood, IMPACTscenarioList, region)
+generateSum(dt.IMPACTfood, scenarioListIMPACT, region)

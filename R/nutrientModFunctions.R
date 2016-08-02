@@ -301,7 +301,7 @@ keyVariable <- function(variableName) {
   dropListCty <- c("GRL", "FSM", "GRD", "PRK")
   commonList <- paste("common.", reqsList, sep = "")
   c( "common.EAR", "common.RDA.vits", "common.RDA.minrls", "common.RDA.macro", "common.UL.vits","common.UL.minrls")
-  useCookingRetnValues <- "TRUE"
+  switch.useCookingRetnValues <- "TRUE"
   userName <- "Gerald C. Nelson"
   if (variableName == "list") {
     return(
@@ -669,7 +669,7 @@ countryCode <- "AFG"; years <- c("X2010", "X2030", "X2050")
 reqTypeName <- "RDA.macro"
 dir <- fileloc("resultsDir"); scenarioName <- "SSP3-NoCC"
 
-nutReqDataPrep <- function(reqTypeName, countryCode, scenario, years, dir) {
+nutReqDataPrep <- function(reqTypeName, countryCode, scenarioName, years, dir) {
   resultFileLookup <- data.table::as.data.table(read.csv("data/ResultFileLookup.csv"))
   reqRatioList <- resultFileLookup[1:6, reqTypeName] # list of req types that include are based on a requirement
   SSPname <- stringi::stri_split_fixed(scenarioName, "-", simplify = TRUE)[1]
@@ -728,7 +728,7 @@ nutReqDataPrep <- function(reqTypeName, countryCode, scenario, years, dir) {
   return(reqRatios.nuts)
 }
 
-nutReqSpiderGraph <- function(reqTypeName, countryCode, scenario, years, dir) {
+nutReqSpiderGraph <- function(reqTypeName, countryCode, scenarioName, years, dir) {
   reqRatios.nuts <- nutReqDataPrep(reqTypeName,countryCode, scenarioName, years, dir)
   resultFileLookup <- data.table::as.data.table(read.csv("data/ResultFileLookup.csv"))
   # reqRatioList <- resultFileLookup[1:6, reqType] # list of req types that include are based on a requirement
