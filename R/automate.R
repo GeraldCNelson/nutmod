@@ -42,7 +42,9 @@ source("R/dataManagement.IMPACT.R")
 #paste(fileShortName, "food, sep = "."), iData - just data for food commodities, example is dt.CSEs.food.2016-06-21.rds
 #dt.IMPACTfood, iData
 
-source("R/dataPrep.nutrientData.R") # - creates dt.cookingRet and dt.nutrients, mData
+source("R/dataPrep.nutrientData.R") # - creates dt.cookingRet and dt.nutrients, mData. Note that
+     # dt.nutrients does NOT take into account loss in cooking. That is done later and depends on a switch (search for switch.xxx .
+
 source("R/dataPrep.NutrientRequirements.R")
 # newDFname, mData - nutrient requirements adjusted to SSP age and gender categories, example is req.RDA.macro.ssp.2016-06-22.rds
 

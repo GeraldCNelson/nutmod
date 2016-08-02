@@ -85,6 +85,7 @@ dt.SSP.scen.wide <- data.table::dcast(
 ageRowsToSum <- c(
   "F15_19", "F20_24", "F25_29", "F30_34", "F35_39", "F40_44", "F45_49")
 dt.SSP.scen.wide[, F15_49 := rowSums(.SD), .SDcols = ageRowsToSum]
+dt.SSP.scen.wide <- unique(dt.SSP.scen.wide)
 #pregnant and lactating women are a constant share of kids 0 to 4. This is a *kludge*!!!
 share.preg <- 0.2
 share.lact <- 0.2
@@ -170,6 +171,7 @@ dt.popTot <- unique(dt.popTot)
   )
   #change scenario names to just SSP1, SSP2, etc.
   dt.temp.sum[,scenario := substr((scenario),1,4)]
+  dt.temp.sum <- unique( dt.temp.sum)
   inDT <- dt.temp.sum
   outName <- paste(gsub(".ssp","",nutReqName),"percap",sep = ".")
   cleanup(inDT,outName,fileloc("mData"))
@@ -253,9 +255,7 @@ openxlsx::addStyle(
 for (i in 1:length(reqsSSP)) {
   #nutReq <- paste(reqsSSP[i], "dt.SSP.regions", sep = ".")
   #nutReq <- eval(parse(text = nutReq))
-  dt.temp.internal <-
-#    repCons(dt.pop, reqsSSP[i],ageRowsToSum,"region_code.IMPACT159")
-  repCons(dt.pop, reqsSSP[i],ageRowsToSum)
+  dt.temp.internal <-  repCons(dt.pop, reqsSSP[i],ageRowsToSum)
   data.table::setkeyv(dt.temp.internal, c("nutrient", "region_code.IMPACT159"))
 
   dt.name <- paste(reqsSSP[i], "percap", sep = ".")

@@ -23,9 +23,7 @@ if (!exists("getNewestVersion", mode = "function")) {
   source("R/workbookFunctions.R")
   source("R/nutrientCalcFunctions.R")
 }
-# choose a grouping of countries -----
-# region <- keyVariable("region")
-region <- "region_code.IMPACT159"
+
 # Read in all data first and standardize variable names -----
 # Read in IMPACT food data ----------
 dt.IMPACTfood <- getNewestVersionIMPACT("dt.IMPACTfood")
@@ -35,21 +33,18 @@ dt.IMPACTfood <- getNewestVersionIMPACT("dt.IMPACTfood")
 # dt.IMPACTfood <- dt.IMPACTfood[IMPACT_code %in% keyVariable("IMPACTfoodCommodList"),]
 # get the list of scenarios in the IMPACT data for use below
 IMPACTscenarioList <- keyVariable("scenarioListIMPACT")
-IMPACTscenarioList <- gsub("IRREXP-WUE2", "IRREXP_WUE2", IMPACTscenarioList)
-IMPACTscenarioList <- gsub("PHL-DEV2", "PHL_DEV2", IMPACTscenarioList)
 
 #IMPACTscenarioList <- IMPACTscenarioList[1] # just for testing. !!!XXX
 
 # read in nutrients data and optionally apply cooking retention values -----
-useCookingRetnValues <- keyVariable("useCookingRetnValues")
-fixFish <- keyVariable("fixFish") #get rid of nutrient info for shrimp, tuna, and salmon because they are not currently in the FBS data
-dt.nutrients <- cookingRetFishCorrect(useCookingRetnValues, fixFish)
+switch.useCookingRetnValues <- keyVariable("switch.useCookingRetnValues")
+switch.fixFish <- keyVariable("fixFish") #get rid of nutrient info for shrimp, tuna, and salmon because they are not currently in the FBS data
+dt.nutrients <- cookingRetFishCorrect(switch.useCookingRetnValues, switch.fixFish)
 
 # calculate the share of per capita income spent on IMPACT commodities
-# do only if the data are mostly by country; ie the IMPACT159 regions
-if (region == "region_code.IMPACT159") {budgetShare(dt.IMPACTfood,region)}
+budgetShare(dt.IMPACTfood)
 
-keepListCol <- c("scenario", "IMPACT_code", region, "FoodAvailability", "year")
+keepListCol <- c("scenario", "IMPACT_code", "region_code.IMPACT159", "FoodAvailability", "year")
 dt.IMPACTfood <- dt.IMPACTfood[, keepListCol, with = FALSE]
 # get rid of duplicate rows, caused by getting rid of GDP column
 data.table::setkey(dt.IMPACTfood)
@@ -93,22 +88,23 @@ generateResults <- function(req,dt.IMPACTfood,IMPACTscenarioList,dt.nutrients,re
     climModel <- unlist(strsplit(i, "-"))[2] # get climate model abbrev
     experiment <- unlist(strsplit(i, "-"))[3] # get experiment abbrev
     if (is.na(experiment)) {experiment <- "REF"}
-   # print(experiment)
+    # print(experiment)
     # may need to add the RCP column later. Currently it's not included in the scenario name.
-     temp.nuts <- data.table::copy(dt.nutsReqPerCap)
+    temp.nuts <- data.table::copy(dt.nutsReqPerCap)
     # if (is.na(experiment)) {
     #   temp.nuts[,scenario := paste(scenario,climModel, sep = "-")]
     # } else {
     #   temp.nuts[,scenario := paste(scenario,climModel, experiment, sep = "-")]
     # }
-     temp.nuts[,scenario := paste(SSPName, climModel, experiment, sep = "-")]
+    temp.nuts[,scenario := paste(SSPName, climModel, experiment, sep = "-")]
     dt.temp <- rbind(dt.temp, temp.nuts)
   }
   # keep just the nutrient requirements scenarios that are in the IMPACT data
   #  and the nutrients in nutListReq. And reduce rows to just IMPACT scenarios
-  keepListCol <- c("scenario", region, "year", nutListReq)
+  keepListCol <- c("scenario", "region_code.IMPACT159", "year", nutListReq)
   dt.nutsReqPerCap <- dt.temp[,keepListCol, with = FALSE]
   dt.nutsReqPerCap <- dt.nutsReqPerCap[scenario %in% IMPACTscenarioList,]
+  dt.nutsReqPerCap <- unique(dt.nutsReqPerCap) # not sure why this is necessary, Somehow 2010 values are duplicated for some countries
 
   # reduce calculations to just the nutrients in nutListReq
   keepListCol <- c("IMPACT_code","food.group.code","staple.code",nutListReq)
@@ -120,7 +116,7 @@ generateResults <- function(req,dt.IMPACTfood,IMPACTscenarioList,dt.nutrients,re
 
   #combine the food availability info with the nutrients for each of the IMPACT commodities
   data.table::setkey(dt.nutrients, IMPACT_code)
-  data.table::setkeyv(dt.food, c("scenario",region,"IMPACT_code","year" ))
+  data.table::setkeyv(dt.food, c("scenario","region_code.IMPACT159","IMPACT_code","year" ))
   dt.foodnNuts <-  merge(dt.food,dt.nutrients, by = "IMPACT_code", all = TRUE)
 
   # create name lists for use in operations below
@@ -159,10 +155,10 @@ generateResults <- function(req,dt.IMPACTfood,IMPACTscenarioList,dt.nutrients,re
 
   # calculate sums and ratios, for all food items, by staples, and by food groups -----
   # these keys are used to determine what is summed over or ratio made with
-  allKey <-       c("scenario", region, "year")
-  sumKey <-       c("scenario", region, "year","IMPACT_code")
-  stapleKey <-    c("scenario", region, "year", "staple.code")
-  foodGroupKey <- c("scenario", region, "year", "food.group.code")
+  allKey <-       c("scenario", "region_code.IMPACT159", "year")
+  sumKey <-       c("scenario", "region_code.IMPACT159", "year","IMPACT_code")
+  stapleKey <-    c("scenario", "region_code.IMPACT159", "year", "staple.code")
+  foodGroupKey <- c("scenario", "region_code.IMPACT159", "year", "food.group.code")
 
   # first sum
   ## individual nutrients from all commodities
@@ -184,7 +180,8 @@ generateResults <- function(req,dt.IMPACTfood,IMPACTscenarioList,dt.nutrients,re
   data.table::setkeyv(dt.food.agg,foodGroupKey)
   dt.food.agg <- dt.food.agg[, (nutListReq.sum.foodGroup) := lapply(.SD, sum), .SDcols = nutListReq.Q,
                              by = eval(data.table::key(dt.food.agg))]
-
+ data.table::setkey(dt.food.agg, NULL)
+   dt.food.agg <- unique(dt.food.agg)
   # now calculate ratios of nutrient by group to total consumption of the nutrient
   # nutrient from each food item to the total
   #dt.food.ratio <- data.table::copy(dt.all.sum[,(nutListReq.ratio) := dt.all.sum[[nutListReq.Q]] / dt.all.sum[[nutListReq.sum]]])
@@ -214,12 +211,12 @@ generateResults <- function(req,dt.IMPACTfood,IMPACTscenarioList,dt.nutrients,re
   print(paste("calculating nutrient requirement ratios for ", req, sep = ""))
   print(proc.time())
 
-   # change nutrient names in dt.nutsReqPerCap so they differ from those in nutListReq
+  # change nutrient names in dt.nutsReqPerCap so they differ from those in nutListReq
   nutListReq.Req <- paste(nutListReq,"req", sep = ".")
   data.table::setnames(dt.nutsReqPerCap, old = nutListReq, new = nutListReq.Req)
   data.table::setkeyv(dt.food.agg,allKey)
   data.table::setkeyv(dt.nutsReqPerCap,allKey)
- # temp <- merge(dt.food.agg,dt.nutsReqPerCap, by = c(allKey,nutListReq), all.x = TRUE)
+  # temp <- merge(dt.food.agg,dt.nutsReqPerCap, by = c(allKey,nutListReq), all.x = TRUE)
   dt.food.agg <- merge(dt.food.agg,dt.nutsReqPerCap, by = c(allKey), all.x = TRUE)
   leadingCols <- c("scenario", "region_code.IMPACT159",
                    "year", "IMPACT_code", "foodAvailpDay", "food.group.code", "staple.code")
@@ -264,8 +261,8 @@ generateSum <- function(dt.IMPACTfood,IMPACTscenarioList,region) {
   dt.food <- dt.food[scenario %in% IMPACTscenarioList,]
 
   # read in nutrients data and optionally apply cooking retention values -----
-  useCookingRetnValues <- keyVariable("useCookingRetnValues")
-  fixFish <- keyVariable("fixFish") #get rid of nutrient info for shrimp, tuna, and salmon because they are not currently in the FBS data
+  switch.useCookingRetnValues <- keyVariable("switch.useCookingRetnValues")
+  switch.fixFish <- keyVariable("switch.fixFish") #get rid of nutrient info for shrimp, tuna, and salmon because they are not currently in the FBS data
   dt.nutrients <- cookingRetFishCorrect(useCookingRetnValues, fixFish)
 
   nutListReq <- names(dt.nutrients)[2:(ncol(dt.nutrients) - 3)]
@@ -275,7 +272,7 @@ generateSum <- function(dt.IMPACTfood,IMPACTscenarioList,region) {
   print("Multiplying dt.nutrients by 10 so in same units as IMPACT commodities")
   dt.nutrients[, (nutListReq) := lapply(.SD, function(x) (x * 10)), .SDcols = nutListReq]
   data.table::setkey(dt.nutrients, IMPACT_code)
-  data.table::setkeyv(dt.food, c("scenario",region,"IMPACT_code","year" ))
+  data.table::setkeyv(dt.food, c("scenario","region_code.IMPACT159","IMPACT_code","year" ))
   dt.foodnNuts <-  merge(dt.food, dt.nutrients, by = "IMPACT_code", all = TRUE)
   # multiply the food item by the nutrients it contains and copy into a table called dt.food.agg
   dt.food.agg <- data.table::copy(dt.foodnNuts[, (nutListReq.Q) := lapply(.SD, function(x)
@@ -283,7 +280,7 @@ generateSum <- function(dt.IMPACTfood,IMPACTscenarioList,region) {
 
   print("summing nutrient for all commodities")
 
-  allKey <-       c("scenario", region, "year")
+  allKey <-       c("scenario", "region_code.IMPACT159", "year")
   data.table::setkeyv(dt.food.agg,allKey)
   dt.food.agg <- dt.food.agg[, (nutListReq.sum.all) := lapply(.SD, sum), .SDcols = nutListReq.Q,
                              by = eval(data.table::key(dt.food.agg))][,(nutListReq.Q) := NULL]

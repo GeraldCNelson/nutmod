@@ -21,8 +21,8 @@ yearList <- c("X2010", "X2050")
 scenarioList <- c("SSP1-NoCC","SSP2-NoCC","SSP3-NoCC", "SSP2-HGEM", "SSP2-IPSL")
 dt.regions.all <- getNewestVersion("dt.regions.all")
 
-useCookingRetnValues <- keyVariable("useCookingRetnValues")
-fixFish <- keyVariable("fixFish") #get rid of nutrient info for shrimp, tuna, and salmon because they are not currently in the FBS data
+switch.useCookingRetnValues <- keyVariable("switch.useCookingRetnValues")
+switch.fixFish <- keyVariable("switch.fixFish") #get rid of nutrient info for shrimp, tuna, and salmon because they are not currently in the FBS data
 dt.nutrients <- cookingRetFishCorrect(useCookingRetnValues, fixFish)
 dt.IMPACTfood <- getNewestVersionIMPACT("dt.IMPACTfood")
 dt.budgetShare <- getNewestVersion("dt.budgetShare", fileloc("resultsDir"))

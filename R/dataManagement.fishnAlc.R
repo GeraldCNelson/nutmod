@@ -137,8 +137,8 @@ dt.fishIncElast[, c("c_aqan.elas", "c_aqpl.elas") := 0]
 #if fixShrimp is TRUE, deal with the missing species - shrimp, tuna, and salmon
 # rename shrimp elasticities to crustacean elasticities
 # remove salmon and tuna elasticities
-fixFish <- keyVariable("fixFish")
-if (fixFish == TRUE) {
+switch.fixFish <- keyVariable("switch.fixFish")
+if (switch.fixFish == TRUE) {
   dt.fishIncElast[, c_Crust.elas := NULL]
   data.table::setnames(dt.fishIncElast, old = "c_shrimp.elas", new = "c_Crust.elas")
   itemsToRemove <- c("c_Shrimp", "c_Tuna", "c_Salmon")
@@ -151,8 +151,8 @@ fish_code.elast.list <-
   names(dt.fishIncElast)[2:length(dt.fishIncElast)]
 
 # set max income elasticity to 1 if TRUE
-changeElasticity <- keyVariable("changeElasticity")
-if (changeElasticity == TRUE) {
+switch.changeElasticity <- keyVariable("switch.changeElasticity")
+if (switch.changeElasticity == TRUE) {
   temp <- names(dt.fishIncElast)[2:length(names(dt.fishIncElast))]
   for (j in temp)
     data.table::set(

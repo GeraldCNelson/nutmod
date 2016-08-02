@@ -241,18 +241,18 @@ cleanup <- function(inDT, outName, dir, writeFiles) {
 #' @param reqsList - nutrient requirements basic list
 #' @param reqsListSSP - nutrient requirements by SSP age groups
 #' @param ctyDeleteList
-#' @param useCookingRetnValues - apply the cooking retention values to the nutrient content
+#' @param switch.useCookingRetnValues - apply the cooking retention values to the nutrient content
 #' @param userName - Name of person running the scripts and generating results
 #' @param region -  Aggregation scheme from individual countries to regions
-#' @param fixFish - if TRUE, fix salmon, tuna, and crustaceans
-#' @param changeElasticity - if TRUE, set max fish income elasticities to 1
+#' @param switch.fixFish - if TRUE, fix salmon, tuna, and crustaceans
+#' @param switch.changeElasticity - if TRUE, set max fish income elasticities to 1
 #' @param commonList - names of the lists of nutrient names common to the nutrient lookup table and the requirements
 #' @param dropListCty
 #' @return list of key variables
 #' @export
 keyVariable <- function(variableName) {
-  fixFish <- "TRUE"
-  changeElasticity <- "TRUE"
+  switch.fixFish <- "TRUE"
+  switch.changeElasticity <- "TRUE"
   region <- "region_code.IMPACT159"
   keepYearList <- c("X2010", "X2015", "X2020", "X2025", "X2030", "X2035", "X2040", "X2045", "X2050")
   keepYearList.FBS <- c("X2000", "X2001", "X2002", "X2003", "X2004", "X2005",
@@ -306,8 +306,8 @@ keyVariable <- function(variableName) {
   if (variableName == "list") {
     return(
       c(
-        "fixFish",
-        "changeElasticity",
+        "switch.fixFish",
+        "switch.changeElasticity",
         "region",
         "keepYearList",
         "keepYearList.FBS",
@@ -320,7 +320,7 @@ keyVariable <- function(variableName) {
         "scenarioListIMPACT",
         "DinY",
         "reqListSSP",
-        "useCookingRetnValues",
+        "switch.useCookingRetnValues",
         "commonList",
         "userName",
         "dropListCty"
@@ -472,7 +472,7 @@ fileNameList <- function(variableName) {
   IMPACTfoodFileName <- "dt.IMPACTfood"
   IMPACTfoodFileInfo <-  paste(mData,"/IMPACTData/",IMPACTfoodFileName,sep = "")
   # nutrient data ------
-  nutrientFileName <- "USDA GFS IMPACT V20.xlsx"
+  nutrientFileName <- "USDA GFS IMPACT V21.xlsx"
   nutrientLU       <- paste(nutrientDataDetails, nutrientFileName, sep = "/")
   commodityFoodGroupLookupFileName <-
     "food commodity to food group table V3.xlsx"

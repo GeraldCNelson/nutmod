@@ -76,7 +76,9 @@
 cookingRetFishCorrect <- function(useCookingRetnValues, fixFish) {
   # dt.nutrients is in nutrient per 100 grams of the edible portion
   dt.nutrients <- getNewestVersion("dt.nutrients")
-  if (useCookingRetnValues == "TRUE") {
+
+  # use cooking retention values if TRUE -----
+  if (switch.useCookingRetnValues == "TRUE") {
     # get cooking retention values
     dt.cookRetn <- getNewestVersion("dt.cookingRet")
     data.table::setkey(dt.nutrients,IMPACT_code)
@@ -87,13 +89,14 @@ cookingRetFishCorrect <- function(useCookingRetnValues, fixFish) {
     for (i in 1:length(nutrientsWcookingRet)) {
       nutrientName <-
         substr(x = nutrientsWcookingRet[i], 1, nchar(nutrientsWcookingRet[i]) - 3)
-      nutRetenName <- nutrientsWcookingRet[i]
+      nutRetName <- nutrientsWcookingRet[i]
       dt.temp[,(nutrientName) := eval(parse(text = nutrientName)) *
-                eval(parse(text = nutRetenName))]
+                eval(parse(text = nutRetName))]
     }
     dt.nutrients <- dt.temp[,(c("composite_code",nutrientsWcookingRet)) := NULL]
   }
-  if (fixFish == "TRUE")  {
+# fix fish if TRUE -----
+  if (switch.fixFish == "TRUE")  {
       deleteListRow <- c("c_Shrimp", "c_Tuna", "c_Salmon")
       dt.nutrients <- dt.nutrients[!IMPACT_code %in% deleteListRow,]
     }
@@ -107,24 +110,24 @@ cookingRetFishCorrect <- function(useCookingRetnValues, fixFish) {
 #' @param region - the grouping of countries to aggregate to
 #' @return null
 #' @export
-budgetShare <- function(dt.IMPACTfood,region) {
+budgetShare <- function(dt.IMPACTfood) {
   # prices are in 2005 dollars per metric ton
   # pcGDP is in 1000 2005 dollars
   # 'FoodAvailability' variable is in kgs/person/year. DinY is days in year
   dt.temp <- data.table::copy(dt.IMPACTfood)
-  data.table::setkeyv(dt.temp, c("scenario", region, "year"))
+  data.table::setkeyv(dt.temp, c("scenario", "region_code.IMPACT159", "year"))
   # budget is in 1000 2005 dollars
   dt.temp[, budget.PWX0 := (sum(FoodAvailability * PWX0 / 1000 )) / 1000, by = eval(data.table::key(dt.temp))]
   dt.temp[, budget.PCX0 := (sum(FoodAvailability * PCX0 / 1000 )) / 1000, by = eval(data.table::key(dt.temp))]
   data.table::setkey(dt.temp, budget.PWX0)
   dt.budget <- dt.temp[!duplicated(budget.PCX0),]
-  deleteListCol <- c("IMPACT_code","FoodAvailability","PCX0","PWX0","CSE")
+  deleteListCol <- c("IMPACT_code", "FoodAvailability","PCX0","PWX0","CSE")
   dt.budget[,(deleteListCol) := NULL]
   # at world prices -----
   dt.budget[, incSharePWX0 := budget.PWX0 / pcGDPX0 ]
   # at domestic prices -----
   dt.budget[, incSharePCX0 := budget.PCX0 / pcGDPX0 ]
-  data.table::setkeyv(dt.budget, c("scenario", region, "year"))
+  data.table::setkeyv(dt.budget, c("scenario", "region_code.IMPACT159", "year"))
   inDT <- dt.budget
   outName <- "dt.budgetShare"
   cleanup(inDT,outName,fileloc("resultsDir"))
