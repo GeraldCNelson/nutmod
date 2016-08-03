@@ -9,6 +9,7 @@ library(fmsb) # for the spider charts
 library(gdata) # to reorder the scenario names
 library(dplyr)
 source("global.R")
+library(shinythemes)
 options(repos = c(CRAN = "http://cran.rstudio.com"))
 
 rsconnect::setAccountInfo(name = 'nutrientmodeling', token = 'D0257883A5409984C3DC39101FAACA2E', secret = 'xxBEXU7/AvSa7/10LHFCU7uzXVCHiHP+T7Q8fJDB')
@@ -25,7 +26,7 @@ FGreqChoices <- reqChoices[grep("FG", reqChoices)]
 # Define UI
 
 ui <- fluidPage(
-  theme = "cerulean.css",
+  theme = shinytheme("cerulean"),
   title = "Nutrient modeling",
   tabsetPanel(
     # Introduction tab panel -----
@@ -52,7 +53,7 @@ ui <- fluidPage(
                #               selected = NULL, multiple = FALSE, selectize = FALSE, width = NULL, size = NULL)
                # ),
                mainPanel( width = "100%",
-                          fluidRow(
+                          fluidRow(align="center",
                             column(width = 12, div(tableOutput("affordabilityTable"), style = "font-size:80%"))
                           )
                )
@@ -60,13 +61,13 @@ ui <- fluidPage(
     ),
     # Adequacy tab panel ------
     tabPanel(title = "Adequacy",
-             titlePanel("Nutrient intake and requirements"),
+             titlePanel("Nutrient availability and requirements"),
              includeHTML("www/adequacyText.html"),
              # adequacy tab well panel
              wellPanel(
-               helpText("Choose from the drop downs below to see country-specific spider graphs",
-                        "of the consumption by a representative consumer compared",
-                        "to the nutrient requirement. Draft results, not for citation or use, contact nelson.gerald.c@gmail.com for further info"),
+               # helpText("Choose from the drop downs below to see country-specific spider graphs",
+               #          "of the consumption by a representative consumer compared",
+               #          "to the nutrient requirement. Draft results, not for citation or use, contact nelson.gerald.c@gmail.com for further info"),
                selectInput(inputId = "adequacyCountryName",
                            label = "Choose a country",
                            choices = countryNames,
@@ -80,29 +81,32 @@ ui <- fluidPage(
              mainPanel(width = "100%",
                        #      tags$head(tags$style("#adequacyTableP1 table {background-color: red; }", media = "screen", type = "text/css")),
                        fluidRow(
-                         column(width = 6, plotOutput("adequacySpiderGraphP1", height = "200px")),
-                         column(width = 6, plotOutput("adequacySpiderGraphP2", height = "200px"))
+                         column(width = 6, plotOutput("adequacySpiderGraphP1", height = "250px")),
+                         column(width = 6, plotOutput("adequacySpiderGraphP2", height = "250px"))
                        ),
-                       fluidRow(
+                       fluidRow(align = "center",
                          column(width = 6, div(tableOutput("adequacyTableP1"), style = "font-size:60%")),
                          column(width = 6, div(tableOutput("adequacyTableP2"), style = "font-size:60%"))
                        ),
                        fluidRow(
-                         column(width = 6, plotOutput("adequacySpiderGraphP3", height = "200px")),
-                         column(width = 6, plotOutput("adequacySpiderGraphP4", height = "200px"))
+                         column(width = 6, plotOutput("adequacySpiderGraphP3", height = "250px")),
+                         column(width = 6, plotOutput("adequacySpiderGraphP4", height = "250px"))
                        ),
-                       fluidRow(
+                       fluidRow(align = "center",
                          column(width = 6, div(tableOutput("adequacyTableP3"), style = "font-size:60%")),
                          column(width = 6, div(tableOutput("adequacyTableP4"), style = "font-size:60%"))
                        ),
                        fluidRow(
-                         column(width = 6, plotOutput("adequacySpiderGraphP5", height = "200px")),
+                         column(width = 6, plotOutput("adequacySpiderGraphP5", height = "250px")),
                          column(width = 6)
                        ),
-                       fluidRow(
+                       fluidRow(align = "center",
                          column(width = 6, div(tableOutput("adequacyTableP5"), style = "font-size:60%")),
                          column(width = 6)
-                       )
+                       ),
+             #          fluidRow(
+                       includeHTML("www/adequacyWeightedRequirement.html")
+              #         )
              )
     ),
     # Diversity tab panel ------
@@ -159,21 +163,21 @@ ui <- fluidPage(
              )
     ),
     # ,
-    # column(width = 6, plotOutput("NutDiverFGspiderGraphP2", height = "200px"))
+    # column(width = 6, plotOutput("NutDiverFGspiderGraphP2", height = "250px"))
     # fluidRow(
     #   column(width = 6, div(tableOutput("NutDiverFGspiderTableP1"), style = "font-size:60%")),
     #   column(width = 6, div(tableOutput("NutDiverFGspiderTableP2"), style = "font-size:60%"))
     # ),
     # fluidRow(
-    #   column(width = 6, plotOutput("NutDiverFGspiderGraphP3", height = "200px")),
-    #   column(width = 6, plotOutput("NutDiverFGspiderGraphP4", height = "200px"))
+    #   column(width = 6, plotOutput("NutDiverFGspiderGraphP3", height = "250px")),
+    #   column(width = 6, plotOutput("NutDiverFGspiderGraphP4", height = "250px"))
     # ),
     # fluidRow(
     #   column(width = 6, div(tableOutput("NutDiverFGspiderTableP3"), style = "font-size:60%")),
     #   column(width = 6, div(tableOutput("NutDiverFGspiderTableP4"), style = "font-size:60%"))
     # ),
     # fluidRow(
-    #   column(width = 6, plotOutput("NutDiverFGspiderGraphP5", height = "200px")),
+    #   column(width = 6, plotOutput("NutDiverFGspiderGraphP5", height = "250px")),
     #   column(width = 6)
     # ),
     # fluidRow(
@@ -199,6 +203,16 @@ ui <- fluidPage(
                        " ",
                        fluidRow(
                          column(width = 12, div(tableOutput("IMPACTmetadataTable"), style = "font-size:80%"))
+                       )
+             )
+    ),
+    # Foodgroup lookup panel -----
+    tabPanel(title = "Food group lookup table",
+             mainPanel(width = "100%",
+                       "Information for developers",
+                       " ",
+                       fluidRow(
+                         column(width = 12, div(tableOutput("IMPACTfoodgroupTable"), style = "font-size:80%"))
                        )
              )
     )
@@ -462,6 +476,13 @@ server <- function(input, output) {
 
       metaData <- getNewestVersion("dt.IMPACTmetaData", fileloc("mData"))
       metaData
+    }, include.rownames = FALSE)
+  # IMPACTfoodgroupLookupTable ------
+
+    output$IMPACTfoodgroupTable <- renderTable(
+    {
+      foodGroupLU <- read.csv(paste(fileloc("mData"),"foodGroupLookup.csv", sep = "/"))
+      foodGroupLU
     }, include.rownames = FALSE)
 }
 

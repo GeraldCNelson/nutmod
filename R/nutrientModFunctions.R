@@ -475,7 +475,7 @@ fileNameList <- function(variableName) {
   nutrientFileName <- "USDA GFS IMPACT V21.xlsx"
   nutrientLU       <- paste(nutrientDataDetails, nutrientFileName, sep = "/")
   commodityFoodGroupLookupFileName <-
-    "food commodity to food group table V3.xlsx"
+    "food commodity to food group table V4.xlsx"
   foodGroupLU      <-
     paste(nutrientDataDetails, commodityFoodGroupLookupFileName, sep = "/")
   foodGroupLUAppBased <- paste(mData, commodityFoodGroupLookupFileName, sep = "/")
@@ -772,7 +772,7 @@ nutReqSpiderGraph <- function(reqTypeName, countryCode, scenarioName, years, dir
   )
 
   legend(x = "bottomright", y = NULL, legend = legendText, bty = "n", pch = 20,
-         col = colors_in, text.col = "black", cex = .6, pt.cex = .8, pt.lwd = 1,
+         col = colors_in, text.col = "black", cex = .7, pt.cex = .8, pt.lwd = 1,
          y.intersp = .8)
 }
 
