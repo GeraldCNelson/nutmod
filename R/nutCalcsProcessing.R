@@ -471,7 +471,7 @@ keepListCol <- c(basicInfo, macro)
 dt.nutSum <- dt.nutSum[,keepListCol, with = FALSE]
 macroKcals <- c("protein_g", "carbohydrate_g", "sugar_g", "fat_g", "ethanol")
 nutList.kcals <- paste(macroKcals,".kcal", sep = "")
-nutList.ratio <- paste(macroKcals,"_reqRatio", sep = "")
+nutList.ratio <- paste(macroKcals,"_share", sep = "")
 
 dt.nutSum[, protein_g.kcal := protein_g * proteinKcals][, fat_g.kcal := fat_g * fatKcals][, sugar_g.kcal := sugar_g * carbsKcals][, carbohydrate_g.kcal := carbohydrate_g * carbsKcals]
 deleteListCol <- c("protein_g", "carbohydrate_g", "totalfiber_g", "sugar_g", "fat_g" )

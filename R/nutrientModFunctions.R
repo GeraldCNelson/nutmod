@@ -459,8 +459,8 @@ fileNameList <- function(variableName) {
   IMPACT159regions <- paste(fileloc("IMPACTRawData"), IMPACT159regionsFileName, sep = "/")
   IMPACTstdRegionsFileName <- "IMPACT-agg-regionsFeb2016.xlsx"
   IMPACTstdRegions <- paste(fileloc("IMPACTRawData"), IMPACTstdRegionsFileName, sep = "/")
- #IMPACTgdxfileName <- "Micronutrient-Inputs-USAID.gdx"  #-  gdx for the USAID results
-  IMPACTgdxfileName <- "Micronutrient-Inputs-07252016.gdx"  #- gdx with SSP1, 2, and 3
+ IMPACTgdxfileName <- "Micronutrient-Inputs-USAID.gdx"  #-  gdx for the USAID results
+  #IMPACTgdxfileName <- "Micronutrient-Inputs-07252016.gdx"  #- gdx with SSP1, 2, and 3
   #IMPACTgdxfileName <- "Demand Results20150817.gdx"
   IMPACTgdx         <- paste(fileloc("IMPACTRawData"), IMPACTgdxfileName, sep = "/")
   gdxLib            <- "/Applications/GAMS/gams24.5_osx_x64_64_sfx"
@@ -472,7 +472,7 @@ fileNameList <- function(variableName) {
   IMPACTfoodFileName <- "dt.IMPACTfood"
   IMPACTfoodFileInfo <-  paste(mData,"/IMPACTData/",IMPACTfoodFileName,sep = "")
   # nutrient data ------
-  nutrientFileName <- "USDA GFS IMPACT V21.xlsx"
+  nutrientFileName <- "USDA GFS IMPACT V22.xlsx"
   nutrientLU       <- paste(nutrientDataDetails, nutrientFileName, sep = "/")
   commodityFoodGroupLookupFileName <-
     "food commodity to food group table V4.xlsx"
