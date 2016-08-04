@@ -105,7 +105,7 @@ nutrients <- nutrients.clean[, !(names(nutrients.clean) %in% deleteListCol)]
 foodGroupsInfo <- openxlsx::read.xlsx(
   foodGroupLU, sheet = 1, startRow = 1, cols = 1:6,
   colNames = TRUE)
-tmp <- foodGroupsInfo[, c("IMPACT_code", "food.group.code","staple.code", "white.starch.code")]
+tmp <- foodGroupsInfo[, c("IMPACT_code", "food.group.code","staple.code")]
 dt.nutrients <- data.table::as.data.table(merge(nutrients, tmp, by = "IMPACT_code", all = TRUE))
 #-----------------------
 # code to import composite information from spreadsheets ------

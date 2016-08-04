@@ -63,7 +63,7 @@ reqsListPercap <- keyVariable("reqsListPercap")
 #scenarioListIMPACT <- "SSP2-MIROC" # just for testing!!! XXX
 req <- "req.EAR.percap" # just for testing!!! XXX
 
-generateResults <- function(req,dt.IMPACTfood,scenarioListIMPACT,dt.nutrients,region) {
+generateResults <- function(req,dt.IMPACTfood,scenarioListIMPACT,dt.nutrients) {
   # use dt.food only in the function
   dt.food <- data.table::copy(dt.IMPACTfood)
   print(paste("loading dt.IMPACT.food for ", req, sep = ""))
@@ -254,7 +254,7 @@ generateResults <- function(req,dt.IMPACTfood,scenarioListIMPACT,dt.nutrients,re
 # end of generateResults function
 
 
-generateSum <- function(dt.IMPACTfood,scenarioListIMPACT,region) {
+generateSum <- function(dt.IMPACTfood,scenarioListIMPACT) {
   print("Creating sum for all nutrients")
   #print(proc.time())
   dt.food <- data.table::copy(dt.IMPACTfood)
@@ -285,7 +285,7 @@ generateSum <- function(dt.IMPACTfood,scenarioListIMPACT,region) {
   dt.food.agg <- dt.food.agg[, (nutListReq.sum.all) := lapply(.SD, sum), .SDcols = nutListReq.Q,
                              by = eval(data.table::key(dt.food.agg))][,(nutListReq.Q) := NULL]
   print(proc.time())
-  deleteListCol <- c("IMPACT_code", "foodAvailpDay", "food.group.code", "staple.code", "white.starch.code"            )
+  deleteListCol <- c("IMPACT_code", "foodAvailpDay", "food.group.code", "staple.code")
   dt.food.agg[,(deleteListCol) := NULL]
   inDT <- unique(dt.food.agg)
   outName <- "dt.nutrients.sum"
@@ -293,9 +293,9 @@ generateSum <- function(dt.IMPACTfood,scenarioListIMPACT,region) {
 }
 # run the generateResults script -----
 for (i in 1:length(reqsListPercap)) {
-  generateResults(reqsListPercap[i],dt.IMPACTfood,scenarioListIMPACT, dt.nutrients,region)
+  generateResults(reqsListPercap[i],dt.IMPACTfood,scenarioListIMPACT, dt.nutrients)
   print(paste("Done with ", reqsListPercap[i], ". ", length(reqsListPercap) - i," sets of requirements to go.", sep = ""))
 }
 
 # run the generateSum script -----
-generateSum(dt.IMPACTfood, scenarioListIMPACT, region)
+generateSum(dt.IMPACTfood, scenarioListIMPACT)
