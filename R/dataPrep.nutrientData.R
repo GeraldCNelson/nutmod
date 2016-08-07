@@ -67,11 +67,7 @@ cleanup(inDT,outName,fileloc("mData"))
 #get list of nutrients in the food nutrient lookup table
 #create list of columns that are not nutrients
 temp <-
-  c("IMPACT_code",
-    "composite_code",
-    "edible_share",
-    "IMPACT_conversion",
-    cookretn.cols)
+  c("IMPACT_code", "composite_code", "edible_share",  "IMPACT_conversion", cookretn.cols)
 
 nutrients.list <-
   colnames(nutrients.clean[,!(names(nutrients.clean) %in% temp)])
@@ -101,12 +97,12 @@ nutrients.clean[, nutrients.list] <-
 deleteListCol <- c("edible_share", "IMPACT_conversion", cookretn.cols)
 nutrients <- nutrients.clean[, !(names(nutrients.clean) %in% deleteListCol)]
 
-# add food groups, staples, and white starches codes to the nutrients table ---
-foodGroupsInfo <- openxlsx::read.xlsx(
-  foodGroupLU, sheet = 1, startRow = 1, cols = 1:6,
-  colNames = TRUE)
-tmp <- foodGroupsInfo[, c("IMPACT_code", "food.group.code","staple.code")]
-dt.nutrients <- data.table::as.data.table(merge(nutrients, tmp, by = "IMPACT_code", all = TRUE))
+# add food groups and staples codes to the nutrients table ---
+dt.foodGroupsInfo <- data.table::as.data.table(openxlsx::read.xlsx(
+  foodGroupLU, sheet = 1, startRow = 1,colNames = TRUE))
+keepListCol <- c("IMPACT_code", "food_group_code","staple_code")
+tmp <- dt.foodGroupsInfo[, keepListCol, with = FALSE]
+dt.nutrients <- data.table::as.data.table(merge(nutrients, tmp, by = "IMPACT_code"))
 #-----------------------
 # code to import composite information from spreadsheets ------
 fctFiles <- c("comp_fct_beans_cbean.xlsx",
@@ -129,7 +125,7 @@ recalcFiles <- c(
   "comp_recalc_cvege_vegetables_FCT.xlsx")
 
 nutList <- names(dt.nutrients)
-removeList <- c("IMPACT_code", "composite_code", "food.group.code", "staple.code", "white.starch.code")
+removeList <- c("IMPACT_code", "composite_code", "food_group_code", "staple_code")
 nutList <- nutList[!nutList %in% removeList]
 
 # work comp_recalc spreadsheets. ----
@@ -155,7 +151,7 @@ for (i in fctFiles) {
   # get original row for this commodity
   temp2 <- dt.nutrients[IMPACT_code %in% commodName,]
   # keep only the descriptor columns for this commodity
-  keepListCol <- c("IMPACT_code", "composite_code", "food.group.code", "staple.code", "white.starch.code")
+  keepListCol <- c("IMPACT_code", "composite_code", "food_group_code", "staple_code")
   temp2 <- temp2[,keepListCol, with = FALSE]
   # combine the descriptor columns with the new results
   temp <- cbind(temp,temp2)
@@ -197,7 +193,7 @@ for (i in recalcFiles) {
   # get original row for this commodity
   temp2 <- dt.nutrients[IMPACT_code %in% commodName,]
   # keep only the descriptor columns for this commodity
-  keepListCol <- c("IMPACT_code", "composite_code", "food.group.code", "staple.code", "white.starch.code")
+  keepListCol <- c("IMPACT_code", "composite_code", "food_group_code", "staple_code")
   temp2 <- temp2[,keepListCol, with = FALSE]
   # combine the descriptor columns with the new results
   temp <- cbind(temp,temp2)
@@ -212,7 +208,7 @@ for (i in recalcFiles) {
 namesToAverage <- c("c_OPelag", "c_ODmrsl")
 dt.temp <- dt.nutrients[IMPACT_code %in% namesToAverage,lapply(.SD,mean),
                      .SDcols = c(nutrients.list)]
-keepListCol <- c("IMPACT_code", "composite_code", "food.group.code", "staple.code", "white.starch.code")
+keepListCol <- c("IMPACT_code", "composite_code", "food_group_code", "staple_code")
 dt.temp2 <- dt.nutrients[IMPACT_code %in% "c_OMarn",keepListCol, with = FALSE]
 # combine the descriptor columns with the new results
 temp <- cbind(dt.temp,dt.temp2)
@@ -220,13 +216,35 @@ temp <- cbind(dt.temp,dt.temp2)
 dt.nutrients <- dt.nutrients[!IMPACT_code %in% "c_OMarn",]
 # add new row for this commodity
 dt.nutrients <- rbind(dt.nutrients, temp)
+# add kcals to the dt.nutrients table -----
+# add five new columns - kcals.fat, kcals.protein, kcals.carbs, kcals.ethanol, kcals.sugar
 
+# source of conversion http://www.convertunits.com/from/joules/to/calorie+[thermochemical]
+# 1 kJ = 0.23900573614 thermochemical /food calorie (kCal)
+# 1 Kcal = 4.184 kJ
+# fat 37kJ/g - 8.8432122371 kCal/g; protein 17kJ/g - 4.0630975143 kCal/g; carbs 16kJ/g - 3.8240917782 kCal/g
+fatKcals <- 8.8432122371
+proteinKcals <- 4.0630975143
+carbsKcals <- 3.8240917782
+ethanolKcals <- 6.9
+
+# alcoholic beverages need to have ethanol energy content included
+# assumptions
+#  beer - 4% ethanol, wine - 12% ethanol, spirits - 47% ethanol
+dt.nutrients[, kcals.fat := fat_g * fatKcals][, kcals.protein := protein_g * proteinKcals]
+dt.nutrients[, kcals.protein := carbohydrate_g * carbsKcals][, kcals.sugar := sugar_g * carbsKcals]
+# do alcoholic beverages separately
+dt.nutrients[IMPACT_code == "c_beer", kcals.ethanol := ethanolKcals * .04 * 100] # beer
+dt.nutrients[IMPACT_code == "c_wine", kcals.ethanol := ethanolKcals * .12 * 100] # wine
+dt.nutrients[IMPACT_code == "c_spirits", kcals.ethanol := ethanolKcals * .47 * 100] # spirits
+dt.nutrients[is.na(kcals.ethanol), kcals.ethanol := 0]
 data.table::setorder(dt.nutrients,IMPACT_code)
 
 inDT <- dt.nutrients
 outName <- "dt.nutrients"
 cleanup(inDT,outName,fileloc("mData"))
 
-# write csv file into the data directory
-foodGroupsInfo <- openxlsx::read.xlsx(foodGroupLU, sheet = 1, startRow = 1, cols = 1:6, colNames = TRUE)
-write.csv(foodGroupsInfo, "data/foodGroupLookup.csv")
+dt.foodGroupsInfo <- as.data.table(openxlsx::read.xlsx(foodGroupLU, sheet = 1, startRow = 1, cols = 1:8, colNames = TRUE))
+inDT <- dt.foodGroupsInfo
+outName <- "dt.foodGroupsInfo"
+cleanup(inDT,outName,fileloc("mData"))

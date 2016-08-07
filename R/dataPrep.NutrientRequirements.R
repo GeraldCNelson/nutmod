@@ -34,7 +34,7 @@ options(encoding = "UTF-8")
 dt.nutrients <- getNewestVersion("dt.nutrients")
 
 #' @param allFoodGroups - list of all food groups
-allFoodGroups <- unique(dt.nutrients$food.group.code)
+allFoodGroups <- unique(dt.nutrients$food_group_code)
 
 # Read in and set up the nutrient requirements data -----
 

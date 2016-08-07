@@ -38,16 +38,16 @@ copyFile <- function(fileShortName, sourceDir, destDir, fileType) {
   file.copy(from = paste(sourceDir, oldVersionList, sep = "/"), to = destDir, overwrite = TRUE)
 }
 
-copyListFromResults <- c("EAR.sum.req.ratio","dt.energy.ratios", "dt.budgetShare",
+copyListFromResults <- c("dt.energy.ratios", "dt.budgetShare",
                          "RDA.macro.sum.req.ratio", "RDA.vits.sum.req.ratio", "RDA.minrls.sum.req.ratio",
                          "RDA.macro.staples.ratio","RDA.vits.staples.ratio", "RDA.minrls.staples.ratio",
                          "RDA.macro.FG.ratio","RDA.vits.FG.ratio", "RDA.minrls.FG.ratio",
                          "UL.vits.sum.req.ratio", "UL.minrls.sum.req.ratio",  "dt.shannonDiversity", "metaData",
-                         "UL.minrls.FG.ratio", "UL.vits.FG.ratio")
+                         "UL.minrls.FG.ratio", "UL.vits.FG.ratio", "dt.nutrients.sum.all", "dt.nutrients.sum.staples")
 
-copyListFromData <- c("dt.regions.all")
+copyListFromData <- "dt.regions.all"
 copyListFromiData <- "dt.IMPACTmetaData"
-copyCsvFromData <- c("ResultFileLookup.csv", "foodGroupLookup.csv", "scenarioListIMPACT.csv")
+copyCsvFromData <- c("resultFileLookup.csv", "foodGroupLookup.csv", "scenarioListIMPACT.csv")
 
 for (i in copyListFromResults) {
   print(sprintf("copying file %s from results to nutrientModeling/data", i))

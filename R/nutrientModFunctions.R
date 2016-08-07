@@ -227,6 +227,27 @@ cleanup <- function(inDT, outName, dir, writeFiles) {
   }
 }
 
+cleanupScenarioNames <- function(dt.ptemp) {
+  dt.ptemp[, scenario := gsub("IRREXP-WUE2", "IRREXP_WUE2", scenario)]
+  dt.ptemp[, scenario := gsub("PHL-DEV2", "PHL_DEV2", scenario)]
+  dt.ptemp[, scenario := gsub("HGEM2", "HGEM", scenario)]
+  dt.ptemp[, scenario := gsub("IPSL2", "IPSL", scenario)]
+  return(dt.ptemp)
+}
+
+cleanupNutrientNames <- function(nutList) {
+  nutList <- gsub("_g_reqRatio","",nutList)
+  nutList <- gsub("reqRatio","",nutList)
+  nutList <- gsub("vit_","vit ",nutList)
+  nutList <- gsub("_µg","",nutList)
+  nutList <- gsub("_mg","",nutList)
+  nutList <- gsub("_rae"," rae",nutList)
+  nutList <- gsub("_g","",nutList)
+  nutList <- gsub("totalfiber","total fiber",nutList)
+  nutList <- gsub(".ratio.foodGroup","",nutList)
+  nutList <- gsub("_","",nutList)
+  return(nutList)
+}
 
 #' Title keyVariable - Return a key variable, or a list of all possibilities
 #' @param keepYearList - list of scenario years to keep
@@ -365,7 +386,7 @@ metadata <- function() {
   metadata[(nrow(metadata) + 1), ] <-
     c(fileNameList("nutrientLU"), "nutrient lookup data for IMPACT commodities")
   metadata[(nrow(metadata) + 1), ] <-
-    c(fileNameList("foodGroupLU"), "commodity to food group lookup table")
+    c(fileNameList("dt.foodgroupLU"), "commodity to food group lookup table")
   # SSP information ----
   metadata[(nrow(metadata) + 1), ] <-
     c(fileNameList("SSPdataZip"), "zip file containing the SSP data")
@@ -425,8 +446,8 @@ metadata <- function() {
 #' @param IMPACTfood - path and file name for IMPACT food results
 #' @param nutrientFileName - file name for nutrient lookup data
 #' @param nutrientLU - path and file name for nutrient lookup data
-#' @param commodityFoodGroupLookupFileName - file name for the commodity to food group lookup spreadsheet
-#' @param foodGroupLU - path and file name for the commodity to food group lookup
+#' @param commoditydt.foodgroupLUFileName - file name for the commodity to food group lookup spreadsheet
+#' @param dt.foodgroupLU - path and file name for the commodity to food group lookup
 #' @param SSPdataZipFile - file name of the SSP data in zip format
 #' @param SSPdataZip - path and file name for the SSP data zip file
 #' @param SSPcsv - name of the SSP data file in the zip file
@@ -459,8 +480,8 @@ fileNameList <- function(variableName) {
   IMPACT159regions <- paste(fileloc("IMPACTRawData"), IMPACT159regionsFileName, sep = "/")
   IMPACTstdRegionsFileName <- "IMPACT-agg-regionsFeb2016.xlsx"
   IMPACTstdRegions <- paste(fileloc("IMPACTRawData"), IMPACTstdRegionsFileName, sep = "/")
- IMPACTgdxfileName <- "Micronutrient-Inputs-USAID.gdx"  #-  gdx for the USAID results
-  #IMPACTgdxfileName <- "Micronutrient-Inputs-07252016.gdx"  #- gdx with SSP1, 2, and 3
+  #IMPACTgdxfileName <- "Micronutrient-Inputs-USAID.gdx"  #-  gdx for the USAID results
+  IMPACTgdxfileName <- "Micronutrient-Inputs-07252016.gdx"  #- gdx with SSP1, 2, and 3
   #IMPACTgdxfileName <- "Demand Results20150817.gdx"
   IMPACTgdx         <- paste(fileloc("IMPACTRawData"), IMPACTgdxfileName, sep = "/")
   gdxLib            <- "/Applications/GAMS/gams24.5_osx_x64_64_sfx"
@@ -474,11 +495,10 @@ fileNameList <- function(variableName) {
   # nutrient data ------
   nutrientFileName <- "USDA GFS IMPACT V22.xlsx"
   nutrientLU       <- paste(nutrientDataDetails, nutrientFileName, sep = "/")
-  commodityFoodGroupLookupFileName <-
+  foodgroupLUFileName <-
     "food commodity to food group table V4.xlsx"
   foodGroupLU      <-
-    paste(nutrientDataDetails, commodityFoodGroupLookupFileName, sep = "/")
-  foodGroupLUAppBased <- paste(mData, commodityFoodGroupLookupFileName, sep = "/")
+    paste(nutrientDataDetails, foodgroupLUFileName, sep = "/")
   # SSP information ----
   SSPdataZipFile   <- "SspDb_country_data_2013-06-12.csv.zip"
   SSPdataZip       <- paste(SSPData, SSPdataZipFile, sep = "/")
@@ -512,8 +532,8 @@ fileNameList <- function(variableName) {
         "IMPACTfood",
         "nutrientFileName",
         "nutrientLU",
-        "commodityFoodGroupLookupFileName",
-        "foodGroupLU",
+        "commoditydt.foodgroupLUFileName",
+        "dt.foodgroupLU",
         "SSPdataZipFile",
         "SSPdataZip",
         "SSPcsv",
@@ -670,7 +690,7 @@ reqTypeName <- "RDA.macro"
 dir <- fileloc("resultsDir"); scenarioName <- "SSP3-NoCC"
 
 nutReqDataPrep <- function(reqTypeName, countryCode, scenarioName, years, dir) {
-  resultFileLookup <- data.table::as.data.table(read.csv("data/ResultFileLookup.csv"))
+  resultFileLookup <- data.table::as.data.table(read.csv("data/resultFileLookup.csv"))
   reqRatioList <- resultFileLookup[1:6, reqTypeName] # list of req types that include are based on a requirement
   SSPname <- stringi::stri_split_fixed(scenarioName, "-", simplify = TRUE)[1]
   climModel <- stringi::stri_split_fixed(scenarioName, "-", simplify = TRUE)[2]
@@ -706,7 +726,7 @@ nutReqDataPrep <- function(reqTypeName, countryCode, scenarioName, years, dir) {
   deleteListCol <- c("scenario", "SSP", "climate_model", "experiment", "region_code.IMPACT159", "year")
   reqRatios.nuts[,(deleteListCol) := NULL]
   spokeCols <- names(reqRatios.nuts)
-#  nutListShort <- cleanupNutrientNames(spokeCols)
+  #  nutListShort <- cleanupNutrientNames(spokeCols)
 
   reqRatios.nuts[is.nan(get(spokeCols)),  (spokeCols) := 0, with = FALSE]
   reqRatios.nuts <- reqRatios.nuts[,(spokeCols) := round(.SD,2), .SDcols = spokeCols]
@@ -730,7 +750,7 @@ nutReqDataPrep <- function(reqTypeName, countryCode, scenarioName, years, dir) {
 
 nutReqSpiderGraph <- function(reqTypeName, countryCode, scenarioName, years, dir) {
   reqRatios.nuts <- nutReqDataPrep(reqTypeName,countryCode, scenarioName, years, dir)
-  resultFileLookup <- data.table::as.data.table(read.csv("data/ResultFileLookup.csv"))
+  resultFileLookup <- data.table::as.data.table(read.csv("data/resultFileLookup.csv"))
   # reqRatioList <- resultFileLookup[1:6, reqType] # list of req types that include are based on a requirement
   # SSP <- stringi::stri_split_fixed(scenarioName, "-", simplify = TRUE)[1]
   # climModel <- stringi::stri_split_fixed(scenarioName, "-", simplify = TRUE)[2]
@@ -745,22 +765,23 @@ nutReqSpiderGraph <- function(reqTypeName, countryCode, scenarioName, years, dir
   # formula.ratios <- paste("scenario + SSP + climate_model + experiment + region_code.IMPACT159 + year ~ nutrient")
   #
   # reqRatios <- reqRatios[, keepListCol, with = FALSE]
-   description <- resultFileLookup[reqType == reqTypeName, description]
+  description <- resultFileLookup[reqType == reqTypeName, description]
 
- chartTitle <- description
+  chartTitle <- description
 
   #temp1 <- rbind(colMins, colMaxs, reqRatioRow, reqRatios.wide.nuts)
 
-    legendText <- c("REQ",years)
-    colors_border <- c(  "black", rgb(0.2,0.5,0.5,0.9), rgb(0.8,0.2,0.5,0.9), rgb(0.7,0.5,0.1,0.9) )
-    colors_in <- c( "black", rgb(0.2,0.5,0.5,0.4), rgb(0.8,0.2,0.5,0.4), rgb(0.7,0.5,0.1,0.4) )
+  legendText <- c("REQ",years)
+  colors_border <- c(  "black", rgb(0.2,0.5,0.5,0.9), rgb(0.8,0.2,0.5,0.9), rgb(0.7,0.5,0.1,0.9) )
+  colors_in <- c( "black", rgb(0.2,0.5,0.5,0.4), rgb(0.8,0.2,0.5,0.4), rgb(0.7,0.5,0.1,0.4) )
 
   lineType <- c(3, 1, 1, 1)
-   plot.new()
+  plot.new()
   par(mar = c(1, 2, 2, 1))
-  radarchart(reqRatios.nuts, axistype = 2,
+  reqNames <- names(reqRatios.nuts)
+    radarchart(reqRatios.nuts, axistype = 2,
              title = chartTitle,
-             vlabels = names(reqRatios.nuts),
+             vlabels = reqNames,
              seg = 3,
              #custom polygon
              pcol = colors_border, plwd = 1, plty = lineType,
@@ -772,30 +793,8 @@ nutReqSpiderGraph <- function(reqTypeName, countryCode, scenarioName, years, dir
   )
 
   legend(x = "bottomright", y = NULL, legend = legendText, bty = "n", pch = 20,
-         col = colors_in, text.col = "black", cex = .7, pt.cex = .8, pt.lwd = 1,
+         col = colors_in, text.col = "black", cex = .8, pt.cex = .8, pt.lwd = 1,
          y.intersp = .8)
-}
-
-cleanupScenarioNames <- function(dt.ptemp) {
-  dt.ptemp[, scenario := gsub("IRREXP-WUE2", "IRREXP_WUE2", scenario)]
-  dt.ptemp[, scenario := gsub("PHL-DEV2", "PHL_DEV2", scenario)]
-  dt.ptemp[, scenario := gsub("HGEM2", "HGEM", scenario)]
-  dt.ptemp[, scenario := gsub("IPSL2", "IPSL", scenario)]
-  return(dt.ptemp)
-}
-
-cleanupNutrientNames <- function(nutList) {
-  nutList <- gsub("_g_reqRatio","",nutList)
-  nutList <- gsub("reqRatio","",nutList)
-  nutList <- gsub("vit_","vit ",nutList)
-  nutList <- gsub("_µg","",nutList)
-  nutList <- gsub("_mg","",nutList)
-  nutList <- gsub("_rae"," rae",nutList)
-  nutList <- gsub("_g","",nutList)
-  nutList <- gsub("totalfiber","total fiber",nutList)
-  nutList <- gsub(".ratio.foodGroup","",nutList)
-  nutList <- gsub("_","",nutList)
-  return(nutList)
 }
 
 # test data for nutSharedatasetup
@@ -804,7 +803,8 @@ reqTypeName <- "FG.minrls";
 dir <- fileloc("resultsDir"); scenarioName <- "SSP2-NoCC"
 nutshareSpiderGraph <- function(reqTypeName, country, scenario, years, dir) {
   #reqRatiodatasetup <- function(reqTypeName,country, scenarioName, years, dir) {
-  resultFileLookup <- data.table::as.data.table(read.csv("data/ResultFileLookup.csv"))
+  resultFileLookup <- data.table::as.data.table(read.csv("data/resultFileLookup.csv"))
+  dt.foodgroupLU <- getNewestVersion("dt.foodGroupsInfo")
   SSP <- stringi::stri_split_fixed(scenarioName, "-", simplify = TRUE)[1]
   climModel <- stringi::stri_split_fixed(scenarioName, "-", simplify = TRUE)[2]
   experiment <- stringi::stri_split_fixed(scenarioName, "-", simplify = TRUE)[3]
@@ -816,17 +816,17 @@ nutshareSpiderGraph <- function(reqTypeName, country, scenario, years, dir) {
                    "nutrient", years)
   idVars <- c("scenario", "SSP", "climate_model", "experiment", "region_code.IMPACT159", "nutrient")
 
-  if ("food.group.code" %in% names(shareRatios)) {
+  if ("food_group_code" %in% names(shareRatios)) {
     keepListCol <- c("scenario", "SSP", "climate_model", "experiment", "RCP", "region_code.IMPACT159",
-                     "food.group.code", "nutrient", years)
-    idVars <- c("scenario", "SSP", "climate_model", "experiment", "region_code.IMPACT159", "nutrient", "food.group.code")
-    formula.ratios <- paste("scenario + SSP + climate_model + experiment + region_code.IMPACT159 + nutrient + year ~ food.group.code")
+                     "food_group_code", "nutrient", years)
+    idVars <- c("scenario", "SSP", "climate_model", "experiment", "region_code.IMPACT159", "nutrient", "food_group_code")
+    formula.ratios <- paste("scenario + SSP + climate_model + experiment + region_code.IMPACT159 + nutrient + year ~ food_group_code")
   }
-  if ("staple.code" %in% names(shareRatios)) {
+  if ("staple_code" %in% names(shareRatios)) {
     keepListCol <- c("scenario", "SSP", "climate_model", "experiment", "RCP", "region_code.IMPACT159",
-                     "staple.code", "nutrient", years)
-    idVars <- c("scenario", "SSP", "climate_model", "experiment", "region_code.IMPACT159", "nutrient", "staple.code")
-    formula.ratios <- paste("scenario + SSP + climate_model + experiment + region_code.IMPACT159 + nutrient + year ~ staple.code")
+                     "staple_code", "nutrient", years)
+    idVars <- c("scenario", "SSP", "climate_model", "experiment", "region_code.IMPACT159", "nutrient", "staple_code")
+    formula.ratios <- paste("scenario + SSP + climate_model + experiment + region_code.IMPACT159 + nutrient + year ~ staple_code")
   }
   shareRatios <- shareRatios[, keepListCol, with = FALSE]
   description <- resultFileLookup[reqType == reqTypeName, description]
@@ -846,17 +846,17 @@ nutshareSpiderGraph <- function(reqTypeName, country, scenario, years, dir) {
 
   shareRatios.nuts <-
     shareRatios.wide[region_code.IMPACT159 %in% i & SSP %in% j & climate_model %in% k &
-                     experiment == m]
+                       experiment == m]
   # shareRatios.nuts[, year := gsub("X","",year)]
   #get rid of year along with the others
   deleteListCol <- c("scenario", "SSP", "climate_model", "experiment", "region_code.IMPACT159", "year")
   shareRatios.nuts[,(deleteListCol) := NULL]
   spokeCols <- names(shareRatios.nuts)[2:ncol(shareRatios.nuts)]
   nutListShort <- cleanupNutrientNames(spokeCols)
-  if (("food.group.code" %in% names(shareRatios)) | ("staple.code" %in% names(shareRatios))) {
-    foodGroupsInfo <- read.csv(paste(fileloc("mData"), "foodGroupLookup.csv", sep = "/"), stringsAsFactors = FALSE)
-    foodGroupList <- sort(unique(foodGroupsInfo$food.group.code))
-    stapleList <- unique(foodGroupsInfo$staple.code)
+  if (("food_group_code" %in% names(shareRatios)) | ("staple_code" %in% names(shareRatios))) {
+    foodGroupsInfo <- read.csv(paste(fileloc("mData"), "dt.foodgroupLU.csv", sep = "/"), stringsAsFactors = FALSE)
+    foodGroupList <- sort(unique(foodGroupsInfo$food_group_code))
+    stapleList <- unique(foodGroupsInfo$staple_code)
     shareRatios.nuts[, nutrient := gsub("_g.ratio.foodGroup","", nutrient)]
     shareRatios.nuts[, nutrient := gsub("_µg.ratio.foodGroup","", nutrient)]
     shareRatios.nuts[, nutrient := gsub("_mg.ratio.foodGroup","", nutrient)]
@@ -868,15 +868,15 @@ nutshareSpiderGraph <- function(reqTypeName, country, scenario, years, dir) {
 
   #temp1 <- rbind(colMins, colMaxs, reqRatioRow, shareRatios.wide.nuts)
 
-    legendText <- years
-    colors_border <- c(rgb(0.2,0.5,0.5,0.9), rgb(0.8,0.2,0.5,0.9), rgb(0.7,0.5,0.1,0.9) )
-    colors_in <- c(rgb(0.2,0.5,0.5,0.4), rgb(0.8,0.2,0.5,0.4), rgb(0.7,0.5,0.1,0.4) )
+  legendText <- years
+  colors_border <- c(rgb(0.2,0.5,0.5,0.9), rgb(0.8,0.2,0.5,0.9), rgb(0.7,0.5,0.1,0.9) )
+  colors_in <- c(rgb(0.2,0.5,0.5,0.4), rgb(0.8,0.2,0.5,0.4), rgb(0.7,0.5,0.1,0.4) )
 
   lineType <- c(3, 1, 1, 1)
- plot.new()
- title(description)
+  plot.new()
+  title(description)
 
- nutrientList <- sort(unique(shareRatios.nuts$nutrient))
+  nutrientList <- sort(unique(shareRatios.nuts$nutrient))
   par(mar = c(1, 2, 2, 1))
   nrowsGraphs = round(length(nutrientList)/2)
   par(mfrow = c(nrowsGraphs,2))
@@ -893,24 +893,30 @@ nutshareSpiderGraph <- function(reqTypeName, country, scenario, years, dir) {
     temp[, (spokeCols) := lapply(.SD, as.numeric), .SDcols = spokeCols]
     temp[is.nan(get(spokeCols)),  (spokeCols) := 0, with = FALSE]
     temp[, nutrient := NULL]
+    food_groups
+    food_group_codes
 
-  radarchart(temp, axistype = 2,
-             title = i,
-             vlabels = nutListShort,
-             seg = 3,
-             #custom polygon
-             pcol = colors_border, plwd = 1, plty = lineType,
-             #customgrid colors
-             cglcol = "grey", cglty = 1, axislabcol = "grey", caxislabels = seq(0,20,5), cglwd = 0.8,
-             #custom labels
-             vlcex = 0.8,
-             maxmin = TRUE
-  )
+    vnames <- vector(mode = "character", length = length(nutListShort))
+    for (j in 1:length(nutListShort)) {
+      vnames[j] <- as.character(dt.foodgroupLU[food_group_codes == nutListShort[j], food_groups])
+    }
 
-  legend(x = "bottomright", y = NULL, legend = legendText, bty = "n", pch = 20,
-         col = colors_in, text.col = "black", cex = .6, pt.cex = .8, pt.lwd = 1,
-         y.intersp = .8)
+    radarchart(temp, axistype = 2,
+               title = i,
+               vlabels = nutListShort,
+               seg = 3,
+               #custom polygon
+               pcol = colors_border, plwd = 1, plty = lineType,
+               #customgrid colors
+               cglcol = "grey", cglty = 1, axislabcol = "grey", caxislabels = seq(0,20,5), cglwd = 0.8,
+               #custom labels
+               vlcex = 0.8,
+               maxmin = TRUE
+    )
+
+    legend(x = "bottomright", y = NULL, legend = legendText, bty = "n", pch = 20,
+           col = colors_in, text.col = "black", cex = .6, pt.cex = .8, pt.lwd = 1,
+           y.intersp = .8)
   }
   return(temp)
 }
-

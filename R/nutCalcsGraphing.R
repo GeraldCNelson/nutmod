@@ -75,11 +75,11 @@ for (req in reqsList) {
   for (j in 1:length(nutList)) {
     # keep only columns relevant to the current nutrient
     data.table::setkey(dt.food.agg)
-    keepListCol <- c("scenario", "region_code.IMPACT159", "year", "IMPACT_code", "food.group.code", "staple.code","white.starch.code",
+    keepListCol <- c("scenario", "region_code.IMPACT159", "year", "IMPACT_code", "food_group_code", "staple_code",
                      "foodAvailpDay",names(dt.food.agg)[grepl((nutList[j]),names(dt.food.agg))])
     dt.temp.nut <- dt.food.agg[, keepListCol, with = FALSE]
     for (k in c("staple","FG","all")) {
-      keepListCol <- c("scenario", "region_code.IMPACT159", "year", "IMPACT_code", "food.group.code", "staple.code","white.starch.code",
+      keepListCol <- c("scenario", "region_code.IMPACT159", "year", "IMPACT_code", "food_group_code", "staple_code",
                        "foodAvailpDay", names(dt.temp.nut)[grepl(k,names(dt.temp.nut))])
       dt.temp.group <- dt.temp.nut[, keepListCol, with = FALSE]
       # add the results to the spreadsheet

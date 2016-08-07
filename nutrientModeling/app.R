@@ -59,11 +59,6 @@ ui <- fluidPage(
           width = NULL,
           size = NULL
         ),
-        #   selectInput(inputId = "scenarioName",
-        #               choices = scenarioNames,
-        #               label = "Choose a scenario",
-        #               selected = NULL, multiple = FALSE, selectize = FALSE, width = NULL, size = NULL)
-        # ),
         mainPanel(width = "100%",
                   fluidRow(align = "center",
                            column(
@@ -71,6 +66,7 @@ ui <- fluidPage(
                            )))
       )
     ),
+
     # Adequacy tab panel ------
     tabPanel(
       title = "Adequacy",
@@ -78,67 +74,48 @@ ui <- fluidPage(
       includeHTML("www/adequacyText.html"),
       # adequacy tab well panel
       wellPanel(
-        # helpText("Choose from the drop downs below to see country-specific spider graphs",
-        #          "of the consumption by a representative consumer compared",
-        #          "to the nutrient requirement. Draft results, not for citation or use, contact nelson.gerald.c@gmail.com for further info"),
+        # helpText("xxx"),
         selectInput(
           inputId = "adequacyCountryName",
           label = "Choose a country",
           choices = countryNames,
-          selected = NULL,
-          multiple = FALSE,
-          selectize = FALSE,
-          width = NULL,
-          size = NULL
+          selected = NULL, multiple = FALSE, selectize = FALSE, width = NULL, size = NULL
         ),
         selectInput(
           inputId = "adequacyScenarioName",
           choices = scenarioNames,
           label = "Choose a scenario",
-          selected = NULL,
-          multiple = FALSE,
-          selectize = FALSE,
-          width = NULL,
-          size = NULL
+          selected = NULL, multiple = FALSE, selectize = FALSE, width = NULL, size = NULL
         )
       ),
       # Adequacy tab main panel -----
       mainPanel(
         width = "100%",
-        #      tags$head(tags$style("#adequacyTableP1 table {background-color: red; }", media = "screen", type = "text/css")),
-        fluidRow(column(
-          width = 6, plotOutput("adequacySpiderGraphP1", height = "250px")
+        fluidRow(
+          column(width = 6, plotOutput("adequacySpiderGraphP1", height = "250px")
         ),
-        column(
-          width = 6, plotOutput("adequacySpiderGraphP2", height = "250px")
+        column(width = 6, plotOutput("adequacySpiderGraphP2", height = "250px")
         )),
         fluidRow(align = "center",
-                 column(
-                   width = 6, div(tableOutput("adequacyTableP1"), style = "font-size:60%")
+                 column(width = 6, div(tableOutput("adequacyTableP1"), style = "font-size:60%")
                  ),
-                 column(
-                   width = 6, div(tableOutput("adequacyTableP2"), style = "font-size:60%")
+                 column(width = 6, div(tableOutput("adequacyTableP2"), style = "font-size:60%")
                  )),
-        fluidRow(column(
-          width = 6, plotOutput("adequacySpiderGraphP3", height = "250px")
+        fluidRow(column(width = 6, plotOutput("adequacySpiderGraphP3", height = "250px")
         ),
-        column(
-          width = 6, plotOutput("adequacySpiderGraphP4", height = "250px")
+        column(width = 6, plotOutput("adequacySpiderGraphP4", height = "250px")
         )),
         fluidRow(align = "center",
-                 column(
-                   width = 6, div(tableOutput("adequacyTableP3"), style = "font-size:60%")
+                 column(width = 6, div(tableOutput("adequacyTableP3"), style = "font-size:60%")
                  ),
-                 column(
-                   width = 6, div(tableOutput("adequacyTableP4"), style = "font-size:60%")
+                 column(width = 6, div(tableOutput("adequacyTableP4"), style = "font-size:60%")
                  )),
         fluidRow(column(
           width = 6, plotOutput("adequacySpiderGraphP5", height = "250px")
         ),
         column(width = 6)),
         fluidRow(align = "center",
-                 column(
-                   width = 6, div(tableOutput("adequacyTableP5"), style = "font-size:60%")
+                 column(width = 6, div(tableOutput("adequacyTableP5"), style = "font-size:60%")
                  ),
                  column(width = 6)),
         #          fluidRow(
@@ -151,7 +128,6 @@ ui <- fluidPage(
              tabsetPanel(
                tabPanel(
                  title = "Shannon diversity index",
-                 #           titlePanel("Dietary diversity measures "),
                  wellPanel(
                    includeHTML("www/shannonDiversityText.html"),
                    # helpText("xxx"),
@@ -159,11 +135,7 @@ ui <- fluidPage(
                      inputId = "diversityCountryName",
                      label = "Choose a country",
                      choices = countryNames,
-                     selected = NULL,
-                     multiple = FALSE,
-                     selectize = FALSE,
-                     width = NULL,
-                     size = NULL
+                     selected = NULL, multiple = FALSE, selectize = FALSE, width = NULL, size = NULL
                    )
                  ),
                  # Diversity tab main panel -----
@@ -186,31 +158,19 @@ ui <- fluidPage(
                      inputId = "FGcountryName",
                      label = "Choose a country",
                      choices = countryNames,
-                     selected = NULL,
-                     multiple = FALSE,
-                     selectize = FALSE,
-                     width = NULL,
-                     size = NULL
+                     selected = NULL, multiple = FALSE, selectize = FALSE, width = NULL, size = NULL
                    ),
                    selectInput(
                      inputId = "FGscenarioName",
                      choices = scenarioNames,
                      label = "Choose a scenario",
-                     selected = NULL,
-                     multiple = FALSE,
-                     selectize = FALSE,
-                     width = NULL,
-                     size = NULL
+                     selected = NULL, multiple = FALSE, selectize = FALSE, width = NULL, size = NULL
                    ),
                    selectInput(
                      inputId = "nutrientGroup",
                      choices = FGreqChoices,
                      label = "Choose a nutrient group",
-                     selected = NULL,
-                     multiple = FALSE,
-                     selectize = FALSE,
-                     width = NULL,
-                     size = NULL
+                     selected = NULL, multiple = FALSE, selectize = FALSE, width = NULL, size = NULL
                    )
                  ),
                  # Show some spidergraphs and underlying data tables
@@ -265,6 +225,18 @@ ui <- fluidPage(
 server <- function(input, output) {
   years <- c("X2010", "X2030", "X2050")
   yearsClean <- gsub("X", "", years)
+  dt.energyRatios <- getNewestVersion("dt.energy.ratios", fileloc("mData"))
+  keepYearList <- keyVariable("keepYearList")
+  idVars <- c("scenario", "region_code.IMPACT159", "nutrient")
+  dt.energyRatios.long <-  data.table::melt(
+    dt.energyRatios,
+    id.vars = idVars,
+    variable.name = "year",
+    measure.vars = keepYearList,
+    variable.factor = FALSE
+  )
+  dt.energyRatios.long <- dt.energyRatios.long[year %in% years,]
+
   # adequacy server side -----
   output$adequacySpiderGraphP1 <- renderPlot({
     countryName <- input$adequacyCountryName
@@ -272,11 +244,7 @@ server <- function(input, output) {
     countryCode <-
       countryCodeLookup(countryName, fileloc("mData"))
     reqType <- "RDA.macro"
-    nutReqSpiderGraph(reqType,
-                      countryCode,
-                      scenarioName,
-                      years,
-                      fileloc("mData"))
+    nutReqSpiderGraph(reqType, countryCode, scenarioName, years, fileloc("mData"))
   })
 
   output$adequacyTableP1 <- renderTable({
@@ -287,13 +255,8 @@ server <- function(input, output) {
     reqType <- "RDA.macro"
     #      print(paste(reqType,countryCode, scenarioName, years, sep = ", "))
     temp <-
-      as.data.table(nutReqDataPrep(
-        reqType,
-        countryCode,
-        scenarioName,
-        years,
-        fileloc("mData")
-      ))
+      as.data.table(nutReqDataPrep(reqType, countryCode, scenarioName, years, fileloc("mData"))
+      )
     namelist <- colnames(temp)
     temp <- temp[4:nrow(temp)][, year := yearsClean]
     setcolorder(temp, c("year", namelist))
@@ -308,11 +271,7 @@ server <- function(input, output) {
       countryCodeLookup(countryName, fileloc("mData"))
     reqType <- "RDA.vits"
     temp  <-
-      nutReqSpiderGraph(reqType,
-                        countryCode,
-                        scenarioName,
-                        years,
-                        fileloc("mData"))
+      nutReqSpiderGraph(reqType, countryCode, scenarioName, years, fileloc("mData"))
   })
 
   output$adequacyTableP2 <- renderTable({
@@ -322,11 +281,7 @@ server <- function(input, output) {
       countryCodeLookup(countryName, fileloc("mData"))
     reqType <- "RDA.vits"
     temp <-
-      nutReqDataPrep(reqType,
-                     countryCode,
-                     scenarioName,
-                     years,
-                     fileloc("mData"))
+      nutReqDataPrep(reqType, countryCode, scenarioName, years, fileloc("mData"))
     namelist <- colnames(temp)
     temp <- temp[4:nrow(temp)][, year := yearsClean]
     setcolorder(temp, c("year", namelist))
@@ -339,11 +294,7 @@ server <- function(input, output) {
     countryCode <- countryCodeLookup(countryName, fileloc("mData"))
     reqType <- "RDA.minrls"
     #   years <- c("X2010","X2030","X2050")
-    nutReqSpiderGraph(reqType,
-                      countryCode,
-                      scenarioName,
-                      years,
-                      fileloc("mData"))
+    nutReqSpiderGraph(reqType, countryCode, scenarioName, years, fileloc("mData"))
   })
 
   output$adequacyTableP3 <- renderTable({
@@ -353,11 +304,7 @@ server <- function(input, output) {
       countryCodeLookup(countryName, fileloc("mData"))
     reqType <- "RDA.minrls"
     temp <-
-      nutReqDataPrep(reqType,
-                     countryCode,
-                     scenarioName,
-                     years,
-                     fileloc("mData"))
+      nutReqDataPrep(reqType, countryCode, scenarioName, years, fileloc("mData"))
     namelist <- colnames(temp)
     temp <- temp[4:nrow(temp)][, year := yearsClean]
     setcolorder(temp, c("year", namelist))
@@ -370,25 +317,16 @@ server <- function(input, output) {
     countryCode <- countryCodeLookup(countryName, fileloc("mData"))
     reqType <- "UL.minrls"
     #   years <- c("X2010","X2030","X2050")
-    nutReqSpiderGraph(reqType,
-                      countryCode,
-                      scenarioName,
-                      years,
-                      fileloc("mData"))
+    nutReqSpiderGraph(reqType, countryCode, scenarioName, years, fileloc("mData"))
   })
 
   output$adequacyTableP4 <- renderTable({
     countryName <- input$adequacyCountryName
     scenarioName <- input$adequacyScenarioName
-    countryCode <-
-      countryCodeLookup(countryName, fileloc("mData"))
+    countryCode <- countryCodeLookup(countryName, fileloc("mData"))
     reqType <- "UL.minrls"
     temp <-
-      nutReqDataPrep(reqType,
-                     countryCode,
-                     scenarioName,
-                     years,
-                     fileloc("mData"))
+      nutReqDataPrep(reqType, countryCode, scenarioName, years, fileloc("mData"))
     namelist <- colnames(temp)
     temp <- temp[4:nrow(temp)][, year := yearsClean]
     setcolorder(temp, c("year", namelist))
@@ -400,11 +338,7 @@ server <- function(input, output) {
     scenarioName <- input$adequacyScenarioName
     countryCode <- countryCodeLookup(countryName, fileloc("mData"))
     reqType <- "UL.vits"
-    nutReqSpiderGraph(reqType,
-                      countryCode,
-                      scenarioName,
-                      years,
-                      fileloc("mData"))
+    nutReqSpiderGraph(reqType, countryCode, scenarioName, years, fileloc("mData"))
   })
 
   output$adequacyspiderTableP5 <- renderTable({
@@ -414,11 +348,7 @@ server <- function(input, output) {
       countryCodeLookup(countryName, fileloc("mData"))
     reqType <- "UL.vits"
     temp <-
-      nutReqDataPrep(reqType,
-                     countryCode,
-                     scenarioName,
-                     years,
-                     fileloc("mData"))
+      nutReqDataPrep(reqType, countryCode, scenarioName, years, fileloc("mData"))
     namelist <- colnames(temp)
     temp <- temp[4:nrow(temp)][, year := yearsClean]
     setcolorder(temp, c("year", namelist))
@@ -429,13 +359,10 @@ server <- function(input, output) {
   output$NutDiverFGspiderGraphP1 <- renderPlot({
     countryName <- input$FGcountryName
     reqType <- input$nutrientGroup
+    scenarioName <- input$FGscenarioName
     countryCode <-
       countryCodeLookup(countryName, fileloc("mData"))
-    nutshareSpiderGraph(reqType,
-                        countryCode,
-                        input$FGscenarioName,
-                        years,
-                        fileloc("mData"))
+    nutshareSpiderGraph(reqType, countryCode, scenarioName, years, fileloc("mData"))
   })
 
   # affordabilityTable -----
@@ -447,12 +374,7 @@ server <- function(input, output) {
     dt.budgetShare <-
       getNewestVersion("dt.budgetShare", fileloc("mData"))
     keepListCol <-
-      c("scenario",
-        "year",
-        "pcGDPX0",
-        "budget.PCX0",
-        "incSharePCX0")
-    #      temp <- dt.budgetShare[region_code.IMPACT159 %in% countryCode & scenario %in% scenarioName &
+      c("scenario", "year", "pcGDPX0", "budget.PCX0", "incSharePCX0")
     temp <- dt.budgetShare[region_code.IMPACT159 == countryCode &
                              year %in% years, keepListCol, with = FALSE]
     temp[, incSharePCX0 := incSharePCX0 * 100]
@@ -509,24 +431,4 @@ server <- function(input, output) {
 
 # Run the application -----
 shinyApp(ui = ui, server = server)
-# extra code
-# sidebarLayout(
-#   sidebarPanel(
-#     helpText("Choose from the drop downs below to see the spider graphs of the consumption by a representative consumer compared to the nutrient requirement"),
-#     selectInput(inputId = "countries",
-#                 label = "Choose a country",
-#                 choices = countryNames,
-#                 selected = NULL, multiple = FALSE, selectize = FALSE, width = NULL, size = NULL),
-#     selectInput(inputId = "climateModels",
-#                 choices = climateModelNames,
-#                 label = "Choose a climate model",
-#                 selected = NULL, multiple = FALSE, selectize = FALSE, width = NULL, size = NULL),
-#     selectInput(inputId = "SSPs",
-#                 choices = SSPNames,
-#                 label = "Choose an SSP scenario (only one available right now)",
-#                 selected = "SSP2", multiple = FALSE, selectize = FALSE, width = NULL, size = NULL),
-#     selectInput(inputId = "experiments",
-#                 choices = experimentNames,
-#                 label = "Choose an experiment (REF is the reference case)",
-#                 selected = "REF", multiple = FALSE, selectize = FALSE, width = NULL, size = NULL)
-#   ),
+

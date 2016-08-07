@@ -63,7 +63,7 @@ reqsListPercap <- keyVariable("reqsListPercap")
 #scenarioListIMPACT <- "SSP2-MIROC" # just for testing!!! XXX
 req <- "req.EAR.percap" # just for testing!!! XXX
 
-generateResults <- function(req,dt.IMPACTfood,scenarioListIMPACT,dt.nutrients) {
+ generateResults <- function(req,dt.IMPACTfood,scenarioListIMPACT,dt.nutrients) {
   # use dt.food only in the function
   dt.food <- data.table::copy(dt.IMPACTfood)
   print(paste("loading dt.IMPACT.food for ", req, sep = ""))
@@ -107,7 +107,7 @@ generateResults <- function(req,dt.IMPACTfood,scenarioListIMPACT,dt.nutrients) {
   dt.nutsReqPerCap <- dt.nutsReqPerCap[scenario %in% scenarioListIMPACT,]
 
   # reduce calculations to just the nutrients in nutListReq
-  keepListCol <- c("IMPACT_code","food.group.code","staple.code",nutListReq)
+  keepListCol <- c("IMPACT_code","food_group_code","staple_code",nutListReq)
   # use the data table dt.nutrients only in the function
   dt.nutrients <- data.table::copy(dt.nutrients[,keepListCol, with = FALSE])
   # convert nutrients (in 100 grams of food) to nutrients per kg of food -----
@@ -149,7 +149,7 @@ generateResults <- function(req,dt.IMPACTfood,scenarioListIMPACT,dt.nutrients) {
     (x * dt.foodnNuts[['foodAvailpDay']])), .SDcols = nutListReq])
   #[,(nutListReq) := NULL])
   leadingCols <- c("scenario", "region_code.IMPACT159",
-                   "year", "IMPACT_code", "foodAvailpDay", "food.group.code", "staple.code")
+                   "year", "IMPACT_code", "foodAvailpDay", "food_group_code", "staple_code")
   laggingCols <- names(dt.food.agg)[!names(dt.food.agg) %in% leadingCols]
   data.table::setcolorder(dt.food.agg, c(leadingCols, laggingCols))
 
@@ -157,8 +157,8 @@ generateResults <- function(req,dt.IMPACTfood,scenarioListIMPACT,dt.nutrients) {
   # these keys are used to determine what is summed over or ratio made with
   allKey <-       c("scenario", "region_code.IMPACT159", "year")
   sumKey <-       c("scenario", "region_code.IMPACT159", "year","IMPACT_code")
-  stapleKey <-    c("scenario", "region_code.IMPACT159", "year", "staple.code")
-  foodGroupKey <- c("scenario", "region_code.IMPACT159", "year", "food.group.code")
+  stapleKey <-    c("scenario", "region_code.IMPACT159", "year", "staple_code")
+  foodGroupKey <- c("scenario", "region_code.IMPACT159", "year", "food_group_code")
 
   # first sum
   ## individual nutrients from all commodities
@@ -180,8 +180,8 @@ generateResults <- function(req,dt.IMPACTfood,scenarioListIMPACT,dt.nutrients) {
   data.table::setkeyv(dt.food.agg,foodGroupKey)
   dt.food.agg <- dt.food.agg[, (nutListReq.sum.foodGroup) := lapply(.SD, sum), .SDcols = nutListReq.Q,
                              by = eval(data.table::key(dt.food.agg))]
- data.table::setkey(dt.food.agg, NULL)
-   dt.food.agg <- unique(dt.food.agg)
+  data.table::setkey(dt.food.agg, NULL)
+  dt.food.agg <- unique(dt.food.agg)
   # now calculate ratios of nutrient by group to total consumption of the nutrient
   # nutrient from each food item to the total
   #dt.food.ratio <- data.table::copy(dt.all.sum[,(nutListReq.ratio) := dt.all.sum[[nutListReq.Q]] / dt.all.sum[[nutListReq.sum]]])
@@ -203,7 +203,7 @@ generateResults <- function(req,dt.IMPACTfood,scenarioListIMPACT,dt.nutrients) {
   }
 
   leadingCols <- c("scenario", "region_code.IMPACT159",
-                   "year", "IMPACT_code", "foodAvailpDay", "food.group.code", "staple.code")
+                   "year", "IMPACT_code", "foodAvailpDay", "food_group_code", "staple_code")
   laggingCols <- names(dt.food.agg)[!names(dt.food.agg) %in% leadingCols]
   data.table::setcolorder(dt.food.agg, c(leadingCols, laggingCols))
   #xxxxx
@@ -219,7 +219,7 @@ generateResults <- function(req,dt.IMPACTfood,scenarioListIMPACT,dt.nutrients) {
   # temp <- merge(dt.food.agg,dt.nutsReqPerCap, by = c(allKey,nutListReq), all.x = TRUE)
   dt.food.agg <- merge(dt.food.agg,dt.nutsReqPerCap, by = c(allKey), all.x = TRUE)
   leadingCols <- c("scenario", "region_code.IMPACT159",
-                   "year", "IMPACT_code", "foodAvailpDay", "food.group.code", "staple.code")
+                   "year", "IMPACT_code", "foodAvailpDay", "food_group_code", "staple_code")
   laggingCols <- names(dt.food.agg)[!names(dt.food.agg) %in% leadingCols]
   data.table::setcolorder(dt.food.agg, c(leadingCols, laggingCols))
 
@@ -253,7 +253,6 @@ generateResults <- function(req,dt.IMPACTfood,scenarioListIMPACT,dt.nutrients) {
 }
 # end of generateResults function
 
-
 generateSum <- function(dt.IMPACTfood,scenarioListIMPACT) {
   print("Creating sum for all nutrients")
   #print(proc.time())
@@ -265,30 +264,47 @@ generateSum <- function(dt.IMPACTfood,scenarioListIMPACT) {
   switch.fixFish <- keyVariable("switch.fixFish") #get rid of nutrient info for shrimp, tuna, and salmon because they are not currently in the FBS data
   dt.nutrients <- cookingRetFishCorrect(switch.useCookingRetnValues, switch.fixFish)
 
-  nutListReq <- names(dt.nutrients)[2:(ncol(dt.nutrients) - 3)]
+  nutListReq <- names(dt.nutrients)[2:(ncol(dt.nutrients))]
+  deleteList <- c("food_group_code", "staple_code")
+  nutListReq <- nutListReq[!nutListReq %in% deleteList]
   nutListReq.Q <-   paste(nutListReq, "Q", sep = ".")
   nutListReq.sum.all <- paste(nutListReq, "sum.all", sep = ".")
+  nutListReq.sum.staple <- paste(nutListReq, "sum.staple", sep = ".")
 
   print("Multiplying dt.nutrients by 10 so in same units as IMPACT commodities")
   dt.nutrients[, (nutListReq) := lapply(.SD, function(x) (x * 10)), .SDcols = nutListReq]
-  data.table::setkey(dt.nutrients, IMPACT_code)
+ data.table::setkey(dt.nutrients, IMPACT_code)
   data.table::setkeyv(dt.food, c("scenario","region_code.IMPACT159","IMPACT_code","year" ))
   dt.foodnNuts <-  merge(dt.food, dt.nutrients, by = "IMPACT_code", all = TRUE)
   # multiply the food item by the nutrients it contains and copy into a table called dt.food.agg
-  dt.food.agg <- data.table::copy(dt.foodnNuts[, (nutListReq.Q) := lapply(.SD, function(x)
-    (x * dt.foodnNuts[['foodAvailpDay']])), .SDcols = nutListReq][,(nutListReq) := NULL])
+  dt.food.agg <- dt.foodnNuts[, (nutListReq.Q) := lapply(.SD, function(x)
+    (x * dt.foodnNuts[['foodAvailpDay']])), .SDcols = nutListReq][,(nutListReq) := NULL]
 
-  print("summing nutrient for all commodities")
+  print("summing nutrient for all commodities and staples")
+  allKey <-    c("scenario", "region_code.IMPACT159", "year")
+  stapleKey <- c(allKey, "staple_code")
 
-  allKey <-       c("scenario", "region_code.IMPACT159", "year")
-  data.table::setkeyv(dt.food.agg,allKey)
-  dt.food.agg <- dt.food.agg[, (nutListReq.sum.all) := lapply(.SD, sum), .SDcols = nutListReq.Q,
-                             by = eval(data.table::key(dt.food.agg))][,(nutListReq.Q) := NULL]
+  # do sum of all first
+  dt.food.agg.all <- data.table::copy(dt.food.agg)
+  data.table::setkeyv(dt.food.agg.all, allKey)
+  dt.food.agg.all <- dt.food.agg.all[, (nutListReq.sum.all) := lapply(.SD, sum), .SDcols = nutListReq.Q,
+                             by = eval(data.table::key(dt.food.agg.all))][,(nutListReq.Q) := NULL]
+  deleteListCol <- c("IMPACT_code", "foodAvailpDay", "food_group_code", "staple_code")
+  dt.food.agg.all[,(deleteListCol) := NULL]
+  inDT <- unique(dt.food.agg.all)
+  outName <- "dt.nutrients.sum.all"
+  cleanup(inDT,outName, fileloc("resultsDir"))
+
+  # do staples next
+  dt.food.agg.staples <- data.table::copy(dt.food.agg)
+  data.table::setkeyv(dt.food.agg.staples, stapleKey)
+  dt.food.agg.staples <- dt.food.agg.staples[, (nutListReq.sum.staple) := lapply(.SD, sum), .SDcols = nutListReq.Q,
+                                     by = eval(data.table::key(dt.food.agg.staples))][,(nutListReq.Q) := NULL]
   print(proc.time())
-  deleteListCol <- c("IMPACT_code", "foodAvailpDay", "food.group.code", "staple.code")
-  dt.food.agg[,(deleteListCol) := NULL]
-  inDT <- unique(dt.food.agg)
-  outName <- "dt.nutrients.sum"
+  deleteListCol <- c("IMPACT_code", "foodAvailpDay", "food_group_code")
+  dt.food.agg.staples[,(deleteListCol) := NULL]
+  inDT <- unique(dt.food.agg.staples)
+  outName <- "dt.nutrients.sum.staples"
   cleanup(inDT,outName, fileloc("resultsDir"))
 }
 # run the generateResults script -----

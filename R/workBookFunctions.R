@@ -154,7 +154,7 @@ f.write.nut.sheet <- function(nutdf, wb) {
   # nutdf contains rows for one scenario, food.group,code, and nutrient,
   # all regions and all years wb is the openxlsx::spreadsheet file set up
   # in workSheetCreation.R wbInfo is used to create the metadata sheet
-  shtName <- paste(unique(nutdf$scenario), unique(nutdf$food.group.code),
+  shtName <- paste(unique(nutdf$scenario), unique(nutdf$food_group_code),
                    unique(nutdf$nutrient), sep = "_")
   shtName <- substr(shtName, 1, 31)  #sheetnames in xls must be <= 31
   print(shtName)
@@ -164,7 +164,7 @@ f.write.nut.sheet <- function(nutdf, wb) {
   openxlsx::writeData(wb, nutdf.wide, sheet = shtName, startRow = 1,
                       startCol = 1, rowNames = FALSE, colNames = TRUE)
   return(c(shtName, paste("Average daily consumption of", (unique(nutdf$nutrient)),
-                          "in scenario", (unique(nutdf$scenario)), "and food group", (unique(nutdf$food.group.code)),
+                          "in scenario", (unique(nutdf$scenario)), "and food group", (unique(nutdf$food_group_code)),
                           sep = " ")))
 }
 

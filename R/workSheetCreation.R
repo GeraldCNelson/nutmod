@@ -25,7 +25,7 @@ tmp <- f.createGeneralWorksheet()
 wbNut <- tmp[[1]]
 wbInfNut <- tmp[[2]]
 tmp.out <-
-  by(nutShare, nutShare[, c("food.group.code", "nutrient", "scenario")], f.write.nut.sheet, wbNut)
+  by(nutShare, nutShare[, c("food_group_code", "nutrient", "scenario")], f.write.nut.sheet, wbNut)
 tmp <-
   as.data.frame(matrix(unlist(tmp.out), nrow = length(tmp.out), byrow = TRUE))
 colnames(tmp) <- colnames(wbInfNut)

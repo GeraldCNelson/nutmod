@@ -9,7 +9,7 @@
 #' genFoodGroupResults <- function(dt.foodnNuts,region,nutList.Q,dt.nutsReqPerCap) {
 #'
 #'   #  sum nutrient intake by food group -----
-#'   foodGroupkey <- c("scenario", region, "food.group.code", "year")
+#'   foodGroupkey <- c("scenario", region, "food_group_code", "year")
 #'   data.table::setkeyv(dt.foodnNuts, foodGroupkey)
 #'   dt.foodGroup.sum <- dt.foodnNuts[, lapply(.SD, sum, na.rm=TRUE),
 #'                                    by = eval(data.table::key(dt.foodnNuts)) , .SDcols = nutList.Q]
@@ -26,7 +26,7 @@
 #'     variable.factor = FALSE
 #'   )
 #'   dt.temp<- data.table::dcast.data.table(dt.foodGroup.melt,
-#'                                          scenario + get(region) + food.group.code + nutrient ~ year,
+#'                                          scenario + get(region) + food_group_code + nutrient ~ year,
 #'                                          value.var = "nut_req")
 #'   data.table::setnames(dt.temp,old = names(dt.temp), gsub(".Q.sum","",names(dt.temp)))
 #'   inDT <- dt.temp
@@ -43,7 +43,7 @@
 #' #' @export
 #' genStapleResults <- function(dt.foodnNuts,region,nutList.Q, dt.nutsReqPerCap) {
 #'   # sum nutrient intake by staple -----
-#'     stapleKey <-    c("scenario", region, "staple.code", "year")
+#'     stapleKey <-    c("scenario", region, "staple_code", "year")
 #'     data.table::setkeyv(dt.foodnNuts,stapleKey)
 #'   dt.staples.sum <- dt.foodnNuts[, lapply(.SD, sum, na.rm=TRUE),
 #'                                  by = eval(data.table::key(dt.foodnNuts)), .SDcols = nutList.sum]
@@ -52,14 +52,14 @@
 #'   # get output into year columns
 #'   dt.staples.melt <- data.table::melt(
 #'     dt.staples.sum,
-#'     id.vars = c("scenario", region, "staple.code", "year"),
+#'     id.vars = c("scenario", region, "staple_code", "year"),
 #'     measure.vars = c(nutList.sum),
 #'     variable.name = "nutrient",
 #'     value.name = "nut_req",
 #'     variable.factor = FALSE
 #'   )
 #'   dt.temp<- data.table::dcast.data.table(dt.staples.melt,
-#'                                          scenario + get(region) + staple.code + nutrient ~ year,
+#'                                          scenario + get(region) + staple_code + nutrient ~ year,
 #'                                          value.var = "nut_req")
 #'  # data.table::setnames(dt.temp,old = names(dt.temp), new = gsub(".Q","",names(dt.temp)))
 #'
@@ -68,7 +68,7 @@
 #'   cleanup(inDT,outName,fileloc("resultsDir"))
 #'
 #'   # now do share of requirements
-#'   data.table::setkeyv(dt.staples.sum,c("staple.code","scenario", region,"year"))
+#'   data.table::setkeyv(dt.staples.sum,c("staple_code","scenario", region,"year"))
 #'   data.table::setkeyv(dt.nutsReqPerCap,c("scenario", region, "year"))
 #'   dt.temp <- dt.staples.sum[dt.nutsReqPerCap]
 #' }
