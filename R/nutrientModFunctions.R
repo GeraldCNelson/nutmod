@@ -246,6 +246,7 @@ cleanupNutrientNames <- function(nutList) {
   nutList <- gsub("totalfiber","total fiber",nutList)
   nutList <- gsub(".ratio.foodGroup","",nutList)
   nutList <- gsub("_","",nutList)
+  nutList <- gsub("share","",nutList)
   return(nutList)
 }
 
@@ -852,17 +853,17 @@ nutshareSpiderGraph <- function(reqTypeName, country, scenario, years, dir) {
   deleteListCol <- c("scenario", "SSP", "climate_model", "experiment", "region_code.IMPACT159", "year")
   shareRatios.nuts[,(deleteListCol) := NULL]
   spokeCols <- names(shareRatios.nuts)[2:ncol(shareRatios.nuts)]
-  nutListShort <- cleanupNutrientNames(spokeCols)
-  if (("food_group_code" %in% names(shareRatios)) | ("staple_code" %in% names(shareRatios))) {
-    foodGroupsInfo <- read.csv(paste(fileloc("mData"), "dt.foodgroupLU.csv", sep = "/"), stringsAsFactors = FALSE)
-    foodGroupList <- sort(unique(foodGroupsInfo$food_group_code))
-    stapleList <- unique(foodGroupsInfo$staple_code)
+  foodGroupShort <- cleanupNutrientNames(spokeCols)
+  # if (("food_group_code" %in% names(shareRatios)) | ("staple_code" %in% names(shareRatios))) {
+  #  # dt.foodGroupsInfo <- getNewestVersion("dt.foodGroupsInfo")
+  #   #foodGroupList <- sort(unique(foodGroupsInfo$food_group_code))
+  #   stapleList <- unique(dt.foodgroupLU$staple_code)
     shareRatios.nuts[, nutrient := gsub("_g.ratio.foodGroup","", nutrient)]
     shareRatios.nuts[, nutrient := gsub("_µg.ratio.foodGroup","", nutrient)]
     shareRatios.nuts[, nutrient := gsub("_mg.ratio.foodGroup","", nutrient)]
     shareRatios.nuts[, nutrient := gsub("_"," ", nutrient)]
     shareRatios.nuts[, nutrient := gsub("vit ","vitamin ", nutrient)]
-  }
+ # }
   shareRatios.nuts[is.nan(get(spokeCols)),  (spokeCols) := 0, with = FALSE]
   shareRatios.nuts <- shareRatios.nuts[,(spokeCols) := round(.SD,2), .SDcols = spokeCols]
 
@@ -893,17 +894,15 @@ nutshareSpiderGraph <- function(reqTypeName, country, scenario, years, dir) {
     temp[, (spokeCols) := lapply(.SD, as.numeric), .SDcols = spokeCols]
     temp[is.nan(get(spokeCols)),  (spokeCols) := 0, with = FALSE]
     temp[, nutrient := NULL]
-    food_groups
-    food_group_codes
 
-    vnames <- vector(mode = "character", length = length(nutListShort))
-    for (j in 1:length(nutListShort)) {
-      vnames[j] <- as.character(dt.foodgroupLU[food_group_codes == nutListShort[j], food_groups])
+    vnames <- vector(mode = "character", length = length(foodGroupShort))
+    for (j in 1:length(foodGroupShort)) {
+      vnames[j] <- as.character(dt.foodgroupLU[food_group_codes == foodGroupShort[j], food_groups])
     }
 
     radarchart(temp, axistype = 2,
                title = i,
-               vlabels = nutListShort,
+               vlabels = vnames,
                seg = 3,
                #custom polygon
                pcol = colors_border, plwd = 1, plty = lineType,

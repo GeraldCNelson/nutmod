@@ -42,7 +42,7 @@ reqList <- keyVariable("reqsList")
 
 # individual food function
 req <- "req.EAR" # - for testing purposes
-f.ratios.all <- function(region, req){
+f.ratios.all <- function(req){
   print(paste("------ working on all for ", req))
   reqShortName <- gsub("req.", "", req)
   #  reqShortName <- gsub(".percap", "", temp)
@@ -190,7 +190,7 @@ f.ratios.all <- function(region, req){
 }
 
 # foodGroup function
-f.ratios.FG <- function(region, req) {
+f.ratios.FG <- function(req) {
   print(paste("------ working on food groups for", req))
   reqShortName <- gsub("req.", "", req)
   #reqShortName <- gsub(".percap", "", temp)
@@ -287,7 +287,7 @@ f.ratios.FG <- function(region, req) {
 }
 
 # staples function
-f.ratios.staples <- function(region, req) {
+f.ratios.staples <- function(req) {
   print(paste("------ working on staples for", req))
   reqShortName <- gsub("req.", "", req)
   #reqShortName <- gsub(".percap", "", temp)
@@ -400,11 +400,12 @@ f.ratios.staples <- function(region, req) {
 
 for (i in reqList) {
 
-  f.ratios.all(region_code.IMPACT159, i)
-  f.ratios.staples(region_code.IMPACT159, i)
-  f.ratios.FG(region_code.IMPACT159, i)
+  f.ratios.all(i)
+  f.ratios.staples(i)
+  f.ratios.FG(i)
 }
 
+print("working on kcals")
 # # fats, etc share of total kcals ------
 # # source of conversion http://www.convertunits.com/from/joules/to/calorie+[thermochemical]
 # # fat 37kJ/g - 8.8432122371 kCal
@@ -451,14 +452,13 @@ dt.IMPACTfood[,(deleteListCol) := NULL]
 
 # now get the nutrient values
 dt.nutrients <- getNewestVersion("dt.nutrients")
-
 dt.nutSum <- getNewestVersion("dt.nutrients.sum", fileloc("resultsDir"))
 #dt.nutSum[, RCP := "RCP8.5"]
 scenarioComponents <- c("SSP", "climate_model", "experiment")
 dt.nutSum[, (scenarioComponents) := data.table::tstrsplit(scenario, "-", fixed = TRUE)]
 dt.nutSum[is.na(experiment), experiment := "REF"]
 
-basicInfo <- c("scenario",  "SSP", "climate_model", "experiment","RCP", "region_code.IMPACT159", "year")
+basicInfo <- c("scenario",  "SSP", "climate_model", "experiment", "staple_code", "region_code.IMPACT159", "year")
 macro <- c("energy_kcal", "protein_g", "carbohydrate_g", "totalfiber_g", "sugar_g", "fat_g" )
 minrls <- c("calcium_mg", "iron_mg", "magnesium_mg", "phosphorus_mg", "potassium_g", "sodium_g", "zinc_mg")
 vits <- c("niacin_mg", "riboflavin_mg", "folate_µg", "thiamin_mg",
@@ -466,12 +466,13 @@ vits <- c("niacin_mg", "riboflavin_mg", "folate_µg", "thiamin_mg",
           "vit_d_μg", "vit_e_mg", "vit_k_µg")
 ftyAcids <-  c("ft_acds_tot_sat_g", "ft_acds_mono_unsat_g", "ft_acds_plyunst_g",
                "cholesterol_mg", "ft_acds_tot_trans_g" )
+kcals <- c("kcals.fat", "kcals.protein", "kcals.sugar", "kcals.ethanol")
 othr <- c("caffeine_mg")
-nutListShort <- c(macro, minrls, vits, ftyAcids, othr)
-nutList <- paste(nutListShort,".sum.all", sep = "")
-data.table::setnames(dt.nutSum, old = c(nutList), new = c(nutListShort))
+nutListShort <- c(macro, minrls, vits, ftyAcids, kcals, othr)
+nutList <- paste(nutListShort,".sum.staple", sep = "")
+data.table::setnames(dt.nutSum, old = nutList, new = nutListShort)
 data.table::setcolorder(dt.nutSum, c(basicInfo,nutListShort))
-keepListCol <- c(basicInfo, macro)
+keepListCol <- c(basicInfo, macro, kcals)
 dt.nutSum <- dt.nutSum[,keepListCol, with = FALSE]
 
 # needed to keep original kcals number around
