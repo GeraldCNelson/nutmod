@@ -417,11 +417,11 @@ print("working on kcals")
 # # fats, etc share of total kcals ------
 # # source of conversion http://www.convertunits.com/from/joules/to/calorie+[thermochemical]
 # # fat 37kJ/g - 8.8432122371 kCal
-# fatKcals <- 8.8432122371
+ fatKcals <- 8.8432122371
 # # protein 17kJ/g - 4.0630975143 kCal
-# proteinKcals <- 4.0630975143
+ proteinKcals <- 4.0630975143
 # # carbs 16kJ/g) - 3.8240917782
-# carbsKcals <- 3.8240917782
+ carbsKcals <- 3.8240917782
 # # 1 kJ = 0.23900573614 thermochemical /food calorie (kCal)
 # # 1 Kcal = 4.184 kJ
 # # alcoholic beverages need to have ethanol energy content included
@@ -435,38 +435,38 @@ print("working on kcals")
 dt.IMPACTfood <- getNewestVersion("dt.IMPACTfood", fileloc("iData"))
 deleteListCol <- c("pcGDPX0", "PCX0", "PWX0", "CSE")
 dt.IMPACTfood[,(deleteListCol) := NULL]
-# dt.alc <- dt.IMPACTfood[IMPACT_code %in% keyVariable("IMPACTalcohol_code"),]
-# keepListCol <- c("scenario", "region_code.IMPACT159", "year", "IMPACT_code", "FoodAvailability")
-# dt.alc <- dt.alc[,keepListCol, with = FALSE]
-# # dt.alc[, scenario := gsub("IRREXP-WUE2", "IRREXP_WUE2", scenario)]
-# # dt.alc[, scenario := gsub("PHL-DEV2", "PHL_DEV2", scenario)]
-# #dt.alc[, RCP := "RCP8.5"]
-# scenarioComponents <- c("SSP", "climate_model", "experiment")
-# dt.alc[, (scenarioComponents) := data.table::tstrsplit(scenario, "-", fixed = TRUE)]
-# dt.alc[is.na(experiment), experiment := "REF"]
-# ethanolkcals <- 6.9
-# ethanol.beer <- .04
-# ethanol.wine <- .12
-# ethanol.spirits <- .47
-# formula.wide <- paste("scenario + region_code.IMPACT159 + year ~ IMPACT_code")
-# dt.alc.wide <- data.table::dcast(data = dt.alc,
-#                                  formula = formula.wide,
-#                                  value.var = "FoodAvailability")
-# dt.alc.wide[, ethanol.kcal := c_beer * ethanolkcals * ethanol.beer +
-#                               c_wine * ethanolkcals * ethanol.wine +
-#                            c_spirits * ethanolkcals * ethanol.spirits]
-# deleteListCol <- c("c_beer","c_spirits","c_wine")
-# dt.alc.wide[, (deleteListCol) := NULL]
+dt.alc <- dt.IMPACTfood[IMPACT_code %in% keyVariable("IMPACTalcohol_code"),]
+keepListCol <- c("scenario", "region_code.IMPACT159", "year", "IMPACT_code", "FoodAvailability")
+dt.alc <- dt.alc[,keepListCol, with = FALSE]
+# dt.alc[, scenario := gsub("IRREXP-WUE2", "IRREXP_WUE2", scenario)]
+# dt.alc[, scenario := gsub("PHL-DEV2", "PHL_DEV2", scenario)]
+#dt.alc[, RCP := "RCP8.5"]
+scenarioComponents <- c("SSP", "climate_model", "experiment")
+dt.alc[, (scenarioComponents) := data.table::tstrsplit(scenario, "-", fixed = TRUE)]
+dt.alc[is.na(experiment), experiment := "REF"]
+ ethanolKcals <- 6.9
+ ethanol.beer <- .04
+ ethanol.wine <- .12
+ ethanol.spirits <- .47
+formula.wide <- paste("scenario + region_code.IMPACT159 + year ~ IMPACT_code")
+dt.alc.wide <- data.table::dcast(data = dt.alc,
+                                 formula = formula.wide,
+                                 value.var = "FoodAvailability")
+dt.alc.wide[, ethanol_kcal := c_beer * ethanolKcals * ethanol.beer +
+                              c_wine * ethanolKcals * ethanol.wine +
+                           c_spirits * ethanolKcals * ethanol.spirits]
+deleteListCol <- c("c_beer","c_spirits","c_wine")
+dt.alc.wide[, (deleteListCol) := NULL]
 
 # now get the nutrient values
-dt.nutrients <- getNewestVersion("dt.nutrients")
+# dt.nutrients <- getNewestVersion("dt.nutrients")
 dt.nutSum <- getNewestVersion("dt.nutrients.sum", fileloc("resultsDir"))
 #dt.nutSum[, RCP := "RCP8.5"]
 scenarioComponents <- c("SSP", "climate_model", "experiment")
 dt.nutSum[, (scenarioComponents) := data.table::tstrsplit(scenario, "-", fixed = TRUE)]
 dt.nutSum[is.na(experiment), experiment := "REF"]
 
-basicInfo <- c("scenario",  "SSP", "climate_model", "experiment", "staple_code", "region_code.IMPACT159", "year")
+basicInfo <- c("scenario",  "SSP", "climate_model", "experiment", "region_code.IMPACT159", "year")
 macro <- c("energy_kcal", "protein_g", "carbohydrate_g", "totalfiber_g", "sugar_g", "fat_g" )
 minrls <- c("calcium_mg", "iron_mg", "magnesium_mg", "phosphorus_mg", "potassium_g", "sodium_g", "zinc_mg")
 vits <- c("niacin_mg", "riboflavin_mg", "folate_µg", "thiamin_mg",
@@ -476,36 +476,33 @@ ftyAcids <-  c("ft_acds_tot_sat_g", "ft_acds_mono_unsat_g", "ft_acds_plyunst_g",
                "cholesterol_mg", "ft_acds_tot_trans_g" )
 kcals <- c("kcals.fat", "kcals.protein", "kcals.sugar", "kcals.ethanol")
 othr <- c("caffeine_mg")
-nutListShort <- c(macro, minrls, vits, ftyAcids, kcals, othr)
-nutList <- paste(nutListShort,".sum.staple", sep = "")
+nutListShort <- c(macro, minrls, vits, ftyAcids, othr)
+nutList <- paste(nutListShort,".sum.all", sep = "")
 data.table::setnames(dt.nutSum, old = nutList, new = nutListShort)
 data.table::setcolorder(dt.nutSum, c(basicInfo,nutListShort))
-keepListCol <- c(basicInfo, macro, kcals)
+keepListCol <- c(basicInfo, macro)
 dt.nutSum <- dt.nutSum[,keepListCol, with = FALSE]
 
-# needed to keep original kcals number around
-data.table::setnames(dt.nutSum, old = "energy_kcal", new = "energy.kcal")
 macroKcals <- c("energy", "protein_g", "carbohydrate_g", "sugar_g", "fat_g", "ethanol")
-nutList.kcals <- paste(macroKcals,".kcal", sep = "")
+nutList.kcals <- paste(macroKcals,"_kcal", sep = "")
 nutList.ratio <- paste(macroKcals,"_share", sep = "")
 
 # calc kcals from macro nutrients -----
-dt.nutSum[, protein_g.kcal := protein_g * proteinKcals][, fat_g.kcal := fat_g * fatKcals][, sugar_g.kcal := sugar_g * carbsKcals][, carbohydrate_g.kcal := carbohydrate_g * carbsKcals]
+dt.nutSum[, protein_g_kcal := protein_g * proteinKcals][, fat_g_kcal := fat_g * fatKcals][, sugar_g_kcal := sugar_g * carbsKcals][, carbohydrate_g_kcal := carbohydrate_g * carbsKcals]
 deleteListCol <- c("protein_g", "carbohydrate_g", "totalfiber_g", "sugar_g", "fat_g" )
 dt.nutSum[, (deleteListCol) := NULL]
 
 # add alcohol kcals
 dt.nutSum <- merge(dt.nutSum, dt.alc.wide, by = c("scenario", "region_code.IMPACT159", "year"))
-
 # Note. sum.kcals differs from energy_kcal because alcohol is not included in carbohydrates. Maybe other reasons too
-dt.nutSum[, sum.kcals := protein_g.kcal + fat_g.kcal + carbohydrate_g.kcal + ethanol.kcal]
-dt.nutSum[, diff.kcals := dt.nutSum$energy.kcal - dt.nutSum$sum.kcals]
-dt.nutSum[, (nutList.ratio) := lapply(.SD, "/", dt.nutSum$energy_kcal), .SDcols = (nutList.kcals)]
+dt.nutSum[, sum_kcals := protein_g_kcal + fat_g_kcal + carbohydrate_g_kcal + ethanol_kcal]
+dt.nutSum[, diff.kcals := energy_kcal - sum_kcals]
+dt.nutSum[, (nutList.ratio) := lapply(.SD, "/", energy_kcal), .SDcols = (nutList.kcals)]
 keepListCol <- c(basicInfo, nutList.ratio)
 dt.nutSum <- dt.nutSum[, keepListCol, with = FALSE]
 
 scenarioComponents <- c("SSP", "climate_model", "experiment")
-basicKey <- c("scenario", scenarioComponents, "RCP", "region_code.IMPACT159", "year")
+basicKey <- c("scenario", scenarioComponents, "region_code.IMPACT159", "year")
 
 dt.nutSum.long <- data.table::melt(
   dt.nutSum, id.vars = basicKey,
@@ -516,7 +513,7 @@ dt.nutSum.long <- data.table::melt(
   variable.factor = FALSE)
 
 #formula.sum.all <- paste("scenario + SSP + climate_model + experiment + RCP + region_code.IMPACT159 + nutrientReq ~ year")
-formula.sum.all <- paste("scenario + SSP + climate_model + experiment + RCP + region_code.IMPACT159 + nutrient ~ year")
+formula.sum.all <- paste("scenario + SSP + climate_model + experiment + region_code.IMPACT159 + nutrient ~ year")
 
 dt.nutSum.wide <- data.table::dcast(
   data = dt.nutSum.long,
@@ -538,7 +535,7 @@ dt.SDfood <- dt.IMPACTfood[,keepListCol, with = FALSE]
 dt.SDfood[,foodQ.sum := sum(FoodAvailability), by = c("scenario","region_code.IMPACT159", "year")]
 dt.SDfood[,foodQ.ratio := FoodAvailability/foodQ.sum]
 dt.SDfood[,lnfoodQ.ratio := foodQ.ratio * log(foodQ.ratio)]
-dt.SDfood[is.na(lnfoodQ.ratio),lnfoodQ.ratio := 0]
+dt.SDfood[is.nan(lnfoodQ.ratio),lnfoodQ.ratio := 0]
 dt.SDfood[,SD := -sum(lnfoodQ.ratio), by = c("scenario","region_code.IMPACT159", "year")]
 keepListCol <- c("scenario","region_code.IMPACT159", "year", "SD")
 dt.SDfood <- unique(dt.SDfood[, keepListCol, with = FALSE])
