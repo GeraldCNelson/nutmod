@@ -84,6 +84,17 @@ source("R/nutCalcsProcessing.R")
 "all.req.ratio.cMin"
 # dt.energy.ratios - ratio of kcals from specific sources to total kcals
 
+#creating list of .rds files in data
+dt.resultsFiles <- data.table::as.data.table(list.files(path = fileloc("resultsDir"), pattern = "*.rds"))
+data.table::setnames(dt.resultsFiles, old = "V1", new = "fileName")
+dt.resultsFiles[, reqTypeName := gsub(".{15}$","",dt.resultsFiles$fileName)]
+# this csv file is hand edited. Don't delete!
+descriptionLookup <- read.csv(paste(fileloc("mData"), "descriptionLookup.csv", sep = "/"))
+dt.resultsFiles <- merge(dt.resultsFiles,descriptionLookup, by = "reqTypeName")
+inDT <- dt.resultsFiles
+outName <- "resultFileLookup"
+cleanup(inDT, outName, fileloc("mData"))
+
 print("Copying files for shiny app")
 source("R/copyFilestoNutrientModeling.R") # move results needed for the shiny app.R in the nutrientModeling folder
 

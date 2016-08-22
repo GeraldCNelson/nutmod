@@ -88,17 +88,34 @@ getNewestVersion <- function(fileShortName, directory, fileType) {
   # http://stackoverflow.com/questions/7381641/regex-matching-beginning-and-end-strings
   # for an explanation of this regex expression
   # regExp <- paste("(?=^", fileShortName, ")(?=.*rawData$)", sep = "")
-  regExp <- paste("(?=^", fileShortName, ")(?=.*", fileType, "$)", sep = "")
-  filesList <-
-    grep(regExp,
-         list.files(mData),
-         value = TRUE,
-         perl = TRUE)
-  newestFile <- filesList[length(filesList)]
-  if (length(newestFile) == 0) {
-    stop(sprintf("There is no file that begins with '%s' in directory %s", fileShortName, mData))
+  #  regExp <- paste("(?=^", fileShortName, ")(?=.*", fileType, "$)", sep = "")
+  # stringChar <- unlist(strsplit(list.files(mData)[1], ".", fixed = TRUE))
+  # # this is still a potential problem. If the first file in the directory doesn't have the same date
+  # dateOfFirst <- stringChar[length(stringChar) - 1]
+  # tailLength <- 15 # to remove data and the period and csv or rds
+  # if (fileType == "xlsx") tailLength <- 16 # for xlsx files
+  # fillIn <- paste('.{', tailLength, '}$', sep = "")
+  fileShortName <- paste(fileShortName,".2", sep = "") # this should get rid of the multiple files problem
+  filesoffileType <- list.files(mData)[grep(fileType,list.files(mData))]
+  fileLongName <- filesoffileType[grep(fileShortName, filesoffileType, fixed = TRUE)]
+  #  temp <- gsub(fillIn, "", list.files(mData))
+  # filesList <-
+  #   grep(regExp,
+  #        list.files(mData),
+  #        value = TRUE,
+  #        perl = TRUE)
+  # print(filesList)
+  # newestFile <- filesList[length(filesList)]
+
+  #  if (length(newestFile) == 0) {
+  # check to see if the short file name is in the list from the relevant directory
+  # print(paste("fileShortName is ", fileShortName))
+  # print(fileLongName)
+  if (!fileLongName %in% list.files(mData)) {
+    stop(sprintf("There is no file  '%s' in directory %s", fileShortName, mData))
   } else {
-    outFile = readRDS(paste(mData,newestFile, sep = "/"))
+    #   print(fileLongName)
+    outFile = readRDS(paste(mData, fileLongName, sep = "/"))
     return(outFile)
   }
 }
@@ -189,8 +206,16 @@ cleanup <- function(inDT, outName, dir, writeFiles) {
   # print(proc.time())
   # next line removes any key left in the inDT data table; this may be an issue if a df is used
   data.table::setkey(inDT, NULL)
-  saveRDS(inDT,
-          file = paste(dir, "/", outName, ".", Sys.Date(), ".rds", sep = ""))
+  outFile <- paste(dir, "/", outName, ".", Sys.Date(), ".rds", sep = "")
+  saveRDS(inDT, file = outFile)
+
+  # update files documentation -----
+  fileDoc <- data.table::as.data.table(read.csv(paste(fileloc("mData"), "fileDocumentation.csv", sep = "/"),
+                      header = TRUE, colClasses = c("character","character","character")))
+  fileDoc <- fileDoc[!fileShortName == outName]
+  fileDocUpdate <- as.list(c(outName, outFile, paste0(names(inDT), collapse = ", ")))
+  fileDoc <- rbind(fileDoc, fileDocUpdate)
+  write.csv(fileDoc, paste(fileloc("mData"), "fileDocumentation.csv", sep = "/"), row.names = FALSE)
 
   #print(proc.time())
   if (missing(writeFiles)) {writeFiles = "xlsx"}
@@ -238,7 +263,7 @@ cleanupScenarioNames <- function(dt.ptemp) {
 cleanupNutrientNames <- function(nutList) {
   nutList <- gsub("_g_reqRatio","",nutList)
   nutList <- gsub("reqRatio","",nutList)
-  nutList <- gsub("vit_","vit ",nutList)
+  nutList <- gsub("vit_","vitamin ",nutList)
   nutList <- gsub("_µg","",nutList)
   nutList <- gsub("_mg","",nutList)
   nutList <- gsub("_rae"," rae",nutList)
@@ -687,25 +712,28 @@ countryCodeLookup <- function(countryName, directory) {
 
 # test data for reqRatiodatasetup
 countryCode <- "AFG"; years <- c("X2010", "X2030", "X2050")
-reqTypeName <- "RDA.macro"
+reqTypeChoice <- "RDA.macro.all.req.ratio"
 dir <- fileloc("resultsDir"); scenarioName <- "SSP3-NoCC"
 
-nutReqDataPrep <- function(reqTypeName, countryCode, scenarioName, years, dir) {
-  resultFileLookup <- data.table::as.data.table(read.csv("data/resultFileLookup.csv"))
-  reqRatioList <- resultFileLookup[1:6, reqTypeName] # list of req types that include are based on a requirement
+nutReqDataPrep <- function(reqTypeChoice, countryCode, scenarioName, years, dir) {
+  resultFileLookup <- getNewestVersion("resultFileLookup")
   SSPname <- stringi::stri_split_fixed(scenarioName, "-", simplify = TRUE)[1]
   climModel <- stringi::stri_split_fixed(scenarioName, "-", simplify = TRUE)[2]
   experiment <- stringi::stri_split_fixed(scenarioName, "-", simplify = TRUE)[3]
   if (is.na(experiment)) {experiment <- "REF"}
 
-  fileName <- resultFileLookup[reqType == reqTypeName, fileName]
-  reqRatios <- getNewestVersion(fileName, dir)
+  fileName <- resultFileLookup[reqTypeName == reqTypeChoice, fileName]
+  #print(fileName)
+  if (length(fileName) == "0") print(paste(reqTypeChoice, "is not a valid choice", sep = " "))
+  #  reqRatios <- getNewestVersion(fileName, dir)
+  reqRatios <- getNewestVersion(reqTypeChoice, dir)
+  #  print(head(reqRatios))
   keepListCol <- c("scenario", "SSP", "climate_model", "experiment", "RCP", "region_code.IMPACT159",
-                   "nutrient", years)
+                   "nutrient",  years)
   idVars <- c("scenario", "SSP", "climate_model", "experiment", "region_code.IMPACT159", "nutrient")
 
   reqRatios <- reqRatios[, keepListCol, with = FALSE]
-  description <- resultFileLookup[reqType == reqTypeName, description]
+  description <- resultFileLookup[reqTypeName == reqTypeChoice, description]
 
   measureVars <- years
   reqRatios.long <- data.table::melt(
@@ -751,7 +779,7 @@ nutReqDataPrep <- function(reqTypeName, countryCode, scenarioName, years, dir) {
 
 nutReqSpiderGraph <- function(reqTypeName, countryCode, scenarioName, years, dir) {
   reqRatios.nuts <- nutReqDataPrep(reqTypeName,countryCode, scenarioName, years, dir)
-  resultFileLookup <- data.table::as.data.table(read.csv("data/resultFileLookup.csv"))
+  resultFileLookup <- getNewestVersion("resultFileLookup")
   # reqRatioList <- resultFileLookup[1:6, reqType] # list of req types that include are based on a requirement
   # SSP <- stringi::stri_split_fixed(scenarioName, "-", simplify = TRUE)[1]
   # climModel <- stringi::stri_split_fixed(scenarioName, "-", simplify = TRUE)[2]
@@ -766,7 +794,7 @@ nutReqSpiderGraph <- function(reqTypeName, countryCode, scenarioName, years, dir
   # formula.ratios <- paste("scenario + SSP + climate_model + experiment + region_code.IMPACT159 + year ~ nutrient")
   #
   # reqRatios <- reqRatios[, keepListCol, with = FALSE]
-  description <- resultFileLookup[reqType == reqTypeName, description]
+  description <- resultFileLookup[reqTypeName == reqTypeChoice, description]
 
   chartTitle <- description
 
@@ -780,7 +808,7 @@ nutReqSpiderGraph <- function(reqTypeName, countryCode, scenarioName, years, dir
   plot.new()
   par(mar = c(1, 2, 2, 1))
   reqNames <- names(reqRatios.nuts)
-    radarchart(reqRatios.nuts, axistype = 2,
+  radarchart(reqRatios.nuts, axistype = 2,
              title = chartTitle,
              vlabels = reqNames,
              seg = 3,
@@ -794,25 +822,25 @@ nutReqSpiderGraph <- function(reqTypeName, countryCode, scenarioName, years, dir
   )
 
   legend(x = "bottomright", y = NULL, legend = legendText, bty = "n", pch = 20,
-         col = colors_in, text.col = "black", cex = .8, pt.cex = .8, pt.lwd = 1,
-         y.intersp = .8)
+         col = colors_in, text.col = "black", cex = .9, pt.cex = .9, pt.lwd = 1,
+         y.intersp = .9)
 }
 
 # test data for nutSharedatasetup
-country <- "AFG"; years <- c("X2010", "X2030", "X2050")
-reqTypeName <- "FG.minrls";
+countryCode <- "AFG"; years <- c("X2010", "X2030", "X2050")
+reqFileName <- "RDA.minrls.FG.ratio"
 dir <- fileloc("resultsDir"); scenarioName <- "SSP2-NoCC"
-nutshareSpiderGraph <- function(reqTypeName, country, scenario, years, dir) {
+nutshareSpiderGraph <- function(reqFileName, countryCode, scenario, years, dir) {
   #reqRatiodatasetup <- function(reqTypeName,country, scenarioName, years, dir) {
-  resultFileLookup <- data.table::as.data.table(read.csv("data/resultFileLookup.csv"))
+  resultFileLookup <- getNewestVersion("resultFileLookup")
   dt.foodgroupLU <- getNewestVersion("dt.foodGroupsInfo")
   SSP <- stringi::stri_split_fixed(scenarioName, "-", simplify = TRUE)[1]
   climModel <- stringi::stri_split_fixed(scenarioName, "-", simplify = TRUE)[2]
   experiment <- stringi::stri_split_fixed(scenarioName, "-", simplify = TRUE)[3]
   if (is.na(experiment)) {experiment <- "REF"}
 
-  fileName <- resultFileLookup[reqType == reqTypeName, fileName]
-  shareRatios <- getNewestVersion(fileName, dir)
+  #  fileName <- resultFileLookup[reqType == reqTypeName, fileName]
+  shareRatios <- getNewestVersion(reqFileName, dir)
   keepListCol <- c("scenario", "SSP", "climate_model", "experiment", "RCP", "region_code.IMPACT159",
                    "nutrient", years)
   idVars <- c("scenario", "SSP", "climate_model", "experiment", "region_code.IMPACT159", "nutrient")
@@ -830,7 +858,7 @@ nutshareSpiderGraph <- function(reqTypeName, country, scenario, years, dir) {
     formula.ratios <- paste("scenario + SSP + climate_model + experiment + region_code.IMPACT159 + nutrient + year ~ staple_code")
   }
   shareRatios <- shareRatios[, keepListCol, with = FALSE]
-  description <- resultFileLookup[reqType == reqTypeName, description]
+  description <- resultFileLookup[reqTypeName == reqTypeChoice, description]
 
   #  measureVars <- keyVariable("keepYearList")
   measureVars <- years
@@ -843,7 +871,7 @@ nutshareSpiderGraph <- function(reqTypeName, country, scenario, years, dir) {
     formula = formula.ratios,
     value.var = "value")
 
-  i <- country; j <- SSP; k <- climModel; m <- experiment; l <- years
+  i <- countryCode; j <- SSP; k <- climModel; m <- experiment; l <- years
 
   shareRatios.nuts <-
     shareRatios.wide[region_code.IMPACT159 %in% i & SSP %in% j & climate_model %in% k &
@@ -858,12 +886,12 @@ nutshareSpiderGraph <- function(reqTypeName, country, scenario, years, dir) {
   #  # dt.foodGroupsInfo <- getNewestVersion("dt.foodGroupsInfo")
   #   #foodGroupList <- sort(unique(foodGroupsInfo$food_group_code))
   #   stapleList <- unique(dt.foodgroupLU$staple_code)
-    shareRatios.nuts[, nutrient := gsub("_g.ratio.foodGroup","", nutrient)]
-    shareRatios.nuts[, nutrient := gsub("_µg.ratio.foodGroup","", nutrient)]
-    shareRatios.nuts[, nutrient := gsub("_mg.ratio.foodGroup","", nutrient)]
-    shareRatios.nuts[, nutrient := gsub("_"," ", nutrient)]
-    shareRatios.nuts[, nutrient := gsub("vit ","vitamin ", nutrient)]
- # }
+  shareRatios.nuts[, nutrient := gsub("_g.ratio.foodGroup","", nutrient)]
+  shareRatios.nuts[, nutrient := gsub("_µg.ratio.foodGroup","", nutrient)]
+  shareRatios.nuts[, nutrient := gsub("_mg.ratio.foodGroup","", nutrient)]
+  shareRatios.nuts[, nutrient := gsub("_"," ", nutrient)]
+  shareRatios.nuts[, nutrient := gsub("vit ","vitamin ", nutrient)]
+  # }
   shareRatios.nuts[is.nan(get(spokeCols)),  (spokeCols) := 0, with = FALSE]
   shareRatios.nuts <- shareRatios.nuts[,(spokeCols) := round(.SD,2), .SDcols = spokeCols]
 

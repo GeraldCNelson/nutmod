@@ -24,6 +24,7 @@ if (!exists("getNewestVersion", mode = "function"))
 
 # choose a grouping of countries -----
 # #region <- keyVariable("region")
+resultFileList <- character(0)
 
 reqList <- keyVariable("reqsList")
 
@@ -113,7 +114,7 @@ f.ratios.all <- function(req){
   dt.sum.req.ratio.long <- data.table::melt(
     dt.sum.req.ratio,
     id.vars = basicKey,
- #   measure.vars = nutListReqRatio, variable.name = "nutrientReq",
+    #   measure.vars = nutListReqRatio, variable.name = "nutrientReq",
     measure.vars = nutListReqRatio, variable.name = "nutrient",
     value.name = "req_share", variable.factor = FALSE)
 
@@ -139,7 +140,7 @@ f.ratios.all <- function(req){
     value.var = "nut_share",
     variable.factor = FALSE)
 
- # formula.reqRatio <- paste("scenario + SSP + climate_model + experiment + RCP + region_code.IMPACT159 + nutrientReq ~ year")
+  # formula.reqRatio <- paste("scenario + SSP + climate_model + experiment + RCP + region_code.IMPACT159 + nutrientReq ~ year")
   formula.reqRatio <- paste("scenario + SSP + climate_model + experiment + RCP + region_code.IMPACT159 + nutrient ~ year")
 
   dt.sum.req.ratio.wide <- data.table::dcast(
@@ -168,25 +169,32 @@ f.ratios.all <- function(req){
   outName <- paste(reqShortName, "all.sum", sep = ".")
   cleanup(inDT, outName, fileloc("resultsDir"), "csv")
 
+
   inDT <- dt.sum.req.ratio.wide
   outName <- paste(reqShortName, "sum.req.ratio", sep = ".")
   cleanup(inDT, outName, fileloc("resultsDir"), "csv")
+
 
   inDT <- dt.all.ratio.wide
   outName <- paste(reqShortName, "all.ratio", sep = ".")
   cleanup(inDT, outName, fileloc("resultsDir"), "csv")
 
+
   inDT <- dt.all.req.ratio.wide
   outName <- paste(reqShortName, "all.req.ratio", sep = ".")
   cleanup(inDT, outName, fileloc("resultsDir"), "csv")
+
 
   inDT <- data.table::as.data.table(colMax(dt.all.req.ratio.wide))
   outName <- "all.req.ratio.cMax"
   cleanup(inDT, outName, fileloc("resultsDir"), "csv")
 
+
   inDT <- data.table::as.data.table(colMin(dt.all.req.ratio.wide))
   outName <- "all.req.ratio.cMin"
   cleanup(inDT, outName, fileloc("resultsDir"), "csv")
+
+  return(resultFileList)
 }
 
 # foodGroup function
@@ -483,7 +491,7 @@ nutList.ratio <- paste(macroKcals,"_share", sep = "")
 
 # calc kcals from macro nutrients -----
 dt.nutSum[, protein_g.kcal := protein_g * proteinKcals][, fat_g.kcal := fat_g * fatKcals][, sugar_g.kcal := sugar_g * carbsKcals][, carbohydrate_g.kcal := carbohydrate_g * carbsKcals]
- deleteListCol <- c("protein_g", "carbohydrate_g", "totalfiber_g", "sugar_g", "fat_g" )
+deleteListCol <- c("protein_g", "carbohydrate_g", "totalfiber_g", "sugar_g", "fat_g" )
 dt.nutSum[, (deleteListCol) := NULL]
 
 # add alcohol kcals
@@ -502,7 +510,7 @@ basicKey <- c("scenario", scenarioComponents, "RCP", "region_code.IMPACT159", "y
 dt.nutSum.long <- data.table::melt(
   dt.nutSum, id.vars = basicKey,
   measure.vars = nutList.ratio,
-#  variable.name = "nutrientReq",
+  #  variable.name = "nutrientReq",
   variable.name = "nutrient",
   value.name = "nut_ratio",
   variable.factor = FALSE)
@@ -540,5 +548,6 @@ dt.SDfood[, SDnorm := SD * 100/log(length(foodList))]
 inDT <- dt.SDfood
 outName <- "dt.shannonDiversity"
 cleanup(inDT, outName, fileloc("resultsDir"), "csv")
+
 
 

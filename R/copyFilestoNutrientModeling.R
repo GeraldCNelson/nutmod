@@ -45,9 +45,9 @@ copyListFromResults <- c("dt.energy.ratios", "dt.budgetShare",
                          "UL.vits.sum.req.ratio", "UL.minrls.sum.req.ratio",  "dt.shannonDiversity", "metaData",
                          "UL.minrls.FG.ratio", "UL.vits.FG.ratio", "dt.nutrients.sum.all", "dt.nutrients.sum.staples")
 
-copyListFromData <- c("dt.regions.all", "dt.foodGroupsInfo")
-copyListFromiData <- "dt.IMPACTmetaData"
-copyCsvFromData <- c("resultFileLookup.csv", "scenarioListIMPACT.csv")
+copyListFromData <- c("dt.regions.all", "dt.foodGroupsInfo", "resultFileLookup")
+copyListFromiData <- c("dt.IMPACTmetaData")
+copyCsvFromData <- c("scenarioListIMPACT.csv")
 
 for (i in copyListFromResults) {
   print(sprintf("copying file %s from results to nutrientModeling/data", i))
