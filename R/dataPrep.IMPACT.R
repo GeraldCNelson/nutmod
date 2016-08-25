@@ -68,7 +68,7 @@ getGDXmetaData <- function(gdxFileName) {
 
   data.table::setnames(dt.gdx.param,old = c("name","text"), new = c("catNames", "description"))
   inDT <- dt.gdx.param
-  outName <- "dt.IMPACTmetaData"
+  outName <- "dt.IMPACTgdxParams"
   cleanup(inDT,outName,fileloc("iData"))
 }
 getGDXmetaData(gdxFileName)

@@ -118,147 +118,156 @@ ui <- fluidPage(
                          ),
                          column(width = 6, plotOutput("energyRatioBarPlot", height = "250px")
                          )),
-      fluidRow(align = "center",
-               column(width = 6, div(tableOutput("adequacyTableP5"), style = "font-size:60%")
+                fluidRow(align = "center",
+                         column(width = 6, div(tableOutput("adequacyTableP5"), style = "font-size:60%")
+                         ),
+                         column(width = 6, div(tableOutput("energyRatioTable"), style = "font-size:60%")
+                         )),
+                includeHTML("www/adequacyWeightedRequirement.html")
+      )
+    ),
+    # Diversity tab panel ------
+    tabPanel("Dietary diversity",
+             tabsetPanel(
+               tabPanel(
+                 title = "Shannon diversity index",
+                 wellPanel(
+                   includeHTML("www/shannonDiversityText.html"),
+                   # helpText("xxx"),
+                   selectInput(
+                     inputId = "diversityCountryName",
+                     label = "Choose a country",
+                     choices = countryNames,
+                     selected = NULL, multiple = FALSE, selectize = FALSE, width = NULL, size = NULL
+                   )
+                 ),
+                 # Diversity tab main panel -----
+                 mainPanel(width = "100%",
+                           fluidRow(column(
+                             width = 12, div(tableOutput("diversityTable"), style = "font-size:80%")
+                           )))
                ),
-               column(width = 6, div(tableOutput("energyRatioTable"), style = "font-size:60%")
-               )),
-      includeHTML("www/adequacyWeightedRequirement.html")
-    )
-  ),
-  # Diversity tab panel ------
-  tabPanel("Dietary diversity",
-           tabsetPanel(
-             tabPanel(
-               title = "Shannon diversity index",
-               wellPanel(
-                 includeHTML("www/shannonDiversityText.html"),
-                 # helpText("xxx"),
-                 selectInput(
-                   inputId = "diversityCountryName",
-                   label = "Choose a country",
-                   choices = countryNames,
-                   selected = NULL, multiple = FALSE, selectize = FALSE, width = NULL, size = NULL
-                 )
+               # Food group tab panel ------
+               tabPanel(
+                 title = "Food group diversity",
+                 #         titlePanel("Nutrient diversity by food groups"),
+                 includeHTML("www/foodGroupSpiderGraphText.html"),
+                 wellPanel(
+                   helpText(
+                     "Choose from the drop downs below to see country-specific spider graphs",
+                     "of nutrient sources by food group."
+                   ),
+                   selectInput(
+                     inputId = "FGcountryName",
+                     label = "Choose a country",
+                     choices = countryNames,
+                     selected = NULL, multiple = FALSE, selectize = FALSE, width = NULL, size = NULL
+                   ),
+                   selectInput(
+                     inputId = "FGscenarioName",
+                     choices = scenarioNames,
+                     label = "Choose a scenario",
+                     selected = NULL, multiple = FALSE, selectize = FALSE, width = NULL, size = NULL
+                   ),
+                   selectInput(
+                     inputId = "nutrientGroup",
+                     choices = FGreqChoices,
+                     label = "Choose a nutrient group",
+                     selected = NULL, multiple = FALSE, selectize = FALSE, width = NULL, size = NULL
+                   )
+                 ),
+                 # Show some spidergraphs and underlying data tables
+                 mainPanel(width = "100%",
+                           #      tags$head(tags$style("#adequacyTableP1 table {background-color: red; }", media = "screen", type = "text/css")),
+                           fluidRow(column(
+                             width = 12,
+                             plotOutput("NutDiverFGspiderGraphP1", height = "1000px")
+                           )))
                ),
-               # Diversity tab main panel -----
-               mainPanel(width = "100%",
-                         fluidRow(column(
-                           width = 12, div(tableOutput("diversityTable"), style = "font-size:80%")
-                         )))
-             ),
-             # Food group tab panel ------
-             tabPanel(
-               title = "Food group diversity",
-               #         titlePanel("Nutrient diversity by food groups"),
-               includeHTML("www/foodGroupSpiderGraphText.html"),
-               wellPanel(
-                 helpText(
-                   "Choose from the drop downs below to see country-specific spider graphs",
-                   "of nutrient sources by food group."
+               # Staple tab panel ------
+               tabPanel(
+                 title = "Staples diversity",
+                 #         titlePanel("Nutrient diversity by staples"),
+                 includeHTML("www/staplesSpiderGraphText.html"),
+                 wellPanel(
+                   helpText(
+                     "Choose from the drop downs below to see country-specific spider graphs",
+                     "of nutrient sources by food group."
+                   ),
+                   selectInput(
+                     inputId = "stapleCountryName",
+                     label = "Choose a country",
+                     choices = countryNames,
+                     selected = NULL, multiple = FALSE, selectize = FALSE, width = NULL, size = NULL
+                   ),
+                   selectInput(
+                     inputId = "stapleScenarioName",
+                     choices = scenarioNames,
+                     label = "Choose a scenario",
+                     selected = NULL, multiple = FALSE, selectize = FALSE, width = NULL, size = NULL
+                   ),
+                   selectInput(
+                     inputId = "nutrientGroupStaples",
+                     choices = staplesReqChoices,
+                     label = "Choose a nutrient group",
+                     selected = NULL, multiple = FALSE, selectize = FALSE, width = NULL, size = NULL
+                   )
                  ),
-                 selectInput(
-                   inputId = "FGcountryName",
-                   label = "Choose a country",
-                   choices = countryNames,
-                   selected = NULL, multiple = FALSE, selectize = FALSE, width = NULL, size = NULL
-                 ),
-                 selectInput(
-                   inputId = "FGscenarioName",
-                   choices = scenarioNames,
-                   label = "Choose a scenario",
-                   selected = NULL, multiple = FALSE, selectize = FALSE, width = NULL, size = NULL
-                 ),
-                 selectInput(
-                   inputId = "nutrientGroup",
-                   choices = FGreqChoices,
-                   label = "Choose a nutrient group",
-                   selected = NULL, multiple = FALSE, selectize = FALSE, width = NULL, size = NULL
-                 )
-               ),
-               # Show some spidergraphs and underlying data tables
-               mainPanel(width = "100%",
-                         #      tags$head(tags$style("#adequacyTableP1 table {background-color: red; }", media = "screen", type = "text/css")),
-                         fluidRow(column(
-                           width = 12,
-                           plotOutput("NutDiverFGspiderGraphP1", height = "1000px")
-                         )))
-             ),
-             # Staple tab panel ------
-             tabPanel(
-               title = "Staples diversity",
-               #         titlePanel("Nutrient diversity by staples"),
-               includeHTML("www/staplesSpiderGraphText.html"),
-               wellPanel(
-                 helpText(
-                   "Choose from the drop downs below to see country-specific spider graphs",
-                   "of nutrient sources by food group."
-                 ),
-                 selectInput(
-                   inputId = "stapleCountryName",
-                   label = "Choose a country",
-                   choices = countryNames,
-                   selected = NULL, multiple = FALSE, selectize = FALSE, width = NULL, size = NULL
-                 ),
-                 selectInput(
-                   inputId = "stapleScenarioName",
-                   choices = scenarioNames,
-                   label = "Choose a scenario",
-                   selected = NULL, multiple = FALSE, selectize = FALSE, width = NULL, size = NULL
-                 ),
-                 selectInput(
-                   inputId = "nutrientGroupStaples",
-                   choices = staplesReqChoices,
-                   label = "Choose a nutrient group",
-                   selected = NULL, multiple = FALSE, selectize = FALSE, width = NULL, size = NULL
-                 )
-               ),
-               # Show some spidergraphs and underlying data tables
-               mainPanel(width = "100%",
-                         #      tags$head(tags$style("#adequacyTableP1 table {background-color: red; }", media = "screen", type = "text/css")),
-                         fluidRow(column(
-                           width = 12, div(tableOutput("nonStapleEnergyShareTable"), style = "font-size:80%")
-                         )))
-             )
-           )),
-  # data and developer information tabs -----
-  tabPanel(
-    "Data and Developer Info",
-    tabsetPanel(
-      # Metadata tab panel -----
-      tabPanel(
-        title = "Metadata",
-        mainPanel(width = "100%",
-                  "Information for developers",
-                  " ",
+                 # Show some spidergraphs and underlying data tables
+                 mainPanel(width = "100%",
+                           #      tags$head(tags$style("#adequacyTableP1 table {background-color: red; }", media = "screen", type = "text/css")),
+                           fluidRow(column(
+                             width = 12, div(tableOutput("nonStapleEnergyShareTable"), style = "font-size:80%")
+                           )))
+               )
+             )),
+    # data and developer information tabs -----
+    tabPanel(
+      "Data and Developer Info",
+      tabsetPanel(
+        # Metadata tab panel -----
+        tabPanel(
+          title = "Metadata",
+          mainPanel(width = "100%",
+                    "Information for developers",
+                    " ",
 
-                  fluidRow(column(
-                    width = 12, div(tableOutput("metadataTable"), style = "font-size:80%")
-                  )))
-      ),
-      # IMPACT metadata tab panel -----
-      tabPanel(
-        title = "IMPACT metadata",
-        mainPanel(width = "100%",
-                  "Information for developers",
-                  " ",
-                  fluidRow(column(
-                    width = 12, div(tableOutput("IMPACTmetadataTable"), style = "font-size:80%")
-                  )))
-      ),
-      # Foodgroup lookup panel -----
-      tabPanel(
-        title = "Food group lookup table",
-        mainPanel(width = "100%",
-                  "Information for developers",
-                  " ",
-                  fluidRow(column(
-                    width = 12, div(tableOutput("IMPACTfoodgroupTable"), style = "font-size:80%")
-                  )))
+                    fluidRow(column(
+                      width = 12, div(tableOutput("metadataTable"), style = "font-size:80%")
+                    )))
+        ),
+        # IMPACT metadata tab panel -----
+        tabPanel(
+          title = "IMPACT metadata",
+          mainPanel(width = "100%",
+                    "Information for developers",
+                    " ",
+                    fluidRow(column(
+                      width = 12, div(tableOutput("IMPACTmetadataTable"), style = "font-size:80%")
+                    )))
+        ),
+        # Foodgroup lookup panel -----
+        tabPanel(
+          title = "Food group lookup table",
+          mainPanel(width = "100%",
+                    "Information for developers",
+                    " ",
+                    fluidRow(column(
+                      width = 12, div(tableOutput("IMPACTfoodgroupTable"), style = "font-size:80%")
+                    )))
+        ),
+        tabPanel(
+          title = "File documentation",
+          mainPanel(width = "100%",
+                    "Information for developers",
+                    " ",
+                    fluidRow(column(
+                      width = 12, div(tableOutput("fileDocumentation"), style = "font-size:80%")
+                    )))
+        )
       )
     )
   )
-)
 )
 
 server <- function(input, output) {
@@ -283,7 +292,7 @@ server <- function(input, output) {
     countryCode <-
       countryCodeLookup(countryName, fileloc("mData"))
     reqType <- "RDA.macro.sum.req.ratio"
-#    print(paste(countryName, scenarioName, countryCode))
+    #    print(paste(countryName, scenarioName, countryCode))
     nutReqSpiderGraph(reqType, countryCode, scenarioName, years, fileloc("mData"))
   })
 
@@ -415,19 +424,19 @@ server <- function(input, output) {
 
   output$energyRatioTable <- renderTable({
     dt.energy.ratios <- getNewestVersion("dt.energy.ratios")
-      countryName <- input$adequacyCountryName
-      scenarioName <- input$adequacyScenarioName
-      countryCode <- countryCodeLookup(countryName, fileloc("mData"))
-      temp <- dt.energy.ratios[region_code.IMPACT159 == countryCode & scenario == scenarioName,]
-      keepListCol <- c("region_code.IMPACT159", "nutrient", years)
-      temp <- temp[,(keepListCol), with = FALSE]
-      setnames(temp, old = c("region_code.IMPACT159",years), new = c("region", yearsClean))
-      temp[,region := NULL]
-      nutnames <- cleanupNutrientNames(temp[,nutrient])
-      temp[,nutrient := nutnames]
-      temp[1:4]
+    countryName <- input$adequacyCountryName
+    scenarioName <- input$adequacyScenarioName
+    countryCode <- countryCodeLookup(countryName, fileloc("mData"))
+    temp <- dt.energy.ratios[region_code.IMPACT159 == countryCode & scenario == scenarioName,]
+    keepListCol <- c("region_code.IMPACT159", "nutrient", years)
+    temp <- temp[,(keepListCol), with = FALSE]
+    setnames(temp, old = c("region_code.IMPACT159",years), new = c("region", yearsClean))
+    temp[,region := NULL]
+    nutnames <- cleanupNutrientNames(temp[,nutrient])
+    temp[,nutrient := nutnames]
+    temp[1:4]
   }, include.rownames = FALSE)
-# staples diversity metrics -----
+  # staples diversity metrics -----
   output$nonStapleEnergyShareTable <- renderTable({
     dt.stapleShares <- getNewestVersion("dt.nutrients.sum.staples")
     countryName <- input$stapleCountryName
@@ -447,16 +456,16 @@ server <- function(input, output) {
     fattyAcids <- c("ft_acds_tot_sat_g.sum.staple", "ft_acds_mono_unsat_g.sum.staple", "ft_acds_plyunst_g.sum.staple",
                     "ft_acds_tot_trans_g.sum.staple")
     basicInputs <- c("scenario",  "region_code.IMPACT159",  "year", "staple_code")
-    deletedNutrients <- c("cholesterol_mg.sum.staple", "caffeine_mg.sum.staple", "energy_kcal.sum.staple")
+    #    deletedNutrients <- c("cholesterol_mg.sum.staple", "caffeine_mg.sum.staple", "energy_kcal.sum.staple")
     if (nutrientGroupStaples == "energy") nutrientSelector <- kcals
     if (nutrientGroupStaples == "macro nutrients") nutrientSelector <- macroNutrients
     if (nutrientGroupStaples == "minerals") nutrientSelector <- minerals
     if (nutrientGroupStaples == "vitamins") nutrientSelector <- vitamins
 
-    print(nutrientGroupStaples)
+#    print(nutrientGroupStaples)
 
-     keepListCol <- c(basicInputs, nutrientSelector)
-    print(keepListCol)
+    keepListCol <- c(basicInputs, nutrientSelector)
+#    print(keepListCol)
     temp <- temp[,keepListCol, with = FALSE]
 
 
@@ -479,6 +488,7 @@ server <- function(input, output) {
     temp.wide[, year := gsub("X", "", temp.wide$year)]
     temp.wide[, nonStapleShare := nonstaple/(nonstaple + staple)]
     temp.wide[]
+ #   temp.melt
   }, include.rownames = FALSE)
 
 
@@ -547,7 +557,7 @@ server <- function(input, output) {
 
   # IMPACTmetadataTable ------
   output$IMPACTmetadataTable <- renderTable({
-    metaData <- getNewestVersion("dt.IMPACTmetaData", fileloc("mData"))
+    metaData <- getNewestVersion("dt.IMPACTgdxParams", fileloc("mData"))
     metaData
   }, include.rownames = FALSE)
   # IMPACTfoodgroupLookupTable ------
@@ -556,6 +566,12 @@ server <- function(input, output) {
     foodGroupLU <-
       getNewestVersion("dt.foodGroupsInfo")
     foodGroupLU
+  }, include.rownames = FALSE)
+
+  output$fileDocumentation <- renderTable({
+    fileDocumentation <-
+      read.csv("data/fileDocumentation.csv", stringsAsFactors = FALSE)
+    fileDocumentation
   }, include.rownames = FALSE)
 }
 

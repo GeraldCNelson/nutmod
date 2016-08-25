@@ -111,7 +111,7 @@ getNewestVersion <- function(fileShortName, directory, fileType) {
   # check to see if the short file name is in the list from the relevant directory
   # print(paste("fileShortName is ", fileShortName))
   # print(fileLongName)
-  if (!fileLongName %in% list.files(mData)) {
+  if (!fileLongName %in% list.files(path = mData)) {
     stop(sprintf("There is no file  '%s' in directory %s", fileShortName, mData))
   } else {
     #   print(fileLongName)
@@ -445,7 +445,7 @@ metadata <- function() {
     c(filelocFBS("ISOCodes"),
       "List of all ISO 3 codes and the names of the countries they represent")
 
-  inDT <- metadata
+  inDT <- data.table::as.data.table(metadata)
   outName <- "metaData"
   cleanup(inDT,outName,fileloc("resultsDir"))
 }
