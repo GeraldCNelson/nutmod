@@ -9,6 +9,13 @@
 # print(paste("start time is " , proc.time(), sep = ""))
 ptm <- proc.time()
 
+#install needed packages
+list.of.packages <- c("data.table", "openxlsx", "dplyr", "utils", "ggplot2", "stringi", "tidyr" )
+new.packages <- list.of.packages[!(list.of.packages %in% installed.packages()[,"Package"])]
+if (length(new.packages)) install.packages(new.packages)
+
+# also need gdxrrw
+
 print("Running nutrientModFunctions.R")
 source("R/nutrientModFunctions.R")
 

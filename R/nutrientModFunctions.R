@@ -96,7 +96,8 @@ getNewestVersion <- function(fileShortName, directory, fileType) {
   # if (fileType == "xlsx") tailLength <- 16 # for xlsx files
   # fillIn <- paste('.{', tailLength, '}$', sep = "")
   fileShortName <- paste(fileShortName,".2", sep = "") # this should get rid of the multiple files problem
-  filesoffileType <- list.files(mData)[grep(fileType,list.files(mData))]
+  filesoffileType <- list.files(mData)[grep(fileType,list.files(mData, recursive = FALSE, all.files = TRUE,
+                                                                include.dirs = TRUE, no.. = TRUE, full.names = FALSE))]
   fileLongName <- filesoffileType[grep(fileShortName, filesoffileType, fixed = TRUE)]
   #  temp <- gsub(fillIn, "", list.files(mData))
   # filesList <-
@@ -211,7 +212,7 @@ cleanup <- function(inDT, outName, dir, writeFiles) {
 
   # update files documentation -----
   fileDoc <- data.table::as.data.table(read.csv(paste(fileloc("mData"), "fileDocumentation.csv", sep = "/"),
-                      header = TRUE, colClasses = c("character","character","character")))
+                                                header = TRUE, colClasses = c("character","character","character")))
   fileDoc <- fileDoc[!fileShortName == outName]
   fileDocUpdate <- as.list(c(outName, outFile, paste0(names(inDT), collapse = ", ")))
   fileDoc <- rbind(fileDoc, fileDocUpdate)
