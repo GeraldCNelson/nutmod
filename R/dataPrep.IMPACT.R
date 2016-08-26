@@ -9,7 +9,7 @@ if (!exists("getNewestVersion", mode = "function"))
   source("R/nutrientCalcFunctions.R")}
 
 # this script needs to be separate because shiny can't deal with the gams package.
-#source("R/gdxrrwSetup.R")
+source("R/gdxrrwSetup.R")
 
 #source("R/gdxrrfunctions.R")
 # Intro -------------------------------------------------------------------
