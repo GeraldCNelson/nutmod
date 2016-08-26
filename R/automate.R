@@ -15,6 +15,19 @@ new.packages <- list.of.packages[!(list.of.packages %in% installed.packages()[,"
 if (length(new.packages)) install.packages(new.packages)
 
 # also need gdxrrw
+gdxrrwText <- "The gdxrrw package is needed to run this. It is available at this url, not from CRAN.
+https://support.gams.com/gdxrrw:interfacing_gams_and_r. Download the relevant file and use the following command to install
+- install.packages('gdxrrw_1.0.0.tgz',repos = NULL). Replace gdxrrw_1.0.0.tgz with the
+name of the file you downloaded. If you put it in the main directory of your project, the install.packages command will find it."
+
+list.of.packages <- c("gdxrrw")
+new.packages <- list.of.packages[!(list.of.packages %in% installed.packages()[,"Package"])]
+if (!length(new.packages) == 0) {
+  print(gdxrrwText)
+  stop("gdxrrw package not installed")
+  }
+
+new.packages <- list.of.packages[!(list.of.packages %in% installed.packages()[,"Package"])]
 
 print("Running nutrientModFunctions.R")
 source("R/nutrientModFunctions.R")
