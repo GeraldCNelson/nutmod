@@ -109,7 +109,7 @@ dt.resultsFiles <- data.table::as.data.table(list.files(path = fileloc("resultsD
 data.table::setnames(dt.resultsFiles, old = "V1", new = "fileName")
 dt.resultsFiles[, reqTypeName := gsub(".{15}$","",dt.resultsFiles$fileName)]
 # this csv file is hand edited. Don't delete!
-descriptionLookup <- read.csv(paste(fileloc("mData"), "descriptionLookup.csv", sep = "/"))
+descriptionLookup <- read.csv(paste(fileloc("rawData"), "descriptionLookup.csv", sep = "/"))
 dt.resultsFiles <- merge(dt.resultsFiles,descriptionLookup, by = "reqTypeName")
 inDT <- dt.resultsFiles
 outName <- "resultFileLookup"

@@ -491,7 +491,6 @@ server <- function(input, output) {
  #   temp.melt
   }, include.rownames = FALSE)
 
-
   # food group diversity spider graphs -----
   output$NutDiverFGspiderGraphP1 <- renderPlot({
     countryName <- input$FGcountryName

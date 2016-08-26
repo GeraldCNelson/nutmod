@@ -1,0 +1,95 @@
+reqTypeName,description
+all.req.ratio.cMax,
+all.req.ratio.cMin,
+AMDR.hi.all.ratio,
+AMDR.hi.all.req.ratio,
+AMDR.hi.all.sum,
+AMDR.hi.FG.ratio,
+AMDR.hi.FG.req.ratio,Share of AMDR upper level amounts by food group
+AMDR.hi.staples.ratio,
+AMDR.hi.staples.req.ratio,Share of AMDR upper level amounts by staple
+AMDR.hi.staples.sum,
+AMDR.hi.sum.req.ratio,
+AMDR.lo.all.ratio,
+AMDR.lo.all.req.ratio,
+AMDR.lo.all.sum,
+AMDR.lo.FG.ratio,Share of AMDR lower level amounts by food group
+AMDR.lo.FG.req.ratio,
+AMDR.lo.staples.ratio,Share of AMDR lower level amounts by staple
+AMDR.lo.staples.req.ratio,
+AMDR.lo.staples.sum,
+AMDR.lo.sum.req.ratio,
+dt.budgetShare,Share of cost of IMPACT commodities in per capita income
+dt.energy.ratios,
+dt.IMPACTmetaData,IMPACT meta data
+dt.nutrients.sum,
+dt.nutrients.sum.all,
+dt.nutrients.sum.staples,
+dt.shannonDiversity,Shannon diversity results
+EAR.all.ratio,
+EAR.all.req.ratio,
+EAR.all.sum,
+EAR.FG.ratio,
+EAR.FG.req.ratio,
+EAR.staples.ratio,Share of EAR requirement from staples
+EAR.staples.req.ratio,Share of EAR from staples
+EAR.staples.sum,
+EAR.sum.req.ratio,
+FG.req.ratio.cMax,
+FG.req.ratio.cMin,
+food.agg.AMDR.hi,
+food.agg.AMDR.lo,
+food.agg.EAR,
+food.agg.RDA.macro,
+food.agg.RDA.minrls,
+food.agg.RDA.vits,
+food.agg.UL.minrls,
+food.agg.UL.vits,
+metaData,Meta data for the project
+RDA.macro.all.ratio,Share of macronutrient availability by food item
+RDA.macro.all.req.ratio,Share of macronutrient RDA by food item
+RDA.macro.all.sum,Availability of macronutrients
+RDA.macro.FG.ratio,Share of macronutrients by food group
+RDA.macro.FG.req.ratio,Share of macronutrients RDA by food group
+RDA.macro.staples.ratio,Share of macronutrients from staples
+RDA.macro.staples.req.ratio,Share of macronutrients RDA by staple
+RDA.macro.staples.sum,Total Availability of macronutrients by staple
+RDA.macro.sum.req.ratio,Share of macronutrient availability to RDA
+RDA.minrls.all.ratio,Share of mineral nutrient availability by food item
+RDA.minrls.all.req.ratio,Share of mineral nutrient RDA by food item
+RDA.minrls.all.sum,Availability of mineral nutrients by food item
+RDA.minrls.FG.ratio,Share of mineral nutrients by food group
+RDA.minrls.FG.req.ratio,Share of mineral nutrients RDA by food group
+RDA.minrls.staples.ratio,Share of mineral nutrients from staples
+RDA.minrls.staples.req.ratio,Share of mineral nutrients RDA by staple
+RDA.minrls.staples.sum,Total availability of mineral nutrients by staple
+RDA.minrls.sum.req.ratio,Share of mineral nutrient availability to RDA
+RDA.vits.all.ratio,Share of vitamin availability by food item
+RDA.vits.all.req.ratio,Share of vitamin RDA by food item
+RDA.vits.all.sum,Availability of vitamins by food item
+RDA.vits.FG.ratio,Share of vitamins by food group
+RDA.vits.FG.req.ratio,Share of vitamins RDA by food group
+RDA.vits.staples.ratio,Share of vitamins from staples
+RDA.vits.staples.req.ratio,Share of vitamins RDA by staple
+RDA.vits.staples.sum,Total availability of vitamins by staple
+RDA.vits.sum.req.ratio,Share of vitamin availability to RDA
+staples.req.ratio.cMax,
+staples.req.ratio.cMin,
+UL.minrls.all.ratio,
+UL.minrls.all.req.ratio,
+UL.minrls.all.sum,
+UL.minrls.FG.ratio,
+UL.minrls.FG.req.ratio,
+UL.minrls.staples.ratio,
+UL.minrls.staples.req.ratio,
+UL.minrls.staples.sum,
+UL.minrls.sum.req.ratio,
+UL.vits.all.ratio,
+UL.vits.all.req.ratio,
+UL.vits.all.sum,
+UL.vits.FG.ratio,
+UL.vits.FG.req.ratio,
+UL.vits.staples.ratio,
+UL.vits.staples.req.ratio,
+UL.vits.staples.sum,
+UL.vits.sum.req.ratio,
