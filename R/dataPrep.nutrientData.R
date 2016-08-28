@@ -244,7 +244,7 @@ inDT <- dt.nutrients
 outName <- "dt.nutrients"
 cleanup(inDT,outName,fileloc("mData"))
 
-dt.foodGroupsInfo <- as.data.table(openxlsx::read.xlsx(foodGroupLU, sheet = 1, startRow = 1, cols = 1:8, colNames = TRUE))
+dt.foodGroupsInfo <- data.table::as.data.table(openxlsx::read.xlsx(foodGroupLU, sheet = 1, startRow = 1, cols = 1:8, colNames = TRUE))
 inDT <- dt.foodGroupsInfo
 outName <- "dt.foodGroupsInfo"
 cleanup(inDT,outName,fileloc("mData"))

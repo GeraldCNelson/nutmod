@@ -96,8 +96,7 @@ getNewestVersion <- function(fileShortName, directory, fileType) {
   # if (fileType == "xlsx") tailLength <- 16 # for xlsx files
   # fillIn <- paste('.{', tailLength, '}$', sep = "")
   fileShortName <- paste(fileShortName,".2", sep = "") # this should get rid of the multiple files problem
-  filesoffileType <- list.files(mData)[grep(fileType,list.files(mData, recursive = FALSE, all.files = TRUE,
-                                                                include.dirs = TRUE, no.. = TRUE, full.names = FALSE))]
+  filesoffileType <- list.files(mData)[grep(fileType,list.files(mData))]
   fileLongName <- filesoffileType[grep(fileShortName, filesoffileType, fixed = TRUE)]
   #  temp <- gsub(fillIn, "", list.files(mData))
   # filesList <-
@@ -489,7 +488,7 @@ metadata <- function() {
 fileNameList <- function(variableName) {
   IMPACTCleanData      <- fileloc("IMPACTCleanData")
   # NutrientData    <- fileloc("NutrientData")gdx
-  nutrientDataDetails <- "data-raw/NutrientData/nutrientDetails"
+  nutrientDataDetails <- paste(fileloc("rawData"), "NutrientData/nutrientDetails", sep = "/")
   SSPData         <- fileloc("SSPData")
   DRIFileName     <- "DRI_IOM_V7.xlsx"
   mData <- fileloc("mData")
@@ -498,17 +497,19 @@ fileNameList <- function(variableName) {
   #Note: the price a consumer pays is Pc * (1-CSE)
   CSEFileName     <- "CSEs20150824.xlsx"
   CSEs            <- paste(fileloc("IMPACTRawData"), CSEFileName, sep = "/")
-  IMPACT159regionsFileName <-
+  # IMPACT159regionsFileName <-
     "IMPACTRegionsFeb2016.xlsx" # this file includes Denmark plus (DNP) and Sudan plus (SDP)
   #' IMPACT159regionsFileName <- "IMPACTRegionsMay2015.csv" # this file includes Denmark plus (DNP) and Sudan plus (SDP) and removes Greenland and South Sudan
   #' #IMPACT159regionsFileName <- "IMPACTRegionsJan15tmp.csv" # this file removes Denmark plus (DNP) and South Sudan (SSD) as well as removes Greenland and South Sudan
-  IMPACTregionsUpdateJun2016FileName <- "IMPACT regions update June 6 2016.xlsx"
-  IMPACTregionsUpdateJun2016 <- paste(fileloc("IMPACTRawData"), IMPACTregionsUpdateJun2016FileName, sep = "/")
-  IMPACT159regions <- paste(fileloc("IMPACTRawData"), IMPACT159regionsFileName, sep = "/")
-  IMPACTstdRegionsFileName <- "IMPACT-agg-regionsFeb2016.xlsx"
-  IMPACTstdRegions <- paste(fileloc("IMPACTRawData"), IMPACTstdRegionsFileName, sep = "/")
-  #IMPACTgdxfileName <- "Micronutrient-Inputs-USAID.gdx"  #-  gdx for the USAID results
-  IMPACTgdxfileName <- "Micronutrient-Inputs-07252016.gdx"  #- gdx with SSP1, 2, and 3
+  # IMPACTregionsUpdateJun2016FileName <- "IMPACT regions update June 6 2016.xlsx"
+  # IMPACTregionsUpdateJun2016 <- paste(fileloc("IMPACTRawData"), IMPACTregionsUpdateJun2016FileName, sep = "/")
+  # IMPACT159regions <- paste(fileloc("IMPACTRawData"), IMPACT159regionsFileName, sep = "/")
+  # IMPACTstdRegionsFileName <- "IMPACT-agg-regionsFeb2016.xlsx"
+  # IMPACTstdRegions <- paste(fileloc("IMPACTRawData"), IMPACTstdRegionsFileName, sep = "/")
+  # IMPACTgdxfileName <- "Micronutrient-Inputs-USAID.gdx"  #-  gdx for the USAID results
+ regionsLookupName <- "IMPACT regions update Aug 28 2016.xlsx"
+ regionsLookup <- paste(fileloc("IMPACTRawData"),regionsLookupName, sep = "/")
+ IMPACTgdxfileName <- "Micronutrient-Inputs-07252016.gdx"  #- gdx with SSP1, 2, and 3
   #IMPACTgdxfileName <- "Demand Results20150817.gdx"
   IMPACTgdx         <- paste(fileloc("IMPACTRawData"), IMPACTgdxfileName, sep = "/")
   gdxLib            <- "/Applications/GAMS/gams24.5_osx_x64_64_sfx"
@@ -559,7 +560,7 @@ fileNameList <- function(variableName) {
         "IMPACTfood",
         "nutrientFileName",
         "nutrientLU",
-        "commoditydt.foodgroupLUFileName",
+        "dt.foodgroupLUFileName",
         "dt.foodgroupLU",
         "SSPdataZipFile",
         "SSPdataZip",
