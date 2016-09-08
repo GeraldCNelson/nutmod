@@ -56,7 +56,9 @@ source("R/dataPrep.SSP.R")
 print("Running dataPrep.regions.R")
 source("R/dataPrep.regions.R") # - creates dt.regions.all and the list of scenarios
 
+print("Running metadata")
 metadata()
+
 print("Running dataPrep.FBS.R")
 source("R/dataPrep.FBS.R") # - creates dt.FBS, mData
 

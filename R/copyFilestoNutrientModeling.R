@@ -14,8 +14,8 @@
 #' @include nutrientModFunctions.R
 #' @include workbookFunctions.R
 #' @include nutrientCalcFunctions.R
-if (!exists("getNewestVersion", mode = "function")) {
-  source("R/nutrientModFunctions.R")
+#if (!exists("getNewestVersion", mode = "function"))
+  {source("R/nutrientModFunctions.R")
   source("R/workbookFunctions.R")
   source("R/nutrientCalcFunctions.R")
 }

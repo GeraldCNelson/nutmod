@@ -35,11 +35,12 @@ keepYearList <- keyVariable("keepYearList")
 dt.SSPPop <- getNewestVersion("dt.SSPPopClean")
 # do this to remove year 0, which was needed for the fish and alcohol calculations
 dt.SSPPop <- dt.SSPPop[year %in% keepYearList,]
-
 data.table::setkey(dt.SSPPop, ISO_code)
+
 dt.regions.all <- getNewestVersion("dt.regions.all")
 data.table::setkey(dt.regions.all, ISO_code)
-dt.SSPPop <- dt.SSPPop[dt.regions.all]
+# this could be a problem
+dt.SSPPop <-  merge(dt.SSPPop, dt.regions.all, by = "ISO_code", all.y = TRUE, allow.cartesian=TRUE)
 
 # Read in the region to aggregate to -----
 # region <- keyVariable("region")

@@ -394,12 +394,12 @@ metadata <- function() {
     )
   metadata[(nrow(metadata) + 1), ] <-
     c(fileNameList("CSEs"), "Consumer Surplus Equivalents for IMPACT commodities")
+  # metadata[(nrow(metadata) + 1), ] <-
+  #   c(fileNameList("IMPACT159regions"),
+  #     "List of IMPACT regions; single countries and country aggregates")
   metadata[(nrow(metadata) + 1), ] <-
-    c(fileNameList("IMPACT159regions"),
-      "List of IMPACT regions; single countries and country aggregates")
-  metadata[(nrow(metadata) + 1), ] <-
-    c(fileNameList("IMPACTstdRegions"),
-      "List of the standard IMPACT large grouping of countries")
+    c(fileNameList("regionsLookup"),
+      "Lookup table from ISO codes to various regional groupings")
   metadata[(nrow(metadata) + 1), ] <-
     c(fileNameList("IMPACTgdx"), "IMPACT demand data in gdx form")
   metadata[(nrow(metadata) + 1), ] <-
@@ -412,7 +412,7 @@ metadata <- function() {
   metadata[(nrow(metadata) + 1), ] <-
     c(fileNameList("nutrientLU"), "nutrient lookup data for IMPACT commodities")
   metadata[(nrow(metadata) + 1), ] <-
-    c(fileNameList("dt.foodgroupLU"), "commodity to food group lookup table")
+    c(fileNameList("foodGroupLU"), "commodity to food group lookup table")
   # SSP information ----
   metadata[(nrow(metadata) + 1), ] <-
     c(fileNameList("SSPdataZip"), "zip file containing the SSP data")
@@ -472,8 +472,8 @@ metadata <- function() {
 #' @param IMPACTfood - path and file name for IMPACT food results
 #' @param nutrientFileName - file name for nutrient lookup data
 #' @param nutrientLU - path and file name for nutrient lookup data
-#' @param commoditydt.foodgroupLUFileName - file name for the commodity to food group lookup spreadsheet
-#' @param dt.foodgroupLU - path and file name for the commodity to food group lookup
+#' @param commoditydt.foodGroupLUFileName - file name for the commodity to food group lookup spreadsheet
+#' @param dt.foodGroupLU - path and file name for the commodity to food group lookup
 #' @param SSPdataZipFile - file name of the SSP data in zip format
 #' @param SSPdataZip - path and file name for the SSP data zip file
 #' @param SSPcsv - name of the SSP data file in the zip file
@@ -507,8 +507,8 @@ fileNameList <- function(variableName) {
   # IMPACTstdRegionsFileName <- "IMPACT-agg-regionsFeb2016.xlsx"
   # IMPACTstdRegions <- paste(fileloc("IMPACTRawData"), IMPACTstdRegionsFileName, sep = "/")
   # IMPACTgdxfileName <- "Micronutrient-Inputs-USAID.gdx"  #-  gdx for the USAID results
- regionsLookupName <- "IMPACT regions update Aug 28 2016.xlsx"
- regionsLookup <- paste(fileloc("IMPACTRawData"),regionsLookupName, sep = "/")
+ regionsLookupName <- "regions lookup Sep 6 2016.xlsx"
+ regionsLookup <- paste(fileloc("rawData"),regionsLookupName, sep = "/")
  IMPACTgdxfileName <- "Micronutrient-Inputs-07252016.gdx"  #- gdx with SSP1, 2, and 3
   #IMPACTgdxfileName <- "Demand Results20150817.gdx"
   IMPACTgdx         <- paste(fileloc("IMPACTRawData"), IMPACTgdxfileName, sep = "/")
@@ -523,10 +523,10 @@ fileNameList <- function(variableName) {
   # nutrient data ------
   nutrientFileName <- "USDA GFS IMPACT V22.xlsx"
   nutrientLU       <- paste(nutrientDataDetails, nutrientFileName, sep = "/")
-  foodgroupLUFileName <-
+  foodGroupLUFileName <-
     "food commodity to food group table V4.xlsx"
   foodGroupLU      <-
-    paste(nutrientDataDetails, foodgroupLUFileName, sep = "/")
+    paste(nutrientDataDetails, foodGroupLUFileName, sep = "/")
   # SSP information ----
   SSPdataZipFile   <- "SspDb_country_data_2013-06-12.csv.zip"
   SSPdataZip       <- paste(SSPData, SSPdataZipFile, sep = "/")
@@ -560,8 +560,8 @@ fileNameList <- function(variableName) {
         "IMPACTfood",
         "nutrientFileName",
         "nutrientLU",
-        "dt.foodgroupLUFileName",
-        "dt.foodgroupLU",
+        "foodGroupLUFileName",
+        "foodGroupLU",
         "SSPdataZipFile",
         "SSPdataZip",
         "SSPcsv",
@@ -835,7 +835,7 @@ dir <- fileloc("resultsDir"); scenarioName <- "SSP2-NoCC"
 nutshareSpiderGraph <- function(reqFileName, countryCode, scenario, years, dir) {
   #reqRatiodatasetup <- function(reqTypeName,country, scenarioName, years, dir) {
   resultFileLookup <- getNewestVersion("resultFileLookup")
-  dt.foodgroupLU <- getNewestVersion("dt.foodGroupsInfo")
+  dt.foodGroupLU <- getNewestVersion("dt.foodGroupsInfo")
   SSP <- stringi::stri_split_fixed(scenarioName, "-", simplify = TRUE)[1]
   climModel <- stringi::stri_split_fixed(scenarioName, "-", simplify = TRUE)[2]
   experiment <- stringi::stri_split_fixed(scenarioName, "-", simplify = TRUE)[3]
@@ -887,7 +887,7 @@ nutshareSpiderGraph <- function(reqFileName, countryCode, scenario, years, dir) 
   # if (("food_group_code" %in% names(shareRatios)) | ("staple_code" %in% names(shareRatios))) {
   #  # dt.foodGroupsInfo <- getNewestVersion("dt.foodGroupsInfo")
   #   #foodGroupList <- sort(unique(foodGroupsInfo$food_group_code))
-  #   stapleList <- unique(dt.foodgroupLU$staple_code)
+  #   stapleList <- unique(dt.foodGroupLU$staple_code)
   shareRatios.nuts[, nutrient := gsub("_g.ratio.foodGroup","", nutrient)]
   shareRatios.nuts[, nutrient := gsub("_µg.ratio.foodGroup","", nutrient)]
   shareRatios.nuts[, nutrient := gsub("_mg.ratio.foodGroup","", nutrient)]
@@ -927,7 +927,7 @@ nutshareSpiderGraph <- function(reqFileName, countryCode, scenario, years, dir) 
 
     vnames <- vector(mode = "character", length = length(foodGroupShort))
     for (j in 1:length(foodGroupShort)) {
-      vnames[j] <- as.character(dt.foodgroupLU[food_group_codes == foodGroupShort[j], food_groups])
+      vnames[j] <- as.character(dt.foodGroupLU[food_group_codes == foodGroupShort[j], food_groups])
     }
 
     radarchart(temp, axistype = 2,

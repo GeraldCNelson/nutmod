@@ -47,19 +47,18 @@
 #only run in the dataPrep.regions.R script
 # source("R/createIMPACT159Regions.R")
 
-regionsLookup <- fileNameList("regionsLookup")
-regionsLookup <- openxlsx::read.xlsx(regionsLookup)
+regionsLookup <- openxlsx::read.xlsx(fileNameList("regionsLookup"))
 dt.regions.all <- data.table::as.data.table(regionsLookup)
 
-# Read in the worksheet that has the WB region code/name -ISO country name lookup
-WBNameLookup <- openxlsx::read.xlsx(
-  "data-raw/WorldBankIncomeGroupMap.xlsx",
-  sheet = 1,
-  startRow = 2,
-  colNames = FALSE
-)
-colnames(WBNameLookup) <- c("ISO_code", "country_name.ISO", "region_name.WB", "region_code.WB")
-dt.regions.all <- merge(dt.regions.all, WBNameLookup, by = c("ISO_code", "country_name.ISO"), all = TRUE)
+# # Read in the worksheet that has the WB region code/name -ISO country name lookup
+# WBNameLookup <- openxlsx::read.xlsx(
+#   "data-raw/WorldBankIncomeGroupMap.xlsx",
+#   sheet = 1,
+#   startRow = 2,
+#   colNames = FALSE
+# )
+# colnames(WBNameLookup) <- c("ISO_code", "country_name.ISO", "region_name.WB", "region_code.WB")
+# dt.regions.all <- merge(dt.regions.all, WBNameLookup, by = c("ISO_code", "country_name.ISO"), all = TRUE)
 inDT <- dt.regions.all
 data.table::setorder(inDT, ISO_code)
 outName <- "dt.regions.all"

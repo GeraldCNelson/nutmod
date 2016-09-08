@@ -2,17 +2,13 @@
 # a. experiment outcomes for given climate scenario, for USAID report
 # b. different SSPs for given climate scenario, for research paper
 # c. different climate models with SSP2
-# base run is SSP2, NoCC
-# differences should be of
-# a. intake of each nutrient as a percent of the base run outcome; e.g. delta protein/base protein
-# b. change in the percentage of the requirement met
 
 #' @author Gerald C. Nelson, \email{nelson.gerald.c@@gmail.com}
 #' @keywords nutrient data,
 #' @title Calculate nutrient deltas across scenarios
 #' @name delta.R
 #' @include nutrientModFunctions.R
-if (!exists("getNewestVersion", mode = "function"))
+#if (!exists("getNewestVersion", mode = "function"))
 {source("R/nutrientModFunctions.R")
   source("R/workbookFunctions.R")
   source("R/nutrientCalcFunctions.R")}
@@ -37,42 +33,6 @@ dt.GDP <- dt.GDP[year %in% c("X2010","X2050"), ]
 dt.GDP <- dt.GDP[,growthRate :=  lapply(.SD, function(x)((x/shift(x))^(1/(2050 - 2010)) - 1) * 100),
                  .SDcols = "pcGDPX0", by = c("scenario","region_code.IMPACT159")]
 dt.GDP.2010.ref <- dt.GDP[year ==  "X2010" & scenario == scenario.base,][,c("scenario","growthRate","year") :=  NULL]
-
-# population for weighting -----
-dt.pop <- getNewestVersion("dt.PopX0", fileloc("iData"))
-dt.pop.2010.ref <- dt.pop[year ==  "X2010" & scenario == scenario.base,][,c("scenario","year") :=  NULL]
-
-# regions for aggregating -----
-dt.regions.all <- getNewestVersion("dt.regions.all")
-regionCodes11 <- sort(c("NIC", "BRA", "CHM", "ETH", "IND", "GHA","TZA", "FRP", "VNM", "USA", "ZAF"))
-regionCodes156 <- sort(unique(dt.regions.all$region_code.IMPACT159))
-regionCodesAggReg2 <- sort(unique(dt.regions.all$region_code.AggReg2))
-regionCodes2EconGroup <- sort(unique(dt.regions.all$region_code.EconGroup))
-regionNamesAggReg2 <- unique(dt.regions.all$region_name.AggReg2)
-regionNames2EconGroup <- unique(dt.regions.all$region_name.EconGroup)
-# regionCodes11
-temp <- data.table::copy(dt.regions.all)
-temp <- temp[region_code.IMPACT159 %in% regionCodes11,]
-keepListCol <- c("region_code.IMPACT159", "region_name.IMPACT159")
-dt.region11List <- unique(temp[, (keepListCol), with = FALSE])
-# regionCodes156
-temp <- data.table::copy(dt.regions.all)
-temp <- temp[region_code.IMPACT159 %in% regionCodes156,]
-keepListCol <- c("region_code.IMPACT159", "region_name.IMPACT159")
-dt.region156List <- unique(temp[, (keepListCol), with = FALSE])
-# regionCodesAggReg2
-temp <- data.table::copy(dt.regions.all)
-temp <- temp[region_code.AggReg2 %in% regionCodesAggReg2,]
-keepListCol <- c("region_code.IMPACT159", "region_code.AggReg2", "region_name.AggReg2")
-dt.region_codesAggReg2List <- unique(temp[, (keepListCol), with = FALSE])
-data.table::setnames(dt.region_codesAggReg2List, old = c("region_code.AggReg2", "region_name.AggReg2"), new = c("region_code", "region_name"))
-
-# regionCodes2EconGroup
-temp <- data.table::copy(dt.regions.all)
-temp <- temp[region_code.EconGroup %in% regionCodes2EconGroup,]
-keepListCol <- c("region_code.IMPACT159", "region_code.EconGroup", "region_name.EconGroup")
-dt.region_codes2EconGroupList <- unique(temp[, (keepListCol), with = FALSE])
-data.table::setnames(dt.region_codes2EconGroupList, old = c("region_code.EconGroup", "region_name.EconGroup"), new = c("region_code", "region_name"))
 
 # all nutrients -----
 dt.nutrients.sum <- getNewestVersion("dt.nutrients.sum", fileloc("resultsDir"))
@@ -216,9 +176,10 @@ dt.stapleShare <- dt.stapleShare[,(keepListCol), with = FALSE]
 dt.stapleShare <- dt.stapleShare[!is.na(value),][, value := 100 * value]
 
 #box plots vitamins requirement -----
-temp <- RDA.vits.sum.req.ratio.melt[,c("region_code.IMPACT159") := NULL][nutrient == "vit_e_mg_reqRatio",]
+temp <- copy(RDA.vits.sum.req.ratio.melt)
+temp <- temp[,c("region_code.IMPACT159") := NULL][nutrient == "vit_e_mg_reqRatio",]
 yrange <- range(temp$value)
-pdf(paste("graphics/", fileName, ".pdf", sep = ""))
+pdf(paste("graphics/vit e", ".pdf", sep = ""))
 box.test <- boxplot(value ~ scenario, data = temp, range = 0,
                     at = c(1, 2, 3, 5, 6, 7),
                     xaxt = 'n',
@@ -234,49 +195,6 @@ text(c(1, 2, 3, 5, 6, 7), par("usr")[3] - 0.1, srt = 45, adj = 1,
 abline(h = 1, lty = 3, lwd = 0.8)
 dev.off()
 
-
-#box plots -----
-yrange <- range(RDA.macro.sum.req.ratio.wide$delta.HGEM,
-                RDA.macro.sum.req.ratio.wide$delta.IPSL,
-                RDA.macro.sum.req.ratio.wide$delta.SSP1,
-                RDA.macro.sum.req.ratio.wide$delta.SSP3)
-yrange <- c(-30, 40)
-par(mfrow = c(1, 4), mar = c(6,4,2,2), cex = 0.8, lwd = 0.7,las = 2)
-plot.new()
-plot(NA,
-     xlim = c(0,80),
-     ylim = yrange,
-     xlab = "",
-     ylab = "Percent change",
-     axes = F)
-abline(h = 0,lty = 3,lwd = 0.8)
-axis(2,lwd = 0.7,at = -3:3*20)
-boxplot(RDA.macro.sum.req.ratio.wide$delta.HGEM, las = 2,outline = T,range = 5,axes = F,
-        col = "white smoke",
-        #        ylim = yrange,
-        xlab = "Delta HGEM",
-        add = T)
-boxplot(RDA.macro.sum.req.ratio.wide$delta.IPSL, las = 2, outline = T, range = 5, axes = F,
-        col = "white smoke",
-        #        ylim = yrange,
-        xlab = "Delta IPSL",
-        add = F)
-boxplot(RDA.macro.sum.req.ratio.wide$delta.SSP1, las = 2, outline = T, range = 5, axes = F,
-        col = "white smoke",
-        #        ylim = yrange,
-        xlab = "Delta SSP1",
-        add = F)
-boxplot(RDA.macro.sum.req.ratio.wide$delta.SSP3, las = 2, outline = T, range = 5, axes = F,
-        col = "white smoke",
-        #       ylim = yrange,
-        xlab = "Delta SSP3",
-        add = F)
-# mtext("n",side=1,line=1,at=0,cex=0.4,las=1,adj=0)
-# mtext("Mean",side=1,line=2,at=0,cex=0.4,las=1,adj=0)
-# mtext("SD",side=1,line=3,at=0,cex=0.4,las=1,adj=0)
-
-#dev.off()
-
 # PWX growth rate calcs ----
 dt.PWX <- data.table::copy(dt.IMPACTfood)
 dt.PWX <- dt.PWX[,c("pcGDPX0","FoodAvailability","region_code.IMPACT159", "PCX0","CSE") :=  NULL]
@@ -287,7 +205,7 @@ dt.PWX <- dt.PWX[,growthRate :=  lapply(.SD, function(x)((x/shift(x))^(1/(2050 -
                  .SDcols = "PWX0", by = c("scenario", "IMPACT_code")]
 dt.PWX <- dt.PWX[year ==  "X2050",][,year :=  NULL]
 dt.foodGroupLU <- getNewestVersion("dt.foodGroupsInfo")
-temp <- merge(dt.PWX, dt.foodgroupLU, by = "IMPACT_code")
+temp <- merge(dt.PWX, dt.foodGroupLU, by = "IMPACT_code")
 # food group price calcs -----
 keepListCol <- c("IMPACT_code","scenario", "PWX0", "growthRate", "food_group_code", "staple_code")
 temp <- temp[,(keepListCol), with = FALSE ]
@@ -296,14 +214,10 @@ temp.FGmean <- unique(temp.FGmean[,c("scenario", "food_group_code","FGmean"), wi
 formula.FG.wide <- paste("scenario  ~ food_group_code")
 temp.FGmean.wide <- data.table::dcast(data = temp.FGmean, formula = formula.FG.wide, value.var = "FGmean")
 temp <- copy(temp.FGmean.wide)
-temp[scenario == "SSP2-NoCC-REF" ,newOrder := 1] [scenario == "SSP1-NoCC-REF" ,newOrder := 2][scenario == "SSP3-NoCC-REF" ,newOrder := 3]
-temp[scenario == "SSP2-GFDL-REF" ,newOrder := 4] [scenario == "SSP2-HGEM-REF" ,newOrder := 5][scenario == "SSP2-IPSL-REF" ,newOrder := 6]
-data.table::setorder(temp,newOrder)
-temp[, newOrder := NULL]
 temp[,scenario := gsub("-REF", "", scenario)]
 write.csv(format(temp, digits = 2), paste(fileloc("resultsDir"),"priceGrowthFG.csv", sep = "/"))
 # staple group price calcs
-temp <- merge(dt.PWX, dt.foodgroupLU, by = "IMPACT_code")
+temp <- merge(dt.PWX, dt.foodGroupLU, by = "IMPACT_code")
 keepListCol <- c("IMPACT_code","scenario", "PWX0", "growthRate", "food_group_code", "staple_code")
 temp <- temp[,(keepListCol), with = FALSE ]
 temp.stapleMean <- temp[, stapleMean := mean(growthRate), by = c("scenario","staple_code")]
@@ -311,10 +225,6 @@ temp.stapleMean <- unique(temp.stapleMean[,c("scenario", "staple_code","stapleMe
 formula.staple.wide <- paste("scenario  ~ staple_code")
 temp.stapleMean.wide <- data.table::dcast(data = temp.stapleMean, formula = formula.staple.wide, value.var = "stapleMean")
 temp <- copy(temp.stapleMean.wide)
-temp[scenario == "SSP2-NoCC-REF" ,newOrder := 1] [scenario == "SSP1-NoCC-REF" ,newOrder := 2][scenario == "SSP3-NoCC-REF" ,newOrder := 3]
-temp[scenario == "SSP2-GFDL-REF" ,newOrder := 4] [scenario == "SSP2-HGEM-REF" ,newOrder := 5][scenario == "SSP2-IPSL-REF" ,newOrder := 6]
-data.table::setorder(temp,newOrder)
-temp[, newOrder := NULL]
 temp[,scenario := gsub("-REF", "", scenario)]
 write.csv(format(temp, digits = 2), paste(fileloc("resultsDir"),"priceGrowthStaples.csv", sep = "/"))
 
@@ -322,15 +232,7 @@ write.csv(format(temp, digits = 2), paste(fileloc("resultsDir"),"priceGrowthStap
 plotNutrients <- function(dt, fileName, regions) {
   if (missing(regions)) {regions <- 156}
   temp <- copy(dt)
-  temp[scenario == "SSP2-NoCC-REF" ,newOrder := 1] [scenario == "SSP1-NoCC-REF" ,newOrder := 2][scenario == "SSP3-NoCC-REF" ,newOrder := 3]
-  temp[scenario == "SSP2-GFDL-REF" ,newOrder := 4] [scenario == "SSP2-HGEM-REF" ,newOrder := 5][scenario == "SSP2-IPSL-REF" ,newOrder := 6]
-  data.table::setorder(temp, newOrder)
-  deleteListCol <- c("newOrder")
-  temp[, (deleteListCol) := NULL]
-
   pdf(paste("graphics/", fileName, ".pdf", sep = ""))
-  temp <- merge(temp, dt.GDP.2010.ref, by = "region_code.IMPACT159")
-  data.table::setorder(temp, pcGDPX0)
 
   scenarios <- unique(temp$scenario)
   nutrients <- unique(temp$nutrient)
@@ -379,52 +281,38 @@ plotNutrients(RDA.macro.sum.req.ratio.melt, "macroNutrients")
 plotNutrients(RDA.vits.sum.req.ratio.melt, "vitamins")
 
 #box plots budget share -----
-temp <- copy(dt.budgetShare)
-temp <- temp[!region_code.IMPACT159 ==  "SOM",]
-# [,c("region_code.IMPACT159") := NULL])
-temp[scenario == "SSP2-NoCC-REF" ,newOrder := 1] [scenario == "SSP1-NoCC-REF" ,newOrder := 2][scenario == "SSP3-NoCC-REF" ,newOrder := 3]
-temp[scenario == "SSP2-GFDL-REF" ,newOrder := 4] [scenario == "SSP2-HGEM-REF" ,newOrder := 5][scenario == "SSP2-IPSL-REF" ,newOrder := 6]
-data.table::setorder(temp,newOrder)
-temp[, newOrder := NULL] #[, value := 100 * value]
-yrange <- range(temp$value)
-par(mfrow = c(1,1))
-#pdf(paste("graphics/", fileName, ".pdf", sep = ""))
-temp.2010 <- temp[year == "X2010",]
-box.test.2010 <- boxplot(temp.2010$value, data = temp.2010, range = 5,
-                         at = c(1),
-                         xaxt = 'n',
-                         ylim = c(0, 40),
-                         col = c('white', 'white smoke', 'gray'),
-                         add = TRUE)
-temp.2050 <- temp[year == "X2050",]
-box.test <- boxplot(value ~ scenario, data = temp.2050, range = 5,
-                    at = c(2, 3, 4, 5, 6, 7),
-                    xaxt = 'n',
-                    ylim = c(0, 40),
-                    col = c('white', 'white smoke', 'gray'),
-                    add = TRUE)
-labels <- gsub("-REF","", unique(temp$scenario))
-labels <- c("2010", labels)
-#axis(side = 1, at = c(1,2, 3, 4, 5, 6, 7),labels = FALSE)
-axis(side = 1,labels = FALSE)
-#    labels = unique(temp$scenario), srt=45, adj=1, xpd=TRUE,
-#   line = 0.5, lwd = 0, cex.lab = 0.5, cex.axis = 0.6)
-title('Share of IMPACT food items cost in per capita GDP by scenario')
-text(c(1, 2, 3, 4, 5, 6, 7), par("usr")[3] - .025, srt = 45, adj = 1,
-     labels = labels, xpd = TRUE)
-# add scenario labels near the box plots
-#text(c(1, 2.5, 4, 5.5, 7, 8.5), c(1, 2.5, 4, 5.5, 7, 8.5), unique(temp$scenario), srt = 45)
-#dev.off()
+boxPlotSingle <- function(dt, fileName, titleText, yRange) {
+  temp <- copy(dt)
+  temp <- temp[!region_code.IMPACT159 ==  "SOM",]
+  colList <- c("white smoke", "red", "red2", "red4", "green", "green2", "green4")
+
+  par(mfrow = c(1,1))
+  pdf(paste("graphics/", fileName, ".pdf", sep = ""))
+  box.test <- boxplot(value ~ scenario, data = temp, range = 5,
+                      at = c(1, 2, 2.8, 3.6, 4.6, 5.4, 6.2),
+                      xaxt = 'n',
+                      ylim = yRange,
+                      col = colList)
+  labels <- gsub("-REF", "", unique(temp$scenario))
+  axis(side = 1,labels = FALSE)
+  title(main = titleText)
+  text(c(1, 2, 2.8, 3.6, 4.6, 5.4, 6.2), par("usr")[3] - 2, srt = 45, adj = 1,
+       labels = labels, xpd = TRUE)
+  mytable <- box.test$stats
+  colnames(mytable) <- box.test$names
+  rownames(mytable) <- c('min','lower quartile','median','upper quartile','max')
+  # need to figure out how to put this table below the box plot
+  dev.off()
+}
+boxPlotSingle(dt  = dt.budgetShare, fileName = "budgetShareBoxes", titleText = "Share of IMPACT food items cost in per capita GDP, \n2010 and 2050 scenarios", yRange = c(0, 50))
+boxPlotSingle(dt  = dt.shannonDiversity, fileName = "ShannonDivBoxes", titleText = "Shannon diversity index by scenario", yRange = c(0, 80))
+boxPlotSingle(dt  = dt.stapleShare, fileName = "nonStapleBoxes", titleText = "Non-staple share by scenario", yRange = c(0, 80))
 
 #box plots nutrients -----
 temp <- copy(dt.nutrients.sum.melt[,c("region_code.IMPACT159","pcGDPX0") := NULL][nutrient == "energy_kcal.sum.all",])
-temp[scenario == "SSP2-NoCC-REF" ,newOrder := 1] [scenario == "SSP1-NoCC-REF" ,newOrder := 2][scenario == "SSP3-NoCC-REF" ,newOrder := 3]
-temp[scenario == "SSP2-GFDL-REF" ,newOrder := 4] [scenario == "SSP2-HGEM-REF" ,newOrder := 5][scenario == "SSP2-IPSL-REF" ,newOrder := 6]
-data.table::setorder(temp,newOrder)
-deleteListCol <- c("newOrder")
-temp[, (deleteListCol) := NULL]
 yrange <- range(temp$value)
-pdf(paste("graphics/", fileName, ".pdf", sep = ""))
+par(mfrow = c(1,1))
+pdf("graphics/nutrientsBoxes.pdf")
 box.test <- boxplot(value ~ scenario, data = temp, range = 1.5,
                     at = c(1, 2.5, 4, 5.5, 7, 8.5),
                     xaxt = 'n',
@@ -443,10 +331,6 @@ dev.off()
 
 #box plots Shannon diversity -----
 temp <- copy(dt.shannonDiversity[,c("region_code.IMPACT159","year") := NULL])
-temp[scenario == "SSP2-NoCC-REF" ,newOrder := 1] [scenario == "SSP1-NoCC-REF" ,newOrder := 2][scenario == "SSP3-NoCC-REF" ,newOrder := 3]
-temp[scenario == "SSP2-GFDL-REF" ,newOrder := 4] [scenario == "SSP2-HGEM-REF" ,newOrder := 5][scenario == "SSP2-IPSL-REF" ,newOrder := 6]
-data.table::setorder(temp,newOrder)
-temp[, newOrder := NULL]
 yrange <- range(temp$SDnorm)
 fileName <- 'ShannonDiversityBoxPlots'
 pdf(paste("graphics/", fileName, ".pdf", sep = ""))
@@ -468,22 +352,14 @@ dev.off()
 
 plotByRegionLine <- function(dt, fileName, title, yRange, regionCodes) {
   temp <- copy(dt)
-  temp[scenario == "SSP2-NoCC-REF" ,newOrder := 1] [scenario == "SSP1-NoCC-REF" ,newOrder := 2][scenario == "SSP3-NoCC-REF" ,newOrder := 3]
-  temp[scenario == "SSP2-GFDL-REF" ,newOrder := 4] [scenario == "SSP2-HGEM-REF" ,newOrder := 5][scenario == "SSP2-IPSL-REF" ,newOrder := 6]
-  data.table::setorder(temp, newOrder)
-  deleteListCol <- c("newOrder")
-  temp[, (deleteListCol) := NULL]
-
   temp <- merge(temp, dt.GDP.2010.ref, by = "region_code.IMPACT159")
   temp <- temp[region_code.IMPACT159 %in% regionCodes]
-  data.table::setorder(temp, pcGDPX0)
-  scenarios <- unique(temp$scenario)
+ scenarios <- unique(temp$scenario)
   pdf(paste("graphics/", fileName, ".pdf", sep = ""))
   colList <- c("red", "red2", "red4", "green", "green2", "green4", "black")
   par(mfrow = c(1,1))
   legendText <- NULL
   for (i in 1:length(scenarios)) {
-    data.table::setorder(temp, pcGDPX0)
     if (i == 1) {
       plot(temp[year %in% "X2050" & scenario == scenarios[i],value], type = "l", col = "green",
            xlab = "", xaxt = "n", ylab = "share (%)",
@@ -528,20 +404,15 @@ plotByRegionBar <- function(dt, fileName, title, yLab, yRange, regionList) {
     formula = formula.wide,
     value.var = "value")
   temp.wide[, year := NULL]
-  #   temp.wide$scenario = NULL
-  temp.wide[scenario == "SSP2-NoCC-REF" ,newOrder := 1] [scenario == "SSP1-NoCC-REF" ,newOrder := 2][scenario == "SSP3-NoCC-REF" ,newOrder := 3]
-  temp.wide[scenario == "SSP2-GFDL-REF" ,newOrder := 4] [scenario == "SSP2-HGEM-REF" ,newOrder := 5][scenario == "SSP2-IPSL-REF" ,newOrder := 6]
-  data.table::setorder(temp.wide, newOrder)
-  temp.wide[,newOrder := NULL]
-  data.table::setnames(temp.wide, old = regionCodes, new = regionNames)
+   data.table::setnames(temp.wide, old = regionCodes, new = regionNames)
   regionNames <- sort(regionNames)
-  data.table::setcolorder(temp.wide, c("scenario", regionNames))
+#  data.table::setcolorder(temp.wide, c("scenario", regionNames))
   temp.wide <- as.data.frame(temp.wide)
   rownames(temp.wide) <-  temp.wide[,1]
   temp.wide[1] = NULL
   temp.wide <- data.matrix(temp.wide)
-print(temp.wide)
-  x <- barplot(temp.wide,  col = colList, ylim = yRange,
+ # print(temp.wide)
+  barplot(temp.wide,  col = colList, ylim = yRange,
                legend = gsub("-REF", "", rownames(temp.wide)), args.legend = list(cex = .7),
                beside = TRUE, ylab = yLab,  cex.names = .7, las = 2,  main = title)
   dev.off()
@@ -551,31 +422,66 @@ print(temp.wide)
 plotByRegionLine(dt.shannonDiversity, "ShannonDiversity", "Shannon Diversity", yRange = c(20, 80), regionCodes156)
 plotByRegionBar(dt.shannonDiversity, "ShannonDiversity", "Shannon Diversity", "percent", yRange = c(0, 80), dt.region11List)
 # plot budget shares by country and scenario -----
-plotByRegionLine(dt.budgetShare, "budgetShare", "Income share of IMPACT food budget", yRange = c(0, 50), regionCodes156)
-plotByRegionBar(dt.budgetShare, "budgetShare", "Income share of IMPACT food budget", "percent", yRange = c(0, 50), dt.region11List)
+plotByRegionLine(dt.budgetShare, "budgetShare", "Income share of IMPACT food budget, 2010 and 2050 scenarios", yRange = c(0, 50), regionCodes156)
+plotByRegionBar(dt.budgetShare, "budgetShare", "Income share of IMPACT food budget, 2010 and 2050 scenarios", "percent", yRange = c(0, 50), dt.region11List)
 # plot nonstaple shares by country and scenario -----
-plotByRegionLine(dt.stapleShare, "budgetShare", "Non staple share of energy", yRange = c(0, 50), regionCodes156)
+plotByRegionLine(dt.stapleShare, "stapleShare", title = "Non-staple share of energy availability, 2010 and 2050 scenarios", yRange = c(0, 100), regionCodes156)
 temp <- data.table::copy(dt.stapleShare)
 data.table::setnames(temp, old = c("region_code.IMPACT159", "region_name.IMPACT159"), new = c("region_code", "region_name"))
-plotByRegionBar(temp, "stapleShare", "Non staple share of energy", "percent", yRange = c(0, 100), dt.region11List)
+plotByRegionBar(temp, "stapleShare", "Nonstaple share of energy", "percent", yRange = c(0, 100), dt.region11List)
 
 # plot nutrient shares by country and scenario
 plotByRegionLine(RDA.minrls.sum.req.ratio.melt, "minrls", "Minerals availablity share of requirement", yRange = c(0, 4), regionCodes156)
 
 # aggregation code -----
-temp <- merge(dt.budgetShare,dt.region_codesAggReg2List, by = "region_code.IMPACT159")
-temp <- merge(temp, dt.pop.2010.ref, by = "region_code.IMPACT159")
-#temp <- temp[, region.budget.share := mean(value), by = c("region_code.AggReg2", "year")]
-temp <- temp[, value := weighted.mean(value, PopX0), by = c("scenario","region_code", "year")]
-keepListCol <- c("scenario", "year", "region_code", "region_name",
-                 "value")
-temp <- unique(temp[, (keepListCol), with = FALSE])
-# data.table::setnames(temp, old = c("region_code.AggReg2", "region_name.AggReg2", "region.budget.share.w"),
-#                      new = c("region_code", "region_name", "value"))
-dt.regionList <- unique(dt.region_codesAggReg2List[, region_code.IMPACT159 := NULL])
-data.table::setkey(dt.regionList, region_name)
-plotByRegionBar(temp, "budgetShareAggReg2", "Income share of IMPACT food budget", "percent", yRange = c(0, 70), dt.regionList)
+# temp <- merge(dt.budgetShare,dt.region_codes.WB, by = "region_code.IMPACT159")
+# temp <- merge(temp, dt.pop.2010.ref, by = "region_code.IMPACT159")
+# #temp <- temp[, region.budget.share := mean(value), by = c("region_code.AggReg2", "year")]
+# temp <- temp[, value := weighted.mean(value, PopX0), by = c("scenario","region_code", "year")]
+# keepListCol <- c("scenario", "year", "region_code", "region_name", "value")
+# temp <- unique(temp[, (keepListCol), with = FALSE])
+# # data.table::setnames(temp, old = c("region_code.AggReg2", "region_name.AggReg2", "region.budget.share.w"),
+# #                      new = c("region_code", "region_name", "value"))
+# dt.regionList <- unique(dt.region_codes.WB[, region_code.IMPACT159 := NULL])
+# data.table::setkey(dt.regionList, region_name)
+# plotByRegionBar(temp, "budgetShareWB", "Income share of IMPACT food budget, 2010 and 2050 scenarios", "percent", yRange = c(0, 70), dt.regionList)
 
+plotAggRegionBar <- function(dataDT, regionCodesDT, fileName, titleText, ylab, yRange, aggType) {
+  # tbls <- list(dataDT,regionCodesDT,dt.pop.2010.ref)
+  # lapply(tbls, function(i) setkey(i, "region_code.IMPACT159"))
+  # merged <- Reduce(function(...) merge(..., all = T), tbls)
+  temp <- merge(dataDT,regionCodesDT, by = "region_code.IMPACT159")
+  merged <- merge(temp, dt.pop.2010.ref, by = "region_code.IMPACT159")
+#  temp <- temp[, region.budget.share := mean(value), by = c("region_code", "year")]
+  merged <- merged[, value := weighted.mean(value, PopX0), by = c("scenario", "region_code", "year")]
+  keepListCol <- c("scenario",  "year", "region_code", "region_name", "value")
+  merged <- unique(merged[, (keepListCol), with = FALSE])
+  dt.regionList <- data.table::copy(regionCodesDT)
+  dt.regionList <- unique(dt.regionList[, region_code.IMPACT159 := NULL])
+  if (aggType == "WB") {
+     merged[region_code == "lowInc" ,newOrder := 1] [region_code == "lowMidInc" ,newOrder := 2][region_code == "upMidInc" ,newOrder := 3]
+   merged[region_code == "highInc" ,newOrder := 4]
+  dt.regionList[region_code == "lowInc" ,newOrder := 1] [region_code == "lowMidInc" ,newOrder := 2][region_code == "upMidInc" ,newOrder := 3]
+  dt.regionList[region_code == "highInc" ,newOrder := 4]
+  data.table::setorder(dt.regionList,newOrder)
+  dt.regionList[, newOrder := NULL]
+  } else {
+  data.table::setkey(dt.regionList, region_name)
+  }
+  #print(names(merged))
+  plotByRegionBar(merged, fileName, titleText, "percent", yRange, dt.regionList)
+  #print(dt.regionList)
+}
+
+plotAggRegionBar(dataDT = dt.budgetShare, regionCodesDT = dt.region_codes.WB, fileName =  "budgetShareWB",
+                 titleText = "Income share of IMPACT food budget, 2010 and 2050 scenarios",
+                 ylab = "percent", yRange = c(0, 70), aggType = "WB")
+plotAggRegionBar(dataDT = dt.stapleShare, regionCodesDT = dt.region_codes.WB, fileName =  "stapleShareWB",
+                 titleText = "Non-staple shares of energy availability, 2010 and 2050 scenarios",
+                 ylab = "percent", yRange = c(0, 70), aggType = "WB")
+plotAggRegionBar(dataDT = dt.shannonDiversity, regionCodesDT = dt.region_codes.WB, fileName =  "ShannonDiversityWB",
+                 titleText = "Shannon Diversity Index, 2010 and 2050 scenarios",
+                 ylab = "percent", yRange = c(0, 70), aggType = "WB")
 # old code ------
 # #box plots nutrients
 # temp <- dt.nutrients.sum.melt[,c("region_code.IMPACT159","pcGDPX0") := NULL][nutrient == "energy_kcal.sum.all",]
@@ -819,3 +725,44 @@ plotByRegionBar(temp, "budgetShareAggReg2", "Income share of IMPACT food budget"
 #           ylabel = "IMPACT commodity\nshare of per capita GDP (%)",
 #           regions = 155
 # )
+#box plots, deltas
+yrange <- range(RDA.macro.sum.req.ratio.wide$delta.HGEM,
+                RDA.macro.sum.req.ratio.wide$delta.IPSL,
+                RDA.macro.sum.req.ratio.wide$delta.SSP1,
+                RDA.macro.sum.req.ratio.wide$delta.SSP3)
+yrange <- c(-30, 40)
+par(mfrow = c(1, 4), mar = c(6,4,2,2), cex = 0.8, lwd = 0.7,las = 2)
+plot.new()
+plot(NA,
+     xlim = c(0,80),
+     ylim = yrange,
+     xlab = "",
+     ylab = "Percent change",
+     axes = F)
+abline(h = 0,lty = 3,lwd = 0.8)
+axis(2,lwd = 0.7,at = -3:3*20)
+boxplot(RDA.macro.sum.req.ratio.wide$delta.HGEM, las = 2,outline = T,range = 5,axes = F,
+        col = "white smoke",
+        #        ylim = yrange,
+        xlab = "Delta HGEM",
+        add = T)
+boxplot(RDA.macro.sum.req.ratio.wide$delta.IPSL, las = 2, outline = T, range = 5, axes = F,
+        col = "white smoke",
+        #        ylim = yrange,
+        xlab = "Delta IPSL",
+        add = F)
+boxplot(RDA.macro.sum.req.ratio.wide$delta.SSP1, las = 2, outline = T, range = 5, axes = F,
+        col = "white smoke",
+        #        ylim = yrange,
+        xlab = "Delta SSP1",
+        add = F)
+boxplot(RDA.macro.sum.req.ratio.wide$delta.SSP3, las = 2, outline = T, range = 5, axes = F,
+        col = "white smoke",
+        #       ylim = yrange,
+        xlab = "Delta SSP3",
+        add = F)
+# mtext("n",side=1,line=1,at=0,cex=0.4,las=1,adj=0)
+# mtext("Mean",side=1,line=2,at=0,cex=0.4,las=1,adj=0)
+# mtext("SD",side=1,line=3,at=0,cex=0.4,las=1,adj=0)
+
+#dev.off()
