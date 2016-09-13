@@ -39,9 +39,9 @@ dt.nutrients.sum <- getNewestVersion("dt.nutrients.sum", fileloc("resultsDir"))
 macroNutrients <- c("protein_g.sum.all", "fat_g.sum.all", "carbohydrate_g.sum.all",  "totalfiber_g.sum.all")
 vitamins <- c("vits_c_mg.sum.all", "thiamin_mg.sum.all", "riboflavin_mg.sum.all", "niacin_mg.sum.all",
               "vits_b6_mg.sum.all", "folate_µg.sum.all", "vits_b12_µg.sum.all", "vits_a_rae_µg.sum.all",
-              "vits_e_mg.sum.all",  "vits_d_μg.sum.all", "vits_k_µg.sum.all")
+              "vits_e_mg.sum.all",  "vits_d_µg.sum.all", "vits_k_µg.sum.all")
 minerals <- c("calcium_mg.sum.all",  "iron_mg.sum.all", "magnesium_mg.sum.all", "phosphorus_mg.sum.all",
-              "potassium_g.sum.all", "sodium_g.sum.all", "zinc_mg.sum.all")
+              "potassium_g.sum.all", "zinc_mg.sum.all")
 kcals <- c("kcals.fat.sum.all", "kcals.protein.sum.all", "kcals.sugar.sum.all", "kcals.ethanol.sum.all")
 addedSugar <- c("sugar_g.sum.all")
 fattyAcids <- c("ft_acds_tot_sat_g.sum.all", "ft_acds_mono_unsat_g.sum.all", "ft_acds_plyunst_g.sum.all",

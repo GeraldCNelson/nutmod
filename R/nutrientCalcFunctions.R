@@ -124,9 +124,9 @@ budgetShare <- function(dt.IMPACTfood) {
   deleteListCol <- c("IMPACT_code", "FoodAvailability","PCX0","PWX0","CSE")
   dt.budget[,(deleteListCol) := NULL]
   # at world prices -----
-  dt.budget[, incSharePWX0 := budget.PWX0 / pcGDPX0 ]
+  dt.budget[, incSharePWX0 := 100 * budget.PWX0 / pcGDPX0 ]
   # at domestic prices -----
-  dt.budget[, incSharePCX0 := budget.PCX0 / pcGDPX0 ]
+  dt.budget[, incSharePCX0 := 100 * budget.PCX0 / pcGDPX0 ]
   data.table::setkeyv(dt.budget, c("scenario", "region_code.IMPACT159", "year"))
   inDT <- dt.budget
   outName <- "dt.budgetShare"

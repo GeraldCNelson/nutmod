@@ -19,9 +19,9 @@ macroNutrients <- c("energy_kcal.sum.staple", "protein_g.sum.staple", "fat_g.sum
                     "totalfiber_g.sum.staple")
 vitamins <- c("vit_c_mg.sum.staple", "thiamin_mg.sum.staple", "riboflavin_mg.sum.staple", "niacin_mg.sum.staple",
               "vit_b6_mg.sum.staple", "folate_µg.sum.staple", "vit_b12_µg.sum.staple", "vit_a_rae_µg.sum.staple",
-              "vit_e_mg.sum.staple",  "vit_d_μg.sum.staple", "vit_k_µg.sum.staple")
+              "vit_e_mg.sum.staple",  "vit_d_µg.sum.staple", "vit_k_µg.sum.staple")
 minerals <- c("calcium_mg.sum.staple",  "iron_mg.sum.staple", "magnesium_mg.sum.staple", "phosphorus_mg.sum.staple",
-              "potassium_g.sum.staple", "sodium_g.sum.staple", "zinc_mg.sum.staple")
+              "potassium_g.sum.staple", "zinc_mg.sum.staple")
 kcals <- c("kcals.fat.sum.staple", "kcals.protein.sum.staple", "kcals.sugar.sum.staple", "kcals.ethanol.sum.staple")
 addedSugar <- c("sugar_g.sum.staple")
 fattyAcids <- c("ft_acds_tot_sat_g.sum.staple", "ft_acds_mono_unsat_g.sum.staple", "ft_acds_plyunst_g.sum.staple",

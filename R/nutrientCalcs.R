@@ -131,11 +131,14 @@ req <- "req.EAR.percap" # just for testing!!! XXX
   nutListReq.req.ratio.all <- paste(nutListReq, "req.ratio.all", sep = ".")
 
   # the total daily consumption of each staple
-  nutListReq.sum.staples <- paste(nutListReq, "sum.staple", sep = ".")
+#  nutListReq.sum.staples <- paste(nutListReq, "sum.staple", sep = ".")
+  nutListReq.sum.staples <- paste(nutListReq, sep = ".")
   # the ratio of daily consumption of each nutrient for each staple to the total consumption
-  nutListReq.ratio.staples <- paste(nutListReq, "ratio.staple", sep = ".")
+#  nutListReq.ratio.staples <- paste(nutListReq, "ratio.staple", sep = ".")
+  nutListReq.ratio.staples <- paste(nutListReq, sep = ".")
   # the ratio of daily consumption of each nutrient for each staple by the nutrient requirement
-  nutListReq.req.ratio.staples <- paste(nutListReq, "req.ratio.staple", sep = ".")
+#  nutListReq.req.ratio.staples <- paste(nutListReq, "req.ratio.staple", sep = ".")
+  nutListReq.req.ratio.staples <- paste(nutListReq, sep = ".")
 
   # the total daily consumption of each food group
   nutListReq.sum.foodGroup <- paste(nutListReq, "sum.foodGroup", sep = ".")
@@ -291,7 +294,17 @@ generateSum <- function(dt.IMPACTfood,scenarioListIMPACT) {
                              by = eval(data.table::key(dt.food.agg.all))][,(nutListReq.Q) := NULL]
   deleteListCol <- c("IMPACT_code", "foodAvailpDay", "food_group_code", "staple_code")
   dt.food.agg.all[,(deleteListCol) := NULL]
-  inDT <- unique(dt.food.agg.all)
+  dt.nut.wide <- unique(dt.food.agg.all)
+  dt.nut.long <- data.table::melt(dt.nut.wide,
+                                           id.vars = c("scenario","region_code.IMPACT159", "year"),
+                                           variable.name = "nutrient",
+                                           measure.vars = nutListReq.sum.all,
+                                           value.name = "value",
+                                           variable.factor = FALSE)
+
+  inDT <- unique(dt.nut.long)
+  inDT[, nutrient := cleanupNutrientNames(nutrient)]
+
   outName <- "dt.nutrients.sum.all"
   cleanup(inDT,outName, fileloc("resultsDir"))
 
@@ -303,7 +316,16 @@ generateSum <- function(dt.IMPACTfood,scenarioListIMPACT) {
   print(proc.time())
   deleteListCol <- c("IMPACT_code", "foodAvailpDay", "food_group_code")
   dt.food.agg.staples[,(deleteListCol) := NULL]
-  inDT <- unique(dt.food.agg.staples)
+  dt.nut.sum.staple.wide <- unique(dt.food.agg.staples)
+  dt.nut.sum.staple.long <- data.table::melt(dt.nut.sum.staple.wide,
+                                  id.vars = c("scenario","region_code.IMPACT159", "year"),
+                                  variable.name = "nutrient",
+                                  measure.vars = nutListReq.sum.staple,
+                                  value.name = "value",
+                                  variable.factor = FALSE)
+
+  inDT <- dt.nut.sum.staple.long
+  inDT[, nutrient := cleanupNutrientNames(nutrient)]
   outName <- "dt.nutrients.sum.staples"
   cleanup(inDT,outName, fileloc("resultsDir"))
 }

@@ -9,70 +9,114 @@
   source("R/nutrientCalcFunctions.R")}
 # GDP setup -----
 library(data.table)
+library(gridExtra)
+library(gplots)
 scenario.base <- "SSP2-NoCC-REF"
 # population for weighting -----
 dt.pop <- getNewestVersion("dt.PopX0", fileloc("iData"))
 dt.pop.2010.ref <- dt.pop[year ==  "X2010" & scenario == scenario.base,][,c("scenario","year") :=  NULL]
 
-aggNorder <- function(gdxChoice, DTglobal, aggChoice, scenChoice) {
-  DT <- getNewestVersion(DTglobal, fileloc("resultsDir"))
-  setkey(DT, NULL)
-  # regions for aggregating -----
+regionAgg <- function(aggChoice) {
+  # region info setup for aggregating -----
   dt.regions.all <- getNewestVersion("dt.regions.all")
-  regionCodes156 <- sort(unique(dt.regions.all$region_code.IMPACT159))
-  regionCodes11 <- sort(c("NIC", "BRA", "CHM", "ETH", "IND", "GHA","TZA", "FRP", "VNM", "USA", "ZAF"))
-  regionCodesAggReg1 <- sort(unique(dt.regions.all$region_code.AggReg1))
-  regionCodesAggReg2 <- sort(unique(dt.regions.all$region_code.AggReg2))
-  regionCodes2EconGroup <- sort(unique(dt.regions.all$region_code.EconGroup))
-  regionCodesWB <- sort(unique(dt.regions.all$region_code.WB))
-  regionNames11 <- unique(dt.regions.all[region_code.IMPACT159 %in% regionCodes11, region_name.IMPACT159])
+  I3regions <- sort(unique(dt.regions.all$region_code.IMPACT159))
+  tenregions <- sort(c("NIC", "BRA", "CHM", "ETH", "IND", "GHA","TZA", "FRP", "VNM", "USA"))
+  AggReg1 <- sort(unique(dt.regions.all$region_code.AggReg1))
+  AggReg2 <- sort(unique(dt.regions.all$region_code.AggReg2))
+  twoEconGroup <- sort(unique(dt.regions.all$region_code.EconGroup))
+  WB <- sort(unique(dt.regions.all$region_code.WB))
+  regionNamestenregions <- unique(dt.regions.all[region_code.IMPACT159 %in% tenregions, region_name.IMPACT159])
   regionNamesAggReg1 <- unique(dt.regions.all$region_name.AggReg1)
   regionNamesAggReg2 <- unique(dt.regions.all$region_name.AggReg2)
-  regionNames2EconGroup <- unique(dt.regions.all$region_name.EconGroup)
+  regionNamestwoEconGroup <- unique(dt.regions.all$region_name.EconGroup)
   regionNamesWB <- unique(dt.regions.all$region_name.WB)
 
-  temp <- data.table::copy(dt.regions.all)
-
-  # regionCodes11
-  if (aggChoice == "regionCodes11") {
+  # regionCodestenregions
+  if (aggChoice == "tenregions") {
     keepListCol <- c("region_code.IMPACT159", "region_code", "region_name.IMPACT159")
-    temp <- temp[region_code.IMPACT159 %in% regionCodes11,]
-    temp <- temp[, region_code := region_code.IMPACT159]
+    dt.regions.all <- dt.regions.all[region_code.IMPACT159 %in% tenregions,]
+    dt.regions.all <- dt.regions.all[, region_code := region_code.IMPACT159]
   }
-  # regionCodes156
-  if (aggChoice == "regionCodes156") {
+  # regionCodesI3regions
+  if (aggChoice == "I3regions") {
     keepListCol <- c("region_code.IMPACT159", "region_code", "region_name.IMPACT159")
-    temp <- temp[, region_code := region_code.IMPACT159]
+    dt.regions.all <- dt.regions.all[, region_code := region_code.IMPACT159]
   }
   # regionCodesAggReg1
-  if (aggChoice == "regionCodesAggReg1") {
+  if (aggChoice == "AggReg1") {
     keepListCol <- c("region_code.IMPACT159", "region_code.AggReg1", "region_name.AggReg1")
   }
   # regionCodesAggReg2
-  if (aggChoice == "regionCodesAggReg2") {
+  if (aggChoice == "AggReg2") {
     keepListCol <- c("region_code.IMPACT159", "region_code.AggReg2", "region_name.AggReg2")
   }
-  # regionCodes2EconGroup
-  if (aggChoice == "regionCodes2EconGroup") {
+  # regionCodestwoEconGroup
+  if (aggChoice == "twoEconGroup") {
     keepListCol <- c("region_code.IMPACT159", "region_code.EconGroup", "region_name.EconGroup")
   }
   # regionCodesWB
-  if (aggChoice == "regionCodesWB") {
+  if (aggChoice == "WB") {
     keepListCol <- c("region_code.IMPACT159", "region_code.WB", "region_name.WB")
   }
-  dt.regions <- unique(temp[, (keepListCol), with = FALSE])
+  dt.regions <- unique(dt.regions.all[, (keepListCol), with = FALSE])
   data.table::setnames(dt.regions, old = keepListCol, new = c("region_code.IMPACT159", "region_code", "region_name"))
-  # dt.regions <- unique(temp[region_code.IMPACT159 %in% get(aggChoice), keepListCol, with = FALSE ])
+  return(dt.regions)
+}
 
+orderRegions <- function(DT,aggChoice) {
+  # order by regions
+  if (aggChoice == "WB") {
+    regionOrder <- c("lowInc","lowMidInc", "upMidInc","highInc")
+    DT[, regionOrder := match(region_code, regionOrder)]
+    data.table::setorder(DT, regionOrder)
+    DT[, regionOrder := NULL]
+  }
+  if (aggChoice == "156") {
+    # percap GDP data for ordering
+    dt.pcGDPX0 <- getNewestVersionIMPACT("dt.pcGDPX0")
+    dt.pcGDPX0 <- dt.pcGDPX0[scenario %in% eval(parse(text = (scenChoice)))[!eval(parse(text = (scenChoice))) %in% "X2010"],]
+    # dt.pcGDPX0 <- unique(dt.pcGDPX0[,c("IMPACT_code","FoodAvailability","PCX0","PWX0","CSE") :=  NULL])
+    dt.pcGDPX0 <- dt.pcGDPX0[year %in% c("X2010","X2050"), ]
+    #data.table::setkeyv(dt.GDP,c("region_code.IMPACT159"))
+    dt.pcGDPX0 <- dt.pcGDPX0[,growthRate :=  lapply(.SD, function(x)((x/shift(x))^(1/(2050 - 2010)) - 1) * 100),
+                             .SDcols = "pcGDPX0", by = c("scenario","region_code.IMPACT159")]
+    dt.pcGDPX0growth <- dt.pcGDPX0[year ==  "X2010" & scenario == scenario.base,][,c("scenario","pcGDPX0","year") :=  NULL]
+    dt.pcGDPX0.2010.ref <- dt.pcGDPX0[year ==  "X2010" & scenario == scenario.base,][,c("scenario","growthRate","year") :=  NULL]
+    data.table::setorder(DT, pcGDPX0) # for data tables ordered from low to high 2010 per cap GDP
+    DT <- merge(dt.GDP.2010.ref, DT, by = c("region_code.IMPACT159"))
+    data.table::setorder(DT, pcGDPX0)
+  }
+  if (aggChoice == "I3regions") {
+    DT <- DT[region_code %in% regionCodestenregions,]
+    # percap GDP data for ordering
+    data.table::setorder(DT, aggChoice)
+  }
+  return(DT)
+}
+
+aggNorder <- function(gdxChoice, DTglobal, aggChoice, scenChoice) {
+  DT <- getNewestVersion(DTglobal, fileloc("resultsDir"))
+  setkey(DT, NULL)
+  dt.regions <- regionAgg(aggChoice)
   # aggregate to and retain only the relevant regions
   temp <- merge(DT, dt.regions, by = "region_code.IMPACT159")
   merged <- merge(temp, dt.pop.2010.ref, by = "region_code.IMPACT159")
   # merged <- merged[region_code.IMPACT159 %in% region_code, ]
   # deal with the budget data
-  if ("incSharePWX0" %in% names(merged)) {
-    keepListCol <- c("scenario","year", "region_code.IMPACT159", "region_code", "region_name", "incSharePWX0", "PopX0")
-    merged <- merged[, (keepListCol), with = FALSE]
-    setnames(merged, old = "incSharePWX0", new = "value")
+  if ("incSharePCX0" %in% names(merged)) {
+    keepListCol.incShare <- c("scenario","year", "region_code.IMPACT159", "region_code", "region_name", "incSharePCX0", "PopX0")
+    keepListCol.pcGDP <- c("scenario","year", "region_code.IMPACT159", "region_code", "region_name", "pcGDPX0", "PopX0")
+    dt.incShare <- merged[, (keepListCol.incShare), with = FALSE]
+    dt.pcGDP <- merged[, (keepListCol.pcGDP), with = FALSE]
+    data.table::setnames(dt.incShare, old = "incSharePCX0", new = "value")
+    data.table::setnames(dt.pcGDP, old = "pcGDPX0", new = "value")
+    merged <- dt.incShare
+  }
+  # deal with the ShannonDiversity data
+  if ("SDnorm" %in% names(merged)) {
+    keepListCol.SD <- c("scenario","year", "region_code.IMPACT159", "region_code", "region_name", "SDnorm", "PopX0")
+    merged <- merged[, (keepListCol.SD), with = FALSE]
+    data.table::setnames(merged, old = "SDnorm", new = "value")
   }
 
   #  temp <- temp[, region.budget.share := mean(value), by = c("region_code", "year")]
@@ -115,35 +159,69 @@ aggNorder <- function(gdxChoice, DTglobal, aggChoice, scenChoice) {
     scenarioList.comp <- c("COMP", "COMP_NoCC", "COMP_IPSL")
     scenario.base <- "REF_HGEM"
 
-    # keep only needed scenarios
+    # keep only needed USAID scenarios
+    scenChoice <- c("2010", eval(parse(text = (scenChoice))))
     DT <- DT[scenario %in% scenChoice, ] # only needed for the USAID results
-
     # order scenarios, first write the number into the number variable scenarioOrder
-    DT[, scenarioOrder := which(scenario == scenChoice)]
-    # order by regions
-    #     data.table::setorder(temp, pcGDPX0) for data tables ordered from low to high 2010 per cap GDP
-    if (choice == "regionCodesWB") {
-      merged[region_code == "lowInc" ,newOrder := 1] [region_code == "lowMidInc" ,newOrder := 2][region_code == "upMidInc" ,newOrder := 3]
-      merged[region_code == "highInc" ,newOrder := 4]
-      dt.regionList[region_code == "lowInc" ,newOrder := 1] [region_code == "lowMidInc" ,newOrder := 2][region_code == "upMidInc" ,newOrder := 3]
-      dt.regionList[region_code == "highInc" ,newOrder := 4]
-      data.table::setorder(dt.regionList,newOrder)
-      dt.regionList[, newOrder := NULL]
-    }
-
-  } else {
-    # do manipulations on the gdx data that has 3 SSP scenarios and 3 climate change scenarios.
-    scenario.base <- "SSP2-NoCC-REF"
-    scenario.SSP1 <- "SSP1-NoCC-REF"
-    scenario.SSP3 <- "SSP3-NoCC-REF"
-    scenario.ClimModel.GFDL <- "SSP2-GFDL-REF"
-    scenario.ClimModel.IPSL <- "SSP2-IPSL-REF"
-    scenario.ClimModel.HGEM <- "SSP2-HGEM-REF"
-
-    # set up order of scenarios
-    DT[scenario == "SSP2-NoCC-REF" ,newOrder := 1] [scenario == "SSP1-NoCC-REF" ,newOrder := 2][scenario == "SSP3-NoCC-REF" ,newOrder := 3]
-    DT[scenario == "SSP2-GFDL-REF" ,newOrder := 4] [scenario == "SSP2-HGEM-REF" ,newOrder := 5][scenario == "SSP2-IPSL-REF" ,newOrder := 6]
+    DT[, scenarioOrder := match(scenario, scenChoice)]
+    data.table::setorder(DT, scenarioOrder)
+    DT[, scenarioOrder := NULL]
   }
+  if (gdxChoice == "SSPs") {
+    # do manipulations on the gdx data that has 3 SSP scenarios and 3 climate change scenarios.
+    scenChoice <- c("2010", "SSP2-NoCC-REF", "SSP1-NoCC-REF", "SSP3-NoCC-REF", "SSP2-GFDL-REF", "SSP2-IPSL-REF", "SSP2-HGEM-REF")
+    DT <- DT[scenario %in% scenChoice, ] # doesn't need eval-parse because the list is defined inside the function
+  }
+  # order by scenarios
+  DT[, scenarioOrder := match(scenario, scenChoice)]
+  data.table::setorder(DT, scenarioOrder)
+  DT[, scenarioOrder := NULL]
+
+  # order by regions
+  DT <- orderRegions(DT, aggChoice)
+  DT <- DT[, region_name := gsub(" plus", "", region_name)]
   return(DT)
+}
+
+plotByRegionBar <- function(dt, fileName, title, yLab, yRange,aggChoice) {
+  temp <- copy(dt)
+  regionCodes <- unique(temp$region_code)
+  regionNames <- unique(temp$region_name)
+  scenarios <- unique(temp$scenario)
+  colList <- c("black", "red", "red2", "red4", "green", "green2", "green4")
+  legendText <- unique(gsub("-REF", "", scenarios))
+  #  formula.wide <- "scenario ~ region_code"
+  #the use of factor and levels keeps the order of the regions in region_code
+  formula.wide <- "scenario ~ factor(region_code, levels=unique(region_code))"
+  temp.wide <- data.table::dcast(
+    data = temp,
+    formula = formula.wide,
+    value.var = "value")
+  temp.wide[, scenarioOrder := match(scenario, scenarios)]
+  data.table::setorder(temp.wide, scenarioOrder)
+  temp.wide[, scenarioOrder := NULL]
+  #temp.out <- data.table::copy(temp.wide)
+  data.table::setnames(temp.wide, old = regionCodes, new = regionNames)
+  temp.wide[, scenario := gsub("-REF", "", scenario)]
+  temp <- as.data.frame(temp.wide)
+  rownames(temp) <- temp[,1]
+  temp[1] = NULL
+  temp <- data.matrix(temp)
+  # print(temp.wide)
+  #  par(mai=c(2,0.82,0.82,0.42))
+  pdf(paste("graphics/", fileName, aggChoice, ".pdf", sep = "."))
+  #layout(matrix(c(1,2)), c(1,1), c(1,3))
+  #par(mfrow = c(2,1), mai = c(1,1,1,1))
+  mat = matrix(c(1,2))
+  layout(mat, heights = c(6,3))
+  barplot(temp,  col = colList, ylim = yRange,
+          legend.text = rownames(temp), args.legend = list(cex = .5, x = "topright"),
+          beside = TRUE, ylab = yLab,  cex.names = .7, las = 2,  main = title)
+  colsToRound <- names(temp.wide)[2:length(temp.wide)]
+  temp.wide[,(colsToRound) := round(.SD,2), .SDcols = colsToRound]
+  data.table::setnames(temp.wide, old = names(temp.wide), new = c("scenario", regionCodes))
+  textplot(temp.wide, cex = 0.7, valign = "top", show.rownames = FALSE, mai = c(.5, .5, .5, .5))
+  dev.off()
+  write.csv(temp.wide, file = paste("graphics/", fileName, aggChoice, "csv", sep = "."))
 }
 

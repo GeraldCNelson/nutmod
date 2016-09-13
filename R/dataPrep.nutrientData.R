@@ -34,12 +34,12 @@ foodGroupLU <- fileNameList("foodGroupLU")
 LUcolNames <- c("name", "IMPACT_code", "usda_code", "USDA_code_desc", "composite_code", "AUS_code", "comment",
                 "edible_share", "inedible_share", "IMPACT_conversion", "proximates", "water_g", "energy_kcal",
                 "protein_g", "fat_g", "carbohydrate_g", "totalfiber_g", "sugar_g", "minerals", "calcium_mg",
-                "iron_mg", "magnesium_mg", "phosphorus_mg", "potassium_g", "sodium_g", "zinc_mg", "vitamins", "vit_c_mg",
+                "iron_mg", "magnesium_mg", "phosphorus_mg", "potassium_g", "zinc_mg", "vitamins", "vit_c_mg",
                 "thiamin_mg", "riboflavin_mg", "niacin_mg", "vit_b6_mg", "folate_µg", "vit_b12_µg", "vit_a_rae_µg",
-                "vit_e_mg", "vit_d_μg", "vit_k_µg", "lipids", "ft_acds_tot_sat_g", "ft_acds_mono_unsat_g",
+                "vit_e_mg", "vit_d_µg", "vit_k_µg", "lipids", "ft_acds_tot_sat_g", "ft_acds_mono_unsat_g",
                 "ft_acds_plyunst_g", "cholesterol_mg", "other", "caffeine_mg", "ft_acds_tot_trans_g", "retentioncode_aus",
                 "RetentionDescription", "thiamin_mg_cr", "vit_b12_µg_cr", "riboflavin_mg_cr", "niacin_mg_cr", "vit_b6_mg_cr",
-                "calcium_mg_cr", "iron_mg_cr", "folate_µg_cr", "potassium_g_cr", "magnesium_mg_cr", "sodium_g_cr",
+                "calcium_mg_cr", "iron_mg_cr", "folate_µg_cr", "potassium_g_cr", "magnesium_mg_cr",
                 "phosphorus_mg_cr", "vit_a_rae_µg_cr", "vit_c_mg_cr", "vit_e_mg_cr", "zinc_mg_cr")
 nutrients.raw <- openxlsx::read.xlsx(nutrientLU, sheet = 1, rows = 3:68,  colNames = TRUE)
 

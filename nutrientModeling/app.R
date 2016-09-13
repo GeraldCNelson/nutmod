@@ -10,7 +10,7 @@ library(gdata) # to reorder the scenario names
 library(dplyr)
 source("global.R")
 library(shinythemes)
-options(repos = c(CRAN = "http://cran.rstudio.com"))
+options(repos = c(CRAN = "https://cran.rstudio.com"))
 
 # rsconnect::setAccountInfo(name = 'nutrientmodeling',
 #                           token = '3E8A9773C46C19C6EF42EE20C8C65BF0',
@@ -272,6 +272,7 @@ ui <- fluidPage(
 
 server <- function(input, output) {
   years <- c("X2010", "X2030", "X2050")
+#  years <- c("X2010", "X2050")
   yearsClean <- gsub("X", "", years)
   # dt.energyRatios <- getNewestVersion("dt.energy.ratios", fileloc("mData"))
   # keepYearList <- keyVariable("keepYearList")
@@ -409,9 +410,9 @@ server <- function(input, output) {
     scenarioName <- input$adequacyScenarioName
     countryCode <- countryCodeLookup(countryName, fileloc("mData"))
     temp <- dt.energy.ratios[region_code.IMPACT159 == countryCode & scenario == scenarioName,]
-    keepListCol <- c("region_code.IMPACT159", "nutrient", years)
+    keepListCol <- c("region_code.IMPACT159", "nutrient", "year")
     temp <- temp[,(keepListCol), with = FALSE]
-    setnames(temp, old = years, new = yearsClean)
+    temp <- temp[year %in% years,]
     nutnames <- cleanupNutrientNames(temp[1:4,nutrient])
     colors_in <- c( "yellow", "green", "blue","red" )
     barplot(as.matrix(temp[1:4,yearsClean, with = FALSE]), main = "Share of energy consumption",

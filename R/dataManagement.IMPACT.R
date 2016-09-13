@@ -41,8 +41,6 @@ createFood <- function(fileShortName) {
 
 #combine all relevant data tables for analysis
 combineIMPACTData <- function() {
-  # combineIMPACTData <- function(region, scenSSP, climModel, RCP) {
-  #  scen <- paste(scenSSP, "-", climModel, sep = "")
   keepYearList <- keyVariable("keepYearList")
   dt.FoodAvail <- getNewestVersionIMPACT("dt.FoodAvailability") # created in dataPrep.IMPACT
   dt.FoodAvail <- dt.FoodAvail[year %in% keepYearList, ]

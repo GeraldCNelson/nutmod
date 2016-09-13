@@ -27,6 +27,8 @@ if (!exists("getNewestVersion", mode = "function"))
 resultFileList <- character(0)
 
 reqList <- keyVariable("reqsList")
+reqsToDelete <- c( "req.EAR", "req.UL.vits", "req.UL.minrls", "req.AMDR.hi", "req.AMDR.lo")
+reqList <- reqList[!reqList %in% reqsToDelete]
 
 #get just nutrient list from req
 # temp <- gsub("req.", "", req)
@@ -54,24 +56,24 @@ f.ratios.all <- function(req){
   cols.foodGroup <- names(dt.food.agg)[grep(".foodGroup", names(dt.food.agg))]
   deleteListCol <- c(cols.staple, cols.foodGroup)
   dt.food.agg[, (deleteListCol) := NULL]
-  dt.food.agg[, RCP := "RCP8.5"]
-  scenarioComponents <- c("SSP", "climate_model", "experiment") # RCP added above
-  dt.food.agg[, (scenarioComponents) := data.table::tstrsplit(scenario, "-", fixed = TRUE)]
-  dt.food.agg[is.na(experiment), experiment := "REF"]
+  # dt.food.agg[, RCP := "RCP8.5"]
+  # scenarioComponents <- c("SSP", "climate_model", "experiment")
+  # dt.food.agg[, (scenarioComponents) := data.table::tstrsplit(scenario, "-", fixed = TRUE)]
+  # dt.food.agg[is.na(experiment), experiment := "REF"]
 
   dt.nutsReqPerCap <- getNewestVersion(paste(req,"percap",sep = "."))
 
   # get list of nutrients from dt.nutsReqPerCap for the req set of requirements
   nutList <- names( dt.nutsReqPerCap)[4:length(names(dt.nutsReqPerCap))]
-  basicKey <- c("scenario", scenarioComponents, "RCP", "region_code.IMPACT159", "year")
+  # basicKey <- c("scenario", scenarioComponents, "RCP", "region_code.IMPACT159", "year")
+  # basicKey <- c("scenario", scenarioComponents, "region_code.IMPACT159", "year")
+  basicKey <- c("scenario", "region_code.IMPACT159", "year")
   sumKey <-  c(basicKey, "IMPACT_code")
 
   # the total daily consumption of each nutrient
   nutList.sum.all <-    paste(nutList, "sum.all", sep = ".")
   # the ratio of daily consumption of each nutrient to the total consumption
   nutList.ratio.all <-   paste(nutList, "ratio.all", sep = ".")
-  # the ratio of daily consumption of each nutrient by the nutrient requirement
-  nutList.req.ratio.all <- paste(nutList, "req.ratio.all", sep = ".")
   # the ratio of daily consumption of each nutrient by the nutrient requirement
   nutList.req.ratio.all <- paste(nutList, "req.ratio.all", sep = ".")
 
@@ -93,10 +95,14 @@ f.ratios.all <- function(req){
 
   # calculate the ratio of nutrient consumption for all commodities to the requirement
   dt.sum.copy <- data.table::copy(dt.all.sum)
+  # scenarioComponents code needed because nutsReqPerCap are only available with scenario as SSPs
+  scenarioComponents <- c("SSP", "climate_model", "experiment")
+  dt.sum.copy[, (scenarioComponents) := data.table::tstrsplit(scenario, "-", fixed = TRUE)]
   dt.nuts.temp <- dt.nutsReqPerCap[scenario %in% unique(dt.sum.copy$SSP),]
   temp <- merge(dt.sum.copy,dt.nuts.temp, by.x = c("SSP", "region_code.IMPACT159", "year"),
                 by.y = c("scenario", "region_code.IMPACT159", "year"),
                 all.x = TRUE)
+  temp[,SSP := NULL]
   nutListSum <- as.vector(paste(nutList,".sum.all", sep = ""))
   nutListReqRatio <- as.vector(paste(nutList,"_reqRatio", sep = ""))
   nutListVector <- as.vector(nutList)
@@ -109,88 +115,96 @@ f.ratios.all <- function(req){
   dt.all.sum.long <- data.table::melt(
     dt.all.sum,  id.vars = basicKey,
     measure.vars = nutList.sum.all, variable.name = "nutrient",
-    value.name = "nut_share", variable.factor = FALSE)
+    #    value.name = "nut_share", variable.factor = FALSE)
+    value.name = "value", variable.factor = FALSE)
+  dt.all.sum.long[, nutrient := cleanupNutrientNames(nutrient)]
 
-  dt.sum.req.ratio.long <- data.table::melt(
+   dt.sum.req.ratio.long <- data.table::melt(
     dt.sum.req.ratio,
     id.vars = basicKey,
     #   measure.vars = nutListReqRatio, variable.name = "nutrientReq",
     measure.vars = nutListReqRatio, variable.name = "nutrient",
-    value.name = "req_share", variable.factor = FALSE)
+    #    value.name = "req_share", variable.factor = FALSE)
+    value.name = "value", variable.factor = FALSE)
+   dt.sum.req.ratio.long[, nutrient := cleanupNutrientNames(nutrient)]
 
   dt.all.ratio.long <- data.table::melt(
     dt.all.ratio, id.vars = sumKey,
     measure.vars = nutList.ratio.all,
     variable.name = "nutrient",
-    value.name = "nut_share", variable.factor = FALSE)
+    #    value.name = "nut_share", variable.factor = FALSE)
+    value.name = "value", variable.factor = FALSE)
+  dt.all.ratio.long[, nutrient := cleanupNutrientNames(nutrient)]
 
   dt.all.req.ratio.long <- data.table::melt(
     dt.all.req.ratio,
     id.vars =  sumKey,
     measure.vars = nutList.req.ratio.all,
     variable.name = "nutrient",
-    value.name = "nut_share",
-    variable.factor = FALSE)
+    #   value.name = "nut_share", variable.factor = FALSE)
+    value.name = "value", variable.factor = FALSE)
+  dt.all.req.ratio.long[, nutrient := cleanupNutrientNames(nutrient)]
 
-  formula.sum.all <- paste("scenario + SSP + climate_model + experiment + RCP + region_code.IMPACT159 + nutrient ~ year")
-
-  dt.all.sum.wide <- data.table::dcast(
-    data = dt.all.sum.long,
-    formula = formula.sum.all,
-    value.var = "nut_share",
-    variable.factor = FALSE)
-
+  # formula.sum.all <- paste("scenario + SSP + climate_model + experiment + RCP + region_code.IMPACT159 + nutrient ~ year")
+  #
+  # dt.all.sum.wide <- data.table::dcast(
+  #   data = dt.all.sum.long,
+  #   formula = formula.sum.all,
+  #   value.var = "nut_share",
+  #   variable.factor = FALSE)
+  #
   # formula.reqRatio <- paste("scenario + SSP + climate_model + experiment + RCP + region_code.IMPACT159 + nutrientReq ~ year")
-  formula.reqRatio <- paste("scenario + SSP + climate_model + experiment + RCP + region_code.IMPACT159 + nutrient ~ year")
-
-  dt.sum.req.ratio.wide <- data.table::dcast(
-    data = dt.sum.req.ratio.long,
-    formula = formula.reqRatio,
-    value.var = "req_share",
-    variable.factor = FALSE)
-
-  formula.all.ratio <- paste("scenario + SSP + climate_model + experiment + RCP + IMPACT_code + region_code.IMPACT159 + nutrient ~ year")
-
-  data.table::setkey(dt.all.ratio.long)
-  dt.all.ratio.wide <- data.table::dcast(
-    data = dt.all.ratio.long,
-    formula = formula.all.ratio,
-    value.var = "nut_share")
-
-  dt.all.req.ratio.wide <- data.table::dcast(
-    data = dt.all.req.ratio.long,
-    formula = formula.all.ratio,
-    value.var = "nut_share")
+  # formula.reqRatio <- paste("scenario + SSP + climate_model + experiment + RCP + region_code.IMPACT159 + nutrient ~ year")
+  #
+  # dt.sum.req.ratio.wide <- data.table::dcast(
+  #   data = dt.sum.req.ratio.long,
+  #   formula = formula.reqRatio,
+  #   value.var = "req_share",
+  #   variable.factor = FALSE)
+  #
+  # formula.all.ratio <- paste("scenario + SSP + climate_model + experiment + RCP + IMPACT_code + region_code.IMPACT159 + nutrient ~ year")
+  #
+  # data.table::setkey(dt.all.ratio.long)
+  # dt.all.ratio.wide <- data.table::dcast(
+  #   data = dt.all.ratio.long,
+  #   formula = formula.all.ratio,
+  #   value.var = "nut_share")
+  #
+  # dt.all.req.ratio.wide <- data.table::dcast(
+  #   data = dt.all.req.ratio.long,
+  #   formula = formula.all.ratio,
+  #   value.var = "nut_share")
 
   reqShortName <- gsub("req.", "", req)
   #reqShortName <- gsub(".percap", "", temp)
 
-  inDT <- dt.all.sum.wide
+  # inDT <- dt.all.sum.wide
+  inDT <- dt.all.sum.long
   outName <- paste(reqShortName, "all.sum", sep = ".")
   cleanup(inDT, outName, fileloc("resultsDir"), "csv")
 
-
-  inDT <- dt.sum.req.ratio.wide
+  #  inDT <- dt.sum.req.ratio.wide
+  inDT <- dt.sum.req.ratio.long
   outName <- paste(reqShortName, "sum.req.ratio", sep = ".")
   cleanup(inDT, outName, fileloc("resultsDir"), "csv")
 
-
-  inDT <- dt.all.ratio.wide
+  #  inDT <- dt.all.ratio.wide
+  inDT <- dt.all.ratio.long
   outName <- paste(reqShortName, "all.ratio", sep = ".")
   cleanup(inDT, outName, fileloc("resultsDir"), "csv")
 
-
-  inDT <- dt.all.req.ratio.wide
+  # inDT <- dt.all.req.ratio.wide
+  inDT <- dt.all.req.ratio.long
   outName <- paste(reqShortName, "all.req.ratio", sep = ".")
   cleanup(inDT, outName, fileloc("resultsDir"), "csv")
 
-
-  inDT <- data.table::as.data.table(colMax(dt.all.req.ratio.wide))
+  #  inDT <- data.table::as.data.table(colMax(dt.all.req.ratio.wide))
+  inDT <- data.table::as.data.table(colMax(dt.all.req.ratio.long))
   outName <- "all.req.ratio.cMax"
   cleanup(inDT, outName, fileloc("resultsDir"), "csv")
 
-
-  inDT <- data.table::as.data.table(colMin(dt.all.req.ratio.wide))
+  #  inDT <- data.table::as.data.table(colMin(dt.all.req.ratio.wide))
+  inDT <- data.table::as.data.table(colMin(dt.all.req.ratio.long))
   outName <- "all.req.ratio.cMin"
   cleanup(inDT, outName, fileloc("resultsDir"), "csv")
 
@@ -211,15 +225,16 @@ f.ratios.FG <- function(req) {
   dt.food.agg[, (deleteListCol) := NULL]
   dt.food.agg[, scenario := gsub("IRREXP-WUE2", "IRREXP_WUE2", scenario)]
   dt.food.agg[, scenario := gsub("PHL-DEV2", "PHL_DEV2", scenario)]
-  dt.food.agg[, RCP := "RCP8.5"]
-  scenarioComponents <- c("SSP", "climate_model", "experiment") # RCP added above
-  dt.food.agg[, (scenarioComponents) := data.table::tstrsplit(scenario, "-", fixed = TRUE)]
-  dt.food.agg[is.na(experiment), experiment := "REF"]
+  #  dt.food.agg[, RCP := "RCP8.5"]
+  # scenarioComponents <- c("SSP", "climate_model", "experiment")
+  # dt.food.agg[, (scenarioComponents) := data.table::tstrsplit(scenario, "-", fixed = TRUE)]
+  # dt.food.agg[is.na(experiment), experiment := "REF"]
   dt.nutsReqPerCap <- getNewestVersion(paste(req,"percap",sep = "."))
 
   # get list of nutrients from dt.nutsReqPerCap for the req set of requirements
   nutList <- names( dt.nutsReqPerCap)[4:length(names(dt.nutsReqPerCap))]
-  basicKey <- c("scenario", scenarioComponents, "RCP", "region_code.IMPACT159", "year")
+  #  basicKey <- c("scenario", scenarioComponents, "RCP", "region_code.IMPACT159", "year")
+  basicKey <- c("scenario", "region_code.IMPACT159", "year")
   foodGroupKey <- c(basicKey, "food_group_code")
   # nutList.sum.foodGroup <-    paste(nutList, "sum.foodGroup", sep = ".")
   nutList.ratio.foodGroup <-   paste(nutList, "ratio.foodGroup", sep = ".")
@@ -248,7 +263,8 @@ f.ratios.FG <- function(req) {
     id.vars = foodGroupKey,
     measure.vars = nutList.ratio.foodGroup,
     variable.name = "nutrient",
-    value.name = "nut_share",
+    #   value.name = "nut_share",
+    value.name = "value",
     variable.factor = FALSE
   )
   dt.foodGroup.req.ratio.long <- data.table::melt(
@@ -256,40 +272,45 @@ f.ratios.FG <- function(req) {
     id.vars = foodGroupKey,
     measure.vars = nutList.req.ratio.foodGroup,
     variable.name = "nutrient",
-    value.name = "nut_share",
+    #  value.name = "nut_share",
+    value.name = "value",
     variable.factor = FALSE
   )
 
-  formula.foodGroup <- paste("scenario + SSP + climate_model + experiment + RCP + region_code.IMPACT159 + nutrient+ food_group_code ~ year")
-
-  dt.foodGroup.ratio.wide <- data.table::dcast(
-    data = dt.foodGroup.ratio.long,
-    formula = formula.foodGroup,
-    value.var = "nut_share",
-    variable.factor = FALSE
-  )
-  dt.foodGroup.req.ratio.wide <- data.table::dcast(
-    data = dt.foodGroup.req.ratio.long,
-    formula = formula.foodGroup,
-    value.var = "nut_share",
-    variable.factor = FALSE
-  )
+  # formula.foodGroup <- paste("scenario + SSP + climate_model + experiment + RCP + region_code.IMPACT159 + nutrient+ food_group_code ~ year")
+  #
+  # dt.foodGroup.ratio.wide <- data.table::dcast(
+  #   data = dt.foodGroup.ratio.long,
+  #   formula = formula.foodGroup,
+  #   value.var = "nut_share",
+  #   variable.factor = FALSE
+  # )
+  # dt.foodGroup.req.ratio.wide <- data.table::dcast(
+  #   data = dt.foodGroup.req.ratio.long,
+  #   formula = formula.foodGroup,
+  #   value.var = "nut_share",
+  #   variable.factor = FALSE
+  # )
   reqShortName <- gsub("req.", "", req)
   #reqShortName <- gsub(".percap", "", temp)
 
-  inDT <- dt.foodGroup.ratio.wide
+  # inDT <- dt.foodGroup.ratio.wide
+  inDT <- dt.foodGroup.ratio.long
   outName <- paste(reqShortName, "FG.ratio", sep = ".")
   cleanup(inDT, outName, fileloc("resultsDir"), "csv")
 
-  inDT <- dt.foodGroup.req.ratio.wide
+  #  inDT <- dt.foodGroup.req.ratio.wide
+  inDT <- dt.foodGroup.req.ratio.long
   outName <- paste(reqShortName, "FG.req.ratio", sep = ".")
   cleanup(inDT, outName, fileloc("resultsDir"), "csv")
 
-  inDT <- data.table::as.data.table(colMax(dt.foodGroup.req.ratio.wide))
+  #  inDT <- data.table::as.data.table(colMax(dt.foodGroup.req.ratio.wide))
+  inDT <- data.table::as.data.table(colMax(dt.foodGroup.req.ratio.long))
   outName <- "FG.req.ratio.cMax"
   cleanup(inDT, outName, fileloc("resultsDir"), "csv")
 
-  inDT <- data.table::as.data.table(colMin(dt.foodGroup.req.ratio.wide))
+  #  inDT <- data.table::as.data.table(colMin(dt.foodGroup.req.ratio.wide))
+  inDT <- data.table::as.data.table(colMin(dt.foodGroup.req.ratio.long))
   outName <- "FG.req.ratio.cMin"
   cleanup(inDT, outName, fileloc("resultsDir"), "csv")
 }
@@ -308,21 +329,25 @@ f.ratios.staples <- function(req) {
   dt.food.agg[, (deleteListCol) := NULL]
   dt.food.agg[, scenario := gsub("IRREXP-WUE2", "IRREXP_WUE2", scenario)]
   dt.food.agg[, scenario := gsub("PHL-DEV2", "PHL_DEV2", scenario)]
-  dt.food.agg[, RCP := "RCP8.5"]
-  scenarioComponents <- c("SSP", "climate_model", "experiment") # RCP added above
-  dt.food.agg[, (scenarioComponents) := data.table::tstrsplit(scenario, "-", fixed = TRUE)]
-  dt.food.agg[is.na(experiment), experiment := "REF"]
+  #  dt.food.agg[, RCP := "RCP8.5"]
+  # scenarioComponents <- c("SSP", "climate_model", "experiment")
+  # dt.food.agg[, (scenarioComponents) := data.table::tstrsplit(scenario, "-", fixed = TRUE)]
+  # dt.food.agg[is.na(experiment), experiment := "REF"]
   dt.nutsReqPerCap <- getNewestVersion(paste(req,"percap",sep = "."))
 
   # get list of nutrients from dt.nutsReqPerCap for the req set of requirements
   nutList <- names( dt.nutsReqPerCap)[4:length(names(dt.nutsReqPerCap))]
-  basicKey <- c("scenario", scenarioComponents, "RCP", "region_code.IMPACT159", "year")
+  #  basicKey <- c("scenario", scenarioComponents, "RCP", "region_code.IMPACT159", "year")
+  basicKey <- c("scenario", "region_code.IMPACT159", "year")
   stapleKey <- c(basicKey, "staple_code")
   # the total daily consumption of each staple
-  nutList.sum.staple <-    paste(nutList, "sum.staple", sep = ".")
+ # nutList.sum.staple <-    paste(nutList, "sum.staple", sep = ".")
+  nutList.sum.staple <-    paste(nutList, sep = ".")
   # the ratio of daily consumption of each nutrient for each staple to the total consumption
-  nutList.ratio.staple <-   paste(nutList, "ratio.staple", sep = ".")
-  nutList.req.ratio.staple <- paste(nutList, "req.ratio.staple", sep = ".")
+ # nutList.ratio.staple <-   paste(nutList, "ratio.staple", sep = ".")
+  nutList.ratio.staple <-   paste(nutList, sep = ".")
+ # nutList.req.ratio.staple <- paste(nutList, "req.ratio.staple", sep = ".")
+  nutList.req.ratio.staple <- paste(nutList, sep = ".")
   keepListCol.sum.staple <-    c(stapleKey, nutList.sum.staple)
   keepListCol.ratio.staple <-   c(stapleKey, nutList.ratio.staple)
   keepListCol.req.ratio.staple <- c(stapleKey, nutList.req.ratio.staple)
@@ -342,7 +367,8 @@ f.ratios.staples <- function(req) {
     id.vars = stapleKey,
     measure.vars = nutList.sum.staple,
     variable.name = "nutrient",
-    value.name = "nut_share",
+    #   value.name = "nut_share",
+    value.name = "value",
     variable.factor = FALSE
   )
   dt.staples.ratio.long <- data.table::melt(
@@ -350,7 +376,8 @@ f.ratios.staples <- function(req) {
     id.vars = stapleKey,
     measure.vars = nutList.ratio.staple,
     variable.name = "nutrient",
-    value.name = "nut_share",
+    #   value.name = "nut_share",
+    value.name = "value",
     variable.factor = FALSE
   )
   dt.staples.req.ratio.long <- data.table::melt(
@@ -358,50 +385,56 @@ f.ratios.staples <- function(req) {
     id.vars = stapleKey,
     measure.vars = nutList.req.ratio.staple,
     variable.name = "nutrient",
-    value.name = "nut_share",
+    #  value.name = "nut_share",
+    value.name = "value",
     variable.factor = FALSE
   )
 
-  formula.staple <- paste("scenario + SSP + climate_model + experiment + RCP + region_code.IMPACT159 + nutrient+ staple_code ~ year")
-
-  dt.staples.sum.wide <- data.table::dcast(
-    data = dt.staples.sum.long,
-    formula = formula.staple,
-    value.var = "nut_share",
-    variable.factor = FALSE
-  )
-  dt.staples.ratio.wide <- data.table::dcast(
-    data = dt.staples.ratio.long,
-    formula = formula.staple,
-    value.var = "nut_share",
-    variable.factor = FALSE
-  )
-  dt.staples.req.ratio.wide <- data.table::dcast(
-    data = dt.staples.req.ratio.long,
-    formula = formula.staple,
-    value.var = "nut_share",
-    variable.factor = FALSE
-  )
+  # formula.staple <- paste("scenario + SSP + climate_model + experiment + RCP + region_code.IMPACT159 + nutrient+ staple_code ~ year")
+  #
+  # dt.staples.sum.wide <- data.table::dcast(
+  #   data = dt.staples.sum.long,
+  #   formula = formula.staple,
+  #   value.var = "nut_share",
+  #   variable.factor = FALSE
+  # )
+  # dt.staples.ratio.wide <- data.table::dcast(
+  #   data = dt.staples.ratio.long,
+  #   formula = formula.staple,
+  #   value.var = "nut_share",
+  #   variable.factor = FALSE
+  # )
+  # dt.staples.req.ratio.wide <- data.table::dcast(
+  #   data = dt.staples.req.ratio.long,
+  #   formula = formula.staple,
+  #   value.var = "nut_share",
+  #   variable.factor = FALSE
+  # )
   reqShortName <- gsub("req.", "", req)
   #reqShortName <- gsub(".percap", "", temp)
 
-  inDT <- dt.staples.sum.wide
+  #  inDT <- dt.staples.sum.wide
+  inDT <- dt.staples.sum.long
   outName <- paste(reqShortName, "staples.sum", sep = ".")
   cleanup(inDT, outName, fileloc("resultsDir"), "csv")
 
-  inDT <- dt.staples.ratio.wide
+  #  inDT <- dt.staples.ratio.wide
+  inDT <- dt.staples.ratio.long
   outName <- paste(reqShortName, "staples.ratio", sep = ".")
   cleanup(inDT, outName, fileloc("resultsDir"), "csv")
 
-  inDT <- dt.staples.req.ratio.wide
+  #  inDT <- dt.staples.req.ratio.wide
+  inDT <- dt.staples.req.ratio.long
   outName <- paste(reqShortName, "staples.req.ratio", sep = ".")
   cleanup(inDT, outName, fileloc("resultsDir"), "csv")
 
-  inDT <- data.table::as.data.table(colMax(dt.staples.req.ratio.wide))
+  #  inDT <- data.table::as.data.table(colMax(dt.staples.req.ratio.wide))
+  inDT <- data.table::as.data.table(colMax(dt.staples.req.ratio.long))
   outName <- "staples.req.ratio.cMax"
   cleanup(inDT, outName, fileloc("resultsDir"), "csv")
 
-  inDT <- data.table::as.data.table(colMin(dt.staples.req.ratio.wide))
+  #  inDT <- data.table::as.data.table(colMin(dt.staples.req.ratio.wide))
+  inDT <- data.table::as.data.table(colMin(dt.staples.req.ratio.long))
   outName <- "staples.req.ratio.cMin"
   cleanup(inDT, outName, fileloc("resultsDir"), "csv")
 }
@@ -413,15 +446,15 @@ for (i in reqList) {
   f.ratios.FG(i)
 }
 
-print("working on kcals")
+print("------ working on kcals")
 # # fats, etc share of total kcals ------
 # # source of conversion http://www.convertunits.com/from/joules/to/calorie+[thermochemical]
 # # fat 37kJ/g - 8.8432122371 kCal
- fatKcals <- 8.8432122371
+fatKcals <- 8.8432122371
 # # protein 17kJ/g - 4.0630975143 kCal
- proteinKcals <- 4.0630975143
+proteinKcals <- 4.0630975143
 # # carbs 16kJ/g) - 3.8240917782
- carbsKcals <- 3.8240917782
+carbsKcals <- 3.8240917782
 # # 1 kJ = 0.23900573614 thermochemical /food calorie (kCal)
 # # 1 Kcal = 4.184 kJ
 # # alcoholic beverages need to have ethanol energy content included
@@ -441,92 +474,113 @@ dt.alc <- dt.alc[,keepListCol, with = FALSE]
 # dt.alc[, scenario := gsub("IRREXP-WUE2", "IRREXP_WUE2", scenario)]
 # dt.alc[, scenario := gsub("PHL-DEV2", "PHL_DEV2", scenario)]
 #dt.alc[, RCP := "RCP8.5"]
-scenarioComponents <- c("SSP", "climate_model", "experiment")
-dt.alc[, (scenarioComponents) := data.table::tstrsplit(scenario, "-", fixed = TRUE)]
-dt.alc[is.na(experiment), experiment := "REF"]
- ethanolKcals <- 6.9
- ethanol.beer <- .04
- ethanol.wine <- .12
- ethanol.spirits <- .47
+# scenarioComponents <- c("SSP", "climate_model", "experiment")
+# dt.alc[, (scenarioComponents) := data.table::tstrsplit(scenario, "-", fixed = TRUE)]
+# dt.alc[is.na(experiment), experiment := "REF"]
+ethanolKcals <- 6.9
+ethanol.beer <- .04
+ethanol.wine <- .12
+ethanol.spirits <- .47
 formula.wide <- paste("scenario + region_code.IMPACT159 + year ~ IMPACT_code")
 dt.alc.wide <- data.table::dcast(data = dt.alc,
                                  formula = formula.wide,
                                  value.var = "FoodAvailability")
-dt.alc.wide[, ethanol_kcal := c_beer * ethanolKcals * ethanol.beer +
-                              c_wine * ethanolKcals * ethanol.wine +
-                           c_spirits * ethanolKcals * ethanol.spirits]
+dt.alc.wide[, kcal := c_beer * ethanolKcals * ethanol.beer +
+              c_wine * ethanolKcals * ethanol.wine +
+              c_spirits * ethanolKcals * ethanol.spirits]
 deleteListCol <- c("c_beer","c_spirits","c_wine")
 dt.alc.wide[, (deleteListCol) := NULL]
 
 # now get the nutrient values
 # dt.nutrients <- getNewestVersion("dt.nutrients")
-dt.nutSum <- getNewestVersion("dt.nutrients.sum", fileloc("resultsDir"))
+dt.nutSum <- getNewestVersion("dt.nutrients.sum.all", fileloc("resultsDir"))
 #dt.nutSum[, RCP := "RCP8.5"]
-scenarioComponents <- c("SSP", "climate_model", "experiment")
-dt.nutSum[, (scenarioComponents) := data.table::tstrsplit(scenario, "-", fixed = TRUE)]
-dt.nutSum[is.na(experiment), experiment := "REF"]
+# scenarioComponents <- c("SSP", "climate_model", "experiment")
+# dt.nutSum[, (scenarioComponents) := data.table::tstrsplit(scenario, "-", fixed = TRUE)]
+# dt.nutSum[is.na(experiment), experiment := "REF"]
 
-basicInfo <- c("scenario",  "SSP", "climate_model", "experiment", "region_code.IMPACT159", "year")
+#basicInfo <- c("scenario",  "SSP", "climate_model", "experiment", "region_code.IMPACT159", "year")
+basicInfo <- c("scenario", "region_code.IMPACT159", "year")
 macro <- c("energy_kcal", "protein_g", "carbohydrate_g", "totalfiber_g", "sugar_g", "fat_g" )
-minrls <- c("calcium_mg", "iron_mg", "magnesium_mg", "phosphorus_mg", "potassium_g", "sodium_g", "zinc_mg")
-vits <- c("niacin_mg", "riboflavin_mg", "folate_µg", "thiamin_mg",
-          "vit_a_rae_µg", "vit_b12_µg", "vit_b6_mg", "vit_c_mg",
-          "vit_d_μg", "vit_e_mg", "vit_k_µg")
-ftyAcids <-  c("ft_acds_tot_sat_g", "ft_acds_mono_unsat_g", "ft_acds_plyunst_g",
-               "cholesterol_mg", "ft_acds_tot_trans_g" )
+minrls <- c("calcium", "iron", "magnesium", "phosphorus", "potassium", "zinc")
+vits <- c("niacin", "riboflavin", "folate", "thiamin",
+          "vit_a_rae", "vit_b12", "vit_b6", "vit_c",
+          "vit_d", "vit_e", "vit_k")
+ftyAcids <-  c("ft_acds_tot_sat", "ft_acds_mono_unsat", "ft_acds_plyunst",
+               "cholesterol", "ft_acds_tot_trans" )
 kcals <- c("kcals.fat", "kcals.protein", "kcals.sugar", "kcals.ethanol")
-othr <- c("caffeine_mg")
+othr <- c("caffeine")
 nutListShort <- c(macro, minrls, vits, ftyAcids, othr)
-nutList <- paste(nutListShort,".sum.all", sep = "")
-data.table::setnames(dt.nutSum, old = nutList, new = nutListShort)
-data.table::setcolorder(dt.nutSum, c(basicInfo,nutListShort))
-keepListCol <- c(basicInfo, macro)
-dt.nutSum <- dt.nutSum[,keepListCol, with = FALSE]
+#nutList.macro <- paste(macro,".sum.all", sep = "")
+#data.table::setnames(dt.nutSum, old = nutList, new = nutListShort)
+#data.table::setcolorder(dt.nutSum, c(basicInfo,nutListShort))
+# keepListCol <- c(basicInfo, macro)
+#dt.nutSum <- dt.nutSum[nutrient %in% cleanupNutrientNames(macro),]
 
-macroKcals <- c("energy", "protein_g", "carbohydrate_g", "sugar_g", "fat_g", "ethanol")
-nutList.kcals <- paste(macroKcals,"_kcal", sep = "")
-nutList.ratio <- paste(macroKcals,"_share", sep = "")
+nutList.kcals <- c("energykcal", "protein", "carbohydrate", "sugar", "fat", "ethanol")
+#nutList.kcals <- paste(macroKcals,".sum.all", sep = "")
+nutList.ratio <- paste(macro,"_share", sep = "")
 
 # calc kcals from macro nutrients -----
-dt.nutSum[, protein_g_kcal := protein_g * proteinKcals][, fat_g_kcal := fat_g * fatKcals][, sugar_g_kcal := sugar_g * carbsKcals][, carbohydrate_g_kcal := carbohydrate_g * carbsKcals]
-deleteListCol <- c("protein_g", "carbohydrate_g", "totalfiber_g", "sugar_g", "fat_g" )
-dt.nutSum[, (deleteListCol) := NULL]
+# dt.nutSum[, protein_g_kcal := protein_g * proteinKcals][, fat_g_kcal := fat_g * fatKcals][, sugar_g_kcal := sugar_g * carbsKcals][, carbohydrate_g_kcal := carbohydrate_g * carbsKcals]
+# deleteListCol <- c("protein_g", "carbohydrate_g", "totalfiber_g", "sugar_g", "fat_g" )
+# dt.nutSum[, (deleteListCol) := NULL]
+dt.nutSum[nutrient == "carbohydrate", kcal := value * carbsKcals]
+dt.nutSum[nutrient == "protein", kcal := value * proteinKcals]
+dt.nutSum[nutrient == "fat", kcal := value * fatKcals]
+dt.nutSum[nutrient == "sugar", kcal := value * carbsKcals]
+dt.nutSum[nutrient == "energykcal", kcal := value]
 
 # add alcohol kcals
-dt.nutSum <- merge(dt.nutSum, dt.alc.wide, by = c("scenario", "region_code.IMPACT159", "year"))
-# Note. sum.kcals differs from energy_kcal because alcohol is not included in carbohydrates. Maybe other reasons too
-dt.nutSum[, sum_kcals := protein_g_kcal + fat_g_kcal + carbohydrate_g_kcal + ethanol_kcal]
-dt.nutSum[, diff.kcals := energy_kcal - sum_kcals]
-dt.nutSum[, (nutList.ratio) := lapply(.SD, "/", energy_kcal), .SDcols = (nutList.kcals)]
-keepListCol <- c(basicInfo, nutList.ratio)
-dt.nutSum <- dt.nutSum[, keepListCol, with = FALSE]
+#data.table::setnames(dt.alc.wide, old = "ethanol_kcal", new = "kcal")
+dt.alc.wide[, nutrient := 'ethanol']
+dt.nutSum <- rbind(dt.nutSum, dt.alc.wide, fill = TRUE)
+dt.nutSum[, value := NULL]
+dt.nutSum <- dt.nutSum[!nutrient == "totalfiber",]
+data.table::setorder(dt.nutSum, scenario, region_code.IMPACT159, year)
+formula.nut <- paste("scenario + region_code.IMPACT159 + year ~ nutrient")
 
-scenarioComponents <- c("SSP", "climate_model", "experiment")
-basicKey <- c("scenario", scenarioComponents, "region_code.IMPACT159", "year")
+dt.nutSum.wide <- data.table::dcast(
+  data = dt.nutSum,
+  formula = formula.nut,
+  value.var = "kcal",
+  variable.factor = FALSE)
+
+#dt.nutSum <- merge(dt.nutSum, dt.alc.wide, by = c("scenario", "region_code.IMPACT159", "year"))
+# Note. sum.kcals differs from energy_kcal because alcohol is not included in carbohydrates. Maybe other reasons too
+dt.nutSum.wide[, sum_kcals := protein + fat + carbohydrate + ethanol]
+dt.nutSum.wide[, diff_kcals := energykcal - sum_kcals]
+dt.nutSum.wide[, (nutList.ratio) := lapply(.SD, "/", energykcal), .SDcols = (nutList.kcals)]
+keepListCol <- c(basicInfo, nutList.ratio)
+dt.nutSum.wide <- dt.nutSum.wide[, keepListCol, with = FALSE]
+
+#scenarioComponents <- c("SSP", "climate_model", "experiment")
+#basicKey <- c("scenario", scenarioComponents, "region_code.IMPACT159", "year")
+basicKey <- c("scenario",  "region_code.IMPACT159", "year")
 
 dt.nutSum.long <- data.table::melt(
-  dt.nutSum, id.vars = basicKey,
+  dt.nutSum.wide, id.vars = basicKey,
   measure.vars = nutList.ratio,
   #  variable.name = "nutrientReq",
   variable.name = "nutrient",
-  value.name = "nut_ratio",
+  #  value.name = "nut_ratio",
+  value.name = "value",
   variable.factor = FALSE)
 
-#formula.sum.all <- paste("scenario + SSP + climate_model + experiment + RCP + region_code.IMPACT159 + nutrientReq ~ year")
-formula.sum.all <- paste("scenario + SSP + climate_model + experiment + region_code.IMPACT159 + nutrient ~ year")
+# formula.sum.all <- paste("scenario + SSP + climate_model + experiment + RCP + region_code.IMPACT159 + nutrientReq ~ year")
+# formula.sum.all <- paste("scenario + SSP + climate_model + experiment + region_code.IMPACT159 + nutrient ~ year")
+#
+# dt.nutSum.wide <- data.table::dcast(
+#   data = dt.nutSum.long,
+#   formula = formula.sum.all,
+#   value.var = "nut_ratio",
+#   variable.factor = FALSE)
 
-dt.nutSum.wide <- data.table::dcast(
-  data = dt.nutSum.long,
-  formula = formula.sum.all,
-  value.var = "nut_ratio",
-  variable.factor = FALSE)
-
-inDT <- dt.nutSum.wide
+#inDT <- dt.nutSum.wide
+inDT <- dt.nutSum.long
+inDT[, nutrient := cleanupNutrientNames(nutrient)]
 outName <- "dt.energy.ratios"
 cleanup(inDT, outName, fileloc("resultsDir"), "csv")
-
-# staple energy shares -----
-dt.staple.shares <- dt.nutSum.wide[]
 
 # Shannon diversity ratio -----
 #SD = - sum(s_i * ln(s_i)

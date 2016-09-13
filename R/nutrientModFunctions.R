@@ -272,6 +272,7 @@ cleanupNutrientNames <- function(nutList) {
   nutList <- gsub(".ratio.foodGroup","",nutList)
   nutList <- gsub("_","",nutList)
   nutList <- gsub("share","",nutList)
+  nutList <- gsub(".sum.all","",nutList)
   return(nutList)
 }
 
@@ -521,7 +522,7 @@ fileNameList <- function(variableName) {
   IMPACTfoodFileName <- "dt.IMPACTfood"
   IMPACTfoodFileInfo <-  paste(mData,"/IMPACTData/",IMPACTfoodFileName,sep = "")
   # nutrient data ------
-  nutrientFileName <- "USDA GFS IMPACT V22.xlsx"
+  nutrientFileName <- "USDA GFS IMPACT V23.xlsx"
   nutrientLU       <- paste(nutrientDataDetails, nutrientFileName, sep = "/")
   foodGroupLUFileName <-
     "food commodity to food group table V4.xlsx"
@@ -728,19 +729,19 @@ nutReqDataPrep <- function(reqTypeChoice, countryCode, scenarioName, years, dir)
   #print(fileName)
   if (length(fileName) == "0") print(paste(reqTypeChoice, "is not a valid choice", sep = " "))
   #  reqRatios <- getNewestVersion(fileName, dir)
-  reqRatios <- getNewestVersion(reqTypeChoice, dir)
+  reqRatios.long <- getNewestVersion(reqTypeChoice, dir)
   #  print(head(reqRatios))
-  keepListCol <- c("scenario", "SSP", "climate_model", "experiment", "RCP", "region_code.IMPACT159",
-                   "nutrient",  years)
-  idVars <- c("scenario", "SSP", "climate_model", "experiment", "region_code.IMPACT159", "nutrient")
-
-  reqRatios <- reqRatios[, keepListCol, with = FALSE]
-  description <- resultFileLookup[reqTypeName == reqTypeChoice, description]
-
-  measureVars <- years
-  reqRatios.long <- data.table::melt(
-    data = reqRatios, id.vars = idVars, measure.vars = measureVars, variable.name = "year",
-    value.name = "value", variable.factor = FALSE)
+  # keepListCol <- c("scenario", "SSP", "climate_model", "experiment", "RCP", "region_code.IMPACT159",
+  #                  "nutrient",  "year", "value")
+  # idVars <- c("scenario", "SSP", "climate_model", "experiment", "region_code.IMPACT159", "nutrient")
+  #
+  # reqRatios <- reqRatios[, keepListCol, with = FALSE]
+  # description <- resultFileLookup[reqTypeName == reqTypeChoice, description]
+  #
+  # measureVars <- years
+  # reqRatios.long <- data.table::melt(
+  #   data = reqRatios, id.vars = idVars, measure.vars = measureVars, variable.name = "year",
+  #   value.name = "value", variable.factor = FALSE)
 
   formula.ratios <- paste("scenario + SSP + climate_model + experiment + region_code.IMPACT159 + year ~ nutrient")
   reqRatios.wide <- data.table::dcast(
@@ -843,18 +844,21 @@ nutshareSpiderGraph <- function(reqFileName, countryCode, scenario, years, dir) 
 
   #  fileName <- resultFileLookup[reqType == reqTypeName, fileName]
   shareRatios <- getNewestVersion(reqFileName, dir)
-  keepListCol <- c("scenario", "SSP", "climate_model", "experiment", "RCP", "region_code.IMPACT159",
+ # keepListCol <- c("scenario", "SSP", "climate_model", "experiment", "RCP", "region_code.IMPACT159",
+                   keepListCol <- c("scenario", "SSP", "climate_model", "experiment", "region_code.IMPACT159",
                    "nutrient", years)
   idVars <- c("scenario", "SSP", "climate_model", "experiment", "region_code.IMPACT159", "nutrient")
 
   if ("food_group_code" %in% names(shareRatios)) {
-    keepListCol <- c("scenario", "SSP", "climate_model", "experiment", "RCP", "region_code.IMPACT159",
+#    keepListCol <- c("scenario", "SSP", "climate_model", "experiment", "RCP", "region_code.IMPACT159",
+                     keepListCol <- c("scenario", "SSP", "climate_model", "experiment", "region_code.IMPACT159",
                      "food_group_code", "nutrient", years)
     idVars <- c("scenario", "SSP", "climate_model", "experiment", "region_code.IMPACT159", "nutrient", "food_group_code")
     formula.ratios <- paste("scenario + SSP + climate_model + experiment + region_code.IMPACT159 + nutrient + year ~ food_group_code")
   }
   if ("staple_code" %in% names(shareRatios)) {
-    keepListCol <- c("scenario", "SSP", "climate_model", "experiment", "RCP", "region_code.IMPACT159",
+ #   keepListCol <- c("scenario", "SSP", "climate_model", "experiment", "RCP", "region_code.IMPACT159",
+                     keepListCol <- c("scenario", "SSP", "climate_model", "experiment", "region_code.IMPACT159",
                      "staple_code", "nutrient", years)
     idVars <- c("scenario", "SSP", "climate_model", "experiment", "region_code.IMPACT159", "nutrient", "staple_code")
     formula.ratios <- paste("scenario + SSP + climate_model + experiment + region_code.IMPACT159 + nutrient + year ~ staple_code")
