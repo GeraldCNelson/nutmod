@@ -44,7 +44,7 @@ reqList <- reqList[!reqList %in% reqsToDelete]
 # nutList <- names( dt.nutsReqPerCap)[4:length(names( dt.nutsReqPerCap))]
 
 # individual food function
-req <- "req.EAR" # - for testing purposes
+req <- "req.RDA.vits" # - for testing purposes
 f.ratios.all <- function(req){
   print(paste("------ working on all for ", req))
   reqShortName <- gsub("req.", "", req)
@@ -117,16 +117,14 @@ f.ratios.all <- function(req){
     measure.vars = nutList.sum.all, variable.name = "nutrient",
     #    value.name = "nut_share", variable.factor = FALSE)
     value.name = "value", variable.factor = FALSE)
-  dt.all.sum.long[, nutrient := cleanupNutrientNames(nutrient)]
+  dt.all.sum.long[, nutrient := gsub(".sum.all", "",nutrient)]
 
    dt.sum.req.ratio.long <- data.table::melt(
     dt.sum.req.ratio,
     id.vars = basicKey,
-    #   measure.vars = nutListReqRatio, variable.name = "nutrientReq",
     measure.vars = nutListReqRatio, variable.name = "nutrient",
-    #    value.name = "req_share", variable.factor = FALSE)
     value.name = "value", variable.factor = FALSE)
-   dt.sum.req.ratio.long[, nutrient := cleanupNutrientNames(nutrient)]
+   dt.all.sum.long[, nutrient := gsub("_reqRatio", "",nutrient)]
 
   dt.all.ratio.long <- data.table::melt(
     dt.all.ratio, id.vars = sumKey,
@@ -134,7 +132,7 @@ f.ratios.all <- function(req){
     variable.name = "nutrient",
     #    value.name = "nut_share", variable.factor = FALSE)
     value.name = "value", variable.factor = FALSE)
-  dt.all.ratio.long[, nutrient := cleanupNutrientNames(nutrient)]
+  dt.all.sum.long[, nutrient := gsub(".ratio.all", "",nutrient)]
 
   dt.all.req.ratio.long <- data.table::melt(
     dt.all.req.ratio,
@@ -143,7 +141,7 @@ f.ratios.all <- function(req){
     variable.name = "nutrient",
     #   value.name = "nut_share", variable.factor = FALSE)
     value.name = "value", variable.factor = FALSE)
-  dt.all.req.ratio.long[, nutrient := cleanupNutrientNames(nutrient)]
+  dt.all.sum.long[, nutrient := gsub(".req.ratio.all", "",nutrient)]
 
   # formula.sum.all <- paste("scenario + SSP + climate_model + experiment + RCP + region_code.IMPACT159 + nutrient ~ year")
   #
@@ -177,7 +175,7 @@ f.ratios.all <- function(req){
 
   reqShortName <- gsub("req.", "", req)
   #reqShortName <- gsub(".percap", "", temp)
-
+#XXX
   # inDT <- dt.all.sum.wide
   inDT <- dt.all.sum.long
   outName <- paste(reqShortName, "all.sum", sep = ".")
@@ -185,6 +183,7 @@ f.ratios.all <- function(req){
 
   #  inDT <- dt.sum.req.ratio.wide
   inDT <- dt.sum.req.ratio.long
+  inDT[, nutrient := gsub("_reqRatio", "", nutrient)]
   outName <- paste(reqShortName, "sum.req.ratio", sep = ".")
   cleanup(inDT, outName, fileloc("resultsDir"), "csv")
 
@@ -195,6 +194,7 @@ f.ratios.all <- function(req){
 
   # inDT <- dt.all.req.ratio.wide
   inDT <- dt.all.req.ratio.long
+  inDT[, nutrient := gsub(".req.ratio.all", "", nutrient)]
   outName <- paste(reqShortName, "all.req.ratio", sep = ".")
   cleanup(inDT, outName, fileloc("resultsDir"), "csv")
 
@@ -450,11 +450,11 @@ print("------ working on kcals")
 # # fats, etc share of total kcals ------
 # # source of conversion http://www.convertunits.com/from/joules/to/calorie+[thermochemical]
 # # fat 37kJ/g - 8.8432122371 kCal
-fatKcals <- 8.8432122371
-# # protein 17kJ/g - 4.0630975143 kCal
-proteinKcals <- 4.0630975143
-# # carbs 16kJ/g) - 3.8240917782
-carbsKcals <- 3.8240917782
+# fatKcals <- 8.8432122371
+# # # protein 17kJ/g - 4.0630975143 kCal
+# proteinKcals <- 4.0630975143
+# # # carbs 16kJ/g) - 3.8240917782
+# carbsKcals <- 3.8240917782
 # # 1 kJ = 0.23900573614 thermochemical /food calorie (kCal)
 # # 1 Kcal = 4.184 kJ
 # # alcoholic beverages need to have ethanol energy content included
@@ -465,31 +465,28 @@ carbsKcals <- 3.8240917782
 # # ethanol contributes 6.9 kcal/g
 
 # reminder dt.IMPACTfood has the annual consumption of a commodity. So long as used for ratios this is ok.
-dt.IMPACTfood <- getNewestVersion("dt.IMPACTfood", fileloc("iData"))
-deleteListCol <- c("pcGDPX0", "PCX0", "PWX0", "CSE")
-dt.IMPACTfood[,(deleteListCol) := NULL]
-dt.alc <- dt.IMPACTfood[IMPACT_code %in% keyVariable("IMPACTalcohol_code"),]
-keepListCol <- c("scenario", "region_code.IMPACT159", "year", "IMPACT_code", "FoodAvailability")
-dt.alc <- dt.alc[,keepListCol, with = FALSE]
-# dt.alc[, scenario := gsub("IRREXP-WUE2", "IRREXP_WUE2", scenario)]
-# dt.alc[, scenario := gsub("PHL-DEV2", "PHL_DEV2", scenario)]
-#dt.alc[, RCP := "RCP8.5"]
-# scenarioComponents <- c("SSP", "climate_model", "experiment")
-# dt.alc[, (scenarioComponents) := data.table::tstrsplit(scenario, "-", fixed = TRUE)]
-# dt.alc[is.na(experiment), experiment := "REF"]
-ethanolKcals <- 6.9
-ethanol.beer <- .04
-ethanol.wine <- .12
-ethanol.spirits <- .47
-formula.wide <- paste("scenario + region_code.IMPACT159 + year ~ IMPACT_code")
-dt.alc.wide <- data.table::dcast(data = dt.alc,
-                                 formula = formula.wide,
-                                 value.var = "FoodAvailability")
-dt.alc.wide[, kcal := c_beer * ethanolKcals * ethanol.beer +
-              c_wine * ethanolKcals * ethanol.wine +
-              c_spirits * ethanolKcals * ethanol.spirits]
-deleteListCol <- c("c_beer","c_spirits","c_wine")
-dt.alc.wide[, (deleteListCol) := NULL]
+# dt.IMPACTfood <- getNewestVersion("dt.IMPACTfood", fileloc("iData"))
+# deleteListCol <- c("pcGDPX0", "PCX0", "PWX0", "CSE")
+# dt.IMPACTfood[,(deleteListCol) := NULL]
+# dt.alc <- dt.IMPACTfood[IMPACT_code %in% keyVariable("IMPACTalcohol_code"),]
+# keepListCol <- c("scenario", "region_code.IMPACT159", "year", "IMPACT_code", "FoodAvailability")
+# dt.alc <- dt.alc[,keepListCol, with = FALSE]
+
+# note: kcals calculations done in dataPrep.nutrientData.R so no need to do here
+# dt.nutrients calculates kcals.fat, kcals.protein, kcals.carbohydrate, kcals.sugar, kcals.ethanol
+# ethanolKcals <- 6.9
+# ethanol.beer <- .04
+# ethanol.wine <- .12
+# ethanol.spirits <- .47
+# formula.wide <- paste("scenario + region_code.IMPACT159 + year ~ IMPACT_code")
+# dt.alc.wide <- data.table::dcast(data = dt.alc,
+#                                  formula = formula.wide,
+#                                  value.var = "FoodAvailability")
+# dt.alc.wide[, kcal := c_beer * ethanolKcals * ethanol.beer +
+#               c_wine * ethanolKcals * ethanol.wine +
+#               c_spirits * ethanolKcals * ethanol.spirits]
+# deleteListCol <- c("c_beer","c_spirits","c_wine")
+# dt.alc.wide[, (deleteListCol) := NULL]
 
 # now get the nutrient values
 # dt.nutrients <- getNewestVersion("dt.nutrients")
@@ -499,64 +496,65 @@ dt.nutSum <- getNewestVersion("dt.nutrients.sum.all", fileloc("resultsDir"))
 # dt.nutSum[, (scenarioComponents) := data.table::tstrsplit(scenario, "-", fixed = TRUE)]
 # dt.nutSum[is.na(experiment), experiment := "REF"]
 
-#basicInfo <- c("scenario",  "SSP", "climate_model", "experiment", "region_code.IMPACT159", "year")
-basicInfo <- c("scenario", "region_code.IMPACT159", "year")
-macro <- c("energy_kcal", "protein_g", "carbohydrate_g", "totalfiber_g", "sugar_g", "fat_g" )
-minrls <- c("calcium", "iron", "magnesium", "phosphorus", "potassium", "zinc")
-vits <- c("niacin", "riboflavin", "folate", "thiamin",
-          "vit_a_rae", "vit_b12", "vit_b6", "vit_c",
-          "vit_d", "vit_e", "vit_k")
-ftyAcids <-  c("ft_acds_tot_sat", "ft_acds_mono_unsat", "ft_acds_plyunst",
-               "cholesterol", "ft_acds_tot_trans" )
-kcals <- c("kcals.fat", "kcals.protein", "kcals.sugar", "kcals.ethanol")
-othr <- c("caffeine")
-nutListShort <- c(macro, minrls, vits, ftyAcids, othr)
-#nutList.macro <- paste(macro,".sum.all", sep = "")
-#data.table::setnames(dt.nutSum, old = nutList, new = nutListShort)
-#data.table::setcolorder(dt.nutSum, c(basicInfo,nutListShort))
-# keepListCol <- c(basicInfo, macro)
-#dt.nutSum <- dt.nutSum[nutrient %in% cleanupNutrientNames(macro),]
-
-nutList.kcals <- c("energykcal", "protein", "carbohydrate", "sugar", "fat", "ethanol")
-#nutList.kcals <- paste(macroKcals,".sum.all", sep = "")
-nutList.ratio <- paste(macro,"_share", sep = "")
+# #basicInfo <- c("scenario",  "SSP", "climate_model", "experiment", "region_code.IMPACT159", "year")
+# macro <- c("energy_kcal", "protein_g", "carbohydrate_g", "totalfiber_g", "sugar_g", "fat_g" )
+# minrls <- c("calcium", "iron", "magnesium", "phosphorus", "potassium", "zinc")
+# vits <- c("niacin", "riboflavin", "folate", "thiamin",
+#           "vit_a_rae", "vit_b12", "vit_b6", "vit_c",
+#           "vit_d", "vit_e", "vit_k")
+# ftyAcids <-  c("ft_acds_tot_sat", "ft_acds_mono_unsat", "ft_acds_plyunst",
+#                "cholesterol", "ft_acds_tot_trans" )
+# kcals <- c("kcals.fat", "kcals.protein", "kcals.sugar", "kcals.ethanol")
+# othr <- c("caffeine")
+# nutListShort <- c(macro, minrls, vits, ftyAcids, othr)
+# #nutList.macro <- paste(macro,".sum.all", sep = "")
+# #data.table::setnames(dt.nutSum, old = nutList, new = nutListShort)
+# #data.table::setcolorder(dt.nutSum, c(basicInfo,nutListShort))
+# # keepListCol <- c(basicInfo, macro)
+# #dt.nutSum <- dt.nutSum[nutrient %in% cleanupNutrientNames(macro),]
+#
 
 # calc kcals from macro nutrients -----
 # dt.nutSum[, protein_g_kcal := protein_g * proteinKcals][, fat_g_kcal := fat_g * fatKcals][, sugar_g_kcal := sugar_g * carbsKcals][, carbohydrate_g_kcal := carbohydrate_g * carbsKcals]
 # deleteListCol <- c("protein_g", "carbohydrate_g", "totalfiber_g", "sugar_g", "fat_g" )
 # dt.nutSum[, (deleteListCol) := NULL]
-dt.nutSum[nutrient == "carbohydrate", kcal := value * carbsKcals]
-dt.nutSum[nutrient == "protein", kcal := value * proteinKcals]
-dt.nutSum[nutrient == "fat", kcal := value * fatKcals]
-dt.nutSum[nutrient == "sugar", kcal := value * carbsKcals]
-dt.nutSum[nutrient == "energykcal", kcal := value]
-
-# add alcohol kcals
-#data.table::setnames(dt.alc.wide, old = "ethanol_kcal", new = "kcal")
-dt.alc.wide[, nutrient := 'ethanol']
-dt.nutSum <- rbind(dt.nutSum, dt.alc.wide, fill = TRUE)
-dt.nutSum[, value := NULL]
-dt.nutSum <- dt.nutSum[!nutrient == "totalfiber",]
-data.table::setorder(dt.nutSum, scenario, region_code.IMPACT159, year)
-formula.nut <- paste("scenario + region_code.IMPACT159 + year ~ nutrient")
+# dt.nutSum[nutrient == "carbohydrate_g", kcal := value * carbsKcals]
+# dt.nutSum[nutrient == "protein_g", kcal := value * proteinKcals]
+# dt.nutSum[nutrient == "fat_g", kcal := value * fatKcals]
+# dt.nutSum[nutrient == "sugar_g", kcal := value * carbsKcals]
+# dt.nutSum[nutrient == "energy_kcal", kcal := value]
+#
+# # add alcohol kcals
+# #data.table::setnames(dt.alc.wide, old = "ethanol_kcal", new = "kcal")
+# dt.alc.wide[, nutrient := 'kcals.ethanol']
+# dt.nutSum <- rbind(dt.nutSum, dt.alc.wide, fill = TRUE)
+# dt.nutSum[, value := NULL]
+# keepListRow <- c("kcals.ethanol", "kcals.fat", "kcals.protein", "kcals.sugar" , "energy_kcal")
+# dt.nutSum <- dt.nutSum[!nutrient == "totalfiber",]
+# data.table::setorder(dt.nutSum, scenario, region_code.IMPACT159, year)
+ formula.nut <- paste("scenario + region_code.IMPACT159 + year ~ nutrient")
 
 dt.nutSum.wide <- data.table::dcast(
   data = dt.nutSum,
   formula = formula.nut,
-  value.var = "kcal",
+  value.var = "value",
   variable.factor = FALSE)
 
 #dt.nutSum <- merge(dt.nutSum, dt.alc.wide, by = c("scenario", "region_code.IMPACT159", "year"))
 # Note. sum.kcals differs from energy_kcal because alcohol is not included in carbohydrates. Maybe other reasons too
-dt.nutSum.wide[, sum_kcals := protein + fat + carbohydrate + ethanol]
-dt.nutSum.wide[, diff_kcals := energykcal - sum_kcals]
-dt.nutSum.wide[, (nutList.ratio) := lapply(.SD, "/", energykcal), .SDcols = (nutList.kcals)]
-keepListCol <- c(basicInfo, nutList.ratio)
+dt.nutSum.wide[, sum_kcals := kcals.protein + kcals.fat + kcals.carbohydrate + kcals.ethanol]
+dt.nutSum.wide[, diff_kcals := energy_kcal - sum_kcals]
+nutList.kcals <- c("energy_kcal", "kcals.protein", "kcals.carbohydrate", "kcals.sugar", "kcals.fat", "kcals.ethanol")
+# #nutList.kcals <- paste(macroKcals,".sum.all", sep = "")
+nutList.ratio <- paste(nutList.kcals,"_share", sep = "")
+basicKey <- c("scenario",  "region_code.IMPACT159", "year")
+
+dt.nutSum.wide[, (nutList.ratio) := lapply(.SD, "/", energy_kcal), .SDcols = (nutList.kcals)]
+keepListCol <- c(basicKey, nutList.ratio)
 dt.nutSum.wide <- dt.nutSum.wide[, keepListCol, with = FALSE]
 
 #scenarioComponents <- c("SSP", "climate_model", "experiment")
 #basicKey <- c("scenario", scenarioComponents, "region_code.IMPACT159", "year")
-basicKey <- c("scenario",  "region_code.IMPACT159", "year")
 
 dt.nutSum.long <- data.table::melt(
   dt.nutSum.wide, id.vars = basicKey,
@@ -584,6 +582,7 @@ cleanup(inDT, outName, fileloc("resultsDir"), "csv")
 
 # Shannon diversity ratio -----
 #SD = - sum(s_i * ln(s_i)
+dt.IMPACTfood <- getNewestVersion("dt.IMPACTfood", fileloc("iData"))
 keepListCol <- c("scenario","region_code.IMPACT159", "year", "IMPACT_code", "FoodAvailability")
 dt.SDfood <- dt.IMPACTfood[,keepListCol, with = FALSE]
 dt.SDfood[,foodQ.sum := sum(FoodAvailability), by = c("scenario","region_code.IMPACT159", "year")]

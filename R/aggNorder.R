@@ -11,10 +11,6 @@
 library(data.table)
 library(gridExtra)
 library(gplots)
-scenario.base <- "SSP2-NoCC-REF"
-# population for weighting -----
-dt.pop <- getNewestVersion("dt.PopX0", fileloc("iData"))
-dt.pop.2010.ref <- dt.pop[year ==  "X2010" & scenario == scenario.base,][,c("scenario","year") :=  NULL]
 
 regionAgg <- function(aggChoice) {
   # region info setup for aggregating -----
@@ -130,53 +126,29 @@ aggNorder <- function(gdxChoice, DTglobal, aggChoice, scenChoice) {
 
   # order of scenario and regions
   if (gdxChoice == "USAID") {
-    #rename USAID scenarios
-    DT[scenario == "SSP2-NoCC", scenario := "REF_NoCC"]
-    DT[scenario == "SSP2-HGEM2", scenario := "REF_HGEM"]
-    DT[scenario == "SSP2-IPSL2", scenario := "REF_IPSL"]
-    DT[scenario == "SSP2-HGEM-LoYld2", scenario := "MED"]
-    DT[scenario == "SSP2-HGEM-RegYld2", scenario := "REGION"]
-    DT[scenario == "SSP2-HGEM-HiYld2", scenario := "HIGH"]
-    DT[scenario == "SSP2-HGEM-HiNARS2", scenario := "HIGH_NARS"]
-    DT[scenario == "SSP2-HGEM-HiREFF2", scenario := "HIGH_RE"]
-    DT[scenario == "SSP2-HGEM-IRREXP2", scenario := "IX"]
-    DT[scenario == "SSP2-NoCC-IRREXP2", scenario := "IX_NoCC"]
-    DT[scenario == "SSP2-IPSL-IRREXP2", scenario := "IX_IPSL"]
-    DT[scenario == "SSP2-HGEM-IRREXP-WUE2", scenario := "IX_WUE"]
-    DT[scenario == "SSP2-NoCC-IRREXP-WUE2", scenario := "IX_WUE_NoCC"]
-    DT[scenario == "SSP2-IPSL-IRREXP-WUE2", scenario := "IX_WUE_IPSL"]
-    DT[scenario == "SSP2-HGEM-SWHC2", scenario := "ISW"]
-    DT[scenario == "SSP2-NoCC-SWHC2", scenario := "ISW_NoCC"]
-    DT[scenario == "SSP2-IPSL-SWHC2", scenario := "ISW_IPSL"]
-    DT[scenario == "SSP2-HGEM-PHL-DEV2", scenario := "RPHL"]
-    DT[scenario == "SSP2-HGEM-MMEFF2", scenario := "RMM"]
-    DT[scenario == "SSP2-HGEM-Pangloss2", scenario := "COMP"]
-    DT[scenario == "SSP2-NoCC-Pangloss2", scenario := "COMP_NoCC"]
-    DT[scenario == "SSP2-IPSL-Pangloss2", scenario := "COMP_IPSL"]
+    DT <- renameUSAIDscenarios(DT)
     scenarioList.prodEnhance <- c("MED", "HIGH", "HIGH_NARS", "HIGH_RE", "REGION")
     scenarioList.waterMan <- c("IX", "IX_WUE", "ISW", "IX_WUE_NoCC", "IX_IPSL", "ISW_NoCC", "ISW_IPSL")
     scenarioList.addEnhance <- c("RPHL", "RMM")
     scenarioList.comp <- c("COMP", "COMP_NoCC", "COMP_IPSL")
-    scenario.base <- "REF_HGEM"
-
     # keep only needed USAID scenarios
-    scenChoice <- c("2010", eval(parse(text = (scenChoice))))
-    DT <- DT[scenario %in% scenChoice, ] # only needed for the USAID results
+    scenOrder.USAID <- c("2010", scenChoice)
+    DT <- DT[scenario %in% scenOrder.USAID, ] # only needed for the USAID results
     # order scenarios, first write the number into the number variable scenarioOrder
-    DT[, scenarioOrder := match(scenario, scenChoice)]
+    DT[, scenarioOrder := match(scenario, scenOrder.USAID)]
     data.table::setorder(DT, scenarioOrder)
     DT[, scenarioOrder := NULL]
   }
   if (gdxChoice == "SSPs") {
     # do manipulations on the gdx data that has 3 SSP scenarios and 3 climate change scenarios.
-    scenChoice <- c("2010", "SSP2-NoCC-REF", "SSP1-NoCC-REF", "SSP3-NoCC-REF", "SSP2-GFDL-REF", "SSP2-IPSL-REF", "SSP2-HGEM-REF")
-    DT <- DT[scenario %in% scenChoice, ] # doesn't need eval-parse because the list is defined inside the function
-  }
+    scenOrder.SSPs <- c("2010", "SSP2-NoCC-REF", "SSP1-NoCC-REF", "SSP3-NoCC-REF", "SSP2-GFDL-REF", "SSP2-IPSL-REF", "SSP2-HGEM-REF")
+    DT <- DT[scenario %in% scenOrder.SSPs, ] # doesn't need eval-parse because the list is defined inside the function
+
   # order by scenarios
-  DT[, scenarioOrder := match(scenario, scenChoice)]
+  DT[, scenarioOrder := match(scenario, scenOrder.SSPs)]
   data.table::setorder(DT, scenarioOrder)
   DT[, scenarioOrder := NULL]
-
+  }
   # order by regions
   DT <- orderRegions(DT, aggChoice)
   DT <- DT[, region_name := gsub(" plus", "", region_name)]
@@ -188,7 +160,8 @@ plotByRegionBar <- function(dt, fileName, title, yLab, yRange,aggChoice) {
   regionCodes <- unique(temp$region_code)
   regionNames <- unique(temp$region_name)
   scenarios <- unique(temp$scenario)
-  colList <- c("black", "red", "red2", "red4", "green", "green2", "green4")
+  if (gdxChoice == "SSPs") colList <- c("black", "red", "red2", "red4", "green", "green2", "green4")
+  if (gdxChoice == "USAID") colList <- c("black", rainbow(10)[1:length(scenarios) - 1])
   legendText <- unique(gsub("-REF", "", scenarios))
   #  formula.wide <- "scenario ~ region_code"
   #the use of factor and levels keeps the order of the regions in region_code
@@ -209,7 +182,7 @@ plotByRegionBar <- function(dt, fileName, title, yLab, yRange,aggChoice) {
   temp <- data.matrix(temp)
   # print(temp.wide)
   #  par(mai=c(2,0.82,0.82,0.42))
-  pdf(paste("graphics/", fileName, aggChoice, ".pdf", sep = "."))
+  pdf(paste("graphics/", fileName,".", aggChoice, ".pdf", sep = ""))
   #layout(matrix(c(1,2)), c(1,1), c(1,3))
   #par(mfrow = c(2,1), mai = c(1,1,1,1))
   mat = matrix(c(1,2))
@@ -220,8 +193,8 @@ plotByRegionBar <- function(dt, fileName, title, yLab, yRange,aggChoice) {
   colsToRound <- names(temp.wide)[2:length(temp.wide)]
   temp.wide[,(colsToRound) := round(.SD,2), .SDcols = colsToRound]
   data.table::setnames(temp.wide, old = names(temp.wide), new = c("scenario", regionCodes))
-  textplot(temp.wide, cex = 0.7, valign = "top", show.rownames = FALSE, mai = c(.5, .5, .5, .5))
+  textplot(temp.wide, cex = 0.6, valign = "top", show.rownames = FALSE, mai = c(.5, .5, .5, .5))
   dev.off()
-  write.csv(temp.wide, file = paste("graphics/", fileName, aggChoice, "csv", sep = "."))
+  write.csv(temp.wide, file = paste("graphics/", fileName, ".", aggChoice, ".csv", sep = ""))
 }
 
