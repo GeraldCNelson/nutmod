@@ -31,21 +31,22 @@ foodGroupLU <- fileNameList("foodGroupLU")
 
 # Data loading code for nutrientCalcs -------------------------------------
 #' @param nutrients.raw - nutrient content of IMPACT 3 commodities, including fish and alcoholic beverages
-LUcolNames <- c("name", "IMPACT_code", "usda_code", "USDA_code_desc", "composite_code", "AUS_code", "comment",
-                "edible_share", "inedible_share", "IMPACT_conversion", "proximates", "water_g", "energy_kcal",
-                "protein_g", "fat_g", "carbohydrate_g", "totalfiber_g", "sugar_g", "minerals", "calcium_mg",
-                "iron_mg", "magnesium_mg", "phosphorus_mg", "potassium_g", "zinc_mg", "vitamins", "vit_c_mg",
-                "thiamin_mg", "riboflavin_mg", "niacin_mg", "vit_b6_mg", "folate_µg", "vit_b12_µg", "vit_a_rae_µg",
-                "vit_e_mg", "vit_d_µg", "vit_k_µg", "lipids", "ft_acds_tot_sat_g", "ft_acds_mono_unsat_g",
-                "ft_acds_plyunst_g", "cholesterol_mg", "other", "caffeine_mg", "ft_acds_tot_trans_g", "retentioncode_aus",
-                "RetentionDescription", "thiamin_mg_cr", "vit_b12_µg_cr", "riboflavin_mg_cr", "niacin_mg_cr", "vit_b6_mg_cr",
-                "calcium_mg_cr", "iron_mg_cr", "folate_µg_cr", "potassium_g_cr", "magnesium_mg_cr",
-                "phosphorus_mg_cr", "vit_a_rae_µg_cr", "vit_c_mg_cr", "vit_e_mg_cr", "zinc_mg_cr")
+# LUcolNames <- c("name", "IMPACT_code", "usda_code", "USDA_code_desc", "composite_code", "AUS_code", "comment",
+#                 "edible_share", "inedible_share", "IMPACT_conversion", "proximates", "water_g", "energy_kcal",
+#                 "protein_g", "fat_g", "carbohydrate_g", "totalfiber_g", "sugar_g", "minerals", "calcium_mg",
+#                 "iron_mg", "magnesium_mg", "phosphorus_mg", "potassium_g", "zinc_mg", "vitamins", "vit_c_mg",
+#                 "thiamin_mg", "riboflavin_mg", "niacin_mg", "vit_b6_mg", "folate_µg", "vit_b12_µg", "vit_a_rae_µg",
+#                 "vit_e_mg", "vit_d_µg", "vit_k_µg", "lipids", "ft_acds_tot_sat_g", "ft_acds_mono_unsat_g",
+#                 "ft_acds_plyunst_g", "cholesterol_mg", "other", "caffeine_mg", "ft_acds_tot_trans_g", "retentioncode_aus",
+#                 "RetentionDescription", "thiamin_mg_cr", "vit_b12_µg_cr", "riboflavin_mg_cr", "niacin_mg_cr", "vit_b6_mg_cr",
+#                 "calcium_mg_cr", "iron_mg_cr", "folate_µg_cr", "potassium_g_cr", "magnesium_mg_cr",
+#                 "phosphorus_mg_cr", "vit_a_rae_µg_cr", "vit_c_mg_cr", "vit_e_mg_cr", "zinc_mg_cr")
 nutrients.raw <- openxlsx::read.xlsx(nutrientLU, sheet = 1, rows = 3:68,  colNames = TRUE)
 
 #' @param nutrientNames_Units - units for the nutrients in IMPACT159 nutrient list
-nutrientNames_Units <- openxlsx::read.xlsx(nutrientLU,sheet = 1,rows = 2:3, colNames = FALSE)
-colnames(nutrientNames_Units) <- LUcolNames
+nutrientNames_Units <- openxlsx::read.xlsx(nutrientLU,sheet = 1,rows = 1:2, colNames = FALSE,
+                                           cols = 1:length(nutrients.raw), skipEmptyCols = FALSE)
+colnames(nutrientNames_Units) <- names(nutrients.raw)
 #remove columns that are dividers, etc. This leaves only the IMPACT_code, edible share, IMPACT_conversion,
 # the nutrient values, and the cooking retention values
 deleteListCol <-
@@ -64,6 +65,22 @@ cookretn[is.na(cookretn[keepListCol])] <- 1.0
 inDT <- data.table::as.data.table(cookretn)
 outName <- "dt.cookingRet"
 cleanup(inDT,outName,fileloc("mData"))
+
+
+inDT <- data.table::as.data.table(nutrientNames_Units)
+inDT[, c("IMPACT_code", "composite_code") := NULL]
+# need to add "kcals.ethanol", "kcals.fat", "kcals.carbohydrate","kcals.protein", "kcals.sugar"
+tempDT <- data.table::data.table(
+  kcals.ethanol      = c("Ethanol", "kcals"),
+  kcals.fat          = c("Fat", "kcals"),
+  kcals.carbohydrate = c("Carbohydrate, by difference", "kcals"),
+  kcals.protein      = c("Protein", "kcals"),
+  kcals.sugar        = c("Sugars, total", "kcals")
+)
+inDT <- cbind(inDT,tempDT)
+outName <- "dt.nutrientNames_Units"
+cleanup(inDT,outName,fileloc("mData"))
+
 #get list of nutrients in the food nutrient lookup table
 #create list of columns that are not nutrients
 temp <-
@@ -96,7 +113,7 @@ nutrients.clean[, nutrients.list] <-
 #remove extraneous columns
 deleteListCol <- c("edible_share", "IMPACT_conversion", cookretn.cols)
 nutrients <- nutrients.clean[, !(names(nutrients.clean) %in% deleteListCol)]
-
+nutrientNames_Units <- nutrientNames_Units[, !(names(nutrients.clean) %in% deleteListCol)]
 # add food groups and staples codes to the nutrients table ---
 dt.foodGroupsInfo <- data.table::as.data.table(openxlsx::read.xlsx(
   foodGroupLU, sheet = 1, startRow = 1,colNames = TRUE))
@@ -107,7 +124,7 @@ dt.nutrients <- data.table::as.data.table(merge(nutrients, tmp, by = "IMPACT_cod
 # code to import composite information from spreadsheets ------
 fctFiles <- c("comp_fct_beans_cbean.xlsx",
               "comp_fct_mutton and goat_clamb.xlsx",
- #             "comp_fct_other fruits_ctemf.xlsx", - because the comp_recalc file below is what should be used
+              #             "comp_fct_other fruits_ctemf.xlsx", - because the comp_recalc file below is what should be used
               "comp_fct_rape and mustard oil_crpol.xlsx")
 
 recalcFiles <- c(
@@ -136,15 +153,15 @@ for (i in fctFiles) {
   dt.fct <- data.table::as.data.table(openxlsx::read.xlsx(filePath, colNames = TRUE, cols = NULL))
   keepListCol <- c("edible_share",nutList)
   dt.fct <- dt.fct[,keepListCol, with = FALSE]
-   dt.fct[, (nutList) := lapply(.SD, function(x)
+  dt.fct[, (nutList) := lapply(.SD, function(x)
     x * dt.fct[['edible_share']]/100 ), .SDcols = nutList]
-   dt.fct[,edible_share := NULL]
+  dt.fct[,edible_share := NULL]
 
-   #copied here to remind me to include the IMPACT conversion code
-   # nutrients.clean[, nutrients.list] <-
-   #   nutrients.clean[, nutrients.list] * nutrients.clean$IMPACT_conversion / 100
-   # nutrients.clean[, nutrients.list] <-
-   #   nutrients.clean[, nutrients.list] * nutrients.clean$edible_share / 100
+  #copied here to remind me to include the IMPACT conversion code
+  # nutrients.clean[, nutrients.list] <-
+  #   nutrients.clean[, nutrients.list] * nutrients.clean$IMPACT_conversion / 100
+  # nutrients.clean[, nutrients.list] <-
+  #   nutrients.clean[, nutrients.list] * nutrients.clean$edible_share / 100
 
   # get mean of each column for this commodity
   temp <- dt.fct[, lapply(.SD, mean, na.rm = TRUE)]
@@ -166,10 +183,10 @@ for (i in recalcFiles) {
   filePath <- paste("data-raw/NutrientData/nutrientDetails/", i, sep = "")
   commodName <- openxlsx::getSheetNames(filePath)[1]
   dt.fct <- data.table::as.data.table(openxlsx::read.xlsx(filePath, colNames = TRUE, cols = NULL,
-                    sheet = "FCT"))
+                                                          sheet = "FCT"))
 
   dt.commod <- data.table::as.data.table(openxlsx::read.xlsx(filePath, colNames = TRUE, cols = NULL,
-                    sheet = commodName))
+                                                             sheet = commodName))
 
   # delete first column of dt.commod which just has notes
   dt.commod <- dt.commod[,1 := NULL]
@@ -179,12 +196,12 @@ for (i in recalcFiles) {
   dt.joined <- merge(dt.commod,dt.fct, by = c("item_name","usda_code"))
   dt.joined <- dt.joined[include == 1,]
   dt.joined[is.na(dt.joined)] <- 0
- # nutListtemp <- names(dt.joined)[!names(dt.joined) %in% c("item_name", "usda_code", "include", "pcn_fdsupply_avg", "edible_share" )]
+  # nutListtemp <- names(dt.joined)[!names(dt.joined) %in% c("item_name", "usda_code", "include", "pcn_fdsupply_avg", "edible_share" )]
   # multiply each nutrient by its share of production (pcn_fdsupply_avg) and reduce by its edible share
 
   dt.joined <- dt.joined[, (nutList) := lapply(.SD,
-               function(x) x * dt.joined[['pcn_fdsupply_avg']]  * dt.joined[['edible_share']] / 100 ),
-               .SDcols = nutList]
+                                               function(x) x * dt.joined[['pcn_fdsupply_avg']]  * dt.joined[['edible_share']] / 100 ),
+                         .SDcols = nutList]
 
   # sum all the weighted shares
   temp <- dt.joined[, lapply(.SD, sum, na.rm = TRUE), .SDcols = nutList]
@@ -207,7 +224,7 @@ for (i in recalcFiles) {
 # c_OMarn is the average of c_OPelag and c_ODmrsl
 namesToAverage <- c("c_OPelag", "c_ODmrsl")
 dt.temp <- dt.nutrients[IMPACT_code %in% namesToAverage,lapply(.SD,mean),
-                     .SDcols = c(nutrients.list)]
+                        .SDcols = c(nutrients.list)]
 keepListCol <- c("IMPACT_code", "composite_code", "food_group_code", "staple_code")
 dt.temp2 <- dt.nutrients[IMPACT_code %in% "c_OMarn",keepListCol, with = FALSE]
 # combine the descriptor columns with the new results
@@ -223,20 +240,24 @@ dt.nutrients <- rbind(dt.nutrients, temp)
 # 1 kJ = 0.23900573614 thermochemical /food calorie (kCal)
 # 1 Kcal = 4.184 kJ
 # fat 37kJ/g - 8.8432122371 kCal/g; protein 17kJ/g - 4.0630975143 kCal/g; carbs 16kJ/g - 3.8240917782 kCal/g
+#  beer - 4% ethanol, wine - 12% ethanol, spirits - 47% ethanol
 fatKcals <- 8.8432122371
 proteinKcals <- 4.0630975143
 carbsKcals <- 3.8240917782
 ethanolKcals <- 6.9
+ethanol.beer <- .04
+ethanol.wine <- .12
+ethanol.spirits <- .47
 
 # alcoholic beverages need to have ethanol energy content included
-# assumptions
-#  beer - 4% ethanol, wine - 12% ethanol, spirits - 47% ethanol
-dt.nutrients[, kcals.fat := fat_g * fatKcals][, kcals.protein := protein_g * proteinKcals]
-dt.nutrients[, kcals.protein := carbohydrate_g * carbsKcals][, kcals.sugar := sugar_g * carbsKcals]
+dt.nutrients[, kcals.fat := fat_g * fatKcals]
+dt.nutrients[, kcals.protein := protein_g * proteinKcals]
+dt.nutrients[, kcals.carbohydrate := carbohydrate_g * carbsKcals]
+dt.nutrients[, kcals.sugar := sugar_g * carbsKcals]
 # do alcoholic beverages separately
-dt.nutrients[IMPACT_code == "c_beer", kcals.ethanol := ethanolKcals * .04 * 100] # beer
-dt.nutrients[IMPACT_code == "c_wine", kcals.ethanol := ethanolKcals * .12 * 100] # wine
-dt.nutrients[IMPACT_code == "c_spirits", kcals.ethanol := ethanolKcals * .47 * 100] # spirits
+dt.nutrients[IMPACT_code == "c_beer", kcals.ethanol := ethanolKcals * ethanol.beer * 100] # beer
+dt.nutrients[IMPACT_code == "c_wine", kcals.ethanol := ethanolKcals * ethanol.wine * 100] # wine
+dt.nutrients[IMPACT_code == "c_spirits", kcals.ethanol := ethanolKcals * ethanol.spirits * 100] # spirits
 dt.nutrients[is.na(kcals.ethanol), kcals.ethanol := 0]
 data.table::setorder(dt.nutrients,IMPACT_code)
 
