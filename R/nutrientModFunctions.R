@@ -300,6 +300,8 @@ cleanupNutrientNames <- function(nutList) {
 #' @export
 keyVariable <- function(variableName) {
   switch.fixFish <- "TRUE"
+  switch.bioavail <- "TRUE"
+  switch.useCookingRetnValues <- "TRUE"
   switch.changeElasticity <- "TRUE"
   region <- "region_code.IMPACT159"
   keepYearList <- c("X2010", "X2015", "X2020", "X2025", "X2030", "X2035", "X2040", "X2045", "X2050")
@@ -349,7 +351,6 @@ keyVariable <- function(variableName) {
   dropListCty <- c("GRL", "FSM", "GRD", "PRK")
   commonList <- paste("common.", reqsList, sep = "")
   c( "common.EAR", "common.RDA.vits", "common.RDA.minrls", "common.RDA.macro", "common.UL.vits","common.UL.minrls")
-  switch.useCookingRetnValues <- "TRUE"
   userName <- "Gerald C. Nelson"
   if (variableName == "list") {
     return(
@@ -522,7 +523,7 @@ fileNameList <- function(variableName) {
   IMPACTfoodFileName <- "dt.IMPACTfood"
   IMPACTfoodFileInfo <-  paste(mData,"/IMPACTData/",IMPACTfoodFileName,sep = "")
   # nutrient data ------
-  nutrientFileName <- "USDA GFS IMPACT V23.xlsx"
+  nutrientFileName <- "USDA GFS IMPACT V26.xlsx"
   nutrientLU       <- paste(nutrientDataDetails, nutrientFileName, sep = "/")
   foodGroupLUFileName <-
     "food commodity to food group table V4.xlsx"
@@ -952,4 +953,51 @@ nutshareSpiderGraph <- function(reqFileName, countryCode, scenario, years, dir) 
            y.intersp = .8)
   }
   return(temp)
+}
+
+regionAgg <- function(aggChoice) {
+  # region info setup for aggregating -----
+  dt.regions.all <- getNewestVersion("dt.regions.all")
+  I3regions <- sort(unique(dt.regions.all$region_code.IMPACT159))
+  tenregions <- sort(c("NIC", "BRA", "CHM", "ETH", "IND", "GHA","TZA", "FRP", "VNM", "USA"))
+  AggReg1 <- sort(unique(dt.regions.all$region_code.AggReg1))
+  AggReg2 <- sort(unique(dt.regions.all$region_code.AggReg2))
+  twoEconGroup <- sort(unique(dt.regions.all$region_code.EconGroup))
+  WB <- sort(unique(dt.regions.all$region_code.WB))
+  regionNamestenregions <- unique(dt.regions.all[region_code.IMPACT159 %in% tenregions, region_name.IMPACT159])
+  regionNamesAggReg1 <- unique(dt.regions.all$region_name.AggReg1)
+  regionNamesAggReg2 <- unique(dt.regions.all$region_name.AggReg2)
+  regionNamestwoEconGroup <- unique(dt.regions.all$region_name.EconGroup)
+  regionNamesWB <- unique(dt.regions.all$region_name.WB)
+
+  # regionCodestenregions
+  if (aggChoice == "tenregions") {
+    keepListCol <- c("region_code.IMPACT159", "region_code", "region_name.IMPACT159")
+    dt.regions.all <- dt.regions.all[region_code.IMPACT159 %in% tenregions,]
+    dt.regions.all <- dt.regions.all[, region_code := region_code.IMPACT159]
+  }
+  # regionCodesI3regions
+  if (aggChoice == "I3regions") {
+    keepListCol <- c("region_code.IMPACT159", "region_code", "region_name.IMPACT159")
+    dt.regions.all <- dt.regions.all[, region_code := region_code.IMPACT159]
+  }
+  # regionCodesAggReg1
+  if (aggChoice == "AggReg1") {
+    keepListCol <- c("region_code.IMPACT159", "region_code.AggReg1", "region_name.AggReg1")
+  }
+  # regionCodesAggReg2
+  if (aggChoice == "AggReg2") {
+    keepListCol <- c("region_code.IMPACT159", "region_code.AggReg2", "region_name.AggReg2")
+  }
+  # regionCodestwoEconGroup
+  if (aggChoice == "twoEconGroup") {
+    keepListCol <- c("region_code.IMPACT159", "region_code.EconGroup", "region_name.EconGroup")
+  }
+  # regionCodesWB
+  if (aggChoice == "WB") {
+    keepListCol <- c("region_code.IMPACT159", "region_code.WB", "region_name.WB")
+  }
+  dt.regions <- unique(dt.regions.all[, (keepListCol), with = FALSE])
+  data.table::setnames(dt.regions, old = keepListCol, new = c("region_code.IMPACT159", "region_code", "region_name"))
+  return(dt.regions)
 }

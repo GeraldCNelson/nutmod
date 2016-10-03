@@ -73,7 +73,7 @@
 #'   dt.temp <- dt.staples.sum[dt.nutsReqPerCap]
 #' }
 
-cookingRetFishCorrect <- function(switch.useCookingRetnValues, switch.fixFish) {
+cookingRetFishCorrect <- function(switch.useCookingRetnValues, switch.fixFish, switch.bioavail) {
   # dt.nutrients is in nutrient per 100 grams of the edible portion
   dt.nutrients <- getNewestVersion("dt.nutrients")
 
@@ -99,7 +99,16 @@ cookingRetFishCorrect <- function(switch.useCookingRetnValues, switch.fixFish) {
   if (switch.fixFish == "TRUE")  {
       deleteListRow <- c("c_Shrimp", "c_Tuna", "c_Salmon")
       dt.nutrients <- dt.nutrients[!IMPACT_code %in% deleteListRow,]
-    }
+  }
+  # adjust iron and zinc bioavailability if TRUE -----
+  if (switch.bioavail == "TRUE")  {
+    #adjust zinc bioavailability
+    # one molecule of phytate removes one atom of zinc
+    zinc_atom_weight <- 65.4
+    phytate_molecular_weight <- 660
+    dt.nutrients[ zinc_mg := zinc_mg - (phytate_mg/phytate_molecular_weight) * zinc_atom_weight]
+    # adjust iron bioavailability
+  }
   return(dt.nutrients)
 }
 

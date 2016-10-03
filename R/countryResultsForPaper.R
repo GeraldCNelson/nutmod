@@ -23,7 +23,7 @@ dt.regions.all <- getNewestVersion("dt.regions.all")
 
 switch.useCookingRetnValues <- keyVariable("switch.useCookingRetnValues")
 switch.fixFish <- keyVariable("switch.fixFish") #get rid of nutrient info for shrimp, tuna, and salmon because they are not currently in the FBS data
-dt.nutrients <- cookingRetFishCorrect(switch.useCookingRetnValues, fixFish)
+dt.nutrients <- cookingRetFishCorrect(switch.useCookingRetnValues, switch.fixFish, switch.bioavail)
 dt.IMPACTfood <- getNewestVersionIMPACT("dt.IMPACTfood")
 dt.budgetShare <- getNewestVersion("dt.budgetShare", fileloc("resultsDir"))
 dt.shannonDiversity <- getNewestVersion("dt.shannonDiversity", fileloc("resultsDir"))

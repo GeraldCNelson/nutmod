@@ -34,7 +34,7 @@ scenarioListIMPACT <- keyVariable("scenarioListIMPACT")
 # read in nutrients data and optionally apply cooking retention values -----
 switch.useCookingRetnValues <- keyVariable("switch.useCookingRetnValues")
 switch.fixFish <- keyVariable("switch.fixFish") #get rid of nutrient info for shrimp, tuna, and salmon because they are not currently in the FBS data
-dt.nutrients <- cookingRetFishCorrect(switch.useCookingRetnValues, switch.fixFish)
+dt.nutrients <- cookingRetFishCorrect(switch.useCookingRetnValues, switch.fixFish, switch.bioavail)
 
 # calculate the share of per capita income spent on IMPACT commodities
 budgetShare(dt.IMPACTfood)
@@ -258,7 +258,7 @@ generateSum <- function(dt.IMPACTfood, scenarioListIMPACT) {
   # read in nutrients data and optionally apply cooking retention values -----
   switch.useCookingRetnValues <- keyVariable("switch.useCookingRetnValues")
   switch.fixFish <- keyVariable("switch.fixFish") #get rid of nutrient info for shrimp, tuna, and salmon because they are not currently in the FBS data
-  dt.nutrients <- cookingRetFishCorrect(switch.useCookingRetnValues, switch.fixFish)
+  dt.nutrients <- cookingRetFishCorrect(switch.useCookingRetnValues, switch.fixFish, switch.bioavail)
 
   nutListReq <- names(dt.nutrients)[2:(ncol(dt.nutrients))]
   deleteList <- c("food_group_code", "staple_code")

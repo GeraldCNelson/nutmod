@@ -12,52 +12,6 @@ library(data.table)
 library(gridExtra)
 library(gplots)
 
-regionAgg <- function(aggChoice) {
-  # region info setup for aggregating -----
-  dt.regions.all <- getNewestVersion("dt.regions.all")
-  I3regions <- sort(unique(dt.regions.all$region_code.IMPACT159))
-  tenregions <- sort(c("NIC", "BRA", "CHM", "ETH", "IND", "GHA","TZA", "FRP", "VNM", "USA"))
-  AggReg1 <- sort(unique(dt.regions.all$region_code.AggReg1))
-  AggReg2 <- sort(unique(dt.regions.all$region_code.AggReg2))
-  twoEconGroup <- sort(unique(dt.regions.all$region_code.EconGroup))
-  WB <- sort(unique(dt.regions.all$region_code.WB))
-  regionNamestenregions <- unique(dt.regions.all[region_code.IMPACT159 %in% tenregions, region_name.IMPACT159])
-  regionNamesAggReg1 <- unique(dt.regions.all$region_name.AggReg1)
-  regionNamesAggReg2 <- unique(dt.regions.all$region_name.AggReg2)
-  regionNamestwoEconGroup <- unique(dt.regions.all$region_name.EconGroup)
-  regionNamesWB <- unique(dt.regions.all$region_name.WB)
-
-  # regionCodestenregions
-  if (aggChoice == "tenregions") {
-    keepListCol <- c("region_code.IMPACT159", "region_code", "region_name.IMPACT159")
-    dt.regions.all <- dt.regions.all[region_code.IMPACT159 %in% tenregions,]
-    dt.regions.all <- dt.regions.all[, region_code := region_code.IMPACT159]
-  }
-  # regionCodesI3regions
-  if (aggChoice == "I3regions") {
-    keepListCol <- c("region_code.IMPACT159", "region_code", "region_name.IMPACT159")
-    dt.regions.all <- dt.regions.all[, region_code := region_code.IMPACT159]
-  }
-  # regionCodesAggReg1
-  if (aggChoice == "AggReg1") {
-    keepListCol <- c("region_code.IMPACT159", "region_code.AggReg1", "region_name.AggReg1")
-  }
-  # regionCodesAggReg2
-  if (aggChoice == "AggReg2") {
-    keepListCol <- c("region_code.IMPACT159", "region_code.AggReg2", "region_name.AggReg2")
-  }
-  # regionCodestwoEconGroup
-  if (aggChoice == "twoEconGroup") {
-    keepListCol <- c("region_code.IMPACT159", "region_code.EconGroup", "region_name.EconGroup")
-  }
-  # regionCodesWB
-  if (aggChoice == "WB") {
-    keepListCol <- c("region_code.IMPACT159", "region_code.WB", "region_name.WB")
-  }
-  dt.regions <- unique(dt.regions.all[, (keepListCol), with = FALSE])
-  data.table::setnames(dt.regions, old = keepListCol, new = c("region_code.IMPACT159", "region_code", "region_name"))
-  return(dt.regions)
-}
 
 orderRegions <- function(DT,aggChoice) {
   # order by regions

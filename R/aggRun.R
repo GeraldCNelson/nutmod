@@ -21,7 +21,7 @@ library(data.table)
 # scenChoices for the USAID gdx are scenarioList.prodEnhance, scenarioList.waterMan, scenarioList.addEnhance, scenarioList.comp
 # scenChoice for SSPs is scenarioList.SSPs
 
-aggChoiceListBarChart <- c("tenregions", "WB", "AggReg1") # missing AggReg1 and  "2EconGroup
+aggChoiceListBarChart <- c("tenregions", "WB", "AggReg1") # missing AggReg2 and  "2EconGroup
 multipleNutsFileList <- c("dt.nutrients.sum.all", "RDA.macro.sum.req.ratio", "RDA.minrls.sum.req.ratio", "RDA.vits.sum.req.ratio",
                           "dt.nutrients.nonstapleShare") # "dt.energy.ratios" not included
 multipleNutsListShortName <- c("nutrients.avail", "macro.req.ratio", "minrls.req.ratio", "vits.req.ratio",
@@ -103,7 +103,7 @@ for (k in 1:length(multipleNutsFileList)) {
       if (gdxChoice == "SSPs") {
         # do manipulations on the gdx data that has 3 SSP scenarios and 3 climate change scenarios.
         scenOrder.SSPs <- c("2010", "SSP2-NoCC-REF", "SSP1-NoCC-REF", "SSP3-NoCC-REF", "SSP2-GFDL-REF", "SSP2-IPSL-REF", "SSP2-HGEM-REF")
-        DT <- DT[scenario %in% scenChoice, ] # doesn't need eval-parse because the list is defined inside the function
+        DT <- DT[scenario %in% scenChoice, ] # doesn't need eval-parse because the list is defined inside the if statement
         DT[, scenarioOrder := match(scenario, scenOrder.SSPs)]
         data.table::setorder(DT, scenarioOrder)
         DT[, scenarioOrder := NULL]
