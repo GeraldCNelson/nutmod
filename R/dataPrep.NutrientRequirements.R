@@ -46,51 +46,57 @@ format(req.metadata, justify = c("left"))
 
 #' @param req.EAR - Estimated Average Requirements (EAR) data
 req.EAR <-
-  openxlsx::read.xlsx(reqsFile, startRow = 1,  colNames = TRUE,
-                      sheet = "EAR", cols = 3:24)
+  openxlsx::read.xlsx(reqsFile, startRow = 1,  colNames = TRUE, sheet = "EAR")
+req.EAR <- req.EAR[, !(names(req.EAR) %in% c("status_group", "age_group"))]
 reqsList <- "req.EAR"
 
 #' @param req.RDA.vits - Recommended Daily Allowance (RDA) data for vitamins
 req.RDA.vits <-
   openxlsx::read.xlsx(reqsFile, startRow = 1,  colNames = TRUE,
-                      sheet = "RDAorAI_vitamins", cols = 3:17)
+                      sheet = "RDAorAI_vitamins")
+req.RDA.vits <- req.RDA.vits[, !(names(req.RDA.vits) %in% c("status_group", "age_group"))]
+
 reqsList <- c(reqsList,"req.RDA.vits")
 
 #' @param req.RDA.minrls - Recommended Daily Allowance (RDA) data for minerals
 req.RDA.minrls <-
   openxlsx::read.xlsx(reqsFile, startRow = 1,  colNames = TRUE,
-                      sheet = "RDAorAI_minerals", cols = 3:18)
+                      sheet = "RDAorAI_minerals")
+req.RDA.minrls <- req.RDA.minrls[, !(names(req.RDA.minrls) %in% c("status_group", "age_group"))]
 reqsList <- c(reqsList,"req.RDA.minrls")
 
 #' @param req.RDA.macro - Recommended Daily Allowance (RDA) data for macro nutrients
 req.RDA.macro <-
   openxlsx::read.xlsx(reqsFile, startRow = 1, colNames = TRUE,
-                      sheet = "RDAorAI_macro", cols = 3:10)
+                      sheet = "RDAorAI_macro")
+req.RDA.macro <- req.RDA.macro[, !(names(req.RDA.macro) %in% c("status_group", "age_group"))]
 reqsList <- c(reqsList,"req.RDA.macro")
 
 #' @param req.UL.vits - Recommended Upper Limit (UL) data for vitamins
 req.UL.vits <-
   openxlsx::read.xlsx(reqsFile, startRow = 1,  colNames = TRUE,
-                      sheet = "UL_vitamins", cols = 3:18)
+                      sheet = "UL_vitamins")
+req.UL.vits <- req.UL.vits[, !(names(req.UL.vits) %in% c("status_group", "age_group"))]
 reqsList <- c(reqsList,"req.UL.vits")
 
 #' @param req.UL.minrls - Recommended Upper Limit (UL) data for minerals
 req.UL.minrls <-
   openxlsx::read.xlsx(reqsFile, startRow = 1,  colNames = TRUE,
-                      sheet = "UL_minerals", cols = 3:22)
+                      sheet = "UL_minerals")
+req.UL.minrls <- req.UL.minrls[, !(names(req.UL.minrls) %in% c("status_group", "age_group"))]
 reqsList <- c(reqsList,"req.UL.minrls")
 
 #' @param req.AMDR.hi - Acceptable Macronutrient Distribution Range, hi version
 req.AMDR.hi <-
-  req.AMDR.lo <-
   openxlsx::read.xlsx(reqsFile, startRow = 1,  colNames = TRUE,
-                      sheet = "AMDR_hi", cols = 3:13)
+                      sheet = "AMDR_hi")
+req.AMDR.hi <- req.AMDR.hi[, !(names(req.AMDR.hi) %in% c("status_group", "age_group"))]
 
 #' @param req.AMDR.lo - Acceptable Macronutrient Distribution Range, lo version
 req.AMDR.lo <-
   openxlsx::read.xlsx(reqsFile, startRow = 1,  colNames = TRUE,
                       sheet = "AMDR_lo", cols = 3:13)
-
+req.AMDR.lo <- req.AMDR.lo[, !(names(req.AMDR.lo) %in% c("status_group", "age_group"))]
 reqsList <- c(reqsList,"req.AMDR.hi", "req.AMDR.lo")
 
 # create lists of nutrients common to the food nutrient and  requirements lists ------

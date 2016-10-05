@@ -300,7 +300,6 @@ cleanupNutrientNames <- function(nutList) {
 #' @export
 keyVariable <- function(variableName) {
   switch.fixFish <- "TRUE"
-  switch.bioavail <- "TRUE"
   switch.useCookingRetnValues <- "TRUE"
   switch.changeElasticity <- "TRUE"
   region <- "region_code.IMPACT159"
@@ -500,7 +499,7 @@ fileNameList <- function(variableName) {
   CSEFileName     <- "CSEs20150824.xlsx"
   CSEs            <- paste(fileloc("IMPACTRawData"), CSEFileName, sep = "/")
   # IMPACT159regionsFileName <-
-    "IMPACTRegionsFeb2016.xlsx" # this file includes Denmark plus (DNP) and Sudan plus (SDP)
+  "IMPACTRegionsFeb2016.xlsx" # this file includes Denmark plus (DNP) and Sudan plus (SDP)
   #' IMPACT159regionsFileName <- "IMPACTRegionsMay2015.csv" # this file includes Denmark plus (DNP) and Sudan plus (SDP) and removes Greenland and South Sudan
   #' #IMPACT159regionsFileName <- "IMPACTRegionsJan15tmp.csv" # this file removes Denmark plus (DNP) and South Sudan (SSD) as well as removes Greenland and South Sudan
   # IMPACTregionsUpdateJun2016FileName <- "IMPACT regions update June 6 2016.xlsx"
@@ -509,9 +508,9 @@ fileNameList <- function(variableName) {
   # IMPACTstdRegionsFileName <- "IMPACT-agg-regionsFeb2016.xlsx"
   # IMPACTstdRegions <- paste(fileloc("IMPACTRawData"), IMPACTstdRegionsFileName, sep = "/")
   # IMPACTgdxfileName <- "Micronutrient-Inputs-USAID.gdx"  #-  gdx for the USAID results
- regionsLookupName <- "regions lookup Sep 6 2016.xlsx"
- regionsLookup <- paste(fileloc("rawData"),regionsLookupName, sep = "/")
- IMPACTgdxfileName <- "Micronutrient-Inputs-07252016.gdx"  #- gdx with SSP1, 2, and 3
+  regionsLookupName <- "regions lookup Sep 6 2016.xlsx"
+  regionsLookup <- paste(fileloc("rawData"),regionsLookupName, sep = "/")
+  IMPACTgdxfileName <- "Micronutrient-Inputs-07252016.gdx"  #- gdx with SSP1, 2, and 3
   #IMPACTgdxfileName <- "Demand Results20150817.gdx"
   IMPACTgdx         <- paste(fileloc("IMPACTRawData"), IMPACTgdxfileName, sep = "/")
   gdxLib            <- "/Applications/GAMS/gams24.5_osx_x64_64_sfx"
@@ -845,21 +844,21 @@ nutshareSpiderGraph <- function(reqFileName, countryCode, scenario, years, dir) 
 
   #  fileName <- resultFileLookup[reqType == reqTypeName, fileName]
   shareRatios <- getNewestVersion(reqFileName, dir)
- # keepListCol <- c("scenario", "SSP", "climate_model", "experiment", "RCP", "region_code.IMPACT159",
-                   keepListCol <- c("scenario", "SSP", "climate_model", "experiment", "region_code.IMPACT159",
+  # keepListCol <- c("scenario", "SSP", "climate_model", "experiment", "RCP", "region_code.IMPACT159",
+  keepListCol <- c("scenario", "SSP", "climate_model", "experiment", "region_code.IMPACT159",
                    "nutrient", years)
   idVars <- c("scenario", "SSP", "climate_model", "experiment", "region_code.IMPACT159", "nutrient")
 
   if ("food_group_code" %in% names(shareRatios)) {
-#    keepListCol <- c("scenario", "SSP", "climate_model", "experiment", "RCP", "region_code.IMPACT159",
-                     keepListCol <- c("scenario", "SSP", "climate_model", "experiment", "region_code.IMPACT159",
+    #    keepListCol <- c("scenario", "SSP", "climate_model", "experiment", "RCP", "region_code.IMPACT159",
+    keepListCol <- c("scenario", "SSP", "climate_model", "experiment", "region_code.IMPACT159",
                      "food_group_code", "nutrient", years)
     idVars <- c("scenario", "SSP", "climate_model", "experiment", "region_code.IMPACT159", "nutrient", "food_group_code")
     formula.ratios <- paste("scenario + SSP + climate_model + experiment + region_code.IMPACT159 + nutrient + year ~ food_group_code")
   }
   if ("staple_code" %in% names(shareRatios)) {
- #   keepListCol <- c("scenario", "SSP", "climate_model", "experiment", "RCP", "region_code.IMPACT159",
-                     keepListCol <- c("scenario", "SSP", "climate_model", "experiment", "region_code.IMPACT159",
+    #   keepListCol <- c("scenario", "SSP", "climate_model", "experiment", "RCP", "region_code.IMPACT159",
+    keepListCol <- c("scenario", "SSP", "climate_model", "experiment", "region_code.IMPACT159",
                      "staple_code", "nutrient", years)
     idVars <- c("scenario", "SSP", "climate_model", "experiment", "region_code.IMPACT159", "nutrient", "staple_code")
     formula.ratios <- paste("scenario + SSP + climate_model + experiment + region_code.IMPACT159 + nutrient + year ~ staple_code")
