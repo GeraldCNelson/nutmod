@@ -1,6 +1,6 @@
 #' @author Gerald C. Nelson, \email{nelson.gerald.c@@gmail.com}
 #' @keywords nutrient data,
-#' @title Calculate nutrient deltas across scenarios
+#' @title aggregate country results to different aggregation units
 #' @name aggRun.R
 #' @include nutrientModFunctions.R
 #if (!exists("getNewestVersion", mode = "function"))
@@ -24,13 +24,13 @@ scenario.base <- "SSP2-NoCC-REF"; if (gdxChoice == "USAID") scenario.base <- "SS
 
 aggChoiceListBarChart <- c("WB", "AggReg1") # missing "tenregions", AggReg2 and  "2EconGroup
 multipleNutsFileList <- c("dt.nutrients.sum.all", "RDA.macro.sum.req.ratio", "RDA.minrls.sum.req.ratio", "RDA.vits.sum.req.ratio",
-                          "dt.nutrients.nonstapleShare", "dt.energy.ratios")
+                          "dt.nutrients.nonstapleShare", "dt.energy.ratios", "PR.iron.sum.req.ratio", "PR.iron.sum.req.ratio")
 multipleNutsListShortName <- c("nutrients.avail", "macro.req.ratio", "minrls.req.ratio", "vits.req.ratio",
                                "nutrients.nonstaples.share", "energy.ratios")
 
 # population for weighting -----
 dt.pop <- getNewestVersion("dt.PopX0", fileloc("iData"))
-dt.pop.2010.ref <- dt.pop[year ==  "X2010" & scenario == scenario.base,][,c("scenario", "year") :=  NULL]
+#dt.pop.2010.ref <- dt.pop[year ==  "X2010" & scenario == scenario.base,][,c("scenario", "year") :=  NULL]
 for (i in aggChoiceListBarChart) {
   for (j in multipleNutsFileList) {
     DT <- getNewestVersion(j, fileloc("resultsDir"))
@@ -38,14 +38,15 @@ for (i in aggChoiceListBarChart) {
     dt.regions <- regionAgg(i)
     # aggregate to and retain only the relevant regions
     temp <- merge(DT, dt.regions, by = "region_code.IMPACT159")
-    merged <- merge(temp, dt.pop.2010.ref, by = "region_code.IMPACT159")
+#    merged <- merge(temp, dt.pop.2010.ref, by = "region_code.IMPACT159")
+    merged <- merge(temp, dt.pop, by = c("scenario","region_code.IMPACT159", "year"))
     for (k in unique(DT$nutrient)) {
-      merged <- merged[, paste("value",i,sep = ".") := weighted.mean(value, PopX0), by = c("scenario", "region_code", "year", "nutrient")]
+      merged <- merged[, paste("value",i,sep = ".") := weighted.mean(value, PopX0), by = c("scenario", "region_code.IMPACT159", "year", "nutrient")]
     }
     keepListCol <- c("scenario", "region_code", "region_name", "nutrient", "year", paste("value",i,sep = "."))
     DT <- unique(merged[, (keepListCol), with = FALSE])
     inDT <- DT
     outName <- paste(j,i, sep = ".")
-    cleanup(inDT, outName, fileloc("resultsDir"))
+    cleanup(inDT, outName, fileloc("resultsDir"), "csv")
   }
 }

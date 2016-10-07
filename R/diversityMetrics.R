@@ -41,12 +41,12 @@ dt.IMPACTfood[, foodAvailpDay := FoodAvailability / keyVariable("DinY")][,FoodAv
 
 dt.nutrients <- getNewestVersion("dt.nutrients")
 keepListCol <- c("IMPACT_code", "protein_g", "fat_g", "carbohydrate_g", "totalfiber_g")
-                 # , "calcium_mg", "iron_mg",
-                 # "magnesium_mg", "phosphorus_mg", "potassium_g", "zinc_mg", "vit_c_mg",
-                 # "thiamin_mg", "riboflavin_mg", "niacin_mg", "vit_b6_mg", "folate_µg",
-                 # "vit_b12_µg", "vit_a_rae_µg", "vit_e_mg", "vit_d_µg", "vit_k_µg",
-                 # "ft_acds_tot_sat_g", "ft_acds_mono_unsat_g", "ft_acds_plyunst_g", "cholesterol_mg",
-                 # "ft_acds_tot_trans_g")
+# , "calcium_mg", "iron_mg",
+# "magnesium_mg", "phosphorus_mg", "potassium_g", "zinc_mg", "vit_c_mg",
+# "thiamin_mg", "riboflavin_mg", "niacin_mg", "vit_b6_mg", "folate_µg",
+# "vit_b12_µg", "vit_a_rae_µg", "vit_e_mg", "vit_d_µg", "vit_k_µg",
+# "ft_acds_tot_sat_g", "ft_acds_mono_unsat_g", "ft_acds_plyunst_g", "cholesterol_mg",
+# "ft_acds_tot_trans_g")
 dt.nutrients <- dt.nutrients[, (keepListCol), with = FALSE]
 nutlist <- colnames(dt.nutrients)[!colnames(dt.nutrients) %in% "IMPACT_code"]
 itemlist <- unique(dt.nutrients$IMPACT_code)
@@ -54,7 +54,7 @@ d <- vector(mode = "numeric", length = length(nutlist) * length(itemlist))
 k = 1
 for (i in 1:length(nutlist)) {
   for (j in 2:length(itemlist)) {
-  d[k] <- (dt.nutrients[IMPACT_code == itemlist[j],get(nutlist[i])] - dt.nutrients[IMPACT_code == itemlist[j - 1],get(nutlist[i])])^2
-k = k + 1
-    }
+    d[k] <- (dt.nutrients[IMPACT_code == itemlist[j],get(nutlist[i])] - dt.nutrients[IMPACT_code == itemlist[j - 1],get(nutlist[i])])^2
+    k = k + 1
+  }
 }

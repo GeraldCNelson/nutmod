@@ -43,7 +43,8 @@ copyListFromResults <- c("dt.energy.ratios", "dt.budgetShare",
                          "RDA.macro.staples.ratio","RDA.vits.staples.ratio", "RDA.minrls.staples.ratio",
                          "RDA.macro.FG.ratio","RDA.vits.FG.ratio", "RDA.minrls.FG.ratio",
                          "UL.vits.sum.req.ratio", "UL.minrls.sum.req.ratio",  "dt.shannonDiversity", "metaData",
-                         "UL.minrls.FG.ratio", "UL.vits.FG.ratio", "dt.nutrients.sum.all", "dt.nutrients.sum.staples")
+                         "UL.minrls.FG.ratio", "UL.vits.FG.ratio", "dt.nutrients.sum.all", "dt.nutrients.sum.staples",
+                         "PR.iron.sum.req.ratio", "PR.iron.sum.req.ratio")
 
 copyListFromData <- c("dt.regions.all", "dt.foodGroupsInfo", "resultFileLookup")
 copyListFromiData <- c("dt.IMPACTgdxParams")

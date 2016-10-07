@@ -343,7 +343,9 @@ keyVariable <- function(variableName) {
       "req.UL.vits",
       "req.UL.minrls",
       "req.AMDR.hi",
-      "req.AMDR.lo"
+      "req.AMDR.lo",
+      "req.PR.iron",
+      "req.PR.zinc"
     )
   reqsListPercap <- paste(reqsList,".percap", sep = "")
   reqsListSSP <- paste(reqsList,".ssp", sep = "")
@@ -491,7 +493,7 @@ fileNameList <- function(variableName) {
   # NutrientData    <- fileloc("NutrientData")gdx
   nutrientDataDetails <- paste(fileloc("rawData"), "NutrientData/nutrientDetails", sep = "/")
   SSPData         <- fileloc("SSPData")
-  DRIFileName     <- "DRI_IOM_V7.xlsx"
+  DRIFileName     <- "DRI_IOM_V8.xlsx"
   mData <- fileloc("mData")
   DRIs            <- paste(nutrientDataDetails, DRIFileName, sep = "/")
   # CSE - consumer support equivalent
@@ -522,7 +524,7 @@ fileNameList <- function(variableName) {
   IMPACTfoodFileName <- "dt.IMPACTfood"
   IMPACTfoodFileInfo <-  paste(mData,"/IMPACTData/",IMPACTfoodFileName,sep = "")
   # nutrient data ------
-  nutrientFileName <- "USDA GFS IMPACT V26.xlsx"
+  nutrientFileName <- "USDA GFS IMPACT V27.xlsx"
   nutrientLU       <- paste(nutrientDataDetails, nutrientFileName, sep = "/")
   foodGroupLUFileName <-
     "food commodity to food group table V4.xlsx"

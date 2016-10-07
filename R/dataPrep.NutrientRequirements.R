@@ -95,9 +95,20 @@ req.AMDR.hi <- req.AMDR.hi[, !(names(req.AMDR.hi) %in% c("status_group", "age_gr
 #' @param req.AMDR.lo - Acceptable Macronutrient Distribution Range, lo version
 req.AMDR.lo <-
   openxlsx::read.xlsx(reqsFile, startRow = 1,  colNames = TRUE,
-                      sheet = "AMDR_lo", cols = 3:13)
+                      sheet = "AMDR_lo")
 req.AMDR.lo <- req.AMDR.lo[, !(names(req.AMDR.lo) %in% c("status_group", "age_group"))]
 reqsList <- c(reqsList,"req.AMDR.hi", "req.AMDR.lo")
+
+req.PR.iron <-
+  openxlsx::read.xlsx(reqsFile, startRow = 1,  colNames = TRUE,
+                      sheet = "PR_iron")
+req.PR.iron <- req.PR.iron[, !(names(req.PR.iron) %in% c("status_group", "age_group"))]
+
+req.PR.zinc <-
+  openxlsx::read.xlsx(reqsFile, startRow = 1,  colNames = TRUE,
+                      sheet = "PR_zinc")
+req.PR.zinc <- req.PR.zinc[, !(names(req.PR.iron) %in% c("status_group", "age_group"))]
+reqsList <- c(reqsList,"req.PR.iron", "req.PR.zinc")
 
 # create lists of nutrients common to the food nutrient and  requirements lists ------
 # keep only the common nutrients in the req list---
