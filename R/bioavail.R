@@ -112,9 +112,7 @@ dt.foodnNuts[protein_per_1000kcal < 9  & vit_c_per_1000kcal < 35,
              nonhemeBioavail := 5]
 dt.foodnNuts[protein_per_1000kcal >= 9 & protein_per_1000kcal < 28 & vit_c_per_1000kcal > 35,
              nonhemeBioavail := 10]
-dt.foodnNuts[protein_per_1000kcal < 9 & vit_c_per_1000kcal >= 28 & vit_c_per_1000kcal < 35,
-             nonhemeBioavail := 10]
-dt.foodnNuts[protein_per_1000kcal < 9 & vit_c_per_1000kcal >= 35 & vit_c_per_1000kcal < 106,
+dt.foodnNuts[protein_per_1000kcal < 9 & vit_c_per_1000kcal >= 35 & vit_c_per_1000kcal > 106,
              nonhemeBioavail := 10]
 
 dt.foodnNuts[, sum.iron.avail := sum.iron.heme + sum.iron.nonheme*nonhemeBioavail/100]

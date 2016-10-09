@@ -33,6 +33,7 @@ dt.pop <- getNewestVersion("dt.PopX0", fileloc("iData"))
 #dt.pop.2010.ref <- dt.pop[year ==  "X2010" & scenario == scenario.base,][,c("scenario", "year") :=  NULL]
 for (i in aggChoiceListBarChart) {
   for (j in multipleNutsFileList) {
+    print(j)
     DT <- getNewestVersion(j, fileloc("resultsDir"))
 
     dt.regions <- regionAgg(i)

@@ -1,7 +1,7 @@
 #' @author Gerald C. Nelson, \email{nelson.gerald.c@@gmail.com}
 #' @keywords utilities, nutrient data, IMPACT food commodities nutrient lookup
 # Intro ---------------------------------------------------------------
-#Copyright (C) 2015 Gerald C. Nelson, except where noted
+#Copyright (C) 2015-2016 Gerald C. Nelson, except where noted
 
 #     This program is free software: you can redistribute it and/or modify it
 #     under the terms of the GNU General Public License as published by the Free
@@ -24,16 +24,10 @@ if (!exists("getNewestVersion", mode = "function"))
 
 # region <- keyVariable("region")
 reqsList <- keyVariable("reqsListPercap")
-  c(
-    "req.EAR.percap",
-    "req.RDA.vits.percap" ,
-    "req.RDA.minrls.percap",
-    "req.RDA.macro.percap",
-    "req.UL.vits.percap",
-    "req.UL.minrls.percap",
-    "req.AMDR.hi",
-    "req.AMDR.lo"
-  )
+# exclude the following from the graphing
+deleteList <- c("req.EAR.percap","req.UL.vits.percap",
+                "req.UL.minrls.percap", "req.AMDR.hi","req.AMDR.lo")
+
 scenario <- "SSP2-GFDL" # for testing
 scenarioResults <- function(scenario) {}
 for (req in reqsList) {

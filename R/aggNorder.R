@@ -12,6 +12,8 @@ library(data.table)
 library(gridExtra)
 library(gplots)
 
+# population for weighting -----
+dt.pop <- getNewestVersion("dt.PopX0", fileloc("iData"))
 
 orderRegions <- function(DT,aggChoice) {
   # order by regions
@@ -45,12 +47,13 @@ orderRegions <- function(DT,aggChoice) {
 }
 
 aggNorder <- function(gdxChoice, DTglobal, aggChoice, scenChoice) {
+  print(paste("running aggNorder for ", gdxChoice, " and ", i))
   DT <- getNewestVersion(DTglobal, fileloc("resultsDir"))
   setkey(DT, NULL)
   dt.regions <- regionAgg(aggChoice)
   # aggregate to and retain only the relevant regions
   temp <- merge(DT, dt.regions, by = "region_code.IMPACT159")
-  merged <- merge(temp, dt.pop.2010.ref, by = "region_code.IMPACT159")
+  merged <- merge(temp, dt.pop, by = c("scenario","region_code.IMPACT159","year"))
   # merged <- merged[region_code.IMPACT159 %in% region_code, ]
   # deal with the budget data
   if ("incSharePCX0" %in% names(merged)) {
@@ -72,7 +75,9 @@ aggNorder <- function(gdxChoice, DTglobal, aggChoice, scenChoice) {
   #  temp <- temp[, region.budget.share := mean(value), by = c("region_code", "year")]
   merged <- merged[, value := weighted.mean(value, PopX0), by = c("scenario", "region_code", "year")]
   keepListCol <- c("scenario",  "year", "region_code", "region_name", "value")
-  DT <- unique(merged[, (keepListCol), with = FALSE])
+  merged <- merged[, (keepListCol), with = FALSE]
+  data.table::setkey(merged, NULL)
+  DT <- unique(merged)
   #keep just the scenario.base scenario for 2010 and rename the scenario to 2010, then delete year column
   DT <- DT[year == "X2010" & scenario == scenario.base |
              year == "X2050",]
@@ -110,6 +115,7 @@ aggNorder <- function(gdxChoice, DTglobal, aggChoice, scenChoice) {
 }
 
 plotByRegionBar <- function(dt, fileName, title, yLab, yRange,aggChoice) {
+  print(paste("plotting bars by region ", aggChoice, "for ", title))
   temp <- copy(dt)
   regionCodes <- unique(temp$region_code)
   regionNames <- unique(temp$region_name)
@@ -119,7 +125,7 @@ plotByRegionBar <- function(dt, fileName, title, yLab, yRange,aggChoice) {
   legendText <- unique(gsub("-REF", "", scenarios))
   #  formula.wide <- "scenario ~ region_code"
   #the use of factor and levels keeps the order of the regions in region_code
-  formula.wide <- "scenario ~ factor(region_code, levels=unique(region_code))"
+  formula.wide <- "scenario~ factor(region_code, levels=unique(region_code))"
   temp.wide <- data.table::dcast(
     data = temp,
     formula = formula.wide,
@@ -150,5 +156,43 @@ plotByRegionBar <- function(dt, fileName, title, yLab, yRange,aggChoice) {
   textplot(temp.wide, cex = 0.6, valign = "top", show.rownames = FALSE, mai = c(.5, .5, .5, .5))
   dev.off()
   write.csv(temp.wide, file = paste("graphics/", fileName, ".", aggChoice, ".csv", sep = ""))
+  print(paste("Done plotting bars by region ", aggChoice, "for ", title))
+  print(" ")
+
 }
+
+plotByRegionLine <- function(dt, fileName, title, yRange, regionCodes) {
+  temp <- copy(dt)
+  temp <- merge(temp, dt.GDP.2010.ref, by = "region_code.IMPACT159")
+  temp <- temp[region_code.IMPACT159 %in% regionCodes]
+  scenarios <- unique(temp$scenario)
+  pdf(paste("graphics/", fileName, ".pdf", sep = ""))
+  colList <- c("red", "red2", "red4", "green", "green2", "green4", "black")
+  par(mfrow = c(1,1))
+  legendText <- NULL
+  for (i in 1:length(scenarios)) {
+    if (i == 1) {
+      plot(temp[year %in% "X2050" & scenario == scenarios[i],value], type = "l", col = "green",
+           xlab = "", xaxt = "n", ylab = "share (%)",
+           main = title, cex.main = 1, ylim = yRange) # common range for requirements share
+      #      main = nutShortname,cex.main=1, ylim = c(0, round(max(scen.temp$value))))
+      par(new = T)
+    } else {
+      lines(temp[year %in% "X2050" & scenario == scenarios[i],value], col = colList[i])
+      par(new = F)
+    }
+    legendText <- c(legendText,scenarios[i])
+  }
+  lines(temp[year %in% "X2010" & scenario %in% scenario.base, value], col = "black")
+  legendText <- c(legendText, "2010")
+  # print(legendText)
+  axis(1, at = 1:length(unique(dt.GDP.2010.ref$region_code.IMPACT159)), labels = unique(dt.GDP.2010.ref$region_code.IMPACT159), cex.axis = 0.5, padj = -3)
+  abline(h = 1, lty = 3, lwd = 0.8)
+  legendText <- gsub("-REF", "", legendText)
+  legend(x = "topright", y = NULL, legend = legendText, bty = "n", pch = 20,
+         col = colList, text.col = "black", cex = .5, pt.cex = .5, pt.lwd = 1,
+         y.intersp = .8)
+  dev.off()
+}
+
 

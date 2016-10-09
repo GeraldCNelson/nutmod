@@ -496,45 +496,45 @@ plotByRegionLine <- function(dt, fileName, title, yRange, regionCodes) {
          y.intersp = .8)
   dev.off()
 }
-
-plotByRegionBar <- function(dt, fileName, title, yLab, yRange, regionList) {
-  temp <- copy(dt)
-  regionCodes <- regionList[, region_code]
-  regionNames <- regionList[, region_name]
-  regionNames <- gsub(" plus", "", regionNames)
-  temp <- temp[region_code %in% regionCodes]
-  colList <- c("black", "red", "red2", "red4", "green", "green2", "green4")
-  # par(mfrow = c(1,1))
-  # for (i in regionCodes) {
-  legendText <- unique(gsub("-REF", "", temp$scenario))
-  temp <- temp[year == "X2010" & scenario == scenario.base |
-                 year == "X2050" ,][year == "X2010", scenario := "2010"]
-  scenarios <- unique(temp$scenario)
-  pdf(paste("graphics/", fileName, ".pdf", sep = ""))
-  formula.wide <- "scenario + year ~ region_code"
-  temp.wide <- data.table::dcast(
-    data = temp,
-    formula = formula.wide,
-    value.var = "value")
-  temp.wide[, year := NULL]
-  #   temp.wide$scenario = NULL
-  # temp.wide[scenario == "SSP2-NoCC-REF" ,newOrder := 1] [scenario == "SSP1-NoCC-REF" ,newOrder := 2][scenario == "SSP3-NoCC-REF" ,newOrder := 3]
-  # temp.wide[scenario == "SSP2-GFDL-REF" ,newOrder := 4] [scenario == "SSP2-HGEM-REF" ,newOrder := 5][scenario == "SSP2-IPSL-REF" ,newOrder := 6]
-  # data.table::setorder(temp.wide, newOrder)
-  # temp.wide[,newOrder := NULL]
-  data.table::setnames(temp.wide, old = regionCodes, new = regionNames)
-  regionNames <- sort(regionNames)
-#  data.table::setcolorder(temp.wide, c("scenario", regionNames))
-  temp.wide <- as.data.frame(temp.wide)
-  rownames(temp.wide) <-  temp.wide[,1]
-  temp.wide[1] = NULL
-  temp.wide <- data.matrix(temp.wide)
- # print(temp.wide)
-  barplot(temp.wide,  col = colList, ylim = yRange,
-               legend = gsub("-REF", "", rownames(temp.wide)), args.legend = list(cex = .7),
-               beside = TRUE, ylab = yLab,  cex.names = .7, las = 2,  main = title)
-  dev.off()
-}
+#
+# plotByRegionBar <- function(dt, fileName, title, yLab, yRange, regionList) {
+#   temp <- copy(dt)
+#   regionCodes <- regionList[, region_code]
+#   regionNames <- regionList[, region_name]
+#   regionNames <- gsub(" plus", "", regionNames)
+#   temp <- temp[region_code %in% regionCodes]
+#   colList <- c("black", "red", "red2", "red4", "green", "green2", "green4")
+#   # par(mfrow = c(1,1))
+#   # for (i in regionCodes) {
+#   legendText <- unique(gsub("-REF", "", temp$scenario))
+#   temp <- temp[year == "X2010" & scenario == scenario.base |
+#                  year == "X2050" ,][year == "X2010", scenario := "2010"]
+#   scenarios <- unique(temp$scenario)
+#   pdf(paste("graphics/", fileName, ".pdf", sep = ""))
+#   formula.wide <- "scenario + year ~ region_code"
+#   temp.wide <- data.table::dcast(
+#     data = temp,
+#     formula = formula.wide,
+#     value.var = "value")
+#   temp.wide[, year := NULL]
+#   #   temp.wide$scenario = NULL
+#   # temp.wide[scenario == "SSP2-NoCC-REF" ,newOrder := 1] [scenario == "SSP1-NoCC-REF" ,newOrder := 2][scenario == "SSP3-NoCC-REF" ,newOrder := 3]
+#   # temp.wide[scenario == "SSP2-GFDL-REF" ,newOrder := 4] [scenario == "SSP2-HGEM-REF" ,newOrder := 5][scenario == "SSP2-IPSL-REF" ,newOrder := 6]
+#   # data.table::setorder(temp.wide, newOrder)
+#   # temp.wide[,newOrder := NULL]
+#   data.table::setnames(temp.wide, old = regionCodes, new = regionNames)
+#   regionNames <- sort(regionNames)
+# #  data.table::setcolorder(temp.wide, c("scenario", regionNames))
+#   temp.wide <- as.data.frame(temp.wide)
+#   rownames(temp.wide) <-  temp.wide[,1]
+#   temp.wide[1] = NULL
+#   temp.wide <- data.matrix(temp.wide)
+#  # print(temp.wide)
+#   barplot(temp.wide,  col = colList, ylim = yRange,
+#                legend = gsub("-REF", "", rownames(temp.wide)), args.legend = list(cex = .7),
+#                beside = TRUE, ylab = yLab,  cex.names = .7, las = 2,  main = title)
+#   dev.off()
+# }
 
 # plot Shannon Diversity by country and scenario -----
 plotByRegionLine(dt.shannonDiversity, "ShannonDiversity", "Shannon Diversity", yRange = c(20, 80), regionCodes156)
