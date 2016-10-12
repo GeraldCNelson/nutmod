@@ -178,11 +178,11 @@ for (k in 1:length(multipleNutsFileList)) {
 # write out zip files
 for (i in multipleNutsFileList) {
   inDT <- getNewestVersion(i, fileloc("resultsDir"))
-  write.csv(inDT, file = gzfile(paste(i,".csv.zip", sep = "")))
+  write.csv(inDT, file = gzfile(paste("graphics/",i,".csv.zip", sep = "")))
 }
 
 #create zip file of all the graphics outputs for a set of scenarios
 graphs.fileNames <- list.files(path = "graphics")
 zip(zipfile = paste(fileloc("gDir"),"/", scenChoice.name,".zip", sep = ""), files = paste(fileloc("gDir"),"/", graphs.fileNames, sep = ""))
 
-
+source("R/aggregateResults.R")
