@@ -225,7 +225,8 @@ for (scenarioChoice in scenarioListSSP.GDP) {
     dt.FBS.subset <- dt.FBS.kgPerCap[J(ctyChoice, IMPACTfish_code)]
     # some countries don't have fish values for the base year. Next two lines of code deal with this.
     dt.FBS.subset[, year := (middleYear)]
-    dt.FBS.subset[is.na(get(baseYear)), (baseYear) := 0, with = FALSE]
+#    dt.FBS.subset[is.na(get(baseYear)), (baseYear) := 0, with = FALSE]
+    dt.FBS.subset[is.na(get(baseYear)), (baseYear) := 0]
     data.table::setkeyv(dt.FBS.subset, c("IMPACT_code", baseYear))
 
     # subset on country and the current scenario

@@ -116,10 +116,11 @@ generateResults <- function(req, dt.IMPACTfood, scenarioListIMPACT, dt.nutrients
   # if (req %in% "req.UL.minrls.percap")  keepListCol <- c(keepListCol, "phytate_mg", "energy_kcal", "vit_c_mg", "protein_g")
 
   # use the data table dt.nuts only in the function
-  dt.nuts <- data.table::copy(dt.nutrients[,keepListCol, with = FALSE])
+  dt.nuts <- data.table::copy(dt.nutrients)
+  dt.nuts <- dt.nuts[,(keepListCol), with = FALSE]
   # convert nutrients (in 100 grams of food) to nutrients per kg of food -----
   dt.nuts[, (nutListReq) := lapply(.SD, function(x) (x * 10)), .SDcols = nutListReq]
-
+  if ("req.PR.zinc.percap" %in% req | "req.PR.iron.percap" %in% req) dt.nuts[, phytate_mg := phytate_mg * 10]
   #combine the food availability info with the nutrients for each of the IMPACT commodities
   data.table::setkey(dt.nuts, IMPACT_code)
   data.table::setkeyv(dt.food, c("scenario","region_code.IMPACT159","IMPACT_code","year" ))
@@ -206,7 +207,7 @@ generateResults <- function(req, dt.IMPACTfood, scenarioListIMPACT, dt.nutrients
 
     dt.bioavail[sum.stimsFactor < 40, sum.stimsFactor := 40]
     deleteListCol <- c("IMPACT_code", "iron.raw_mg",  "iron.heme_mg", "iron.nonheme_mg", "kcal.avail", "kcal.cereals_legumes",
-                      "protein.animal.avail_g", "stimsFactor", "vit_c.avail_mg")
+                       "protein.animal.avail_g", "stimsFactor", "vit_c.avail_mg")
     dt.bioavail[, (deleteListCol) := NULL]
     dt.bioavail <- unique(dt.bioavail)
 
@@ -257,7 +258,10 @@ generateResults <- function(req, dt.IMPACTfood, scenarioListIMPACT, dt.nutrients
     deleteListCol <- c("IMPACT_code", "zinc.raw_mg", "phytate_mg")
     dt.bioavail[, (deleteListCol) := NULL]
     dt.bioavail <- unique(dt.bioavail)
-
+    # This is based on equation 11 of 1. L. V. Miller, N. F. Krebs, K. M. Hambidge,
+    # A mathematical model of zinc absorption in humans as a function of dietary zinc and phytate.
+    # J. Nutr. 137, 135–41 (2007).
+    # Three parameters have been updated in a 2010 paper.
     zincAtomMass  <- 65.38
     phytMolecMass <- 660
     amax2010 = .091; kr2010 = .033; kp2010 = .68

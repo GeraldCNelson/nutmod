@@ -31,6 +31,7 @@
 #'
 #' @param mData - main data directory
 #' @param iData - directory with IMPACT data
+#' @param gDir  - the path to the graphics directory
 #' @param resultsPaperDir - directory with results for the paper
 #' @param resultsDir - directory for results
 #' @param FBSData - directory where FBS data are kept
@@ -43,6 +44,7 @@
 fileloc <- function(variableName) {
   rawData <- "data-raw"
   mData <- "data"
+  gDir <- "graphics"
   iData <- "data/IMPACTData"
   nutData <- "data-raw/NutrientData"
   resultsDir <- "results"
@@ -59,6 +61,7 @@ fileloc <- function(variableName) {
       "rawData",
       "mData",
       "iData",
+      "gDir",
       "resultsDir",
       "resultsPaperDir",
       "shinyApp",
@@ -509,10 +512,10 @@ fileNameList <- function(variableName) {
   # IMPACT159regions <- paste(fileloc("IMPACTRawData"), IMPACT159regionsFileName, sep = "/")
   # IMPACTstdRegionsFileName <- "IMPACT-agg-regionsFeb2016.xlsx"
   # IMPACTstdRegions <- paste(fileloc("IMPACTRawData"), IMPACTstdRegionsFileName, sep = "/")
-  # IMPACTgdxfileName <- "Micronutrient-Inputs-USAID.gdx"  #-  gdx for the USAID results
+   IMPACTgdxfileName <- "Micronutrient-Inputs-USAID.gdx"  #-  gdx for the USAID results
   regionsLookupName <- "regions lookup Sep 6 2016.xlsx"
   regionsLookup <- paste(fileloc("rawData"),regionsLookupName, sep = "/")
-  IMPACTgdxfileName <- "Micronutrient-Inputs-07252016.gdx"  #- gdx with SSP1, 2, and 3
+  #IMPACTgdxfileName <- "Micronutrient-Inputs-07252016.gdx"  #- gdx with SSP1, 2, and 3
   #IMPACTgdxfileName <- "Demand Results20150817.gdx"
   IMPACTgdx         <- paste(fileloc("IMPACTRawData"), IMPACTgdxfileName, sep = "/")
   gdxLib            <- "/Applications/GAMS/gams24.5_osx_x64_64_sfx"

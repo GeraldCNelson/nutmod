@@ -21,14 +21,15 @@ library(data.table)
 # scenChoices for the USAID gdx are scenarioList.prodEnhance, scenarioList.waterMan, scenarioList.addEnhance, scenarioList.comp
 # scenChoice for SSPs is scenOrder.SSPs
 scenOrder.SSPs <- c("2010", "SSP2-NoCC-REF", "SSP1-NoCC-REF", "SSP3-NoCC-REF", "SSP2-GFDL-REF", "SSP2-IPSL-REF", "SSP2-HGEM-REF")
-gdxChoice <- "SSPs"; scenChoice <- scenOrder.SSPs # if the gdx is USAID, these are changed below in an if statement
+gdxChoice <- "USAID";
+scenChoice.name <- "scenOrder.SSPs"; scenChoice <- get(scenChoice.name) # if the gdx is USAID, these are changed below in an if statement
 
 
 aggChoiceListBarChart <- c("tenregions", "WB", "AggReg1") # missing AggReg2 and  "2EconGroup
 multipleNutsFileList <- c("dt.nutrients.sum.all", "RDA.macro.sum.req.ratio", "RDA.minrls.sum.req.ratio", "RDA.vits.sum.req.ratio",
-                          "dt.nutrients.nonstapleShare") # "dt.energy.ratios" not included
+                          "dt.nutrients.nonstapleShare", "PR.zinc.sum.req.ratio", "PR.iron.sum.req.ratio") # "dt.energy.ratios" not included
 multipleNutsListShortName <- c("nutrients.avail", "macro.req.ratio", "minrls.req.ratio", "vits.req.ratio",
-                               "nutrients.nonstaples.share", "energy.ratios")
+                               "nutrients.nonstaples.share", "zinc_bioavail.req.ratio", "iron_bioavail.req.ratio")
 #nutrients grouping
 macroNutrients <- c("protein_g", "fat_g", "carbohydrate_g",  "totalfiber_g")
 vitamins <- c("vit_c_mg", "thiamin_mg", "riboflavin_mg", "niacin_mg",
@@ -46,17 +47,18 @@ if (gdxChoice  == "USAID") {
   prodEnhance <- c("MED", "HIGH", "HIGH_NARS", "HIGH_RE", "REGION")
   waterMan <- c("IX", "IX_WUE", "ISW", "IX_WUE_NoCC", "IX_IPSL", "ISW_NoCC", "ISW_IPSL")
   addEnhance <- c("RPHL", "RMM")
-  scenarioList.comp <- c("COMP", "COMP_NoCC", "COMP_IPSL")
+  comp <- c("COMP", "COMP_NoCC", "COMP_IPSL")
 
   #USAID scenario list choice
-  scenChoice <- prodEnhance
+  scenChoice.name <- "comp"
+  scenChoice <- get(scenChoice.name)
 }
 
 # choose name of base scenario
 scenario.base <- "SSP2-NoCC-REF"; if (gdxChoice == "USAID") scenario.base <- "SSP2-NoCC-NA"
 
 #for testing
-aggChoice <- "WB"; DTglobal <- "dt.shannonDiversity"
+#aggChoice <- "WB"; DTglobal <- "dt.shannonDiversity"
 
 # dt.pop.2010.ref <- dt.pop[year ==  "X2010" & scenario == scenario.base,][,c("scenario","year") :=  NULL]
 "dt.nutrientNames_Units" <- getNewestVersion("dt.nutrientNames_Units", fileloc("mData"))
@@ -83,7 +85,7 @@ for (k in 1:length(multipleNutsFileList)) {
   temp.in <- temp.in[year == "X2010" & scenario == scenario.base |
                        year == "X2050",]
   temp.in <- temp.in[year == "X2010", scenario := "2010"]
- # temp.in <- temp.in[, year := NULL]
+  # temp.in <- temp.in[, year := NULL]
   shortName <- multipleNutsListShortName[k]
 
   for (i in aggChoiceListBarChart) {
@@ -138,20 +140,27 @@ for (k in 1:length(multipleNutsFileList)) {
       DT <- orderRegions(DT, i)
       reqRatioFiles <- c( "RDA.macro.sum.req.ratio", "RDA.minrls.sum.req.ratio", "RDA.vits.sum.req.ratio",
                           "PR.zinc.sum.req.ratio", "PR.iron.sum.req.ratio")
-      if (multipleNutsFileList[k] == "dt.nutrients.sum.all")  nutTitle <- paste("Average daily availability of ", tolower(nutlongName), sep = "")
+      if (multipleNutsFileList[k] == "dt.nutrients.sum.all")  {
+        nutTitle <- paste("Average daily availability of ", tolower(nutlongName), sep = "")
+        ylab = paste("(",units,")",sep = "")
+      }
       if (multipleNutsFileList[k] %in% reqRatioFiles)  {
-        nutTitle <- paste("Average availability as share of RDA, ", nutlongName, sep = "")
-        units = "percent"
+        nutTitle <- paste("Average availability as share of RDA or AI, ", nutlongName, sep = "")
+        ylab = NULL
+      }
+      if (multipleNutsFileList[k] %in% c( "PR.zinc.sum.req.ratio", "PR.iron.sum.req.ratio"))  {
+        nutTitle <- paste("Average bioavailability as \nshare of physiological requirement, ", nutlongName, sep = "")
+        ylab = NULL
       }
       if (multipleNutsFileList[k] == "dt.nutrients.nonstapleShare")  {
         nutTitle <- paste("Non-staple share of ", nutlongName, " availability", sep = "")
-        units = "percent"
+        ylab = "(percent)"
       }
-      plotByRegionBar(dt = DT, fileName = paste(j, shortName, sep = "."), title = nutTitle, yLab = paste("(", units, ")", sep = ""), yRange = NULL, aggChoice = i)
+      plotByRegionBar(dt = DT, fileName = paste(j, shortName, sep = "."), title = nutTitle, yLab = ylab, yRange = NULL, aggChoice = i)
     }
   }
   print(paste("Done with ", multipleNutsFileList[k]))
-print( )
+  print(" ", quote = FALSE)
 }
 
 # nutsSum.out <- aggNorder(gdxChoice, DTglobal = " dt.nutrients.sum.all", aggChoice, scenChoice)
@@ -163,12 +172,17 @@ print( )
 # # dt.energy.ratios has share of energy from carbohydrates, energy share (always 1), ethanol, fat, protein, carbohydrates, sugar
 # energyRatios.out <- aggNorder(gdxChoice, DTglobal = "dt.energy.ratios", aggChoice, scenChoice)
 
-
-plotByRegionLine(dt.shannonDiversity, "ShannonDiversity", "Shannon Diversity", yRange = c(20, 80), "I3regions")
+#this is not working right now
+# plotByRegionLine("dt.shannonDiversity", "ShannonDiversity", "Shannon Diversity", yRange = c(20, 80), "I3regions")
 
 # write out zip files
 for (i in multipleNutsFileList) {
-  fileToWrite <- i
-  inDT <- getNewestVersion(fileToWrite, fileloc("resultsDir"))
-  write.csv(inDT, file = gzfile(paste(fileToWrite,".csv.zip", sep = "")))
+  inDT <- getNewestVersion(i, fileloc("resultsDir"))
+  write.csv(inDT, file = gzfile(paste(i,".csv.zip", sep = "")))
 }
+
+#create zip file of all the graphics outputs for a set of scenarios
+graphs.fileNames <- list.files(path = "graphics")
+zip(zipfile = paste(fileloc("gDir"),"/", scenChoice.name,".zip", sep = ""), files = paste(fileloc("gDir"),"/", graphs.fileNames, sep = ""))
+
+

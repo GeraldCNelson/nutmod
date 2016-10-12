@@ -6,7 +6,8 @@
 #if (!exists("getNewestVersion", mode = "function"))
 {source("R/nutrientModFunctions.R")
   source("R/workbookFunctions.R")
-  source("R/nutrientCalcFunctions.R")}
+  source("R/nutrientCalcFunctions.R")
+  source("R/renameUSAIDscenarios.R")}
 # GDP setup -----
 library(data.table)
 library(gridExtra)
@@ -23,26 +24,25 @@ orderRegions <- function(DT,aggChoice) {
     data.table::setorder(DT, regionOrder)
     DT[, regionOrder := NULL]
   }
-  if (aggChoice == "156") {
+  if (aggChoice == "I3regions") {
     # percap GDP data for ordering
     dt.pcGDPX0 <- getNewestVersionIMPACT("dt.pcGDPX0")
-    dt.pcGDPX0 <- dt.pcGDPX0[scenario %in% eval(parse(text = (scenChoice)))[!eval(parse(text = (scenChoice))) %in% "X2010"],]
+   # dt.pcGDPX0 <- dt.pcGDPX0[scenario %in% eval(parse(text = (scenChoice)))[!eval(parse(text = (scenChoice))) %in% "2010"],]
     # dt.pcGDPX0 <- unique(dt.pcGDPX0[,c("IMPACT_code","FoodAvailability","PCX0","PWX0","CSE") :=  NULL])
     dt.pcGDPX0 <- dt.pcGDPX0[year %in% c("X2010","X2050"), ]
     #data.table::setkeyv(dt.GDP,c("region_code.IMPACT159"))
     dt.pcGDPX0 <- dt.pcGDPX0[,growthRate :=  lapply(.SD, function(x)((x/shift(x))^(1/(2050 - 2010)) - 1) * 100),
                              .SDcols = "pcGDPX0", by = c("scenario","region_code.IMPACT159")]
-    dt.pcGDPX0growth <- dt.pcGDPX0[year ==  "X2010" & scenario == scenario.base,][,c("scenario","pcGDPX0","year") :=  NULL]
+    dt.pcGDPX0growth <- dt.pcGDPX0[year ==  "X2050" & scenario == scenario.base,][,c("scenario","pcGDPX0","year") :=  NULL]
     dt.pcGDPX0.2010.ref <- dt.pcGDPX0[year ==  "X2010" & scenario == scenario.base,][,c("scenario","growthRate","year") :=  NULL]
-    data.table::setorder(DT, pcGDPX0) # for data tables ordered from low to high 2010 per cap GDP
     DT <- merge(dt.GDP.2010.ref, DT, by = c("region_code.IMPACT159"))
-    data.table::setorder(DT, pcGDPX0)
+    data.table::setorder(DT, pcGDPX0) # for data tables ordered from low to high 2010 per cap GDP
   }
-  if (aggChoice == "I3regions") {
-    DT <- DT[region_code %in% regionCodestenregions,]
-    # percap GDP data for ordering
-    data.table::setorder(DT, aggChoice)
-  }
+  # if (aggChoice == "156") {
+  #   DT <- DT[region_code %in% regionCodestenregions,]
+  #   # percap GDP data for ordering
+  #   data.table::setorder(DT, aggChoice)
+  # }
   return(DT)
 }
 
@@ -162,9 +162,11 @@ plotByRegionBar <- function(dt, fileName, title, yLab, yRange,aggChoice) {
 }
 
 plotByRegionLine <- function(dt, fileName, title, yRange, regionCodes) {
-  temp <- copy(dt)
-  temp <- merge(temp, dt.GDP.2010.ref, by = "region_code.IMPACT159")
-  temp <- temp[region_code.IMPACT159 %in% regionCodes]
+  dt.pcGDPX0 <- getNewestVersionIMPACT("dt.pcGDPX0")
+  dt.pcGDPX0.2010.ref <- dt.pcGDPX0[year ==  "X2010" & scenario == scenario.base,][,c("scenario","year") :=  NULL]
+  temp <- getNewestVersion(dt, fileloc("resultsDir"))
+  temp <- merge(temp, dt.pcGDPX0.2010.ref, by = "region_code.IMPACT159")
+  temp <- temp[region_code.IMPACT159 %in% regionAgg("I3regions")]
   scenarios <- unique(temp$scenario)
   pdf(paste("graphics/", fileName, ".pdf", sep = ""))
   colList <- c("red", "red2", "red4", "green", "green2", "green4", "black")
