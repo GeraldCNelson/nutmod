@@ -515,7 +515,7 @@ fileNameList <- function(variableName) {
    IMPACTgdxfileName <- "Micronutrient-Inputs-USAID.gdx"  #-  gdx for the USAID results
   regionsLookupName <- "regions lookup Sep 6 2016.xlsx"
   regionsLookup <- paste(fileloc("rawData"),regionsLookupName, sep = "/")
-  #IMPACTgdxfileName <- "Micronutrient-Inputs-07252016.gdx"  #- gdx with SSP1, 2, and 3
+  # 
   #IMPACTgdxfileName <- "Demand Results20150817.gdx"
   IMPACTgdx         <- paste(fileloc("IMPACTRawData"), IMPACTgdxfileName, sep = "/")
   gdxLib            <- "/Applications/GAMS/gams24.5_osx_x64_64_sfx"
