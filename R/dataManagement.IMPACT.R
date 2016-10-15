@@ -169,19 +169,20 @@ combineIMPACTData <- function() {
   #[scenario == scen, ]
   dt.PCX0.food <- createFood("dt.PCX0")
   #[scenario == scen, ]
-  dt.CSEs.food <- createFood("dt.CSEs")
+#  dt.CSEs.food <- createFood("dt.CSEs")
   dt.pcGDPX0 <- getNewestVersionIMPACT("dt.pcGDPX0")
   #[scenario == scen, ]
 
   data.table::setkeyv(dt.PWX0.food, c("scenario",         "IMPACT_code", "year"))
-  data.table::setkeyv(dt.CSEs.food, c(            "region_code.IMPACT159", "IMPACT_code"))
+#  data.table::setkeyv(dt.CSEs.food, c(            "region_code.IMPACT159", "IMPACT_code"))
   data.table::setkeyv(dt.PCX0.food, c("scenario", "region_code.IMPACT159", "IMPACT_code", "year"))
   data.table::setkeyv(dt.pcGDPX0,   c("scenario", "region_code.IMPACT159",                "year"))
   data.table::setkeyv(dt.FoodAvail, c("scenario", "region_code.IMPACT159", "IMPACT_code", "year"))
-  dtlist <- list(dt.FoodAvail, dt.pcGDPX0, dt.PCX0.food, dt.PWX0.food, dt.CSEs.food)
+#  dtlist <- list(dt.FoodAvail, dt.pcGDPX0, dt.PCX0.food, dt.PWX0.food, dt.CSEs.food)
+  dtlist <- list(dt.FoodAvail, dt.pcGDPX0, dt.PCX0.food, dt.PWX0.food)
   dt.IMPACTfood <- plyr::join_all(dtlist)
   # set CSEs, PCX, and PWX that are NA to 0
-  data.table::set(dt.IMPACTfood, which(is.na(dt.IMPACTfood[["CSE"]])), "CSE", 0)
+#  data.table::set(dt.IMPACTfood, which(is.na(dt.IMPACTfood[["CSE"]])), "CSE", 0)
   # needed because fish and alcohol don't have prices
   data.table::set(dt.IMPACTfood, which(is.na(dt.IMPACTfood[["PCX0"]])), "PCX0", 0)
   data.table::set(dt.IMPACTfood, which(is.na(dt.IMPACTfood[["PWX0"]])), "PWX0", 0)

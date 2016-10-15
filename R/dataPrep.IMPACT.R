@@ -44,6 +44,8 @@ if (!exists("getNewestVersion", mode = "function"))
 #' @return null
 #' @export
 
+if (!exists("gdxFileName")) source("R/gdxrrwSetup.R")
+
 getGDXmetaData <- function(gdxFileName) {
   #  R_GAMS_SYSDIR <-  gamsDir
   #  gdxrrw::igdx(gamsSysDir = R_GAMS_SYSDIR) maybe not needed because done in gamsSetup
@@ -137,18 +139,18 @@ generateResults(gdxFileName, vars.region, catNames.region)
 generateResults(gdxFileName, vars.world, catNames.world)
 
 #' @param dt.CSEs - data table with consumer surplus equivalents
-CSEs <- fileNameList("CSEs")
+#CSEs <- fileNameList("CSEs")
 
-dt.CSEs <- data.table::as.data.table(
-  openxlsx::read.xlsx(CSEs,cols = c(1:3)))
-data.table::setnames(dt.CSEs, old = c("CTY","C","CSE"), new = c("region_code.IMPACT159","IMPACT_code","CSE"))
-data.table::set(dt.CSEs, which(is.na(dt.CSEs[["CSE"]])), "CSE", 0)
-data.table::setorder(dt.CSEs, region_code.IMPACT159, IMPACT_code)
-# add years to the CSE file, because it currently doesn't have any
-dt.years <- data.table::data.table(year = rep(keyVariable("keepYearList"), each = nrow(dt.CSEs)))
-dt.CSEs <- cbind(dt.years, dt.CSEs)
-inDT <- dt.CSEs
-outName <- "dt.CSEs"
-cleanup(inDT,outName,fileloc("iData"))
+# dt.CSEs <- data.table::as.data.table(
+#   openxlsx::read.xlsx(CSEs,cols = c(1:3)))
+# data.table::setnames(dt.CSEs, old = c("CTY","C","CSE"), new = c("region_code.IMPACT159","IMPACT_code","CSE"))
+# data.table::set(dt.CSEs, which(is.na(dt.CSEs[["CSE"]])), "CSE", 0)
+# data.table::setorder(dt.CSEs, region_code.IMPACT159, IMPACT_code)
+# # add years to the CSE file, because it currently doesn't have any
+# dt.years <- data.table::data.table(year = rep(keyVariable("keepYearList"), each = nrow(dt.CSEs)))
+# dt.CSEs <- cbind(dt.years, dt.CSEs)
+# inDT <- dt.CSEs
+# outName <- "dt.CSEs"
+# cleanup(inDT,outName,fileloc("iData"))
 
 

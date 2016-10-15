@@ -121,7 +121,8 @@ budgetShare <- function(dt.IMPACTfood) {
   dt.temp[, budget.PCX0 := (sum(FoodAvailability * PCX0 / 1000 )) / 1000, by = eval(data.table::key(dt.temp))]
   data.table::setkey(dt.temp, budget.PWX0)
   dt.budget <- dt.temp[!duplicated(budget.PCX0),]
-  deleteListCol <- c("IMPACT_code", "FoodAvailability","PCX0","PWX0","CSE")
+#  deleteListCol <- c("IMPACT_code", "FoodAvailability","PCX0","PWX0","CSE")
+  deleteListCol <- c("IMPACT_code", "FoodAvailability","PCX0","PWX0")
   dt.budget[,(deleteListCol) := NULL]
   # at world prices -----
   dt.budget[, incSharePWX0 := 100 * budget.PWX0 / pcGDPX0 ]

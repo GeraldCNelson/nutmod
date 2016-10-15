@@ -73,7 +73,8 @@ if (!region %in% names(dt.IMPACTfood)) {
 data.table::setkeyv(dt.IMPACTfood,c("scenario", "year", "IMPACT_code", region))
 
 dt.IMPACTfood[,value.sum := sum(FoodAvailability), by = eval(data.table::key(dt.IMPACTfood))]
-dt.IMPACTfood[,c("FoodAvailability", "pcGDPX0", "PCX0", "PWX0", "CSE") := NULL]
+#dt.IMPACTfood[,c("FoodAvailability", "pcGDPX0", "PCX0", "PWX0", "CSE") := NULL]
+dt.IMPACTfood[,c("FoodAvailability", "pcGDPX0", "PCX0", "PWX0") := NULL]
 data.table::setkey(dt.IMPACTfood)
 dt.IMPACTfood.sum <- unique(dt.IMPACTfood)
 
