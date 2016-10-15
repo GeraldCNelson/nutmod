@@ -38,7 +38,7 @@ f.createGeneralWorksheet <- function() {
   creationInfo <- rbind(creationInfo, paste("Creator:", keyVariable("userName")))
   creationInfo <- rbind(creationInfo, paste("Date of file creation:",
                                             Sys.Date()))
-  creationInfo <- rbind(creationInfo, paste("IMPACT data:", fileNameList("IMPACTgdx")))
+  creationInfo <- rbind(creationInfo, paste("IMPACT data:", gdxFileName))
   creationInfo <- rbind(creationInfo, paste("Nutrient data:", fileNameList("nutrientFileName")))
   creationInfo <- rbind(creationInfo, paste("Nutrient requirements data:",
                                             fileNameList("DRIFileName")))

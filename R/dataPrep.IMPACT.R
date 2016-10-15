@@ -115,32 +115,7 @@ processIMPACT159Data <- function(gdxFileName, varName, catNames) {
   #     merge(dt.ptemp, dt.IMPACTregions, by = "region_code.IMPACT159", all = TRUE)
   # }
 
-  #write scenario names
-dt.ptemp <- cleanupScenarioNames(dt.ptemp)
-  dt.scenarioListIMPACT <- getNewestVersion("dt.scenarioListIMPACT", fileloc("mData"))
-  scenarioListIMPACT <- dt.scenarioListIMPACT$scenario
-  scenarioComponents <- c("SSP", "climate_model", "experiment")
-  suppressWarnings(
-    dt.scenarioListIMPACT[, (scenarioComponents) := data.table::tstrsplit(scenario, "-", fixed = TRUE)]
-  )
-  # the code above recyles so you end up with the SSP value in experiment if this is a REF scenario
-  # the code below detects this and replaces the SSP value with REF
-  dt.scenarioListIMPACT[(SSP == experiment), experiment := "REF"]
-  dt.scenarioListIMPACT[, scenarioNew := paste(SSP, climate_model, experiment, sep = "-")]
-  dt.ptemp <- merge(dt.ptemp, dt.scenarioListIMPACT, by = "scenario")
-  deleteListCol <- c("SSP", "climate_model", "experiment", "scenario")
-  dt.ptemp[, (deleteListCol) := NULL]
-  data.table::setnames(dt.ptemp, old = c("scenarioNew"), new = c("scenario"))
-  leadingCols <- c("scenario")
-  lagingCols <-  laggingCols <- names(dt.ptemp)[!names(dt.ptemp) %in% leadingCols]
-  data.table::setcolorder(dt.ptemp, c(leadingCols, laggingCols))
-  inDT <- dt.ptemp
-  # this is where dt.FoodAvailability is written out, for example
-  outName <- paste("dt", varName, sep = ".")
-  cleanup(inDT,outName,fileloc("iData"))
 
-  # write.csv(scenarioListIMPACT$scenarioNew, file = paste(fileloc("mData"),"scenarioListIMPACT.csv",
-  #                                                     sep = "/"), row.names = FALSE)
 }
 
 #' Title generateResults - send a list of variable with common categories to the

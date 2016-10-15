@@ -38,7 +38,7 @@ data.table::setkey(dt.regions.all)
 
 keepYearList <- keyVariable("keepYearList")
 dt.scenarioListIMPACT <- getNewestVersion("dt.scenarioListIMPACT", fileloc("mData"))
-scenarioListIMPACT <- dt.scenarioListIMPACT$scenario
+scenarioListIMPACT <- unique(dt.scenarioListIMPACT$scenario)
 
 dt.pop <- getNewestVersion("dt.IMPACT.pop3.tot")
 dt.pop[,scenario := substr((scenario),1,4)] # keep just the SSP scenario info

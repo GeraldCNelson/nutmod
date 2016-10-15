@@ -407,7 +407,7 @@ metadata <- function() {
     c(fileNameList("regionsLookup"),
       "Lookup table from ISO codes to various regional groupings")
   metadata[(nrow(metadata) + 1), ] <-
-    c(fileNameList("IMPACTgdx"), "IMPACT demand data in gdx form")
+    c(gdxFileName, "IMPACT demand data in gdx form")
   metadata[(nrow(metadata) + 1), ] <-
     c(fileNameList("R_GAMS_SYSDIR"),
       "Location and name of GAMS program; needed for the gdx data import process"
@@ -555,7 +555,7 @@ fileNameList <- function(variableName) {
         "IMPACTstdRegionsFileName",
         "IMPACTstdRegions",
  #       "IMPACTgdxfileName",
-        "IMPACTgdx",
+ #       "IMPACTgdx",
         "gdxLib",
         "R_GAMS_SYSDIR",
         "IMPACTfishInfo",

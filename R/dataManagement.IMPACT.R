@@ -50,7 +50,7 @@ combineIMPACTData <- function() {
   dt.regions.all <- getNewestVersion("dt.regions.all")
   # get the list of scenarios in the IMPACT data for use below
   dt.scenarioListIMPACT <- getNewestVersion("dt.scenarioListIMPACT", fileloc("mData"))
-  scenarioListIMPACT <- dt.scenarioListIMPACT$scenario
+ scenarioListIMPACT <- unique(dt.scenarioListIMPACT$scenario)
   dt.FoodAvail <- dt.FoodAvail[scenario %in% scenarioListIMPACT,]
   data.table::setkey(dt.FoodAvail, "scenario", "year", "region_code.IMPACT159", "IMPACT_code")
 
@@ -97,7 +97,7 @@ combineIMPACTData <- function() {
   # reduce scenario name to just SSPx
   dt.alcScenarios.melt[, scenario := substring(scenario, 1, 4)]
 
-  # aggregate to IMPACT159 regions -------
+  # aggregate alcohol to IMPACT159 regions -------
   # pop.share is the share of a country's population in the IMPACT region population
   dt.alcScenarios.melt <- merge(dt.alcScenarios.melt, dt.pop, by = c("scenario", "region_code.SSP", "region_code.IMPACT159", "year"))
   data.table::setkeyv(dt.alcScenarios.melt, c("scenario", "region_code.IMPACT159", "year", "IMPACT_code"))
@@ -144,7 +144,7 @@ combineIMPACTData <- function() {
   #create alcohol and fish data sets for all the IMPACT scenarios
   dt.temp <- dt.alcScenarios.melt[FALSE, ]
   dt.scenarioListIMPACT <- getNewestVersion("dt.scenarioListIMPACT", fileloc("mData"))
-  scenarioListIMPACT <- dt.scenarioListIMPACT$scenario
+  scenarioListIMPACT <- unique(dt.scenarioListIMPACT$scenario)
   for (i in scenarioListIMPACT) {
     SSPName <- unlist(strsplit(i, "-"))[1] # get SSP abbrev
     climModel <- unlist(strsplit(i, "-"))[2] # get climate model abbrev

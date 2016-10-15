@@ -30,7 +30,7 @@
 dt.IMPACTfood <- getNewestVersionIMPACT("dt.IMPACTfood")
 # get the list of scenarios in the IMPACT data for use below
 dt.scenarioListIMPACT <- getNewestVersion("dt.scenarioListIMPACT", fileloc("mData"))
-scenarioListIMPACT <- dt.scenarioListIMPACT$scenario
+scenarioListIMPACT <- unique(dt.scenarioListIMPACT$scenario)
 
 # read in nutrients data and optionally apply cooking retention values -----
 switch.useCookingRetnValues <- keyVariable("switch.useCookingRetnValues")
