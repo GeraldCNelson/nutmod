@@ -38,6 +38,12 @@ source("R/workbookFunctions.R")
 print("Running nutrientCalcFunctions.R")
 source("R/nutrientCalcFunctions.R")
 
+# the gdxrrwSetup.R script needs to be separate because shiny can't deal with the gams package.
+source("R/gdxrrwSetup.R")
+
+print("Running metadata function in nutrientModFunctions")
+metadata()
+
 print("Running dataPrep.IMPACT.R")
 source("R/dataPrep.IMPACT.R")
 # - creates files in iData
@@ -55,9 +61,6 @@ source("R/dataPrep.SSP.R")
 
 print("Running dataPrep.regions.R")
 source("R/dataPrep.regions.R") # - creates dt.regions.all and the list of scenarios
-
-print("Running metadata function in nutrientModFunctions")
-metadata()
 
 print("Running dataPrep.FBS.R")
 source("R/dataPrep.FBS.R") # - creates dt.FBS, mData
@@ -119,5 +122,8 @@ cleanup(inDT, outName, fileloc("mData"))
 
 print("Copying files for shiny app")
 source("R/copyFilestoNutrientModeling.R") # move results needed for the shiny app.R in the nutrientModeling folder
+
+print("Generate graphs")
+source("R/aggRun.R")
 
 proc.time() - ptm

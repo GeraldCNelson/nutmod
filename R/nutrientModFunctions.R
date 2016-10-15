@@ -452,7 +452,7 @@ metadata <- function() {
       "List of all ISO 3 codes and the names of the countries they represent")
 
   inDT <- data.table::as.data.table(metadata)
-  outName <- "metaData"
+  outName <- "dt.metadata"
   cleanup(inDT,outName,fileloc("resultsDir"))
 }
 

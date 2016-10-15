@@ -1,3 +1,16 @@
+# this script must be sourced. Best to do it as part of automate.R
+# choose gdx file
+print("Choose the IMPACT data gdx file you want to use/")
+print("1. for the nutrient modeling paper")
+print("2. for the USAID nutrient modeling paper")
+print("note the relevant gdx file must be in the data-raw/IMPACTdata directory")
+
+choice <- readline("Choose the number of the gdx file you want to use. ")
+if (choice == "1") gdxFileName <- "Micronutrient-Inputs-07252016.gdx" #- gdx with multiple SSP results
+if (choice == "2") gdxFileName <- "Micronutrient-Inputs-USAID.gdx"  #-  gdx for the USAID results
+#IMPACTgdxfileName <- "Demand Results20150817.gdx" - old gdx
+#gdxFileName <- fileNameList("IMPACTgdxfileName")
+#gamsSetup() # to load GAMs stuff and create the initial list of IMPACT scenarios
 gamsSetup <- function(gdxFileName) {
   gdxrrw::igdx(gamsSysDir = fileNameList("R_GAMS_SYSDIR"), silent = TRUE)
   gdxFileLoc <- paste(fileloc("IMPACTRawData"),gdxFileName, sep = "/")
@@ -25,3 +38,6 @@ gamsSetup <- function(gdxFileName) {
   outName <- "dt.scenarioListIMPACT"
   cleanup(inDT, outName, fileloc("mData"), "csv")
 }
+gamsSetup(gdxFileName)
+
+

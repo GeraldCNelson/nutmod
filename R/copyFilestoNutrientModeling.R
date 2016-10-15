@@ -48,7 +48,7 @@ copyListFromResults <- c("dt.energy.ratios", "dt.budgetShare",
 
 copyListFromData <- c("dt.regions.all", "dt.foodGroupsInfo", "resultFileLookup", "dt.scenarioListIMPACT")
 copyListFromiData <- c("dt.IMPACTgdxParams")
-copyCsvFromData <- c(getNewestVersion( "fileDocumentation.csv")
+copyCsvFromData <- c("fileDocumentation.csv")
 
 for (i in copyListFromResults) {
   print(sprintf("copying file %s from results to nutrientModeling/data", i))

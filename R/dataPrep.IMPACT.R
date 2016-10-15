@@ -8,9 +8,6 @@ if (!exists("getNewestVersion", mode = "function"))
   source("R/workbookFunctions.R")
   source("R/nutrientCalcFunctions.R")}
 
-# this script needs to be separate because shiny can't deal with the gams package.
-source("R/gdxrrwSetup.R")
-#source("R/gdxrrfunctions.R")
 # Intro -------------------------------------------------------------------
 
 #Copyright (C) 2015 Gerald C. Nelson, except where noted
@@ -47,19 +44,6 @@ source("R/gdxrrwSetup.R")
 #' @return null
 #' @export
 
-# choose gdx file
-print("Choose the IMPACT data gdx file you want to use/")
-print("1. for the nutrient modeling paper")
-print("2. for the USAID nutrient modeling paper")
-print("note the relevant gdx file must be in the data-raw/IMPACTdata directory")
-
-choice <- readline("Choose the number of the gdx file you want to use. ")
-if (choice == "1") gdxFileName <- "Micronutrient-Inputs-07252016.gdx" #- gdx with multiple SSP results
-if (choice == "2") gdxFileName <- "Micronutrient-Inputs-USAID.gdx"  #-  gdx for the USAID results
-#IMPACTgdxfileName <- "Demand Results20150817.gdx" - old gdx
-#gdxFileName <- fileNameList("IMPACTgdxfileName")
-#gamsSetup() # to load GAMs stuff and create the initial list of IMPACT scenarios
-gamsSetup(gdxFileName)
 getGDXmetaData <- function(gdxFileName) {
   #  R_GAMS_SYSDIR <-  gamsDir
   #  gdxrrw::igdx(gamsSysDir = R_GAMS_SYSDIR) maybe not needed because done in gamsSetup
