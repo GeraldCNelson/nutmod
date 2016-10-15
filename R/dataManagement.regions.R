@@ -37,7 +37,8 @@ dt.regions.all <- dt.regions.all[!ISO_code %in% missingSSP,]
 data.table::setkey(dt.regions.all)
 
 keepYearList <- keyVariable("keepYearList")
-scenarioListIMPACT <- keyVariable("scenarioListIMPACT")
+dt.scenarioListIMPACT <- getNewestVersion("dt.scenarioListIMPACT", fileloc("mData"))
+scenarioListIMPACT <- dt.scenarioListIMPACT$scenario
 
 dt.pop <- getNewestVersion("dt.IMPACT.pop3.tot")
 dt.pop[,scenario := substr((scenario),1,4)] # keep just the SSP scenario info

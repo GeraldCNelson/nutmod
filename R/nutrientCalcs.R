@@ -29,7 +29,8 @@
 # Read in IMPACT food data ----------
 dt.IMPACTfood <- getNewestVersionIMPACT("dt.IMPACTfood")
 # get the list of scenarios in the IMPACT data for use below
-scenarioListIMPACT <- keyVariable("scenarioListIMPACT")
+dt.scenarioListIMPACT <- getNewestVersion("dt.scenarioListIMPACT", fileloc("mData"))
+scenarioListIMPACT <- dt.scenarioListIMPACT$scenario
 
 # read in nutrients data and optionally apply cooking retention values -----
 switch.useCookingRetnValues <- keyVariable("switch.useCookingRetnValues")

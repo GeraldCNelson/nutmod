@@ -331,7 +331,7 @@ keyVariable <- function(variableName) {
                            "SSP4_v9_130325", "SSP5_v9_130325")
 
 
-  scenarioListIMPACT <- as.character(read.csv(file = paste(fileloc("mData"),"scenarioListIMPACT.csv", sep = "/"), stringsAsFactors = FALSE)[,1])
+ # scenarioListIMPACT <- as.character(read.csv(file = paste(fileloc("mData"),"scenarioListIMPACT.csv", sep = "/"), stringsAsFactors = FALSE)[,1])
   DinY <- 365 #see http://stackoverflow.com/questions/9465817/count-days-per-year for a way to deal with leap years
   #' #' countries to remove because of poor data
   #' FSM - Micronesia, Federated States of
@@ -370,7 +370,7 @@ keyVariable <- function(variableName) {
         "IMPACTfoodCommodList",
         "scenarioListSSP.pop",
         "scenarioListSSP.GDP",
-        "scenarioListIMPACT",
+#        "scenarioListIMPACT",
         "DinY",
         "reqListSSP",
         "switch.useCookingRetnValues",
@@ -512,12 +512,9 @@ fileNameList <- function(variableName) {
   # IMPACT159regions <- paste(fileloc("IMPACTRawData"), IMPACT159regionsFileName, sep = "/")
   # IMPACTstdRegionsFileName <- "IMPACT-agg-regionsFeb2016.xlsx"
   # IMPACTstdRegions <- paste(fileloc("IMPACTRawData"), IMPACTstdRegionsFileName, sep = "/")
-   IMPACTgdxfileName <- "Micronutrient-Inputs-USAID.gdx"  #-  gdx for the USAID results
   regionsLookupName <- "regions lookup Sep 6 2016.xlsx"
   regionsLookup <- paste(fileloc("rawData"),regionsLookupName, sep = "/")
-  #
-  #IMPACTgdxfileName <- "Demand Results20150817.gdx"
-  IMPACTgdx         <- paste(fileloc("IMPACTRawData"), IMPACTgdxfileName, sep = "/")
+  #IMPACTgdx         <- paste(fileloc("IMPACTRawData"), IMPACTgdxfileName, sep = "/")
   gdxLib            <- "/Applications/GAMS/gams24.5_osx_x64_64_sfx"
   R_GAMS_SYSDIR     <- "/Applications/GAMS/gams24.5_osx_x64_64_sfx"
   IMPACTfishInfo    <- "Fish Elasticities and Quantities IMPACT.xlsx"
@@ -557,7 +554,7 @@ fileNameList <- function(variableName) {
         "IMPACTregionsUpdateJun2016",
         "IMPACTstdRegionsFileName",
         "IMPACTstdRegions",
-        "IMPACTgdxfileName",
+ #       "IMPACTgdxfileName",
         "IMPACTgdx",
         "gdxLib",
         "R_GAMS_SYSDIR",

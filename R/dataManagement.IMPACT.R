@@ -3,7 +3,7 @@
 #' @title Import IMPACT data from a gdx file
 #' @name dataPrep.IMPACT.R
 #' @include nutrientModFunctions.R
-if (!exists("getNewestVersion", mode = "function"))
+#if (!exists("getNewestVersion", mode = "function"))
 {source("R/nutrientModFunctions.R")
   source("R/workbookFunctions.R")
   source("R/nutrientCalcFunctions.R")}
@@ -49,7 +49,8 @@ combineIMPACTData <- function() {
   dt.FoodAvail <- dt.FoodAvail[IMPACT_code %in% IMPACTfoodCommodList, ]
   dt.regions.all <- getNewestVersion("dt.regions.all")
   # get the list of scenarios in the IMPACT data for use below
-  scenarioListIMPACT <- keyVariable("scenarioListIMPACT")
+  dt.scenarioListIMPACT <- getNewestVersion("dt.scenarioListIMPACT", fileloc("mData"))
+  scenarioListIMPACT <- dt.scenarioListIMPACT$scenario
   dt.FoodAvail <- dt.FoodAvail[scenario %in% scenarioListIMPACT,]
   data.table::setkey(dt.FoodAvail, "scenario", "year", "region_code.IMPACT159", "IMPACT_code")
 
@@ -142,7 +143,8 @@ combineIMPACTData <- function() {
 
   #create alcohol and fish data sets for all the IMPACT scenarios
   dt.temp <- dt.alcScenarios.melt[FALSE, ]
-  scenarioListIMPACT <- keyVariable("scenarioListIMPACT")
+  dt.scenarioListIMPACT <- getNewestVersion("dt.scenarioListIMPACT", fileloc("mData"))
+  scenarioListIMPACT <- dt.scenarioListIMPACT$scenario
   for (i in scenarioListIMPACT) {
     SSPName <- unlist(strsplit(i, "-"))[1] # get SSP abbrev
     climModel <- unlist(strsplit(i, "-"))[2] # get climate model abbrev

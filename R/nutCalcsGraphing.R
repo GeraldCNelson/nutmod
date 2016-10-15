@@ -88,7 +88,8 @@ for (req in reqsList) {
 
       # code to create a graph of the nutrient ratios for each of the nutrients
       # in the current requirements list for each scenario
-      scenarioListIMPACT <- keyVariable("scenarioListIMPACT")
+      dt.scenarioListIMPACT <- getNewestVersion("dt.scenarioListIMPACT", fileloc("mData"))
+      scenarioListIMPACT <- dt.scenarioListIMPACT$scenario
       for (scenario.name in scenarioListIMPACT) {
         #  nutrient.name <- sub("^(.*)_.*$", "\\1", nutList[j])
         nutrient.name <- nutList[j]
