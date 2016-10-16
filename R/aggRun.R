@@ -185,7 +185,7 @@ for (l in scenChoiceList) {
 
 # write out zip files
 for (i in multipleNutsFileList) {
-  print("writing zip file for ", i)
+  print(paste("writing zip file for ", i))
   inDT <- getNewestVersion(i, fileloc("resultsDir"))
   write.csv(inDT, file = gzfile(paste("graphics/",i,".csv.zip", sep = "")))
 }

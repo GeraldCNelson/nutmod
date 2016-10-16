@@ -44,13 +44,12 @@ if (!exists("getNewestVersion", mode = "function"))
 #' @return null
 #' @export
 
+# one approach to getting the gdxFileName as a global variable. The other is to read from the metadata output.
 if (!exists("gdxFileName")) source("R/gdxrrwSetup.R")
 
+
 getGDXmetaData <- function(gdxFileName) {
-  #  R_GAMS_SYSDIR <-  gamsDir
-  #  gdxrrw::igdx(gamsSysDir = R_GAMS_SYSDIR) maybe not needed because done in gamsSetup
-  # read in the gdx information to temp
-  gdxFileLoc <- paste(fileloc("IMPACTRawData"),gdxFileName, sep = "/")
+  gdxFileLoc <- paste(fileloc("IMPACTRawData"), gdxFileName, sep = "/")
   temp <- gdxrrw::gdxInfo(
     gdxName = gdxFileLoc, dump = FALSE, returnList = FALSE, returnDF = TRUE)
 
@@ -66,8 +65,8 @@ getGDXmetaData <- function(gdxFileName) {
   cleanup(inDT,outName,fileloc("iData"))
 }
 getGDXmetaData(gdxFileName)
-#' Title processIMPACT159Data - read in from an IMPACT gdx file and write out rds and excel files for a single param
 
+#' Title processIMPACT159Data - read in from an IMPACT gdx file and write out rds and excel files for a single param
 #' @param gdxFileName - name of the IMPACT gdx file
 #' @param varName - name of the IMPACT parameter to write out
 #' @param catNames - types of info about the parameter
@@ -86,6 +85,7 @@ processIMPACT159Data <- function(gdxFileName, varName, catNames) {
   # dt.IMPACTregions <- unique(dt.temp)
   # if the data set contains SDN (the old Sudan) data, convert the code to SDP
   if (!varName %in% "PWX0") {
+    # this kludge is here because the currently used gdx files have both SDN and SDP
     dt.ptemp[region_code.IMPACT159 == "SDN", region_code.IMPACT159 := "SDP"]
   }
   dt.ptemp[,year := paste("X",year, sep = "")]
@@ -100,15 +100,12 @@ processIMPACT159Data <- function(gdxFileName, varName, catNames) {
   #   dt.temp <-
   #     merge(dt.ptemp, dt.IMPACTregions, by = "region_code.IMPACT159", all = TRUE)
   # }
-
-
 }
 
-#' Title generateResults - send a list of variable with common categories to the
+#' Title generateResults - send a list of variables with common categories to the
 #' function to write out the data
-#'
 #' @param vars - list of variables to process
-#' @param catNames - list of categories common to all variables
+#' @param catNames - list of categories common to all variables in var
 #'
 #' @return
 #' @export

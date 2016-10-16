@@ -238,7 +238,8 @@ cleanup <- function(inDT, outName, dir, writeFiles) {
 
     openxlsx::writeDataTable(
       wbGeneral,
-      inDT,  sheet = outName, startRow = 1, startCol = 1, rowNames = FALSE, colNames = TRUE, withFilter = TRUE)
+      inDT,  sheet = outName, startRow = 1, startCol = 1, rowNames = FALSE,
+      colNames = TRUE, withFilter = TRUE)
 
     openxlsx::setColWidths(
       wbGeneral, sheet = outName, cols = 1:ncol(inDT), widths = "auto" )
