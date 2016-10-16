@@ -65,7 +65,7 @@ if (gdxFileName == "Micronutrient-Inputs-USAID.gdx") {
 #aggChoice <- "WB"; DTglobal <- "dt.shannonDiversity"
 
 # dt.pop.2010.ref <- dt.pop[year ==  "X2010" & scenario == scenario.base,][,c("scenario","year") :=  NULL]
-"dt.nutrientNames_Units" <- getNewestVersion("dt.nutrientNames_Units", fileloc("mData"))
+dt.nutrientNames_Units <- getNewestVersion("dt.nutrientNames_Units", fileloc("mData"))
 
 for (i in aggChoiceListBarChart) {
   print(paste("Working on bar chart for Shannon Diversity for", i))
@@ -116,7 +116,7 @@ for (l in scenChoiceList) {
         #      merged <- merged[, value := weighted.mean(value, PopX0), by = c("scenario", "region_code")]
         keepListCol <- c("scenario", "region_code", "region_name", "value")
         DT <- unique(merged[, (keepListCol), with = FALSE])
-
+        DT <- DT[scenario %in% get(l), ]
         #     if (gdxChoice == "SSPs") {
         # do manipulations on the gdx data that has 3 SSP scenarios and 3 climate change scenarios.
         # DT <- DT[scenario %in% get(l), ]
