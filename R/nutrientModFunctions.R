@@ -516,7 +516,7 @@ fileNameList <- function(variableName) {
   regionsLookupName <- "regions lookup Sep 6 2016.xlsx"
   regionsLookup <- paste(fileloc("rawData"),regionsLookupName, sep = "/")
   #IMPACTgdx         <- paste(fileloc("IMPACTRawData"), IMPACTgdxfileName, sep = "/")
-  gdxLib            <- "/Applications/GAMS/gams24.5_osx_x64_64_sfx"
+  #gdxLib            <- "/Applications/GAMS/gams24.5_osx_x64_64_sfx"
   R_GAMS_SYSDIR     <- "/Applications/GAMS/gams24.5_osx_x64_64_sfx"
   IMPACTfishInfo    <- "Fish Elasticities and Quantities IMPACT.xlsx"
   IMPACTfish        <- paste(fileloc("IMPACTRawData"), IMPACTfishInfo, sep = "/")
