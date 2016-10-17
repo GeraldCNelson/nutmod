@@ -2,19 +2,6 @@
 # choose gdx file
 source("R/nutrientModFunctions.R")
 
-getgdxFileNameChoice <- function() {
-  cat("Choose the IMPACT data gdx file you want to use.\n")
-  cat("1. for the nutrient modeling paper\n")
-  cat("2. for the USAID nutrient modeling paper\n")
-  cat("Note: the relevant gdx file must be in the data-raw/IMPACTdata directory\n")
-  choice <- readline(prompt = "Choose the number of the gdx file you want to use. \n")
-  if (choice == "1") gdxFileName <- "Micronutrient-Inputs-07252016.gdx" #- gdx with multiple SSP results
-  if (choice == "2") gdxFileName <- "Micronutrient-Inputs-USAID.gdx"  #-  gdx for the USAID results
-  return(gdxFileName)
-}
-
-gdxFileName <- getgdxFileNameChoice()
-
 #IMPACTgdxfileName <- "Demand Results20150817.gdx" - old gdx
 #gdxFileName <- fileNameList("IMPACTgdxfileName")
 #gamsSetup() # to load GAMs stuff and create the initial list of IMPACT scenarios
@@ -56,7 +43,7 @@ gamsSetup <- function(gdxFileName) {
   outName <- "dt.IMPACTgdxParams"
   cleanup(inDT,outName,fileloc("iData"))
 }
-getGDXmetaData(gdxFileName)
+#getGDXmetaData(gdxFileName)
 gamsSetup(gdxFileName)
 
 

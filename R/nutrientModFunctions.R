@@ -1003,3 +1003,52 @@ regionAgg <- function(aggChoice) {
   data.table::setnames(dt.regions, old = keepListCol, new = c("region_code.IMPACT159", "region_code", "region_name"))
   return(dt.regions)
 }
+
+gdxrrwExistenceCheck <- function(){
+  # the GAMS gdxrrw package is needed to import data from IMPACT (in R scripts gdxrrwSetup.R, dataPrep.IMPACT.R and dataManagement.IMPACT.R)
+  gdxrrwText <- 'The gdxrrw package is needed to run this. It is available at this url, not from CRAN.
+https://support.gams.com/gdxrrw:interfacing_gams_and_r. Download the relevant file and use the following command to install
+- install.packages("gdxrrw_1.0.0.tgz",repos = NULL). Replace gdxrrw_1.0.0.tgz with the
+name of the file you downloaded. If you put it in the main directory of your project, the install.packages command will find it.
+After GAMS is installed you need to tell R where the GAMS library is located. Here are some examples
+- mac installation - /Applications/GAMS/gams24.5_osx_x64_64_sfx
+- linux installation - /opt/gams/gams24.3_linux_x64_64_sfx
+- windows installation - C:\\GAMS\\win32\24.7'
+
+  new.packages <- list.of.packages[!(list.of.packages %in% installed.packages()[,"Package"])]
+  list.of.packages <- c("gdxrrw")
+  new.packages <- list.of.packages[!(list.of.packages %in% installed.packages()[,"Package"])]
+  if (!length(new.packages) == 0) {
+    cat(gdxrrwText)
+    stop("gdxrrw package not installed")
+  }
+}
+
+gdxLibraryLocationCheck <- function() {
+  dt.metadata <- getNewestVersion("dt.metadata", fileloc("resultsDir"))
+  gdxLibLoc <- dt.metadata[file_description %in% "Location and name of GAMS program; needed for the gdx data import process", file_name_location]
+  if (gdxrrw::igdx(gamsSysDir = gdxLibLoc, silent = TRUE) %in% 0L) {
+    print(paste("The nutrient modeling software thinks your GAMS liberary path is", gdxLibLoc, " R can't find it there."))
+    if (choice %in% "n") {
+      cat("Type the correct path in the console; e.g. C:\\GAMS\\win32\24.7 ")
+      GAMSlibloc <- readline()
+      dt.metadata[file_description %in% "Location and name of GAMS program; needed for the gdx data import process", file_name_location := GAMSlibloc]
+      print(paste("The nutrient modeling software now thinks your GAMS liberary path is", gdxLibLoc))
+      inDT <- dt.metadata
+      outName <- dt.metadata
+      cleanup(inDT, outName, fileloc("resultsDir"))
+    }
+  }
+}
+
+gdxFileNameChoice <- function() {
+  cat("Choose the IMPACT data gdx file you want to use.\n")
+  cat("1. for the nutrient modeling paper\n")
+  cat("2. for the USAID nutrient modeling paper\n")
+  cat("Note: the relevant gdx file must be in the data-raw/IMPACTdata directory\n")
+  choice <- readline(prompt = "Choose the number of the gdx file you want to use. \n")
+  if (choice == "1") gdxFileName <- "Micronutrient-Inputs-07252016.gdx" # - gdx with multiple SSP results
+  if (choice == "2") gdxFileName <- "Micronutrient-Inputs-USAID.gdx"  #-  gdx for the USAID results
+  cat("Your gdx file name choice is ", gdxFileName)
+  return(gdxFileName)
+}

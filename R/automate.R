@@ -23,41 +23,14 @@ list.of.packages <- c("data.table", "openxlsx", "dplyr", "utils", "ggplot2", "st
 new.packages <- list.of.packages[!(list.of.packages %in% installed.packages()[,"Package"])]
 if (length(new.packages)) install.packages(new.packages)
 
-# the GAMS gdxrrw package is needed to import data from IMPACT (in R scripts gdxrrwSetup.R, dataPrep.IMPACT.R and dataManagement.IMPACT.R)
-gdxrrwText <- 'The gdxrrw package is needed to run this. It is available at this url, not from CRAN.
-https://support.gams.com/gdxrrw:interfacing_gams_and_r. Download the relevant file and use the following command to install
-- install.packages("gdxrrw_1.0.0.tgz",repos = NULL). Replace gdxrrw_1.0.0.tgz with the
-name of the file you downloaded. If you put it in the main directory of your project, the install.packages command will find it.
-After GAMS is installed you need to tell R where the GAMS library is located. Here are some examples
-- mac installation - /Applications/GAMS/gams24.5_osx_x64_64_sfx
-- linux installation - /opt/gams/gams24.3_linux_x64_64_sfx
-- windows installation - C:\\GAMS\\win32\24.7'
+gdxrrwExistenceCheck() #checks if the gdxrrw package is installed; if not, prints directions on how to install and stops.
+gdxFileName <- gdxFileNameChoice()
+metadata() # - creates dt.metaData; holds some key file locations and variable names;
+# needs to come after identification of gdxFileName and before library location check
+gdxLibraryLocationCheck()
 
-list.of.packages <- c("gdxrrw")
-new.packages <- list.of.packages[!(list.of.packages %in% installed.packages()[,"Package"])]
-if (!length(new.packages) == 0) {
-  cat(gdxrrwText)
-  stop("gdxrrw package not installed")
-}
-
-new.packages <- list.of.packages[!(list.of.packages %in% installed.packages()[,"Package"])]
-
-metadata() # - holds some key file locations and variable names
-dt.metadata <- getNewestVersion("dt.metadata", fileloc("resultsDir"))
-gdxLibLoc <- dt.metadata[file_description %in% "Location and name of GAMS program; needed for the gdx data import process", file_name_location]
-if (gdxrrw::igdx(gamsSysDir = gdxLibLoc, silent = TRUE) %in% 0L) {
-  print(paste("The nutrient modeling software thinks your GAMS liberary path is", gdxLibLoc, " R can't find it there."))
-  if (choice %in% "n") {
-    GAMSlibloc <- readline(prompt = "Type the correct path here, enclosed in quotation marks: ")
-    dt.metadata[file_description %in% "Location and name of GAMS program; needed for the gdx data import process", file_name_location := GAMSlibloc]
-    print(paste("The nutrient modeling software now thinks your GAMS liberary path is", gdxLibLoc))
-    inDT <- dt.metadata
-    outName <- dt.metadata
-    cleanup(inDT, outName, fileloc("resultsDir"))
-  }
-}
 # the gdxrrwSetup.R script needs to be separate because shiny can't deal with the gams package.
-source("R/gdxrrwSetup.R")
+source("R/gdxrrwSetup.R") # creates dt.scenarioListIMPACT and dt.IMPACTgdxParams
 
 print("Running dataPrep.IMPACT.R")
 source("R/dataPrep.IMPACT.R")

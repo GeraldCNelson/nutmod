@@ -37,12 +37,6 @@ if (!exists("getNewestVersion", mode = "function"))
 #' @return dt.temp
 #' @export
 
-#' Title getGDXmetaData - get gdxmetadata from an IMPACT gdx output file and write out
-#' rds and excel versions#'
-#' @param gamsDir - path to the gdx library
-#' @param IMPACTgdx - name of the gdx file
-#' @return null
-#' @export
 
 # one approach to ask the user what it is. The other is to read from the metadata output.
 # if (!exists("gdxFileName")) source("R/gdxrrwSetup.R")
