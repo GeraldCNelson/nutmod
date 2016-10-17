@@ -44,27 +44,25 @@ if (!exists("getNewestVersion", mode = "function"))
 #' @return null
 #' @export
 
-# one approach to getting the gdxFileName as a global variable. The other is to read from the metadata output.
-if (!exists("gdxFileName")) source("R/gdxrrwSetup.R")
-
-
-getGDXmetaData <- function(gdxFileName) {
-  gdxFileLoc <- paste(fileloc("IMPACTRawData"), gdxFileName, sep = "/")
-  temp <- gdxrrw::gdxInfo(
-    gdxName = gdxFileLoc, dump = FALSE, returnList = FALSE, returnDF = TRUE)
-
-  # convert to data table and extract just the list of parameters
-  dt.gdx.param <- data.table::as.data.table(temp$parameters)
-  #  keepListCol <- c("catNames", "text") # remove index, dim, card, doms, and domnames
-  deleteListCol <- c("index", "card","doms", "domnames")
-  dt.gdx.param <- dt.gdx.param[, (deleteListCol) := NULL]
-
-  data.table::setnames(dt.gdx.param,old = c("name","text"), new = c("catNames", "description"))
-  inDT <- dt.gdx.param
-  outName <- "dt.IMPACTgdxParams"
-  cleanup(inDT,outName,fileloc("iData"))
+# one approach to ask the user what it is. The other is to read from the metadata output.
+# if (!exists("gdxFileName")) source("R/gdxrrwSetup.R")
+if (!exists("gdxFileName")) {
+dt.metadata <- getNewestVersion("dt.metadata", fileloc("resultsDir"))
+gdxFileName <- dt.metadata[file_description %in% "IMPACT demand data in gdx form", file_name_location]
 }
-getGDXmetaData(gdxFileName)
+
+#' Title generateResults - send a list of variables with common categories to the
+#' function to write out the data
+#' @param vars - list of variables to process
+#' @param catNames - list of categories common to all variables in var
+#'
+#' @return
+#' @export
+generateResults <- function(gdxFileName, vars,catNames){
+  for (i in vars) {
+    processIMPACT159Data(gdxFileName,i, catNames)
+  }
+}
 
 #' Title processIMPACT159Data - read in from an IMPACT gdx file and write out rds and excel files for a single param
 #' @param gdxFileName - name of the IMPACT gdx file
@@ -79,6 +77,10 @@ processIMPACT159Data <- function(gdxFileName, varName, catNames) {
   gdxFileLoc <- paste(fileloc("IMPACTRawData"),gdxFileName, sep = "/")
   dt.ptemp <- data.table::as.data.table(gdxrrw::rgdx.param(gdxFileLoc, varName,
                                                            ts = TRUE, names = catNames))
+  dt.ptemp[scenario %in% c("SSP1-NoCC", "SSP2-GFDL", "SSP2-HGEM",  "SSP2-IPSL",
+                           "SSP2-MIROC", "SSP2-NoCC",  "SSP3-NoCC"),
+           scenario := paste(scenario, "-REF", sep = "")]
+
   keepYearList  <- keyVariable("keepYearList")
   #  dt.temp <- dt.regions.all[,c("region_code.IMPACT159","region_name.IMPACT159"), with = FALSE]
   # data.table::setkey(dt.temp,region_code.IMPACT159)
@@ -104,19 +106,6 @@ processIMPACT159Data <- function(gdxFileName, varName, catNames) {
   # this is where dt.FoodAvailability is written out, for example
   outName <- paste("dt", varName, sep = ".")
   cleanup(inDT,outName,fileloc("iData"))
-}
-
-#' Title generateResults - send a list of variables with common categories to the
-#' function to write out the data
-#' @param vars - list of variables to process
-#' @param catNames - list of categories common to all variables in var
-#'
-#' @return
-#' @export
-generateResults <- function(gdxFileName, vars,catNames){
-  for (i in vars) {
-    processIMPACT159Data(gdxFileName,i, catNames)
-  }
 }
 
 vars.land <- c("AREACTYX0", "YLDCTYX0", "ANMLNUMCTYX0")

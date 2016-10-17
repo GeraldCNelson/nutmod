@@ -27,7 +27,7 @@ library(data.table)
 #' creates the IMPACTfood data table for use in nutrientCalcs.R. It reads in dt.FoodAvail,
 #' adds the fish and alcohol data, and pcGDPX0, PCX0 PWX0, and CSV and writes out dt.IMPACTfood.
 
-#create data table just for food items
+#create data table with just food items
 createFood <- function(fileShortName) {
   IMPACTfoodCommodList <- keyVariable("IMPACTfoodCommodList")
   keepYearList  <- keyVariable("keepYearList")
@@ -182,6 +182,8 @@ combineIMPACTData <- function() {
 #  dtlist <- list(dt.FoodAvail, dt.pcGDPX0, dt.PCX0.food, dt.PWX0.food, dt.CSEs.food)
   dtlist <- list(dt.FoodAvail, dt.pcGDPX0, dt.PCX0.food, dt.PWX0.food)
   dt.IMPACTfood <- plyr::join_all(dtlist)
+  # test2 <- merge(dt.FoodAvail, dt.pcGDPX0, by = c("scenario", "region_code.IMPACT159", "year"), all = TRUE)
+  # test <- Reduce(merge,dtlist)
   # set CSEs, PCX, and PWX that are NA to 0
 #  data.table::set(dt.IMPACTfood, which(is.na(dt.IMPACTfood[["CSE"]])), "CSE", 0)
   # needed because fish and alcohol don't have prices
