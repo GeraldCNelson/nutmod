@@ -69,11 +69,10 @@ dt.nutrientNames_Units <- getNewestVersion("dt.nutrientNames_Units", fileloc("mD
 
 for (l in scenChoiceList) {
   for (i in aggChoiceListBarChart) {
-  print(paste("Working on bar chart for Shannon Diversity for", i))
-  SD.out <- aggNorder(gdxChoice, DTglobal = "dt.shannonDiversity", aggChoice = i, get(l))
-  plotByRegionBar(dt = SD.out, fileName = "ShannonDiversity", title = "Shannon Diversity", yLab = "percent", yRange = c(0, 80), aggChoice = i)
-}
-  for (i in aggChoiceListBarChart) {
+    print(paste("Working on bar chart for Shannon Diversity for", i))
+    SD.out <- aggNorder(gdxChoice, DTglobal = "dt.shannonDiversity", aggChoice = i, get(l))
+    plotByRegionBar(dt = SD.out, fileName = "ShannonDiversity", title = "Shannon Diversity", yLab = "percent", yRange = c(0, 80), aggChoice = i)
+
     print(paste("Working on bar chart for budget share for", i))
     budgetShare.out <- aggNorder(gdxChoice, DTglobal = "dt.budgetShare", aggChoice = i, get(l))
     # plotByRegionBar(dt = budgetShare.out, fileName = "budgetShare", title = "IMPACT food budget share of per capita income", yLab = "percent", yRange = c(0, 50), aggChoice = i)
@@ -116,6 +115,8 @@ for (l in scenChoiceList) {
         #      merged <- merged[, value := weighted.mean(value, PopX0), by = c("scenario", "region_code")]
         keepListCol <- c("scenario", "region_code", "region_name", "value")
         DT <- unique(merged[, (keepListCol), with = FALSE])
+        if (gdxChoice == "USAID") DT <- renameUSAIDscenarios(DT)
+
         DT <- DT[scenario %in% get(l), ]
         #     if (gdxChoice == "SSPs") {
         # do manipulations on the gdx data that has 3 SSP scenarios and 3 climate change scenarios.
@@ -125,7 +126,6 @@ for (l in scenChoiceList) {
         # DT[, scenarioOrder := NULL]
         # #      }
         if (gdxChoice == "USAID")  {
-          DT <- renameUSAIDscenarios(DT)
           # scenarioList.prodEnhance <- c("MED", "HIGH", "HIGH_NARS", "HIGH_RE", "REGION")
           # scenarioList.waterMan <- c("IX", "IX_WUE", "ISW", "IX_WUE_NoCC", "IX_IPSL", "ISW_NoCC", "ISW_IPSL")
           # scenarioList.addEnhance <- c("RPHL", "RMM")

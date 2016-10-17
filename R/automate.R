@@ -7,28 +7,6 @@
 #   resultsDir - results
 
 # print(paste("start time is " , proc.time(), sep = ""))
-ptm <- proc.time()
-
-#install needed packages
-list.of.packages <- c("data.table", "openxlsx", "dplyr", "utils", "ggplot2", "stringi", "tidyr" )
-new.packages <- list.of.packages[!(list.of.packages %in% installed.packages()[,"Package"])]
-if (length(new.packages)) install.packages(new.packages)
-
-# also need gdxrrw
-gdxrrwText <- "The gdxrrw package is needed to run this. It is available at this url, not from CRAN.
-https://support.gams.com/gdxrrw:interfacing_gams_and_r. Download the relevant file and use the following command to install
-- install.packages('gdxrrw_1.0.0.tgz',repos = NULL). Replace gdxrrw_1.0.0.tgz with the
-name of the file you downloaded. If you put it in the main directory of your project, the install.packages command will find it."
-
-list.of.packages <- c("gdxrrw")
-new.packages <- list.of.packages[!(list.of.packages %in% installed.packages()[,"Package"])]
-if (!length(new.packages) == 0) {
-  print(gdxrrwText)
-  stop("gdxrrw package not installed")
-  }
-
-new.packages <- list.of.packages[!(list.of.packages %in% installed.packages()[,"Package"])]
-
 print("Running nutrientModFunctions.R")
 source("R/nutrientModFunctions.R")
 
@@ -38,11 +16,48 @@ source("R/workbookFunctions.R")
 print("Running nutrientCalcFunctions.R")
 source("R/nutrientCalcFunctions.R")
 
+ptm <- proc.time()
+
+#install needed packages
+list.of.packages <- c("data.table", "openxlsx", "dplyr", "utils", "ggplot2", "stringi", "tidyr" )
+new.packages <- list.of.packages[!(list.of.packages %in% installed.packages()[,"Package"])]
+if (length(new.packages)) install.packages(new.packages)
+
+# the GAMS gdxrrw package is needed to import data from IMPACT (in R scripts gdxrrwSetup.R, dataPrep.IMPACT.R and dataManagement.IMPACT.R)
+gdxrrwText <- 'The gdxrrw package is needed to run this. It is available at this url, not from CRAN.
+https://support.gams.com/gdxrrw:interfacing_gams_and_r. Download the relevant file and use the following command to install
+- install.packages("gdxrrw_1.0.0.tgz",repos = NULL). Replace gdxrrw_1.0.0.tgz with the
+name of the file you downloaded. If you put it in the main directory of your project, the install.packages command will find it.
+After GAMS is installed you need to tell R where the GAMS library is located. Here are some examples
+- mac installation - /Applications/GAMS/gams24.5_osx_x64_64_sfx
+- linux installation - /opt/gams/gams24.3_linux_x64_64_sfx
+- windows installation - C:\\GAMS\\win32\24.7'
+
+list.of.packages <- c("gdxrrw")
+new.packages <- list.of.packages[!(list.of.packages %in% installed.packages()[,"Package"])]
+if (!length(new.packages) == 0) {
+  cat(gdxrrwText)
+  stop("gdxrrw package not installed")
+}
+
+new.packages <- list.of.packages[!(list.of.packages %in% installed.packages()[,"Package"])]
+
+metadata() # - holds some key file locations and variable names
+dt.metadata <- getNewestVersion("dt.metadata", fileloc("resultsDir"))
+gdxLibLoc <- dt.metadata[file_description %in% "Location and name of GAMS program; needed for the gdx data import process", file_name_location]
+if (gdxrrw::igdx(gamsSysDir = gdxLibLoc, silent = TRUE) %in% 0L) {
+  print(paste("The nutrient modeling software thinks your GAMS liberary path is", gdxLibLoc, " R can't find it there."))
+  if (choice %in% "n") {
+    GAMSlibloc <- readline(prompt = "Type the correct path here, enclosed in quotation marks: ")
+    dt.metadata[file_description %in% "Location and name of GAMS program; needed for the gdx data import process", file_name_location := GAMSlibloc]
+    print(paste("The nutrient modeling software now thinks your GAMS liberary path is", gdxLibLoc))
+    inDT <- dt.metadata
+    outName <- dt.metadata
+    cleanup(inDT, outName, fileloc("resultsDir"))
+  }
+}
 # the gdxrrwSetup.R script needs to be separate because shiny can't deal with the gams package.
 source("R/gdxrrwSetup.R")
-
-print("Running metadata function in nutrientModFunctions")
-metadata()
 
 print("Running dataPrep.IMPACT.R")
 source("R/dataPrep.IMPACT.R")
@@ -80,7 +95,7 @@ source("R/dataManagement.IMPACT.R")
 
 print("Running dataPrep.nutrientData.R")
 source("R/dataPrep.nutrientData.R") # - creates dt.cookingRet and dt.nutrients, mData. Note that
-     # dt.nutrients does NOT take into account loss in cooking. That is done later and depends on a switch (search for switch.xxx .
+# dt.nutrients does NOT take into account loss in cooking. That is done later and depends on a switch (search for switch.xxx .
 
 print("Running dataPrep.NutrientRequirements.R")
 source("R/dataPrep.NutrientRequirements.R")
