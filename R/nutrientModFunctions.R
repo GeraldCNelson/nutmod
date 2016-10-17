@@ -332,7 +332,7 @@ keyVariable <- function(variableName) {
                            "SSP4_v9_130325", "SSP5_v9_130325")
 
 
- # scenarioListIMPACT <- as.character(read.csv(file = paste(fileloc("mData"),"scenarioListIMPACT.csv", sep = "/"), stringsAsFactors = FALSE)[,1])
+  # scenarioListIMPACT <- as.character(read.csv(file = paste(fileloc("mData"),"scenarioListIMPACT.csv", sep = "/"), stringsAsFactors = FALSE)[,1])
   DinY <- 365 #see http://stackoverflow.com/questions/9465817/count-days-per-year for a way to deal with leap years
   #' #' countries to remove because of poor data
   #' FSM - Micronesia, Federated States of
@@ -371,7 +371,7 @@ keyVariable <- function(variableName) {
         "IMPACTfoodCommodList",
         "scenarioListSSP.pop",
         "scenarioListSSP.GDP",
-#        "scenarioListIMPACT",
+        #        "scenarioListIMPACT",
         "DinY",
         "reqListSSP",
         "switch.useCookingRetnValues",
@@ -555,8 +555,8 @@ fileNameList <- function(variableName) {
         "IMPACTregionsUpdateJun2016",
         "IMPACTstdRegionsFileName",
         "IMPACTstdRegions",
- #       "IMPACTgdxfileName",
- #       "IMPACTgdx",
+        #       "IMPACTgdxfileName",
+        #       "IMPACTgdx",
         "gdxLib",
         "R_GAMS_SYSDIR",
         "IMPACTfishInfo",
