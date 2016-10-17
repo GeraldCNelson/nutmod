@@ -8,6 +8,7 @@
   source("R/workbookFunctions.R")
   source("R/nutrientCalcFunctions.R")}
 
+library(data.table)
 # Intro -------------------------------------------------------------------
 
 #Copyright (C) 2015 Gerald C. Nelson, except where noted
