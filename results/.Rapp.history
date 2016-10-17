@@ -1,0 +1,6 @@
+load("/Users/gcn/Documents/workspace/nutmod/results/req.EAR.ssp.percap.2016-04-02.rds")
+load("/Users/gcn/Documents/workspace/nutmod/results/UL.minrls.req.ratio.foodGroup.2016-05-29.rds")
+load("/Users/gcn/Documents/workspace/nutmod/results/RDA.macro.req.ratio.all.2016-06-01.rds")
+load("/Users/gcn/Documents/workspace/nutmod/results/RDA.macro.staples.ratio.2016-08-07.rds")
+load("/Users/gcn/Documents/workspace/nutmod/results/metaData.2016-08-24.rds")
+load("/Users/gcn/Documents/workspace/nutmod/results/RDA.macro.staples.ratio.2016-09-13.rds")
