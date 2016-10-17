@@ -67,12 +67,12 @@ if (gdxFileName == "Micronutrient-Inputs-USAID.gdx") {
 # dt.pop.2010.ref <- dt.pop[year ==  "X2010" & scenario == scenario.base,][,c("scenario","year") :=  NULL]
 dt.nutrientNames_Units <- getNewestVersion("dt.nutrientNames_Units", fileloc("mData"))
 
-for (i in aggChoiceListBarChart) {
+for (l in scenChoiceList) {
+  for (i in aggChoiceListBarChart) {
   print(paste("Working on bar chart for Shannon Diversity for", i))
-  SD.out <- aggNorder(gdxChoice, DTglobal = "dt.shannonDiversity", aggChoice = i, scenChoice)
+  SD.out <- aggNorder(gdxChoice, DTglobal = "dt.shannonDiversity", aggChoice = i, get(l))
   plotByRegionBar(dt = SD.out, fileName = "ShannonDiversity", title = "Shannon Diversity", yLab = "percent", yRange = c(0, 80), aggChoice = i)
 }
-for (l in scenChoiceList) {
   for (i in aggChoiceListBarChart) {
     print(paste("Working on bar chart for budget share for", i))
     budgetShare.out <- aggNorder(gdxChoice, DTglobal = "dt.budgetShare", aggChoice = i, get(l))

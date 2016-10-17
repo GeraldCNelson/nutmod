@@ -100,6 +100,10 @@ processIMPACT159Data <- function(gdxFileName, varName, catNames) {
   #   dt.temp <-
   #     merge(dt.ptemp, dt.IMPACTregions, by = "region_code.IMPACT159", all = TRUE)
   # }
+  inDT <- dt.ptemp
+  # this is where dt.FoodAvailability is written out, for example
+  outName <- paste("dt", varName, sep = ".")
+  cleanup(inDT,outName,fileloc("iData"))
 }
 
 #' Title generateResults - send a list of variables with common categories to the
