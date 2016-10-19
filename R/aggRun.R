@@ -23,7 +23,7 @@ aggChoiceListBarChart <- c("tenregions", "WB", "AggReg1") # missing AggReg2 and 
 multipleNutsFileList <- c("dt.nutrients.sum.all", "RDA.macro.sum.req.ratio", "RDA.minrls.sum.req.ratio", "RDA.vits.sum.req.ratio",
                           "dt.nutrients.nonstapleShare", "PR.zinc.sum.req.ratio", "PR.iron.sum.req.ratio") # "dt.energy.ratios" not included
 multipleNutsListShortName <- c("nutrients.avail", "macro.req.ratio", "minrls.req.ratio", "vits.req.ratio",
-                               "nutrients.nonstaples.share", "zinc_bioavail.req.ratio", "iron_bioavail.req.ratio")
+                               "nutrients.nonstaples.share", "zinc_bioavail_req.ratio", "iron_bioavail_req.ratio")
 #nutrients grouping
 macroNutrients <- c("protein_g", "fat_g", "carbohydrate_g",  "totalfiber_g")
 vitamins <- c("vit_c_mg", "thiamin_mg", "riboflavin_mg", "niacin_mg",
@@ -71,11 +71,11 @@ for (l in scenChoiceList) {
   for (i in aggChoiceListBarChart) {
     print(paste("Working on bar chart for Shannon Diversity for", i))
     SD.out <- aggNorder(gdxChoice, DTglobal = "dt.shannonDiversity", aggChoice = i, get(l))
-    plotByRegionBar(dt = SD.out, fileName = "ShannonDiversity", title = "Shannon Diversity", yLab = "percent", yRange = c(0, 80), aggChoice = i)
+    plotByRegionBar(dt = SD.out, fileName = "ShannonDiversity", title = "Shannon Diversity", yLab = "(percent)", yRange = c(0, 80), aggChoice = i)
 
     print(paste("Working on bar chart for budget share for", i))
     budgetShare.out <- aggNorder(gdxChoice, DTglobal = "dt.budgetShare", aggChoice = i, get(l))
-    # plotByRegionBar(dt = budgetShare.out, fileName = "budgetShare", title = "IMPACT food budget share of per capita income", yLab = "percent", yRange = c(0, 50), aggChoice = i)
+    plotByRegionBar(dt = budgetShare.out, fileName = "budgetShare", title = "IMPACT food budget share of per capita income", yLab = "percent", yRange = c(0, 50), aggChoice = i)
     print(paste("Done with bar chart for budget share for", i))
   }
 
@@ -208,8 +208,8 @@ fattyAcids <- c("ft_acds_tot_sat_g", "ft_acds_mono_unsat_g", "ft_acds_plyunst_g"
                 "ft_acds_tot_trans_g")
 
 nutlistmacro <- c("totalfiber_g")
-nutlistminrls <- c("calcium_mg")
-nutlistvits <- c("folate_µg", "vit_b12_µg", "vit_e_mg",  "vit_d_µg", "vit_k_µg")
+nutlistminrls <- c("calcium_mg", "potassium_g")
+nutlistvits <- c("folate_µg", "riboflavin_mg", "vit_a_rae_µg","vit_b12_µg", "vit_e_mg",  "vit_d_µg", "vit_k_µg")
 nutlistbioavail <- c("iron_mg.iron_", "zinc_mg.zinc_")
 
 temp <- data.table::data.table(scenario = character(0),
@@ -251,7 +251,7 @@ for (i in nutlistminrls) {
 }
 
 for (i in nutlistbioavail) {
-  fileName <- paste(i, "bioavail.req.ratio.WB", sep = ".")
+  fileName <- paste(i, "bioavail_req.ratio.WB", sep = "")
   fileIn <- data.table::fread(paste("graphics/", fileName, ".csv", sep = ""), select = 2:6)
   for (j in scen2050list) {
     for (k in 1:length(incCats)) {
@@ -293,7 +293,7 @@ keepListCol.incShare <- c("scenario","year", "region_code.IMPACT159", "region_co
 dt.budgetShare <- dt.budgetShare[, (keepListCol.incShare), with = FALSE]
 scenario.base <- "SSP2-NoCC-REF"
 dt.budgetShare <- dt.budgetShare[year == "X2010" & scenario == scenario.base |
-           year == "X2050",]
+                                   year == "X2050",]
 dt.budgetShare <- dt.budgetShare[year == "X2010", scenario := "2010"][, year := NULL]
 # get rid of Somalia because it's budget share is 500 * per cap income
 dt.budgetShare <- dt.budgetShare[!region_code.IMPACT159 == "SOM",]
@@ -305,6 +305,7 @@ box.test <- boxplot(incSharePCX0 ~ region_code, data = temp, range = 0,
 #                    at = c(1, 2, 4, 5, 6),
                     xaxt = 'n',
                     ylim = yrange,
+                    ylab = "(percent",
                     col = c('white', 'white smoke', 'gray'))
 axis(side = 1,
      at = c(1, 2, 3, 4),
@@ -315,8 +316,8 @@ labels <- gsub("-REF","", unique(temp$region_name))
 title('Expenditures Share of Per Capita Income, 2050\nAll countries, all scenarios')
 text(
   c(1, 2, 3, 4),
-     par("usr")[3] - 0.1, srt = 45, adj = 1.2,
-     labels = labels, xpd = TRUE,  cex = 0.6, cex.axis = 0.6)
+  par("usr")[3] - 0.1, srt = 45, adj = 1.2,
+  labels = labels, xpd = TRUE,  cex = 0.6, cex.axis = 0.6)
 abline(h = 1, lty = 3, lwd = 0.8)
 dev.off()
 
