@@ -1,4 +1,4 @@
-# code to produce country specific output for the paper
+# code to produce output for the paper
 
 #Copyright (C) 2016 Gerald C. Nelson, except where noted
 
@@ -45,3 +45,6 @@ dt.shannonDiversity <- merge(dt.shannonDiversity, dt.regions.all, by = "region_c
 inDT <- dt.fishIncElast
 outName <- "dt.fishIncElast"
 cleanup(inDT,outName,fileloc("iData"))
+
+
+

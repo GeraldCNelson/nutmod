@@ -31,7 +31,7 @@ gdxLibraryLocationCheck()
 
 # the gdxrrwSetup.R script needs to be separate because shiny can't deal with the gams package.
 source("R/gdxrrwSetup.R") # creates dt.scenarioListIMPACT and dt.IMPACTgdxParams
-
+print(" ")
 print("Running dataPrep.IMPACT.R")
 source("R/dataPrep.IMPACT.R")
 # - creates files in iData

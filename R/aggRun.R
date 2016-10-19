@@ -194,4 +194,130 @@ for (i in multipleNutsFileList) {
 graphs.fileNames <- list.files(path = "graphics")
 zip(zipfile = paste(fileloc("gDir"),"/", scenChoice.name,".zip", sep = ""), files = paste(fileloc("gDir"),"/", graphs.fileNames, sep = ""))
 
+# code to produce a table of req requirements results -----
+# list of potential nutrients to add to the table
+macroNutrients <- c("protein_g", "fat_g", "carbohydrate_g",  "totalfiber_g")
+vitamins <- c("vit_c_mg", "thiamin_mg", "riboflavin_mg", "niacin_mg",
+              "vit_b6_mg", "folate_µg", "vit_b12_µg", "vit_a_rae_µg",
+              "vit_e_mg",  "vit_d_µg", "vit_k_µg")
+minerals <- c("calcium_mg",  "iron_mg", "magnesium_mg", "phosphorus_mg",
+              "potassium_g", "zinc_mg")
+kcals <- c("kcals.fat", "kcals.protein", "kcals.sugar", "kcals.ethanol")
+addedSugar <- c("sugar_g")
+fattyAcids <- c("ft_acds_tot_sat_g", "ft_acds_mono_unsat_g", "ft_acds_plyunst_g",
+                "ft_acds_tot_trans_g")
+
+nutlistmacro <- c("totalfiber_g")
+nutlistminrls <- c("calcium_mg")
+nutlistvits <- c("folate_µg", "vit_b12_µg", "vit_e_mg",  "vit_d_µg", "vit_k_µg")
+nutlistbioavail <- c("iron_mg.iron_", "zinc_mg.zinc_")
+
+temp <- data.table::data.table(scenario = character(0),
+                               lowInc = numeric(0), lowMidInc = numeric(0), upMidInc = numeric(0), highInc = numeric(0),
+                               DlowInc = numeric(0), DlowMidInc = numeric(0), DupMidInc = numeric(0), DhighInc = numeric(0))
+incCats <- c("lowInc", "lowMidInc", "upMidInc", "highInc")
+DincCats <- c("DlowInc", "DlowMidInc", "DupMidInc", "DhighInc")
+scen2050list <- c("SSP2-GFDL", "SSP2-IPSL", "SSP2-HGEM")
+for (i in nutlistmacro) {
+  fileName <- paste(i, "macro.req.ratio.WB", sep = ".")
+  fileIn <- data.table::fread(paste("graphics/", fileName, ".csv", sep = ""), select = 2:6)
+  for (j in scen2050list) {
+    for (k in 1:length(incCats)) {
+      baseVal <- fileIn[scenario == "SSP2-NoCC", get(incCats[k])]
+      fileIn[scenario == j, DincCats[k] := (get(incCats[k]) - baseVal)/baseVal]
+    }
+  }
+  category <- data.table::data.table(scenario = i,
+                                     lowInc = NA, lowMidInc = NA, upMidInc = NA, highInc = NA,
+                                     DlowInc = NA, DlowMidInc = NA, DupMidInc = NA, DhighInc = NA)
+  temp <- rbind(temp,category)
+  temp <- rbind(temp, fileIn)
+}
+
+for (i in nutlistminrls) {
+  fileName <- paste(i, "minrls.req.ratio.WB", sep = ".")
+  fileIn <- data.table::fread(paste("graphics/", fileName, ".csv", sep = ""), select = 2:6)
+  for (j in scen2050list) {
+    for (k in 1:length(incCats)) {
+      baseVal <- fileIn[scenario == "SSP2-NoCC", get(incCats[k])]
+      fileIn[scenario == j, DincCats[k] := (get(incCats[k]) - baseVal)/baseVal]
+    }
+  }
+  category <- data.table::data.table(scenario = i,
+                                     lowInc = NA, lowMidInc = NA, upMidInc = NA, highInc = NA,
+                                     DlowInc = NA, DlowMidInc = NA, DupMidInc = NA, DhighInc = NA)
+  temp <- rbind(temp,category)
+  temp <- rbind(temp, fileIn)
+}
+
+for (i in nutlistbioavail) {
+  fileName <- paste(i, "bioavail.req.ratio.WB", sep = ".")
+  fileIn <- data.table::fread(paste("graphics/", fileName, ".csv", sep = ""), select = 2:6)
+  for (j in scen2050list) {
+    for (k in 1:length(incCats)) {
+      baseVal <- fileIn[scenario == "SSP2-NoCC", get(incCats[k])]
+      fileIn[scenario == j, DincCats[k] := (get(incCats[k]) - baseVal)/baseVal]
+    }
+  }
+  category <- data.table::data.table(scenario = i,
+                                     lowInc = NA, lowMidInc = NA, upMidInc = NA, highInc = NA,
+                                     DlowInc = NA, DlowMidInc = NA, DupMidInc = NA, DhighInc = NA)
+  temp <- rbind(temp,category)
+  temp <- rbind(temp, fileIn)
+}
+
+for (i in nutlistvits) {
+  fileName <- paste(i, "vits.req.ratio.WB", sep = ".")
+  fileIn <- data.table::fread(paste("graphics/", fileName, ".csv", sep = ""), select = 2:6)
+  for (j in scen2050list) {
+    for (k in 1:length(incCats)) {
+      baseVal <- fileIn[scenario == "SSP2-NoCC", get(incCats[k])]
+      fileIn[scenario == j, DincCats[k] := (get(incCats[k]) - baseVal)/baseVal]
+    }
+  }
+  category <- data.table::data.table(scenario = i,
+                                     lowInc = NA, lowMidInc = NA, upMidInc = NA, highInc = NA,
+                                     DlowInc = NA, DlowMidInc = NA, DupMidInc = NA, DhighInc = NA)
+  temp <- rbind(temp,category)
+  temp <- rbind(temp, fileIn)
+}
+
+write.csv(temp, file = paste("graphics/reqTable.csv", sep = ""))
+
+# box plots
+dt.budgetShare <- getNewestVersion("dt.budgetShare", fileloc("resultsDir"))
+dt.regions <- regionAgg("WB")
+# aggregate to and retain only the relevant regions
+dt.budgetShare <- merge(dt.budgetShare, dt.regions, by = "region_code.IMPACT159")
+keepListCol.incShare <- c("scenario","year", "region_code.IMPACT159", "region_code", "region_name", "incSharePCX0")
+dt.budgetShare <- dt.budgetShare[, (keepListCol.incShare), with = FALSE]
+scenario.base <- "SSP2-NoCC-REF"
+dt.budgetShare <- dt.budgetShare[year == "X2010" & scenario == scenario.base |
+           year == "X2050",]
+dt.budgetShare <- dt.budgetShare[year == "X2010", scenario := "2010"][, year := NULL]
+# get rid of Somalia because it's budget share is 500 * per cap income
+dt.budgetShare <- dt.budgetShare[!region_code.IMPACT159 == "SOM",]
+temp <- dt.budgetShare
+temp[,region_code := factor(region_code, levels = c("lowInc", "lowMidInc", "upMidInc", "highInc"))]
+yrange <- range(temp$incSharePCX0)
+pdf(paste("graphics/budgetShareBoxPlot", ".pdf", sep = ""))
+box.test <- boxplot(incSharePCX0 ~ region_code, data = temp, range = 0,
+#                    at = c(1, 2, 4, 5, 6),
+                    xaxt = 'n',
+                    ylim = yrange,
+                    col = c('white', 'white smoke', 'gray'))
+axis(side = 1,
+     at = c(1, 2, 3, 4),
+     labels = FALSE)
+labels <- gsub("-REF","", unique(temp$region_name))
+#    labels = unique(temp$scenario), srt=45, adj=1, xpd=TRUE,
+#   line = 0.5, lwd = 0, cex.lab = 0.5, cex.axis = 0.6)
+title('Expenditures Share of Per Capita Income, 2050\nAll countries, all scenarios')
+text(
+  c(1, 2, 3, 4),
+     par("usr")[3] - 0.1, srt = 45, adj = 1.2,
+     labels = labels, xpd = TRUE,  cex = 0.6, cex.axis = 0.6)
+abline(h = 1, lty = 3, lwd = 0.8)
+dev.off()
+
 source("R/aggregateResults.R")

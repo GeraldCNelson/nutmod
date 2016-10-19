@@ -41,11 +41,16 @@ foodGroupLU <- fileNameList("foodGroupLU")
 #                 "RetentionDescription", "thiamin_mg_cr", "vit_b12_µg_cr", "riboflavin_mg_cr", "niacin_mg_cr", "vit_b6_mg_cr",
 #                 "calcium_mg_cr", "iron_mg_cr", "folate_µg_cr", "potassium_g_cr", "magnesium_mg_cr",
 #                 "phosphorus_mg_cr", "vit_a_rae_µg_cr", "vit_c_mg_cr", "vit_e_mg_cr", "zinc_mg_cr")
+
 nutrients.raw <- openxlsx::read.xlsx(nutrientLU, sheet = 1, rows = 3:68,  colNames = TRUE)
 
 #' @param nutrientNames_Units - units for the nutrients in IMPACT159 nutrient list
 nutrientNames_Units <- openxlsx::read.xlsx(nutrientLU,sheet = 1,rows = 1:2, colNames = FALSE,
                                            cols = 1:length(nutrients.raw), skipEmptyCols = FALSE)
+library(xlsx)
+nutrientNames_Units2 <- xlsx::read.xlsx(nutrientLU,sheetIndex = 1,rowIndex =  1:2, header = F,
+                                       colIndex = 1:length(nutrients.raw))
+
 colnames(nutrientNames_Units) <- names(nutrients.raw)
 #remove columns that are dividers, etc. This leaves only the IMPACT_code, edible share, IMPACT_conversion,
 # the nutrient values, and the cooking retention values

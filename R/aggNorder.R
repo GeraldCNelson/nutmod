@@ -47,7 +47,7 @@ orderRegions <- function(DT,aggChoice) {
 }
 
 aggNorder <- function(gdxChoice, DTglobal, aggChoice, scenChoice) {
-  print(paste("running aggNorder for ", gdxChoice, " and ", i))
+ # print(paste("running aggNorder for ", gdxChoice, " and ", i))
   DT <- getNewestVersion(DTglobal, fileloc("resultsDir"))
   setkey(DT, NULL)
   dt.regions <- regionAgg(aggChoice)
