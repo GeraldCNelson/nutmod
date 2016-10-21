@@ -75,7 +75,7 @@ for (l in scenChoiceList) {
 
     print(paste("Working on bar chart for budget share for", i))
     budgetShare.out <- aggNorder(gdxChoice, DTglobal = "dt.budgetShare", aggChoice = i, get(l))
-    plotByRegionBar(dt = budgetShare.out, fileName = "budgetShare", title = "IMPACT food budget share of per capita income", yLab = "percent", yRange = c(0, 50), aggChoice = i)
+    plotByRegionBar(dt = budgetShare.out, fileName = "budgetShare", title = "IMPACT food budget share of per capita income", yLab = "(percent)", yRange = c(0, 50), aggChoice = i)
     print(paste("Done with bar chart for budget share for", i))
   }
 
@@ -305,7 +305,7 @@ box.test <- boxplot(incSharePCX0 ~ region_code, data = temp, range = 0,
 #                    at = c(1, 2, 4, 5, 6),
                     xaxt = 'n',
                     ylim = yrange,
-                    ylab = "(percent",
+                    ylab = "(percent)",
                     col = c('white', 'white smoke', 'gray'))
 axis(side = 1,
      at = c(1, 2, 3, 4),
