@@ -1008,12 +1008,19 @@ gdxrrwExistenceCheck <- function(){
   # the GAMS gdxrrw package is needed to import data from IMPACT (in R scripts gdxrrwSetup.R, dataPrep.IMPACT.R and dataManagement.IMPACT.R)
   gdxrrwText <- 'The gdxrrw package is needed to run this. It is available at this url, not from CRAN.
 https://support.gams.com/gdxrrw:interfacing_gams_and_r. Download the relevant file and use the following command to install
-- install.packages("gdxrrw_1.0.0.tgz",repos = NULL). Replace gdxrrw_1.0.0.tgz with the
+- install.packages("gdxrrw_1.0.2.tgz",repos = NULL). Replace gdxrrw_1.0.2.tgz with the
 name of the file you downloaded. If you put it in the main directory of your project, the install.packages command will find it.
 After GAMS is installed you need to tell R where the GAMS library is located. Here are some examples
 - mac installation - /Applications/GAMS/gams24.5_osx_x64_64_sfx
 - linux installation - /opt/gams/gams24.3_linux_x64_64_sfx
-- windows installation - C:\\GAMS\\win32\24.7'
+- windows installation - C:\\GAMS\\win32\24.7
+  Sometimes there is a problem with the way the package has been zipped. If you get a message like
+rawToChar(block[seq_len(ns)], run the following commands in a shell.
+
+- mv gdxrrw_1.0.2.tar.gz foo.tar.gz
+- gunzip foo.tar.gz
+- tar xf foo.tar
+- tar czf gdxrrw_1.0.2.tar.gz gdxrrw'
 
   new.packages <- list.of.packages[!(list.of.packages %in% installed.packages()[,"Package"])]
   list.of.packages <- c("gdxrrw")

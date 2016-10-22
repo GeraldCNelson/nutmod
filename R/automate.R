@@ -6,6 +6,26 @@
 #   iData - data/IMPACTdata - directory with IMPACT data
 #   resultsDir - results
 
+ptm <- proc.time()
+
+#install needed packages
+list.of.packages <- c("data.table", "openxlsx", "dplyr", "utils", "ggplot2", "stringi", "tidyr", "splitstackshape",
+                      "gridExtra","gplots")
+new.packages <- list.of.packages[!(list.of.packages %in% installed.packages()[,"Package"])]
+if (length(new.packages)) install.packages(new.packages)
+
+print("The packages below are needed and currently available on by downloading from github")
+print(paste("This set of scripts needs version 1.9.7 or greater of the data.table package. Version", as.character(packageVersion("data.table")), "is currently being used."))
+print(paste("This set of scripts needs version 3.1.23 or greater of the data.table package. Version", as.character(packageVersion("openxlsx")), "is currently being used."))
+
+if (!as.character(packageVersion("openxlsx")) %in% "3.1.23") {
+  print("updating open.xlsx")
+  install.packages(c("Rcpp", "devtools"), dependencies = TRUE)
+  require(devtools)
+  install_github("awalker89/openxlsx")
+}
+
+# the source code needs to be below the install code so R doesn't have to restart
 # print(paste("start time is " , proc.time(), sep = ""))
 print("Running nutrientModFunctions.R")
 source("R/nutrientModFunctions.R")
@@ -15,17 +35,6 @@ source("R/workbookFunctions.R")
 
 print("Running nutrientCalcFunctions.R")
 source("R/nutrientCalcFunctions.R")
-
-ptm <- proc.time()
-
-#install needed packages
-list.of.packages <- c("data.table", "openxlsx", "dplyr", "utils", "ggplot2", "stringi", "tidyr" )
-new.packages <- list.of.packages[!(list.of.packages %in% installed.packages()[,"Package"])]
-if (length(new.packages)) install.packages(new.packages)
-
-print("The packages below are needed and currently available on by downloading from github")
-print(paste("This set of scripts needs version 1.9.7 or greater of the data.table package. Version", as.character(packageVersion("data.table")), "is currently being used."))
-print(paste("This set of scripts needs version 3.1.23 or greater of the data.table package. Version", as.character(packageVersion("openxlsx")), "is currently being used."))
 
 gdxrrwExistenceCheck() #checks if the gdxrrw package is installed; if not, prints directions on how to install and stops.
 gdxFileName <- gdxFileNameChoice()

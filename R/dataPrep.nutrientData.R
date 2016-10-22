@@ -47,9 +47,9 @@ nutrients.raw <- openxlsx::read.xlsx(nutrientLU, sheet = 1, rows = 3:68,  colNam
 #' @param nutrientNames_Units - units for the nutrients in IMPACT159 nutrient list
 nutrientNames_Units <- openxlsx::read.xlsx(nutrientLU,sheet = 1,rows = 1:2, colNames = FALSE,
                                            cols = 1:length(nutrients.raw), skipEmptyCols = FALSE)
-library(xlsx)
-nutrientNames_Units2 <- xlsx::read.xlsx(nutrientLU,sheetIndex = 1,rowIndex =  1:2, header = F,
-                                       colIndex = 1:length(nutrients.raw))
+# library(xlsx) - in case you can't get the development version of openxlsx
+# nutrientNames_Units2 <- xlsx::read.xlsx(nutrientLU,sheetIndex = 1,rowIndex =  1:2, header = F,
+#                                        colIndex = 1:length(nutrients.raw))
 
 colnames(nutrientNames_Units) <- names(nutrients.raw)
 #remove columns that are dividers, etc. This leaves only the IMPACT_code, edible share, IMPACT_conversion,
