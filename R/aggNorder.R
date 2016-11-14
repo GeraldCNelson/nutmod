@@ -125,7 +125,7 @@ plotByRegionBar <- function(dt, fileName, title, yLab, yRange,aggChoice) {
   legendText <- unique(gsub("-REF", "", scenarios))
   #  formula.wide <- "scenario ~ region_code"
   #the use of factor and levels keeps the order of the regions in region_code
-  formula.wide <- "scenario~ factor(region_code, levels=unique(region_code))"
+  formula.wide <- "scenario ~ factor(region_code, levels=unique(region_code))"
   temp.wide <- data.table::dcast(
     data = temp,
     formula = formula.wide,
@@ -197,4 +197,76 @@ plotByRegionLine <- function(dt, fileName, title, yRange, regionCodes) {
   dev.off()
 }
 
+# nutStackedBarGraph
+plotByRegionBar <- function(dt, fileName, title, yLab, yRange,aggChoice) {
+  print(paste("plotting bars by region ", aggChoice, "for ", title))
+  temp <- copy(dt)
+  regionCodes <- unique(temp$region_code)
+  regionNames <- unique(temp$region_name)
+  scenarios <- unique(temp$scenario)
+  if (gdxChoice == "SSPs") colList <- c("black", "red", "red2", "red4", "green", "green2", "green4")
+  if (gdxChoice == "USAID") colList <- c("black", rainbow(10)[1:length(scenarios) - 1])
+  legendText <- unique(gsub("-REF", "", scenarios))
+  #  formula.wide <- "scenario ~ region_code"
+  #the use of factor and levels keeps the order of the regions in region_code
+  formula.wide <- "scenario ~ factor(region_code, levels=unique(region_code))"
+  temp.wide <- data.table::dcast(
+    data = temp,
+    formula = formula.wide,
+    value.var = "value")
+  temp.wide[, scenarioOrder := match(scenario, scenarios)]
+  data.table::setorder(temp.wide, scenarioOrder)
+  temp.wide[, scenarioOrder := NULL]
+  #temp.out <- data.table::copy(temp.wide)
+  data.table::setnames(temp.wide, old = regionCodes, new = regionNames)
+  temp.wide[, scenario := gsub("-REF", "", scenario)]
+  temp <- as.data.frame(temp.wide)
+  rownames(temp) <- temp[,1]
+  temp[1] = NULL
+  temp <- data.matrix(temp)
+  pdf(paste("graphics/", fileName,".", aggChoice, ".pdf", sep = ""))
+  #Create barplots with the barplot(height) function, where height is a vector or matrix.
+  #If height is a vector, the values determine the heights of the bars in the plot.
+  #If height is a matrix and the option beside=FALSE then each bar of the plot corresponds to a column of height, w
+  #ith the values in the column giving the heights of stacked “sub-bars”.
+  #If height is a matrix and beside=TRUE, then the values in each column are juxtaposed rather than stacked. Include option names.arg=(character vector) to label the bars. The option horiz=TRUE to createa a horizontal barplot.
 
+  mat = matrix(c(1,2))
+  layout(mat, heights = c(6,3))
+  barplot(nuts.matrix.transpose, main = barTitleMain, xlab = "Years", names.arg = gsub("X", "",years),
+          col = colList, border = NA)
+
+  barplot(temp,  col = colList, ylim = yRange,
+          legend.text = rownames(temp), args.legend = list(cex = .5, x = "topright"),
+          beside = TRUE, ylab = yLab,  cex.names = .7, las = 2,  main = title)
+  colsToRound <- names(temp.wide)[2:length(temp.wide)]
+  temp.wide[,(colsToRound) := round(.SD,2), .SDcols = colsToRound]
+  data.table::setnames(temp.wide, old = names(temp.wide), new = c("scenario", regionCodes))
+  textplot(temp.wide, cex = 0.6, valign = "top", show.rownames = FALSE, mai = c(.5, .5, .5, .5))
+  dev.off()
+  write.csv(temp.wide, file = paste("graphics/", fileName, ".", aggChoice, ".csv", sep = ""))
+  print(paste("Done plotting bars by region", aggChoice, "for", title))
+  print(" ")
+
+reqType <- "kcal_ratios"
+temp <- reqRatiodatasetup(reqType, country, SSP, climModel, experiment, years)
+nutListShort <- temp[[2]]
+inputData <- temp[[1]]
+nuts.matrix <- as.matrix(inputData[year %in% (years),2:ncol(inputData), with = FALSE])
+nuts.matrix.transpose <- t(nuts.matrix)
+colList <- c("grey","green","red", "blue")
+barTitleMain <- sprintf("Ratio of macronutrients in energy intake for %s \n SSP scenario: %s, climate model: %s, experiment %s",
+                        countryNameLookup(country), SSP, climModel, experiment)
+# mainTitle = "Share of macronutrients in total energy consumption"
+# subTitle <- paste("Country:" , country,
+#                   ", Climate model:", climModel,
+#                   "\nSocioeconomic scenario:", SSP,
+#                   ", Experiment:", experiment, sep = " ")
+barplot(nuts.matrix.transpose, main = barTitleMain, xlab = "Years", names.arg = gsub("X", "",years),
+        col = colList, border = NA)
+legendText <- gsub("_g", "", nutListShort)
+legend("bottomright", legend = legendText, text.col = "black", cex = .6, pt.cex = .6,
+       pt.lwd = 1, pch = 20,
+       col = colList)
+
+}
