@@ -39,6 +39,11 @@ titleText <- sprintf("Ratio of consumption to requirement for %s \n SSP scenario
 title(paste(titleText), outer = TRUE, line = -2)
 
 # nutStackedBarGraph
+#Create barplots with the barplot(height) function, where height is a vector or matrix.
+#If height is a vector, the values determine the heights of the bars in the plot.
+#If height is a matrix and the option beside=FALSE then each bar of the plot corresponds to a column of height, w
+#ith the values in the column giving the heights of stacked “sub-bars”.
+#If height is a matrix and beside=TRUE, then the values in each column are juxtaposed rather than stacked. Include option names.arg=(character vector) to label the bars. The option horiz=TRUE to createa a horizontal barplot.
 plot.new()
 reqType <- "kcal_ratios"
 temp <- reqRatiodatasetup(reqType,country, SSP, climModel, experiment, years)

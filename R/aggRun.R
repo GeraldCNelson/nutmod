@@ -77,9 +77,19 @@ for (l in scenChoiceList) {
     budgetShare.out <- aggNorder(gdxChoice, DTglobal = "dt.budgetShare", aggChoice = i, get(l))
     plotByRegionBar(dt = budgetShare.out, fileName = "budgetShare", title = "IMPACT food budget share of per capita income", yLab = "(percent)", yRange = c(0, 50), aggChoice = i)
     print(paste("Done with bar chart for budget share for", i))
+
+    print(paste("Working on bar chart for MFAD for", i))
+    MFAD.out <- aggNorder(gdxChoice, DTglobal = "dt.MFAD", aggChoice = i, get(l))
+    plotByRegionBar(dt = MFAD.out, fileName = "MFAD", title = "Modified Functional Attribute Diversity", yLab = "(percent)", yRange = c(0, 120), aggChoice = i)
+    print(paste("Done with bar chart for MFAD for", i))
+
+    print(paste("Working on bar chart for Raos QE for", i))
+    RaoQE.out <- aggNorder(gdxChoice, DTglobal = "dt.RaoQE", aggChoice = i, get(l))
+    plotByRegionBar(dt = RaoQE.out, fileName = "RaoQE", title = "Rao's quadratic entropy", yLab = "(percent)", yRange = c(0, 1), aggChoice = i)
+    print(paste("Done with bar chart for Raos QE for", i))
   }
 
-  # do files with several nutrients
+  # do files with several nutrients -----
   for (k in 1:length(multipleNutsFileList)) {
     print(paste("Working on ", multipleNutsFileList[k]))
     temp.in <- getNewestVersion(multipleNutsFileList[k], fileloc("resultsDir"))
@@ -152,15 +162,15 @@ for (l in scenChoiceList) {
           ylab = paste("(",units,")",sep = "")
         }
         if (multipleNutsFileList[k] %in% reqRatioFiles)  {
-          nutTitle <- paste("Average availability as share of RDA or AI, ", nutlongName, sep = "")
+          nutTitle <- paste("Adequacy ratio, ", nutshortName, sep = "")
           ylab = NULL
         }
-        if (multipleNutsFileList[k] %in% c( "PR.zinc.sum.req.ratio", "PR.iron.sum.req.ratio"))  {
-          nutTitle <- paste("Average bioavailability as \nshare of physiological requirement, ", nutlongName, sep = "")
-          ylab = NULL
-        }
+        # if (multipleNutsFileList[k] %in% c( "PR.zinc.sum.req.ratio", "PR.iron.sum.req.ratio"))  {
+        #   nutTitle <- paste("Average bioavailability as \nshare of physiological requirement, ", nutlongName, sep = "")
+        #   ylab = NULL
+        # }
         if (multipleNutsFileList[k] == "dt.nutrients.nonstapleShare")  {
-          nutTitle <- paste("Non-staple share of ", nutlongName, " availability", sep = "")
+          nutTitle <- paste("Non-staple share of ", nutshortName, " availability", sep = "")
           ylab = "(percent)"
         }
         plotByRegionBar(dt = DT, fileName = paste(j, shortName, sep = "."), title = nutTitle, yLab = ylab, yRange = NULL, aggChoice = i)
@@ -298,11 +308,14 @@ dt.budgetShare <- dt.budgetShare[year == "X2010", scenario := "2010"][, year := 
 # get rid of Somalia because it's budget share is 500 * per cap income
 dt.budgetShare <- dt.budgetShare[!region_code.IMPACT159 == "SOM",]
 temp <- dt.budgetShare
-temp[,region_code := factor(region_code, levels = c("lowInc", "lowMidInc", "upMidInc", "highInc"))]
+WBregionLevels <- c("lowInc", "lowMidInc", "upMidInc", "highInc")
+temp[,region_code := factor(region_code, levels = WBregionLevels)]
+# sort by the region codes
+temp <- temp[order(region_code),]
 yrange <- range(temp$incSharePCX0)
 pdf(paste("graphics/budgetShareBoxPlot", ".pdf", sep = ""))
 box.test <- boxplot(incSharePCX0 ~ region_code, data = temp, range = 0,
-#                    at = c(1, 2, 4, 5, 6),
+                    #                    at = c(1, 2, 4, 5, 6),
                     xaxt = 'n',
                     ylim = yrange,
                     ylab = "(percent)",
@@ -318,7 +331,7 @@ text(
   c(1, 2, 3, 4),
   par("usr")[3] - 0.1, srt = 45, adj = 1.2,
   labels = labels, xpd = TRUE,  cex = 0.6, cex.axis = 0.6)
-abline(h = 1, lty = 3, lwd = 0.8)
+# abline(h = 1, lty = 3, lwd = 0.8)
 dev.off()
 
 source("R/aggregateResults.R")

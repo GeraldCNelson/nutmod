@@ -333,6 +333,26 @@ generateResults <- function(req, dt.IMPACTfood, scenarioListIMPACT, dt.nutrients
                              by = eval(data.table::key(dt.food.agg))]
   data.table::setkey(dt.food.agg, NULL)
   dt.food.agg <- unique(dt.food.agg)
+
+  # sum foodavail by food group -----
+  temp <- dt.food.agg[, c("scenario", "region_code.IMPACT159", "year", "IMPACT_code", "foodAvailpDay","food_group_code") , with = FALSE]
+  temp <- temp[year %in% c("X2010", "X2050")]
+
+  #sum and convert to grams
+  temp.foodgroup.sum <- temp[, foodavail.foodgroup.sum := sum(foodAvailpDay) * 1000,
+                             by = c("scenario", "region_code.IMPACT159","year","food_group_code")]
+  temp.foodgroup.sum[, c("IMPACT_code", "foodAvailpDay") := NULL]
+  temp.foodgroup.sum <- unique(temp.foodgroup.sum)
+
+  formula.wide <- paste("region_code.IMPACT159 + year + food_group_code   ~ scenario")
+  temp.foodgroup.sum.wide <- data.table::dcast(
+    data = temp.foodgroup.sum,
+    formula = formula.wide,
+    value.var = "foodavail.foodgroup.sum")
+  inDT <- temp.foodgroup.sum.wide
+  outName <- "foodAvail.foodGroup"
+  cleanup(inDT, outName, fileloc("resultsDir"), "csv")
+
   # now calculate ratios of nutrient by group to total consumption of the nutrient
   # nutrient from each food item to the total
   #dt.food.ratio <- data.table::copy(dt.all.sum[,(nutListReq.ratio) := dt.all.sum[[nutListReq.Q]] / dt.all.sum[[nutListReq.sum]]])

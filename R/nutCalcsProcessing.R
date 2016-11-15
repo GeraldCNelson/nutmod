@@ -580,24 +580,8 @@ inDT[, nutrient := cleanupNutrientNames(nutrient)]
 outName <- "dt.energy.ratios"
 cleanup(inDT, outName, fileloc("resultsDir"), "csv")
 
-# Shannon diversity ratio -----
-#SD = - sum(s_i * ln(s_i)
-dt.IMPACTfood <- getNewestVersion("dt.IMPACTfood", fileloc("iData"))
-keepListCol <- c("scenario","region_code.IMPACT159", "year", "IMPACT_code", "FoodAvailability")
-dt.SDfood <- dt.IMPACTfood[,keepListCol, with = FALSE]
-dt.SDfood[,foodQ.sum := sum(FoodAvailability), by = c("scenario","region_code.IMPACT159", "year")]
-dt.SDfood[,foodQ.ratio := FoodAvailability/foodQ.sum]
-dt.SDfood[,lnfoodQ.ratio := foodQ.ratio * log(foodQ.ratio)]
-dt.SDfood[is.nan(lnfoodQ.ratio),lnfoodQ.ratio := 0]
-dt.SDfood[,SD := -sum(lnfoodQ.ratio), by = c("scenario","region_code.IMPACT159", "year")]
-keepListCol <- c("scenario","region_code.IMPACT159", "year", "SD")
-dt.SDfood <- unique(dt.SDfood[, keepListCol, with = FALSE])
-foodList <- unique(dt.IMPACTfood$IMPACT_code)
-dt.SDfood[, SDnorm := SD * 100/log(length(foodList))]
 
-inDT <- dt.SDfood
-outName <- "dt.shannonDiversity"
-cleanup(inDT, outName, fileloc("resultsDir"), "csv")
+
 
 
 

@@ -729,10 +729,8 @@ nutReqDataPrep <- function(reqTypeChoice, countryCode, scenarioName, years, dir)
   if (is.na(experiment)) {experiment <- "REF"}
 
   fileName <- resultFileLookup[reqTypeName == reqTypeChoice, fileName]
-  #print(fileName)
   if (length(fileName) == "0") print(paste(reqTypeChoice, "is not a valid choice", sep = " "))
-  #  reqRatios <- getNewestVersion(fileName, dir)
-  reqRatios.long <- getNewestVersion(reqTypeChoice, dir)
+   reqRatios.long <- getNewestVersion(reqTypeChoice, dir)
   #  print(head(reqRatios))
   # keepListCol <- c("scenario", "SSP", "climate_model", "experiment", "RCP", "region_code.IMPACT159",
   #                  "nutrient",  "year", "value")
