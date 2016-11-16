@@ -174,15 +174,7 @@ dt.adequateRatio <- dt.temp[,c(headCols, nutnames.ratio), with = FALSE]
 #rename from .ratio to just the nutrient name
 data.table::setnames(dt.adequateRatio, old = names(dt.adequateRatio), new = gsub(".ratio", "", names(dt.adequateRatio)))
 itemlist <- unique(dt.temp$IMPACT_code)
-#d <- vector(mode = "numeric", length = length(nutlist) * length(itemlist))
 
-# for (i in 1:length(itemlist)) {
-#   for (j in 1:length(itemlist)) {
-#     for (k in 1:length(nutlist)) {
-#     d[k] <- (dt.temp[IMPACT_code == itemlist[i],get(nutlist[k])] - dt.temp[IMPACT_code == itemlist[j],get(nutlist[k])])^2
-#     }
-#   }
-# }
 dt.adequateRatio.long <- data.table::melt(
   data = dt.adequateRatio,
   id.vars = c(headCols),
@@ -192,7 +184,7 @@ dt.adequateRatio.long <- data.table::melt(
   variable.factor = FALSE
 )
 
-# make columns for each of the nutrients;
+# make columns for each of the nutrients
 formula.wide <- paste("scenario + region_code.IMPACT159 + year +  IMPACT_code ~ nutrient  ")
 dt.adequateRatio.nuts <- data.table::dcast(
   data = dt.adequateRatio.long,
@@ -201,7 +193,7 @@ dt.adequateRatio.nuts <- data.table::dcast(
 )
 dt.adequateRatio.nuts[is.na(dt.adequateRatio.nuts)] <- 0
 
-# make columns for each of the IMPACT commodities;
+# make columns for each of the IMPACT commodities
 formula.wide <- paste("scenario + region_code.IMPACT159 + year + nutrient ~ IMPACT_code")
 dt.adequateRatio.commods <- data.table::dcast(
   data = dt.adequateRatio.long,
@@ -209,8 +201,6 @@ dt.adequateRatio.commods <- data.table::dcast(
   value.var = "value"
 )
 dt.adequateRatio.commods[is.na(dt.adequateRatio.commods)] <- 0
-
-#dt.temp.wide <- merge(dt.temp.wide, dt.foodQratio, by = c("scenario", "region_code.IMPACT159",  "year", "IMPACT_code"))
 
 dt.nutrients.long <- data.table::melt(
   data = dt.nutrients,
@@ -230,75 +220,30 @@ dt.nutrients.wide <- data.table::dcast(
 
 # distance measure calcs -----
 # we need a distance matrix for each country, for each scenario, and for each year in yearList
-dt.main <- data.table::copy(dt.adequateRatio.nuts)
+dt.main <- data.table::copy(dt.adequateRatio.commods)
 dt.foodqratio <- data.table::copy(dt.foodQratio)
 dt.foodqratio[,c("lnfoodQ.ratio", "SD") := NULL]
+
+formula.wide <- paste("scenario + year + region_code.IMPACT159 ~ IMPACT_code")
+dt.foodqratio.wide <- data.table::dcast(
+  data = dt.foodqratio,
+  formula = formula.wide,
+  value.var = "foodQ.ratio"
+)
+dt.foodqratio.wide[is.na(dt.foodqratio.wide)] <- 0
+data.table::setnames(dt.foodqratio.wide, old = itemlist, new = paste0(itemlist,".ratio"))
+dt.main <- merge(dt.main, dt.foodqratio.wide, by = c("scenario", "year", "region_code.IMPACT159"))
 yearList <- c("X2010","X2050")
-scenList <- unique(dt.temp$scenario)
 dt.main <- dt.main[ year %in% yearList,]
-len.nutlist <- length(nutlist)
-commods <- unique(dt.main$IMPACT_code)
-#commods <- names(dt)[5:length(dt.main)]
-ctyList <- sort(unique(dt.temp$region_code.IMPACT159))
-MFADHolder <- data.table(scenario = character(0), region_code.IMPACT159 = character(0), year = character(0), MFAD = numeric(0), RAOs_QE = numeric(0))
-for (k in yearList) {
-  for (l in scenList) {
-    for (n in ctyList) {
-      dt <- dt.main[ year == k & scenario == l & region_code.IMPACT159 == n,]
-     dt.foodqrat <- dt.foodqratio[ year == k & scenario == l & region_code.IMPACT159 == n,]
-#      dt[,c("scenario", "region_code.IMPACT159", "year", "IMPACT_code") := NULL]
-      d <- as.data.table(rdist(dt[,5:length(dt)]))
-      data.table::setnames(d, old = names(d), new = unique(dt$IMPACT_code))
-      MFAD <- sum(d)/len.nutlist
-      RaosQE <- raoD(dt[,5:length(dt)])$total
-      newRow <- as.list(c(l,n,k,MFAD,RaosQE))
-      MFADHolder <- rbind(MFADHolder, newRow)
-    }
-  }
-}
-
-# alternate
-#dt.main[, c("scenario", "region_code.IMPACT159", "year", "IMPACT_code") := NULL]
-cols <- setdiff(colnames(dt.main), c("scenario", "region_code.IMPACT159", "year", "IMPACT_code"))
-system.time(dt.main[, `:=` (MFAD = sum(rdist(.SD)) / 20),
+cols <- setdiff(colnames(dt.main), c("scenario", "region_code.IMPACT159", "year", "nutrient", paste0(itemlist,".ratio")))
+system.time(dt.main[, `:=` (MFAD = sum(rdist(.SD)) / .N),
                     by = c("scenario", "year", "region_code.IMPACT159"), .SDcols = cols])
-# dt.main[, MFAD := sum(rdist(dt.main[,!(c("scenario", "region_code.IMPACT159", "year", "IMPACT_code"))]))/len.nutlist,
-# by = c("scenario", "year", "region_code.IMPACT159")]
-
-#      d <- merge(d, dt.foodqratio, by = )
-# for (i in 1:length(nutlist)) {
-#   for (j in 1:length(nutlist)) {
-#     d <- matrix(data = NA, nrow = length(itemlist), ncol = length(itemlist), dimnames = list(itemlist,itemlist))
-#     d[i,j] <- sqrt(sum(dt[, (get(itemlist[i]) - get(itemlist[j]))^2]))
-#   }
-# }
-#      d <- data.table::as.data.table(d)
-#      browser()
-#      MFAD <- sum(d)/length(nutlist)
-
-#      newRow <- as.list(c(l,n,k,MFAD))
-#      print(newRow)
-#      MFADHolder <- rbind(MFADHolder, newRow)
-#      print(MFADHolder)
-
-MFADHolder[,MFAD := as.numeric(MFAD)][,RAOs_QE := as.numeric(RAOs_QE)]
-RAOHolder <- MFADHolder[, c("scenario",  "region_code.IMPACT159", "year", "RAOs_QE")]
-MFADHolder <- MFADHolder[, c("scenario",  "region_code.IMPACT159", "year", "MFAD")]
-data.table::setnames(MFADHolder, old = "MFAD", new = "value")
-data.table::setnames(RAOHolder, old = "RAOs_QE", new = "value")
+# system.time(dt.main[, `:=` (RaoQe = MFAD * .N * ),
+#                     by = c("scenario", "year", "region_code.IMPACT159"), .SDcols = cols])
+MFADHolder <- unique(dt.main[, c("scenario","year", "region_code.IMPACT159", "MFAD") ])
 inDT <- MFADHolder
 outName <- "dt.MFAD"
-cleanup(inDT, outName, fileloc("resultsDir"), "csv")
-inDT <- RAOHolder
-outName <- "dt.RaoQE"
-cleanup(inDT, outName, fileloc("resultsDir"), "csv")
-
-formula.wide <- paste("region_code.IMPACT159 + year ~ scenario")
-MFADHolder.wide <- data.table::dcast(
-  data = MFADHolder,
-  formula = formula.wide,
-  value.var = "value"
-)
+ cleanup(inDT, outName, fileloc("resultsDir"), "csv")
 
 # qualifying nutrient balance score
 #qualifying nutrients
@@ -323,7 +268,7 @@ dt.req.minrls <- getNewestVersion("req.RDA.minrls.percap")
 dt.energy.ratios <- getNewestVersion("dt.energy.ratios", fileloc("resultsDir"))
 dt.nutSum <- getNewestVersion("dt.nutrients.sum.all", fileloc("resultsDir"))
 dt.kcalSum <- dt.nutSum[nutrient %in% c("kcals.carbohydrate", "kcals.ethanol", "kcals.fat",
-                       "kcals.protein") & year %in% yearList, ]
+                                        "kcals.protein") & year %in% yearList, ]
 formula.wide <- paste("scenario + region_code.IMPACT159 + year ~ nutrient")
 dt.nutSum.wide <- data.table::dcast(
   data = dt.nutSum,
@@ -343,3 +288,72 @@ dt.adequateRatio <- dt.temp[,c(headCols, nutnames.ratio), with = FALSE]
 # to its Dietary Reference Intake (DRI) value.
 
 
+
+
+# old code, temporarily stored here ------
+# ctyList <- sort(unique(dt.temp$region_code.IMPACT159))
+# MFADHolder <- data.table(scenario = character(0), region_code.IMPACT159 = character(0), year = character(0), MFAD = numeric(0), RAOs_QE = numeric(0))
+# for (k in yearList) {
+#   for (l in scenList) {
+#     for (n in ctyList) {
+#       dt <- dt.main[ year == k & scenario == l & region_code.IMPACT159 == n,]
+#       dt.foodqrat <- dt.foodqratio[ year == k & scenario == l & region_code.IMPACT159 == n,]
+#       #      dt[,c("scenario", "region_code.IMPACT159", "year", "IMPACT_code") := NULL]
+#       d <- as.data.table(rdist(dt[,5:length(dt)]))
+#       data.table::setnames(d, old = names(d), new = unique(dt$IMPACT_code))
+#       MFAD <- sum(d)/len.nutlist
+#       RaosQE <- raoD(dt[,5:length(dt)])$total
+#       newRow <- as.list(c(l,n,k,MFAD,RaosQE))
+#       MFADHolder <- rbind(MFADHolder, newRow)
+#     }
+#   }
+# }
+
+
+#d <- vector(mode = "numeric", length = length(nutlist) * length(itemlist))
+
+# for (i in 1:length(itemlist)) {
+#   for (j in 1:length(itemlist)) {
+#     for (k in 1:length(nutlist)) {
+#     d[k] <- (dt.temp[IMPACT_code == itemlist[i],get(nutlist[k])] - dt.temp[IMPACT_code == itemlist[j],get(nutlist[k])])^2
+#     }
+#   }
+# }
+
+# dt.main[, MFAD := sum(rdist(dt.main[,!(c("scenario", "region_code.IMPACT159", "year", "IMPACT_code"))]))/len.nutlist,
+# by = c("scenario", "year", "region_code.IMPACT159")]
+
+#      d <- merge(d, dt.foodqratio, by = )
+# for (i in 1:length(nutlist)) {
+#   for (j in 1:length(nutlist)) {
+#     d <- matrix(data = NA, nrow = length(itemlist), ncol = length(itemlist), dimnames = list(itemlist,itemlist))
+#     d[i,j] <- sqrt(sum(dt[, (get(itemlist[i]) - get(itemlist[j]))^2]))
+#   }
+# }
+#      d <- data.table::as.data.table(d)
+#      browser()
+#      MFAD <- sum(d)/length(nutlist)
+
+#      newRow <- as.list(c(l,n,k,MFAD))
+#      print(newRow)
+#      MFADHolder <- rbind(MFADHolder, newRow)
+#      print(MFADHolder)
+
+# MFADHolder[,MFAD := as.numeric(MFAD)][,RAOs_QE := as.numeric(RAOs_QE)]
+# RAOHolder <- MFADHolder[, c("scenario",  "region_code.IMPACT159", "year", "RAOs_QE")]
+# MFADHolder <- MFADHolder[, c("scenario",  "region_code.IMPACT159", "year", "MFAD")]
+# data.table::setnames(MFADHolder, old = "MFAD", new = "value")
+# data.table::setnames(RAOHolder, old = "RAOs_QE", new = "value")
+# inDT <- MFADHolder
+# outName <- "dt.MFAD"
+# cleanup(inDT, outName, fileloc("resultsDir"), "csv")
+# inDT <- RAOHolder
+# outName <- "dt.RaoQE"
+# cleanup(inDT, outName, fileloc("resultsDir"), "csv")
+#
+# formula.wide <- paste("region_code.IMPACT159 + year ~ scenario")
+# MFADHolder.wide <- data.table::dcast(
+#   data = MFADHolder,
+#   formula = formula.wide,
+#   value.var = "value"
+# )

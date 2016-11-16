@@ -20,10 +20,21 @@ library(data.table)
 dt.metadata <- getNewestVersion("dt.metadata", fileloc("resultsDir"))
 gdxFileName <- dt.metadata[file_description %in% "IMPACT demand data in gdx form", file_name_location]
 aggChoiceListBarChart <- c("tenregions", "WB", "AggReg1") # missing AggReg2 and  "2EconGroup
-multipleNutsFileList <- c("dt.nutrients.sum.all", "RDA.macro.sum.req.ratio", "RDA.minrls.sum.req.ratio", "RDA.vits.sum.req.ratio",
-                          "dt.nutrients.nonstapleShare", "PR.zinc.sum.req.ratio", "PR.iron.sum.req.ratio") # "dt.energy.ratios" not included
-multipleNutsListShortName <- c("nutrients.avail", "macro.req.ratio", "minrls.req.ratio", "vits.req.ratio",
-                               "nutrients.nonstaples.share", "zinc_bioavail_req.ratio", "iron_bioavail_req.ratio")
+multipleNutsFileList <- c("dt.nutrients.sum.all",
+                          "RDA.macro.sum.req.ratio",
+                          "RDA.minrls.sum.req.ratio",
+                          "RDA.vits.sum.req.ratio",
+                          "dt.nutrients.nonstapleShare",
+                          "PR.zinc.sum.req.ratio",
+                          "PR.iron.sum.req.ratio") # "dt.energy.ratios" not included
+multipleNutsListShortName <- c("nutrients.avail",
+                               "macro.req.ratio",
+                               "minrls.req.ratio",
+                               "vits.req.ratio",
+                               "nutrients.nonstaples.share",
+                               "zinc_bioavail_req.ratio",
+                               "iron_bioavail_req.ratio",
+                               "foodAvail.foodGroup")
 #nutrients grouping
 macroNutrients <- c("protein_g", "fat_g", "carbohydrate_g",  "totalfiber_g")
 vitamins <- c("vit_c_mg", "thiamin_mg", "riboflavin_mg", "niacin_mg",
@@ -87,21 +98,86 @@ for (l in scenChoiceList) {
     RaoQE.out <- aggNorder(gdxChoice, DTglobal = "dt.RaoQE", aggChoice = i, get(l))
     plotByRegionBar(dt = RaoQE.out, fileName = "RaoQE", title = "Rao's quadratic entropy", yLab = "(percent)", yRange = c(0, 1), aggChoice = i)
     print(paste("Done with bar chart for Raos QE for", i))
+
+    # print(paste("Working on bar chart for food availability for", i))
+    # foodAvail.out <- aggNorder(gdxChoice, DTglobal = "dt.foodAvail.foodGroup", aggChoice = i, get(l))
+    # plotByRegionBar(dt = foodAvail.out, fileName = "foodAvail.foodGroup", title = "Food availability by food group", yLab = "(grams)", yRange = c(0, 100), aggChoice = i)
+    # print(paste("Done with bar chart for Raos QE for", i))
+
   }
 
-  # do files with several nutrients -----
+  # food groups -----
+  print(paste("Working on dt.foodAvail.foodGroup"))
+  temp.in <- getNewestVersion("dt.foodAvail.foodGroup", fileloc("resultsDir"))
+  temp.in <- merge(temp.in, dt.pop, by = c("scenario","region_code.IMPACT159", "year"))
+
+  #keep just the scenario.base scenario for 2010 and rename the scenario to 2010
+  temp.in <- temp.in[year == "X2010" & scenario == scenario.base |
+                       year == "X2050",][year == "X2010", scenario := "2010"]
+  for (i in aggChoiceListBarChart) {
+    for (j in unique(temp.in$food_group_code)) {
+      #     for (j in c(macroNutrients, vitamins, minerals)) {
+      FG.shortName <- j
+      FG.longName <- cleanupNutrientNames(j)
+      units <- "g"
+      DT <- data.table::copy(temp.in)
+      if (units == "g") units <- "grams"
+      DT <- DT[food_group_code %in% j,]
+      DT[, food_group_code := NULL]
+      dt.regions <- regionAgg(i)
+      # aggregate to and retain only the relevant regions
+      merged <- merge(DT, dt.regions, by = "region_code.IMPACT159")
+      merged <- merged[, value := weighted.mean(value, PopX0), by = c("scenario", "region_code", "year")]
+      #      merged <- merged[, value := weighted.mean(value, PopX0), by = c("scenario", "region_code")]
+      keepListCol <- c("scenario", "region_code", "region_name", "value")
+      DT <- unique(merged[, (keepListCol), with = FALSE])
+      if (gdxChoice == "USAID") DT <- renameUSAIDscenarios(DT)
+
+      DT <- DT[scenario %in% get(l), ]
+      #     if (gdxChoice == "SSPs") {
+      # do manipulations on the gdx data that has 3 SSP scenarios and 3 climate change scenarios.
+      # DT <- DT[scenario %in% get(l), ]
+      # DT[, scenarioOrder := match(scenario, scenOrder.SSPs)]
+      # data.table::setorder(DT, scenarioOrder)
+      # DT[, scenarioOrder := NULL]
+      # #      }
+      if (gdxChoice == "USAID")  {
+        # scenarioList.prodEnhance <- c("MED", "HIGH", "HIGH_NARS", "HIGH_RE", "REGION")
+        # scenarioList.waterMan <- c("IX", "IX_WUE", "ISW", "IX_WUE_NoCC", "IX_IPSL", "ISW_NoCC", "ISW_IPSL")
+        # scenarioList.addEnhance <- c("RPHL", "RMM")
+        # scenarioList.comp <- c("COMP", "COMP_NoCC", "COMP_IPSL")
+        #       scenario.base <- "REF_HGEM"
+
+        # keep only needed USAID scenarios
+        scenOrder <- c("2010", l)
+        DT <- DT[scenario %in% get(l), ]
+        scenChoice.name <- l
+      }
+
+      # order scenarios, first write the number into the number variable scenarioOrder
+      DT[, scenarioOrder := match(scenario, scenOrder)]
+      data.table::setorder(DT, scenarioOrder)
+      DT[, scenarioOrder := NULL]
+
+      DT <- orderRegions(DT, i)
+      nutTitle <- paste("Average daily availability of ", tolower(FG.longName), sep = "")
+      ylab = paste("(",units,")",sep = "")
+      plotByRegionBar(dt = DT, fileName = paste(j, "foodAvail.foodGroup", sep = "."), title = nutTitle, yLab = ylab, yRange = NULL, aggChoice = i)
+      print(j)
+    }
+  }
+  print(paste("Done with food groups"))
+  print(" ", quote = FALSE)
+
+  # several nutrients -----
   for (k in 1:length(multipleNutsFileList)) {
     print(paste("Working on ", multipleNutsFileList[k]))
     temp.in <- getNewestVersion(multipleNutsFileList[k], fileloc("resultsDir"))
     temp.in <- merge(temp.in, dt.pop, by = c("scenario","region_code.IMPACT159", "year"))
 
-    #keep just the scenario.base scenario for 2010 and rename the scenario to 2010, then delete year column
+    #keep just the scenario.base scenario for 2010 and rename the scenario to 2010
     temp.in <- temp.in[year == "X2010" & scenario == scenario.base |
-                         year == "X2050",]
-    temp.in <- temp.in[year == "X2010", scenario := "2010"]
-    # temp.in <- temp.in[, year := NULL]
-    shortName <- multipleNutsListShortName[k]
-
+                         year == "X2050",][year == "X2010", scenario := "2010"]
     for (i in aggChoiceListBarChart) {
       for (j in unique(temp.in$nutrient)) {
         #     for (j in c(macroNutrients, vitamins, minerals)) {
@@ -173,7 +249,7 @@ for (l in scenChoiceList) {
           nutTitle <- paste("Non-staple share of ", nutshortName, " availability", sep = "")
           ylab = "(percent)"
         }
-        plotByRegionBar(dt = DT, fileName = paste(j, shortName, sep = "."), title = nutTitle, yLab = ylab, yRange = NULL, aggChoice = i)
+        plotByRegionBar(dt = DT, fileName = paste(j, multipleNutsListShortName[k], sep = "."), title = nutTitle, yLab = ylab, yRange = NULL, aggChoice = i)
       }
     }
     print(paste("Done with ", multipleNutsFileList[k]))

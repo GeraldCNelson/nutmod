@@ -343,14 +343,14 @@ generateResults <- function(req, dt.IMPACTfood, scenarioListIMPACT, dt.nutrients
                              by = c("scenario", "region_code.IMPACT159","year","food_group_code")]
   temp.foodgroup.sum[, c("IMPACT_code", "foodAvailpDay") := NULL]
   temp.foodgroup.sum <- unique(temp.foodgroup.sum)
-
-  formula.wide <- paste("region_code.IMPACT159 + year + food_group_code   ~ scenario")
-  temp.foodgroup.sum.wide <- data.table::dcast(
-    data = temp.foodgroup.sum,
-    formula = formula.wide,
-    value.var = "foodavail.foodgroup.sum")
-  inDT <- temp.foodgroup.sum.wide
-  outName <- "foodAvail.foodGroup"
+data.table::setnames(temp.foodgroup.sum, old = "foodavail.foodgroup.sum", new = "value")
+  # formula.wide <- paste("region_code.IMPACT159 + year + food_group_code   ~ scenario")
+  # temp.foodgroup.sum.wide <- data.table::dcast(
+  #   data = temp.foodgroup.sum,
+  #   formula = formula.wide,
+  #   value.var = "foodavail.foodgroup.sum")
+  inDT <- temp.foodgroup.sum
+  outName <- "dt.foodAvail.foodGroup"
   cleanup(inDT, outName, fileloc("resultsDir"), "csv")
 
   # now calculate ratios of nutrient by group to total consumption of the nutrient

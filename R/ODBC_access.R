@@ -11,7 +11,7 @@ library(data.table)
 # 5.	This will do a few things and then ask whether you want to compile from source. Answer ‘y’. It will do some more c stuff and then exit successfully.
 # 6. run the ODBC manager and set up the connection to the access data base file as a system DSN (user DSN is probably ok too)
 # 7. run this script
-con <- odbcConnect("nutrientDataSR28", DBMSencoding = "")
+con <- odbcConnect("nutrientDataSR28",DBMSencoding="Windows-1252") # this encoding is needed to get the mu character correct
 tbls <- sqlTables(con, tableType = "TABLE")
 
 # principal files
@@ -31,7 +31,8 @@ USDAcodes <- c("14003", "14532", "14084", "09040", "20004", "13047", "11134", "0
  "14214", "20020", "16060", "15149", "01123", "4594", "15076", "15123", "16069", "01078",
  "20031", "04055", "04042", "04044", "04506", "16087", "16101", "09277", "10219", "11352",
  "20444", "12036", "20067", "16108", "19335", "11507", "11518", "04670", "04513", "20076",
- "11601", "35011", "11445")
+ "11601", "35011", "11445", "04594",
+ "20071", "20072", "20073", "20074", "20075", "20076") #additional wheat varieties
 
 # as of Nov 10, 2016
 nutcodes <- c("203", "204", "205", "208", "262", "269", "291", "301", "303", "304", "305", "306",
@@ -67,6 +68,7 @@ dt <- merge(nutr_def, nut_data, by = "Nutr_No")
 dt <- merge(dt, food_des, by = "NDB_No")
 dt <- merge(dt.IMPACTcodeLookup, dt, by.x = "usda_code", by.y = "NDB_No")
 dt <- merge(dt, dt.nutcodeLookup, by = c("NutrDesc", "Nutr_No", "Units"))
+Encoding(dt$nutCode) <- "unknown"
 
 formula.wide <- paste("usda_code + IMPACT_code + FdGrp_Cd + Long_Desc + Ref_Desc + Refuse ~ nutCode")
 dt.wide <- data.table::dcast(
@@ -74,7 +76,28 @@ dt.wide <- data.table::dcast(
   formula = formula.wide,
   value.var = "Nutr_Val")
 
+macroNutrients <- c("protein_g", "fat_g", "carbohydrate_g",  "totalfiber_g", "energy_kcal")
+vitamins <- c("vit_c_mg", "thiamin_mg", "riboflavin_mg", "niacin_mg",
+              "vit_b6_mg", "folate_µg", "vit_b12_µg", "vit_a_rae_µg",
+              "vit_e_mg",  "vit_d_µg", "vit_k_µg")
+minerals <- c("calcium_mg",  "iron_mg", "magnesium_mg", "phosphorus_mg",
+              "potassium_g", "zinc_mg")
+kcals <- c("kcals.fat", "kcals.protein", "kcals.sugar", "kcals.ethanol")
+addedSugar <- c("sugar_g")
+fattyAcids <- c("ft_acds_tot_sat_g", "ft_acds_mono_unsat_g", "ft_acds_plyunst_g",
+                "ft_acds_tot_trans_g")
+other <- c("caffeine_mg", "cholesterol_mg")
+oldOrder <- names(dt.wide)
+extran <- oldOrder[!oldOrder %in% c(macroNutrients, minerals, vitamins, addedSugar, fattyAcids, other)]
+data.table::setcolorder(dt.wide, c(extran, macroNutrients, minerals, vitamins, addedSugar, fattyAcids, other))
+
 dt.wide[, 6:length(dt.wide)][is.na(dt.wide[, 6:length(dt.wide)])] <- 0
+
+# the requirement for potassium is expressed in grams; the Access data are in mg. We convert it here to g
+dt.wide[ ,potassium_g := potassium_g/1000]
+inDT <- dt.wide
+outName <- "dt.nutLookupsr28"
+cleanup(inDT, outName, fileloc("mData"), "xlsx")
 
 dt.cookingRetn <- data.table::as.data.table(openxlsx::read.xlsx("data-raw/NutrientData/nutrientDetails/USDAcookingretn06.xlsx", colNames = FALSE))
 # get rid of numeric version of the date enter variable; last one
