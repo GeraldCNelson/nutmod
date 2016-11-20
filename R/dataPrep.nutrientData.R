@@ -137,13 +137,13 @@ recalcFiles <- c(
   "comp_recalc_c_FrshD_freshwater_Diadr_FCT_EPC_012916 wphytate.xlsx",
   "comp_recalc_c_Mllsc_mollusks_FCT_EPC_012916 wphytate.xlsx",
   "comp_recalc_c_ODmrsl_demersal_FCT_EPC_012916 wphytate.xlsx",
-  "comp_recalc_cocer_cereals_FCT wphytate.xlsx",
   "comp_recalc_c_OPelag_Pelagic_FCT_EPC_012916 wphytate.xlsx",
+  "comp_recalc_cocer_cereals_FCT wphytate.xlsx",
   "comp_recalc_copul_pulses__FCT wphytate.xlsx",
   "comp_recalc_cothr_othcrops_treenuts_FCT wphytate.xlsx",
   "comp_recalc_csubf_fruits_Subtrop wphytate.xlsx",
   "comp_recalc_ctemf_fruits_Other_FCT wphytate.xlsx",
-  "comp_recalc_ctool_oilcrops_FCT_V2 wphytate.xlsx",
+  "comp_recalc_ctols_oilcrops_FCT_V2 wphytate.xlsx",
   "comp_recalc_cvege_vegetables_FCT wphytate.xlsx")
 
 nutList <- names(dt.nutrients)

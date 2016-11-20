@@ -324,7 +324,7 @@ keyVariable <- function(variableName) {
                                  "cmill", "crice", "csorg", "cwhea", "cocer", "ccass", "cpota", "cswpt",
                                  "cyams", "corat", "cbean", "cchkp", "ccowp", "clent", "cpigp", "copul",
                                  "cbana", "cplnt", "csubf", "ctemf", "cvege", "csugr", "cgrnd", "cgdol",
-                                 "crpsd", "crpol", "csoyb", "csbol", "csnfl", "csfol", "cplol", "cpkol",
+                                 "crpol", "csoyb", "csbol", "csnfl", "csfol", "cplol", "cpkol", "crpsd",
                                  "ctols", "ctool", "ccoco", "ccafe", "cteas", "cothr", IMPACTfish_code,
                                  IMPACTalcohol_code))
 
