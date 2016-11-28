@@ -16,13 +16,20 @@ if (length(new.packages)) install.packages(new.packages)
 
 print("The packages below are needed and currently available on by downloading from github")
 print(paste("This set of scripts needs version 1.9.7 or greater of the data.table package. Version", as.character(packageVersion("data.table")), "is currently being used."))
-print(paste("This set of scripts needs version 3.1.23 or greater of the data.table package. Version", as.character(packageVersion("openxlsx")), "is currently being used."))
+# print(paste("This set of scripts needs version 3.1.23 or greater of the openxlsx package. Version", as.character(packageVersion("openxlsx")), "is currently being used."))
 
-if (!as.character(packageVersion("openxlsx")) %in% "3.1.23") {
-  print("updating open.xlsx")
+if (unlist(packageVersion("openxlsx")[[1]])[3] <= 23) {
+  unlist(strsplit(packageVersion("openxlsx"), ".", fixed = TRUE))[3]
+  print("updating openxlsx")
   install.packages(c("Rcpp", "devtools"), dependencies = TRUE)
   require(devtools)
   install_github("awalker89/openxlsx")
+}
+
+if (unlist(packageVersion("data.table")[[1]])[3] <= 6) {
+  unlist(strsplit(packageVersion("openxlsx"), ".", fixed = TRUE))[3]
+  print("updating data.table")
+  install.packages("data.table")
 }
 
 # the source code needs to be below the install code so R doesn't have to restart
@@ -79,6 +86,14 @@ source("R/dataManagement.IMPACT.R")
 #paste(fileShortName, "food, sep = "."), iData - just data for food commodities, example is dt.CSEs.food.2016-06-21.rds
 #dt.IMPACTfood, iData
 
+print("Running dataPrep.ODBCaccess.R")
+source("R/dataPrep.ODBCaccess.R")
+# reads in nutrient data from the USDA nutrient composition access database
+
+print("Running dataManagement.ODBCaccess.R")
+source("R/dataManagement.ODBCaccess.R")
+#Manipulates the results of the ODBC_access script and prepare for dataPrep.nutrientData.R
+
 print("Running dataPrep.nutrientData.R")
 source("R/dataPrep.nutrientData.R") # - creates dt.cookingRet and dt.nutrients, mData. Note that
 # dt.nutrients does NOT take into account loss in cooking. That is done later and depends on a switch (search for switch.xxx .
@@ -110,12 +125,14 @@ source("R/nutCalcsProcessing.R")
 "all.req.ratio.cMin"
 # dt.energy.ratios - ratio of kcals from specific sources to total kcals
 
+print("Running diversityMetrics.R")
+source("R/diversityMetrics.R")
 #creating list of .rds files in data
 dt.resultsFiles <- data.table::as.data.table(list.files(path = fileloc("resultsDir"), pattern = "*.rds"))
 data.table::setnames(dt.resultsFiles, old = "V1", new = "fileName")
 dt.resultsFiles[, reqTypeName := gsub(".{15}$","",dt.resultsFiles$fileName)]
 # this csv file is hand edited. Don't delete!
-descriptionLookup <- read.csv(paste(fileloc("rawData"), "descriptionLookup.csv", sep = "/"))
+descriptionLookup <- fread(paste(fileloc("rawData"), "descriptionLookup.csv", sep = "/"))
 dt.resultsFiles <- merge(dt.resultsFiles,descriptionLookup, by = "reqTypeName")
 inDT <- dt.resultsFiles
 outName <- "resultFileLookup"
@@ -127,4 +144,4 @@ source("R/copyFilestoNutrientModeling.R") # move results needed for the shiny ap
 print("Generate graphs")
 source("R/aggRun.R")
 
-proc.time() - ptm
+

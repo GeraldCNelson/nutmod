@@ -8,13 +8,14 @@
   source("R/workbookFunctions.R")
   source("R/nutrientCalcFunctions.R")}
 library(data.table)
+print("Aggregating results in aggregateResults.R")
 # gdxChoice values are either SSPs or USAID
 gdxChoice <- "SSPs"
 # DTglobal choices are
 # with one output
 # - dt.budgetShare, dt.shannonDiversity
 # with multiple nutrients
-# - dt.nutrients.sum.all, RDA.macro.sum.req.ratio, RDA.minrls.sum.req.ratio, RDA.vits.sum.req.ratio
+# - dt.nutrients.sum.all, RDA.macro.sum.reqRatio, RDA.minrls.sum.reqRatio, RDA.vits.sum.reqRatio
 # - dt.nutrients.nonstapleShare, dt.foodGroupsInfo, dt.energy.ratios
 # aggChoices are I3regions, tenregions, AggReg1, AggReg2, twoEconGroup, WB
 
@@ -23,14 +24,13 @@ gdxChoice <- "SSPs"
 scenario.base <- "SSP2-NoCC-REF"; if (gdxChoice == "USAID") scenario.base <- "SSP2-NoCC-NA"
 
 aggChoiceListBarChart <- c("WB", "AggReg1") # missing "tenregions", AggReg2 and  "2EconGroup
-multipleNutsFileList <- c("dt.nutrients.sum.all", "RDA.macro.sum.req.ratio", "RDA.minrls.sum.req.ratio", "RDA.vits.sum.req.ratio",
-                          "dt.nutrients.nonstapleShare", "dt.energy.ratios", "PR.iron.sum.req.ratio", "PR.zinc.sum.req.ratio")
-multipleNutsListShortName <- c("nutrients.avail", "macro.req.ratio", "minrls.req.ratio", "vits.req.ratio",
-                               "nutrients.nonstaples.share", "energy.ratios")
+multipleNutsFileList <- c("dt.nutrients.sum.all", "RDA.macro_sum_reqRatio", "RDA.minrls_sum_reqRatio", "RDA.vits_sum_reqRatio",
+                          "dt.nutrients.nonstapleShare", "dt.energy_ratios", "PR.iron_sum_reqRatio", "PR.zinc_sum_reqRatio")
+multipleNutsListShortName <- c("nutrients_avail", "macro_reqRatio", "minrls_reqRatio", "vits_reqRatio",
+                               "nutrients_nonstaples_share", "energy_ratios")
 
 # population for weighting -----
 dt.pop <- getNewestVersion("dt.PopX0", fileloc("iData"))
-#dt.pop.2010.ref <- dt.pop[year ==  "X2010" & scenario == scenario.base,][,c("scenario", "year") :=  NULL]
 for (i in aggChoiceListBarChart) {
   for (j in multipleNutsFileList) {
     print(j)

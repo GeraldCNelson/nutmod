@@ -14,26 +14,26 @@ library(data.table)
 # with one output
 # - dt.budgetShare, dt.shannonDiversity
 # with multiple nutrients
-# - dt.nutrients.sum.all, RDA.macro.sum.req.ratio, RDA.minrls.sum.req.ratio, RDA.vits.sum.req.ratio
+# - dt.nutrients.sum.all, RDA_macro.sum.reqRatio, RDA_minrls.sum.reqRatio, RDA_vits.sum.reqRatio
 # - dt.nutrients.nonstapleShare, dt.foodGroupsInfo, dt.energy.ratios
 # aggChoices are I3regions, tenregions, AggReg1, AggReg2, twoEconGroup, WB
 dt.metadata <- getNewestVersion("dt.metadata", fileloc("resultsDir"))
 gdxFileName <- dt.metadata[file_description %in% "IMPACT demand data in gdx form", file_name_location]
 aggChoiceListBarChart <- c("tenregions", "WB", "AggReg1") # missing AggReg2 and  "2EconGroup
 multipleNutsFileList <- c("dt.nutrients.sum.all",
-                          "RDA.macro.sum.req.ratio",
-                          "RDA.minrls.sum.req.ratio",
-                          "RDA.vits.sum.req.ratio",
+                          "RDA.macro_sum_reqRatio",
+                          "RDA.minrls_sum_reqRatio",
+                          "RDA.vits_sum_reqRatio",
                           "dt.nutrients.nonstapleShare",
-                          "PR.zinc.sum.req.ratio",
-                          "PR.iron.sum.req.ratio") # "dt.energy.ratios" not included
+                          "PR.zinc_sum_reqRatio",
+                          "PR.iron_sum_reqRatio") # "dt.energy.ratios" not included
 multipleNutsListShortName <- c("nutrients.avail",
-                               "macro.req.ratio",
-                               "minrls.req.ratio",
-                               "vits.req.ratio",
+                               "macro.reqRatio",
+                               "minrls.reqRatio",
+                               "vits.reqRatio",
                                "nutrients.nonstaples.share",
-                               "zinc_bioavail_req.ratio",
-                               "iron_bioavail_req.ratio",
+                               "zinc_bioavail_reqRatio",
+                               "iron_bioavail_reqRatio",
                                "foodAvail.foodGroup")
 #nutrients grouping
 macroNutrients <- c("protein_g", "fat_g", "carbohydrate_g",  "totalfiber_g")
@@ -82,22 +82,22 @@ for (l in scenChoiceList) {
   for (i in aggChoiceListBarChart) {
     print(paste("Working on bar chart for Shannon Diversity for", i))
     SD.out <- aggNorder(gdxChoice, DTglobal = "dt.shannonDiversity", aggChoice = i, get(l))
-    plotByRegionBar(dt = SD.out, fileName = "ShannonDiversity", title = "Shannon Diversity", yLab = "(percent)", yRange = c(0, 80), aggChoice = i)
+    plotByRegionBar(dt = SD.out, fileName = "ShannonDiversity", plotTitle = "Shannon Diversity", yLab = "(percent)", yRange = c(0, 80), aggChoice = i)
 
     print(paste("Working on bar chart for budget share for", i))
     budgetShare.out <- aggNorder(gdxChoice, DTglobal = "dt.budgetShare", aggChoice = i, get(l))
-    plotByRegionBar(dt = budgetShare.out, fileName = "budgetShare", title = "IMPACT food budget share of per capita income", yLab = "(percent)", yRange = c(0, 50), aggChoice = i)
+    plotByRegionBar(dt = budgetShare.out, fileName = "budgetShare", plotTitle = "IMPACT food budget share of per capita income", yLab = "(percent)", yRange = c(0, 50), aggChoice = i)
     print(paste("Done with bar chart for budget share for", i))
 
     print(paste("Working on bar chart for MFAD for", i))
     MFAD.out <- aggNorder(gdxChoice, DTglobal = "dt.MFAD", aggChoice = i, get(l))
-    plotByRegionBar(dt = MFAD.out, fileName = "MFAD", title = "Modified Functional Attribute Diversity", yLab = "(percent)", yRange = c(0, 120), aggChoice = i)
+    plotByRegionBar(dt = MFAD.out, fileName = "MFAD", plotTitle = "Modified Functional Attribute Diversity", yLab = "(percent)", yRange = c(0, 120), aggChoice = i)
     print(paste("Done with bar chart for MFAD for", i))
 
-    print(paste("Working on bar chart for Raos QE for", i))
-    RaoQE.out <- aggNorder(gdxChoice, DTglobal = "dt.RaoQE", aggChoice = i, get(l))
-    plotByRegionBar(dt = RaoQE.out, fileName = "RaoQE", title = "Rao's quadratic entropy", yLab = "(percent)", yRange = c(0, 1), aggChoice = i)
-    print(paste("Done with bar chart for Raos QE for", i))
+    # print(paste("Working on bar chart for Raos QE for", i))
+    # RaoQE.out <- aggNorder(gdxChoice, DTglobal = "dt.RaoQE", aggChoice = i, get(l))
+    # plotByRegionBar(dt = RaoQE.out, fileName = "RaoQE", plotTitle = "Rao's quadratic entropy", yLab = "(percent)", yRange = c(0, 1), aggChoice = i)
+    # print(paste("Done with bar chart for Raos QE for", i))
 
     # print(paste("Working on bar chart for food availability for", i))
     # foodAvail.out <- aggNorder(gdxChoice, DTglobal = "dt.foodAvail.foodGroup", aggChoice = i, get(l))
@@ -162,7 +162,7 @@ for (l in scenChoiceList) {
       DT <- orderRegions(DT, i)
       nutTitle <- paste("Average daily availability of ", tolower(FG.longName), sep = "")
       ylab = paste("(",units,")",sep = "")
-      plotByRegionBar(dt = DT, fileName = paste(j, "foodAvail.foodGroup", sep = "."), title = nutTitle, yLab = ylab, yRange = NULL, aggChoice = i)
+      plotByRegionBar(dt = DT, fileName = paste(j, "foodAvail_foodGroup", sep = "_"), plotTitle = nutTitle, yLab = ylab, yRange = NULL, aggChoice = i)
       print(j)
     }
   }
@@ -171,7 +171,7 @@ for (l in scenChoiceList) {
 
   # several nutrients -----
   for (k in 1:length(multipleNutsFileList)) {
-    print(paste("Working on ", multipleNutsFileList[k]))
+    print(paste("Working on multiple nut file", multipleNutsFileList[k]))
     temp.in <- getNewestVersion(multipleNutsFileList[k], fileloc("resultsDir"))
     temp.in <- merge(temp.in, dt.pop, by = c("scenario","region_code.IMPACT159", "year"))
 
@@ -195,10 +195,9 @@ for (l in scenChoiceList) {
         DT <- DT[nutrient %in% j,]
         DT[, nutrient := NULL]
         dt.regions <- regionAgg(i)
-        # aggregate to and retain only the relevant regions
+        # aggregate to and retain only the relevant regions; region code is the code for the region
         merged <- merge(DT, dt.regions, by = "region_code.IMPACT159")
         merged <- merged[, value := weighted.mean(value, PopX0), by = c("scenario", "region_code", "year")]
-        #      merged <- merged[, value := weighted.mean(value, PopX0), by = c("scenario", "region_code")]
         keepListCol <- c("scenario", "region_code", "region_name", "value")
         DT <- unique(merged[, (keepListCol), with = FALSE])
         if (gdxChoice == "USAID") DT <- renameUSAIDscenarios(DT)
@@ -231,8 +230,8 @@ for (l in scenChoiceList) {
         #     }
 
         DT <- orderRegions(DT, i)
-        reqRatioFiles <- c( "RDA.macro.sum.req.ratio", "RDA.minrls.sum.req.ratio", "RDA.vits.sum.req.ratio",
-                            "PR.zinc.sum.req.ratio", "PR.iron.sum.req.ratio")
+        reqRatioFiles <- c( "RDA.macro_sum_reqRatio", "RDA.minrls_sum_reqRatio", "RDA.vits_sum_reqRatio",
+                            "PR.zinc_sum_reqRatio", "PR.iron_sum_reqRatio")
         if (multipleNutsFileList[k] == "dt.nutrients.sum.all")  {
           nutTitle <- paste("Average daily availability of ", tolower(nutlongName), sep = "")
           ylab = paste("(",units,")",sep = "")
@@ -241,15 +240,12 @@ for (l in scenChoiceList) {
           nutTitle <- paste("Adequacy ratio, ", nutshortName, sep = "")
           ylab = NULL
         }
-        # if (multipleNutsFileList[k] %in% c( "PR.zinc.sum.req.ratio", "PR.iron.sum.req.ratio"))  {
-        #   nutTitle <- paste("Average bioavailability as \nshare of physiological requirement, ", nutlongName, sep = "")
-        #   ylab = NULL
-        # }
+
         if (multipleNutsFileList[k] == "dt.nutrients.nonstapleShare")  {
           nutTitle <- paste("Non-staple share of ", nutshortName, " availability", sep = "")
           ylab = "(percent)"
         }
-        plotByRegionBar(dt = DT, fileName = paste(j, multipleNutsListShortName[k], sep = "."), title = nutTitle, yLab = ylab, yRange = NULL, aggChoice = i)
+        plotByRegionBar(dt = DT, fileName = paste(j, multipleNutsListShortName[k], sep = "_"), plotTitle = nutTitle, yLab = ylab, yRange = NULL, aggChoice = i)
       }
     }
     print(paste("Done with ", multipleNutsFileList[k]))
@@ -257,21 +253,12 @@ for (l in scenChoiceList) {
   }
 } # end of scenChoiceList loop
 
-# nutsSum.out <- aggNorder(gdxChoice, DTglobal = " dt.nutrients.sum.all", aggChoice, scenChoice)
-# # RDA.macro.sum.req.ratio has ratio of avail to adequacy for mineral nutrients; columns are years
-# macroReqRatio.out <- aggNorder(gdxChoice, DTglobal = "RDA.macro.sum.req.ratio", aggChoice, scenChoice)
-# # RDA.minrls.sum.req.ratio has ratio of avail to adequacy for mineral nutrients; columns are years
-# minrlsReqRatio.out <- aggNorder(gdxChoice, DTglobal = "RDA.minrls.sum.req.ratio", aggChoice, scenChoice)
-# # dt.nutrients.sum.staples has a year column, staple code column and a column for each of the nutrients
-# # dt.energy.ratios has share of energy from carbohydrates, energy share (always 1), ethanol, fat, protein, carbohydrates, sugar
-# energyRatios.out <- aggNorder(gdxChoice, DTglobal = "dt.energy.ratios", aggChoice, scenChoice)
-
 #this is not working right now
 # plotByRegionLine("dt.shannonDiversity", "ShannonDiversity", "Shannon Diversity", yRange = c(20, 80), "I3regions")
 
 # write out zip files
 for (i in multipleNutsFileList) {
-  print(paste("writing zip file for ", i))
+  print(paste("writing zip file for", i))
   inDT <- getNewestVersion(i, fileloc("resultsDir"))
   write.csv(inDT, file = gzfile(paste("graphics/",i,".csv.zip", sep = "")))
 }
@@ -305,7 +292,7 @@ incCats <- c("lowInc", "lowMidInc", "upMidInc", "highInc")
 DincCats <- c("DlowInc", "DlowMidInc", "DupMidInc", "DhighInc")
 scen2050list <- c("SSP2-GFDL", "SSP2-IPSL", "SSP2-HGEM")
 for (i in nutlistmacro) {
-  fileName <- paste(i, "macro.req.ratio.WB", sep = ".")
+  fileName <- paste(i, "macro_reqRatio_WB", sep = "_")
   fileIn <- data.table::fread(paste("graphics/", fileName, ".csv", sep = ""), select = 2:6)
   for (j in scen2050list) {
     for (k in 1:length(incCats)) {
@@ -321,7 +308,7 @@ for (i in nutlistmacro) {
 }
 
 for (i in nutlistminrls) {
-  fileName <- paste(i, "minrls.req.ratio.WB", sep = ".")
+  fileName <- paste(i, "minrls_reqRatio_WB", sep = "_")
   fileIn <- data.table::fread(paste("graphics/", fileName, ".csv", sep = ""), select = 2:6)
   for (j in scen2050list) {
     for (k in 1:length(incCats)) {
@@ -337,7 +324,7 @@ for (i in nutlistminrls) {
 }
 
 for (i in nutlistbioavail) {
-  fileName <- paste(i, "bioavail_req.ratio.WB", sep = "")
+  fileName <- paste(i, "bioavail_reqRatio.WB", sep = "")
   fileIn <- data.table::fread(paste("graphics/", fileName, ".csv", sep = ""), select = 2:6)
   for (j in scen2050list) {
     for (k in 1:length(incCats)) {
@@ -353,7 +340,7 @@ for (i in nutlistbioavail) {
 }
 
 for (i in nutlistvits) {
-  fileName <- paste(i, "vits.req.ratio.WB", sep = ".")
+  fileName <- paste(i, "vits_reqRatio_WB", sep = "_")
   fileIn <- data.table::fread(paste("graphics/", fileName, ".csv", sep = ""), select = 2:6)
   for (j in scen2050list) {
     for (k in 1:length(incCats)) {
@@ -410,4 +397,4 @@ text(
 # abline(h = 1, lty = 3, lwd = 0.8)
 dev.off()
 
-source("R/aggregateResults.R")
+source("R/aggregateResults.R") # is this still necessary?

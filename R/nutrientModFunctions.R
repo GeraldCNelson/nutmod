@@ -56,6 +56,7 @@ fileloc <- function(variableName) {
   IMPACTRawData <- paste(rawData, "IMPACTData", sep = "/")
   IMPACTCleanData <- paste(mData, "IMPACTData", sep = "/")
   NutrientData <- paste(rawData, "NutrientData", sep = "/")
+  nutrientDataDetails <- paste(rawData, "NutrientData", "nutrientDetails", sep = "/")
   if (variableName == "list") {
     return(c(
       "rawData",
@@ -70,6 +71,7 @@ fileloc <- function(variableName) {
       "IMPACTRawData",
       "IMPACTCleanData",
       "NutrientData",
+      "nutrientDataDetails",
       "SSPData"
     ))
   } else {
@@ -98,9 +100,9 @@ getNewestVersion <- function(fileShortName, directory, fileType) {
   # tailLength <- 15 # to remove data and the period and csv or rds
   # if (fileType == "xlsx") tailLength <- 16 # for xlsx files
   # fillIn <- paste('.{', tailLength, '}$', sep = "")
-  fileShortName <- paste(fileShortName,".2", sep = "") # this should get rid of the multiple files problem
-  filesoffileType <- list.files(mData)[grep(fileType,list.files(mData))]
-  fileLongName <- filesoffileType[grep(fileShortName, filesoffileType, fixed = TRUE)]
+  fileShortName <- paste(fileShortName,"_2", sep = "") # this should get rid of the multiple files problem
+  filesofFileType <- list.files(mData)[grep(fileType,list.files(mData))]
+  fileLongName <- filesofFileType[grep(fileShortName, filesofFileType, fixed = TRUE)]
   #  temp <- gsub(fillIn, "", list.files(mData))
   # filesList <-
   #   grep(regExp,
@@ -186,11 +188,8 @@ removeOldVersions <- function(fileShortName,dir) {
 #' @param dir - directory where the cleanup takes place
 cleanup <- function(inDT, outName, dir, writeFiles) {
 
-  #mData <- fileloc("mData")
-  #convert inDT to a standard order
   sprintf("start cleanup for %s", outName)
-  #print(proc.time())
-
+#convert to a standard order
   oldOrder <- names(inDT)
   startOrder <- c("scenario",keyVariable("region"),"year")
   if (all(startOrder %in% oldOrder)) {
@@ -198,23 +197,19 @@ cleanup <- function(inDT, outName, dir, writeFiles) {
     data.table::setcolorder(inDT,c(startOrder,remainder))
     data.table::setorderv(inDT,c(startOrder,remainder))
   }
-  # print(paste("removing old versions of ", outName, sep = ""))
-  #print(proc.time())
 
   removeOldVersions(outName,dir)
-  #  removeOldVersions.xlsx(outName,dir)
-  # save(inDT,
-  #      file = paste(dir, "/", outName, ".", Sys.Date(), ".rawData", sep = ""))
   sprintf("writing the rds for %s to %s ", outName, dir)
   # print(proc.time())
   # next line removes any key left in the inDT data table; this may be an issue if a df is used
   data.table::setkey(inDT, NULL)
-  outFile <- paste(dir, "/", outName, ".", Sys.Date(), ".rds", sep = "")
+  outFile <- paste(dir, "/", outName, "_", Sys.Date(), ".rds", sep = "")
   saveRDS(inDT, file = outFile)
 
   # update files documentation -----
-  fileDoc <- data.table::as.data.table(read.csv(paste(fileloc("mData"), "fileDocumentation.csv", sep = "/"),
-                                                header = TRUE, colClasses = c("character","character","character")))
+  #  fileDoc <- data.table::as.data.table(read.csv(paste(fileloc("mData"), "fileDocumentation.csv", sep = "/"),
+  fileDoc <- data.table::fread(paste(fileloc("mData"), "fileDocumentation.csv", sep = "/"),
+      header = TRUE, colClasses = c("character","character","character"))
   fileDoc <- fileDoc[!fileShortName == outName]
   fileDocUpdate <- as.list(c(outName, outFile, paste0(names(inDT), collapse = ", ")))
   fileDoc <- rbind(fileDoc, fileDocUpdate)
@@ -228,7 +223,7 @@ cleanup <- function(inDT, outName, dir, writeFiles) {
   }
   if ("csv"  %in% writeFiles) {
     #    print(paste("writing the csv for ", outName, " to ",dir, sep = ""))
-    write.csv(inDT,file = paste(dir, "/", outName, ".", Sys.Date(), ".csv", sep = ""))
+    write.csv(inDT,file = paste(dir, "/", outName, "_", Sys.Date(), ".csv", sep = ""))
   }
   if ("xlsx"  %in% writeFiles) {
     #    print(paste("writing the xlsx for ", outName, " to ", dir, sep = ""))
@@ -249,7 +244,7 @@ cleanup <- function(inDT, outName, dir, writeFiles) {
       wbGeneral, sheet = outName, style = numStyle, rows = 1:nrow(inDT), cols = 2:ncol(inDT),
       gridExpand = TRUE )
 
-    xcelOutFileName = paste(dir, "/", outName, ".", Sys.Date(), ".xlsx", sep = "")
+    xcelOutFileName = paste(dir, "/", outName, "_", Sys.Date(), ".xlsx", sep = "")
     openxlsx::saveWorkbook(wbGeneral, xcelOutFileName, overwrite = TRUE)
     #   print(paste("done writing the xlsx for ", outName, sep = ""))
     #  print(proc.time())
@@ -265,7 +260,7 @@ cleanupScenarioNames <- function(dt.ptemp) {
 }
 
 cleanupNutrientNames <- function(nutList) {
-  nutList <- gsub("_g_reqRatio","",nutList)
+  nutList <- gsub("_g.reqRatio","",nutList)
   nutList <- gsub("reqRatio","",nutList)
   nutList <- gsub("vit_","vitamin ",nutList)
   nutList <- gsub("_µg","",nutList)
@@ -528,8 +523,11 @@ fileNameList <- function(variableName) {
   IMPACTfoodFileName <- "dt.IMPACTfood"
   IMPACTfoodFileInfo <-  paste(mData,"/IMPACTData/",IMPACTfoodFileName,sep = "")
   # nutrient data ------
-  nutrientFileName <- "USDA GFS IMPACT V27.xlsx"
-  nutrientLU       <- paste(nutrientDataDetails, nutrientFileName, sep = "/")
+  # nutrientLU       <- paste(nutrientDataDetails, nutrientFileName, sep = "/")
+  # nutrientFileName <- "USDA GFS IMPACT V27.xlsx"
+  # nutrientLU       <- paste(nutrientDataDetails, nutrientFileName, sep = "/")
+  nutrientFileName <-  "dt.IMPACTnutrientlookup"
+  nutrientLU       <- paste(mData, nutrientFileName, sep = "/")
   foodGroupLUFileName <-
     "food commodity to food group table V4.xlsx"
   foodGroupLU      <-
@@ -721,7 +719,7 @@ countryCodeLookup <- function(countryName, directory) {
 
 # test data for reqRatiodatasetup
 countryCode <- "AFG"; years <- c("X2010", "X2030", "X2050")
-reqTypeChoice <- "RDA.macro.all.req.ratio"
+reqTypeChoice <- "RDA.macro.all.reqRatio"
 dir <- fileloc("resultsDir"); scenarioName <- "SSP3-NoCC"
 
 nutReqDataPrep <- function(reqTypeChoice, countryCode, scenarioName, years, dir) {
@@ -733,7 +731,7 @@ nutReqDataPrep <- function(reqTypeChoice, countryCode, scenarioName, years, dir)
 
   fileName <- resultFileLookup[reqTypeName == reqTypeChoice, fileName]
   if (length(fileName) == "0") print(paste(reqTypeChoice, "is not a valid choice", sep = " "))
-   reqRatios.long <- getNewestVersion(reqTypeChoice, dir)
+  reqRatios.long <- getNewestVersion(reqTypeChoice, dir)
   #  print(head(reqRatios))
   # keepListCol <- c("scenario", "SSP", "climate_model", "experiment", "RCP", "region_code.IMPACT159",
   #                  "nutrient",  "year", "value")

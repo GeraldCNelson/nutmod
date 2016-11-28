@@ -69,7 +69,7 @@ file.copy("R/nutrientModFunctions.R", "nutrientModeling/global.R", overwrite = T
 
 # zip up csv files in the results directory
 
-zipFileName <- paste("results/resultsCSVzip", Sys.Date(), "zip", sep = "." )
+zipFileName <- paste("results/resultsCSVzip", Sys.Date(), "zip", sep = "_" )
      regExp <- paste("(?=^", ")(?=.*csv$)", sep = "")
  zipList <-     grep(regExp, list.files(fileloc("resultsDir")), value = TRUE,  perl = TRUE)
  zipList <- paste("results", zipList, sep = "/")

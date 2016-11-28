@@ -89,7 +89,7 @@ processIMPACT159Data <- function(gdxFileName, varName, catNames) {
   dt.ptemp <- data.table::as.data.table(rapply(dt.ptemp, as.character, classes = "factor", how = "replace"))
   #setorder(dt.temp, scenario, IMPACT_code, region_code.IMPACT159, year)
   data.table::setorderv(dt.ptemp, cols = catNames)
-  data.table::setnames(dt.ptemp,"value",varName)
+  data.table::setnames(dt.ptemp, "value", varName)
   # this if statement keeps the region code and name from being added since PW is only for the world
   # if (!varName == "PWX0") {
   #   data.table::setkey(dt.ptemp, region_code.IMPACT159)

@@ -76,24 +76,27 @@
 cookingRetFishCorrect <- function(switch.useCookingRetnValues, switch.fixFish) {
   # dt.nutrients is in nutrient per 100 grams of the edible portion
   dt.nutrients <- getNewestVersion("dt.nutrients")
+# drop columns not needed.
+  deleteListCol <- c("edible_share", "IMPACT_conversion")
+  dt.nutrients[, (deleteListCol) := NULL]
 
   # use cooking retention values if TRUE -----
   if (switch.useCookingRetnValues == "TRUE") {
-    # get cooking retention values
-    dt.cookRetn <- getNewestVersion("dt.cookingRet")
-    data.table::setkey(dt.nutrients,IMPACT_code)
-    data.table::setkey(dt.cookRetn,IMPACT_code)
-    dt.temp <- dt.nutrients[dt.cookRetn]
+    # get cooking retention values. Update: commented out because dt.nutrients now has crs in it (11/25/2017)
+    # dt.cookRetn <- getNewestVersion("dt.cookingRet")
+    # data.table::setkey(dt.nutrients,IMPACT_code)
+    # data.table::setkey(dt.cookRetn,IMPACT_code)
+    # dt.temp <- dt.nutrients[dt.cookRetn]
 
-    nutrientsWcookingRet <- names(dt.cookRetn)[2:length(dt.cookRetn)]
+    nutrientsWcookingRet <- names(dt.nutrients)[grep("_cr",names(dt.nutrients))]
     for (i in 1:length(nutrientsWcookingRet)) {
       nutrientName <-
         substr(x = nutrientsWcookingRet[i], 1, nchar(nutrientsWcookingRet[i]) - 3)
       nutRetName <- nutrientsWcookingRet[i]
-      dt.temp[,(nutrientName) := eval(parse(text = nutrientName)) *
+      dt.nutrients[,(nutrientName) := eval(parse(text = nutrientName)) *
                 eval(parse(text = nutRetName))]
     }
-    dt.nutrients <- dt.temp[,(c("composite_code",nutrientsWcookingRet)) := NULL]
+    dt.nutrients <- dt.nutrients[,(c(nutrientsWcookingRet)) := NULL]
   }
 # fix fish if TRUE -----
   if (switch.fixFish == "TRUE")  {

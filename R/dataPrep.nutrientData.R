@@ -26,55 +26,35 @@
 {source("R/nutrientModFunctions.R")
   source("R/workbookFunctions.R")
   source("R/nutrientCalcFunctions.R")}
-nutrientLU <- fileNameList("nutrientLU")
-foodGroupLU <- fileNameList("foodGroupLU")
+#nutrientLU <- fileNameList("nutrientLU")
+#foodGroupLU <- fileNameList("foodGroupLU")
 
 # Data loading code for nutrientCalcs -------------------------------------
-#' @param nutrients.raw - nutrient content of IMPACT 3 commodities, including fish and alcoholic beverages
-# LUcolNames <- c("name", "IMPACT_code", "usda_code", "USDA_code_desc", "composite_code", "AUS_code", "comment",
-#                 "edible_share", "inedible_share", "IMPACT_conversion", "proximates", "pytate_mg", "phytate_source", "water_g", "energy_kcal",
-#                 "protein_g", "fat_g", "carbohydrate_g", "totalfiber_g", "sugar_g", "minerals", "calcium_mg",
-#                 "iron_mg", "magnesium_mg", "phosphorus_mg", "potassium_g", "zinc_mg", "vitamins", "vit_c_mg",
-#                 "thiamin_mg", "riboflavin_mg", "niacin_mg", "vit_b6_mg", "folate_µg", "vit_b12_µg", "vit_a_rae_µg",
-#                 "vit_e_mg", "vit_d_µg", "vit_k_µg", "lipids", "ft_acds_tot_sat_g", "ft_acds_mono_unsat_g",
-#                 "ft_acds_plyunst_g", "cholesterol_mg", "other", "caffeine_mg", "ft_acds_tot_trans_g", "retentioncode_aus",
-#                 "RetentionDescription", "thiamin_mg_cr", "vit_b12_µg_cr", "riboflavin_mg_cr", "niacin_mg_cr", "vit_b6_mg_cr",
-#                 "calcium_mg_cr", "iron_mg_cr", "folate_µg_cr", "potassium_g_cr", "magnesium_mg_cr",
-#                 "phosphorus_mg_cr", "vit_a_rae_µg_cr", "vit_c_mg_cr", "vit_e_mg_cr", "zinc_mg_cr")
+#nutrients.raw <- openxlsx::read.xlsx(nutrientLU, sheet = 1, colNames = TRUE)
+nutrients.lookup <- getNewestVersion("dt.IMPACTnutrientlookup", fileloc("mData")) # update for new lookup file
+nutrients.raw <- nutrients.lookup[3:nrow(nutrients.lookup),]
+deleteListCol <- c("usda_code", "RetnDesc",
+                   "retentioncode_aus", "Long_Desc", "Ref_Desc")
+nutrients.raw[, (deleteListCol) := NULL]
+numericCols <- names(nutrients.raw)[!names(nutrients.raw) %in% "IMPACT_code"]
+nutrients.raw[, (numericCols) := lapply(.SD, as.numeric), .SDcols = numericCols]
 
-nutrients.raw <- openxlsx::read.xlsx(nutrientLU, sheet = 1, rows = 3:68,  colNames = TRUE)
-
-#' @param nutrientNames_Units - units for the nutrients in IMPACT159 nutrient list
-nutrientNames_Units <- openxlsx::read.xlsx(nutrientLU,sheet = 1,rows = 1:2, colNames = FALSE,
-                                           cols = 1:length(nutrients.raw), skipEmptyCols = FALSE)
-# library(xlsx) - in case you can't get the development version of openxlsx
-# nutrientNames_Units2 <- xlsx::read.xlsx(nutrientLU,sheetIndex = 1,rowIndex =  1:2, header = F,
-#                                        colIndex = 1:length(nutrients.raw))
-
-colnames(nutrientNames_Units) <- names(nutrients.raw)
-#remove columns that are dividers, etc. This leaves only the IMPACT_code, edible share, IMPACT_conversion,
-# the nutrient values, and the cooking retention values
-# phytate_source is the column that has the references used for the phytate data
-deleteListCol <-
-  c("name", "usda_code", "USDA_code_desc", "AUS_code", "comment", "water_g", "inedible_share", "proximates",
-    "minerals", "vitamins", "lipids", "other", "RetentionCode", "RetentionDescription", "retentioncode_aus", "phytate_source"
-  )
-#' @param nutrients.clean - IMPACT_code, edible share, IMPACT_conversion,  nutrient values, and cooking retention values
-nutrients.clean <- nutrients.raw[, !(names(nutrients.raw) %in% deleteListCol)]
-nutrientNames_Units <- nutrientNames_Units[, !(names(nutrientNames_Units) %in% deleteListCol)]
-#' @param cookretn.cols - the list of column names that contain cooking retention values
-keepListCol <-
-  c("IMPACT_code",colnames(nutrients.clean[, grep('_cr', names(nutrients.clean))]))
-cookretn <- nutrients.clean[,keepListCol]
+nutrientNames_Units <- nutrients.lookup[1:2]
+keepListCol <- c("IMPACT_code",names(nutrients.raw)[grep('_cr', names(nutrients.raw))])
+cookretn <- nutrients.raw[,keepListCol, with = FALSE]
 cookretn.cols <- names(cookretn)[2:length(cookretn)]
-cookretn[is.na(cookretn[keepListCol])] <- 1.0
-inDT <- data.table::as.data.table(cookretn)
+for (col in cookretn.cols) cookretn[is.na(get(col)), (col) := 100]
+for (col in cookretn.cols) {
+  cookretn[get(col) == 0.0, (col) := 100]
+}
+inDT <- cookretn
 outName <- "dt.cookingRet"
 cleanup(inDT,outName,fileloc("mData"))
 
 inDT <- data.table::as.data.table(nutrientNames_Units)
-deleteListCol <- c("IMPACT_code", "composite_code")
+deleteListCol <- c("IMPACT_code")
 inDT[, (deleteListCol) := NULL]
+
 # need to add "kcals.ethanol", "kcals.fat", "kcals.carbohydrate","kcals.protein", "kcals.sugar"
 tempDT <- data.table::data.table(
   kcals.ethanol      = c("Ethanol", "kcals"),
@@ -92,163 +72,160 @@ cleanup(inDT,outName,fileloc("mData"))
 temp <-
   c("IMPACT_code", "composite_code", "edible_share",  "IMPACT_conversion", cookretn.cols, "phytate_source")
 
-nutrients.list <-
-  colnames(nutrients.clean[,!(names(nutrients.clean) %in% temp)])
+nutrients.list <- names(nutrients.raw)[!(names(nutrients.raw) %in% temp)]
 
 #convert NAs to 100 (percent) for edible_share, IMPACT_conversion, and cooking retention
 colsToConvert <- c("IMPACT_conversion", "edible_share")
-nutrients.clean[colsToConvert][is.na(nutrients.clean[colsToConvert])] <- 100
+for (col in colsToConvert) nutrients.raw[is.na(get(col)), (col) := 0]
 
 #convert the NAs to 0  in the nutrients columns
-nutrients.clean[, nutrients.list][is.na(nutrients.clean[, nutrients.list])] <- 0
-
-# # change nutrient denominator unit from 100 gm to 1 kg;
-# commented out to leave units that nutritionists are familiar with
-# nutrients[,nutrients.list] <- nutrients[,nutrients.list] * 10
+for (col in nutrients.list) nutrients.raw[is.na(get(col)), (col) := 0]
 
 # convert IMPACT consumption values to consumer nutrient intake ---
 # reduce nutrient amount by conversion of meat from carcass to boneless (IMPACT_conversion)
 # reduce nutrient amount by conversion of all items to edible share
 
-nutrients.clean[, nutrients.list] <-
-  nutrients.clean[, nutrients.list] * nutrients.clean$IMPACT_conversion / 100
-nutrients.clean[, nutrients.list] <-
-  nutrients.clean[, nutrients.list] * nutrients.clean$edible_share / 100
+nutrients.raw[ , (nutrients.list) := lapply(.SD, `*`, IMPACT_conversion / 100), .SDcols = nutrients.list]
+
+nutrients.raw[ , (nutrients.list) := lapply(.SD, `*`, IMPACT_conversion / 100), .SDcols = nutrients.list]
+nutrients.raw[ , (nutrients.list) := lapply(.SD, `*`, edible_share / 100), .SDcols = nutrients.list]
 
 #remove extraneous columns
 deleteListCol <- c("edible_share", "IMPACT_conversion", cookretn.cols)
-nutrients <- nutrients.clean[, !(names(nutrients.clean) %in% deleteListCol)]
-nutrientNames_Units <- nutrientNames_Units[, !(names(nutrients.clean) %in% deleteListCol)]
+nutrients <- nutrients.raw[, !(names(nutrients.raw) %in% deleteListCol)]
+nutrientNames_Units <- nutrientNames_Units[, !(names(nutrients.raw) %in% deleteListCol)]
 # add food groups and staples codes to the nutrients table ---
-dt.foodGroupsInfo <- data.table::as.data.table(openxlsx::read.xlsx(
-  foodGroupLU, sheet = 1, startRow = 1,colNames = TRUE))
+dt.foodGroupLU <- getNewestVersion("dt.foodGroupsInfo")
+# dt.foodGroupLU <- data.table::as.data.table(openxlsx::read.xlsx(
+#   foodGroupLU, sheet = 1, startRow = 1,colNames = TRUE))
 keepListCol <- c("IMPACT_code", "food_group_code","staple_code")
-tmp <- dt.foodGroupsInfo[, keepListCol, with = FALSE]
-dt.nutrients <- data.table::as.data.table(merge(nutrients, tmp, by = "IMPACT_code"))
+tmp <- dt.foodGroupLU[, keepListCol, with = FALSE]
+dt.nutrients <- merge(nutrients.raw, tmp, by = "IMPACT_code")
 #-----------------------
 # code to import composite information from spreadsheets ------
-fctFiles <- c("comp_fct_beans_cbean wphytate.xlsx",
-              "comp_fct_mutton and goat_clamb wphytate.xlsx",
-              #             "comp_fct_other fruits_ctemf.xlsx", - because the comp_recalc file below is what should be used
-              "comp_fct_rape and mustard oil_crpol wphytate.xlsx")
+# fctFiles <- c("comp_fct_beans_cbean wphytate.xlsx",
+#               "comp_fct_mutton and goat_clamb wphytate.xlsx",
+#               #             "comp_fct_other fruits_ctemf.xlsx", - because the comp_recalc file below is what should be used
+#               "comp_fct_rape and mustard oil_crpol wphytate.xlsx")
+#
+# recalcFiles <- c(
+#   "comp_recalc_c_Crust_crustaceans_FCT_EPC_012916 wphytate.xlsx",
+#   "comp_recalc_c_FrshD_freshwater_Diadr_FCT_EPC_012916 wphytate.xlsx",
+#   "comp_recalc_c_Mllsc_mollusks_FCT_EPC_012916 wphytate.xlsx",
+#   "comp_recalc_c_ODmrsl_demersal_FCT_EPC_012916 wphytate.xlsx",
+#   "comp_recalc_c_OPelag_Pelagic_FCT_EPC_012916 wphytate.xlsx",
+#   "comp_recalc_cocer_cereals_FCT wphytate.xlsx",
+#   "comp_recalc_copul_pulses__FCT wphytate.xlsx",
+#   "comp_recalc_cothr_othcrops_treenuts_FCT wphytate.xlsx",
+#   "comp_recalc_csubf_fruits_Subtrop wphytate.xlsx",
+#   "comp_recalc_ctemf_fruits_Other_FCT wphytate.xlsx",
+#   "comp_recalc_ctols_oilcrops_FCT_V2 wphytate.xlsx",
+#   "comp_recalc_cvege_vegetables_FCT wphytate.xlsx")
+#
+# nutList <- names(dt.nutrients)
+# # phytate_source is the phytate reference list
+# removeList <- c("IMPACT_code", "composite_code", "food_group_code", "staple_code", "phytate_source")
+# nutList <- nutList[!nutList %in% removeList]
+#
+# # work comp_fct spreadsheets. They just have a single worksheet ----
+# for (i in fctFiles) {
+#   temp <- gsub(".xlsx", "", i)
+#   temp <- gsub(" wphytate", "", temp)
+#   commodName <- substr(temp, nchar(temp) - 4, nchar(temp))
+#   filePath <- paste("data-raw/NutrientData/nutrientDetails/", i, sep = "")
+#   dt.fct <- data.table::as.data.table(openxlsx::read.xlsx(filePath, colNames = TRUE, cols = NULL))
+#   keepListCol <- c("edible_share",nutList)
+#   dt.fct <- dt.fct[,keepListCol, with = FALSE]
+#   dt.fct[, (nutList) := lapply(.SD, function(x)
+#     x * dt.fct[['edible_share']]/100 ), .SDcols = nutList]
+#   dt.fct[,edible_share := NULL]
+#
+#   #copied here to remind me to include the IMPACT conversion code
+#   # nutrients.raw[, nutrients.list] <-
+#   #   nutrients.raw[, nutrients.list] * nutrients.raw$IMPACT_conversion / 100
+#   # nutrients.raw[, nutrients.list] <-
+#   #   nutrients.raw[, nutrients.list] * nutrients.raw$edible_share / 100
+#
+#   # get mean of each column for this commodity
+#   temp <- dt.fct[, lapply(.SD, mean, na.rm = TRUE)]
+#   # get original row for this commodity
+#   temp2 <- dt.nutrients[IMPACT_code %in% commodName,]
+#   # keep only the descriptor columns for this commodity
+#   keepListCol <- c("IMPACT_code", "composite_code", "food_group_code", "staple_code")
+#   temp2 <- temp2[,keepListCol, with = FALSE]
+#   # combine the descriptor columns with the new results
+#   temp <- cbind(temp,temp2)
+#   # remove old row for this commodity
+#   dt.nutrients <- dt.nutrients[!IMPACT_code %in% commodName,]
+#   # add new row for this commodity
+#   dt.nutrients <- rbind(dt.nutrients, temp)
+# }
+#
+# # work comp_recalc spreadsheets. They have 3 worksheets - IMPACT commodity name (e.g. c_Crust),
+# # FCT, and Weighted Composition
+# # The first worksheet has world production values for each commodity to be aggregated to the IMPACT commodity
+# # The FCT worksheet has the nutrient lookup info----
+#
+# for (i in recalcFiles) {
+#   filePath <- paste(fileNameList("nutrientDataDetails"), i, sep = "/")
+#   commodName <- openxlsx::getSheetNames(filePath)[1]
+#   dt.fct <- data.table::as.data.table(openxlsx::read.xlsx(filePath, colNames = TRUE, cols = NULL,
+#                                                           sheet = "FCT"))
+#   dt.fct[,phytate_mg := as.numeric(phytate_mg)]
+#   deleteListCol <- c("inedible_share", "phytate_source","proximates", "minerals", "vitamins", "lipids", "other")
+#
+#   dt.fct[,(deleteListCol) := NULL]
+#   dt.fct[is.na(dt.fct)] <- 0
+#   dt.commod <- data.table::as.data.table(openxlsx::read.xlsx(filePath, colNames = TRUE, cols = NULL,
+#                                                              sheet = commodName))
+#
+#   # delete first column of dt.commod which just has notes
+#   dt.commod <- dt.commod[,1 := NULL]
+#   keepListCol <- c("item_name", "usda_code", "include", "pcn_fdsupply_avg")
+#   dt.commod <- dt.commod[,keepListCol, with = FALSE]
+#   keepListCol <- c("item_name", "usda_code", "edible_share", nutList)
+#   dt.fct <- dt.fct[, keepListCol, with = FALSE]
+#   dt.joined <- merge(dt.commod,dt.fct, by = c("item_name","usda_code"))
+#   dt.joined <- dt.joined[include == 1,]
+#   dt.joined[is.na(dt.joined)] <- 0
+#   # nutListtemp <- names(dt.joined)[!names(dt.joined) %in% c("item_name", "usda_code", "include", "pcn_fdsupply_avg", "edible_share" )]
+#   # multiply each nutrient by its share of production (pcn_fdsupply_avg) and reduce by its edible share
+#
+#   dt.joined <- dt.joined[, (nutList) :=
+#                            lapply(.SD, function(x) x * dt.joined[['pcn_fdsupply_avg']]
+#                                   * dt.joined[['edible_share']] / 100 ),
+#                          .SDcols = nutList]
+#
+#   # sum all the weighted shares
+#   temp <- dt.joined[, lapply(.SD, sum, na.rm = TRUE), .SDcols = nutList]
+#
+#   # get original row for this commodity
+#   temp2 <- dt.nutrients[IMPACT_code %in% commodName,]
+#   # keep only the descriptor columns for this commodity
+#   keepListCol <- c("IMPACT_code", "composite_code", "food_group_code", "staple_code")
+#   temp2 <- temp2[,keepListCol, with = FALSE]
+#   # combine the descriptor columns with the new results
+#   temp <- cbind(temp,temp2)
+#   # remove old row for this commodity
+#   dt.nutrients <- dt.nutrients[!IMPACT_code %in% commodName,]
+#   # add new row for this commodity
+#   dt.nutrients <- rbind(dt.nutrients, temp)
+# }
 
-recalcFiles <- c(
-  "comp_recalc_c_Crust_crustaceans_FCT_EPC_012916 wphytate.xlsx",
-  "comp_recalc_c_FrshD_freshwater_Diadr_FCT_EPC_012916 wphytate.xlsx",
-  "comp_recalc_c_Mllsc_mollusks_FCT_EPC_012916 wphytate.xlsx",
-  "comp_recalc_c_ODmrsl_demersal_FCT_EPC_012916 wphytate.xlsx",
-  "comp_recalc_c_OPelag_Pelagic_FCT_EPC_012916 wphytate.xlsx",
-  "comp_recalc_cocer_cereals_FCT wphytate.xlsx",
-  "comp_recalc_copul_pulses__FCT wphytate.xlsx",
-  "comp_recalc_cothr_othcrops_treenuts_FCT wphytate.xlsx",
-  "comp_recalc_csubf_fruits_Subtrop wphytate.xlsx",
-  "comp_recalc_ctemf_fruits_Other_FCT wphytate.xlsx",
-  "comp_recalc_ctols_oilcrops_FCT_V2 wphytate.xlsx",
-  "comp_recalc_cvege_vegetables_FCT wphytate.xlsx")
-
-nutList <- names(dt.nutrients)
-# phytate_source is the phytate reference list
-removeList <- c("IMPACT_code", "composite_code", "food_group_code", "staple_code", "phytate_source")
-nutList <- nutList[!nutList %in% removeList]
-
-# work comp_fct spreadsheets. They just have a single worksheet ----
-for (i in fctFiles) {
-  temp <- gsub(".xlsx", "", i)
-  temp <- gsub(" wphytate", "", temp)
-  commodName <- substr(temp, nchar(temp) - 4, nchar(temp))
-  filePath <- paste("data-raw/NutrientData/nutrientDetails/", i, sep = "")
-  dt.fct <- data.table::as.data.table(openxlsx::read.xlsx(filePath, colNames = TRUE, cols = NULL))
-  keepListCol <- c("edible_share",nutList)
-  dt.fct <- dt.fct[,keepListCol, with = FALSE]
-  dt.fct[, (nutList) := lapply(.SD, function(x)
-    x * dt.fct[['edible_share']]/100 ), .SDcols = nutList]
-  dt.fct[,edible_share := NULL]
-
-  #copied here to remind me to include the IMPACT conversion code
-  # nutrients.clean[, nutrients.list] <-
-  #   nutrients.clean[, nutrients.list] * nutrients.clean$IMPACT_conversion / 100
-  # nutrients.clean[, nutrients.list] <-
-  #   nutrients.clean[, nutrients.list] * nutrients.clean$edible_share / 100
-
-  # get mean of each column for this commodity
-  temp <- dt.fct[, lapply(.SD, mean, na.rm = TRUE)]
-  # get original row for this commodity
-  temp2 <- dt.nutrients[IMPACT_code %in% commodName,]
-  # keep only the descriptor columns for this commodity
-  keepListCol <- c("IMPACT_code", "composite_code", "food_group_code", "staple_code")
-  temp2 <- temp2[,keepListCol, with = FALSE]
-  # combine the descriptor columns with the new results
-  temp <- cbind(temp,temp2)
-  # remove old row for this commodity
-  dt.nutrients <- dt.nutrients[!IMPACT_code %in% commodName,]
-  # add new row for this commodity
-  dt.nutrients <- rbind(dt.nutrients, temp)
-}
-
-# work comp_recalc spreadsheets. They have 3 worksheets - IMPACT commodity name (e.g. c_Crust),
-# FCT, and Weighted Composition
-# The first worksheet has world production values for each commodity to be aggregated to the IMPACT commodity
-# The FCT worksheet has the nutrient lookup info----
-
-for (i in recalcFiles) {
-  filePath <- paste("data-raw/NutrientData/nutrientDetails/", i, sep = "")
-  commodName <- openxlsx::getSheetNames(filePath)[1]
-  dt.fct <- data.table::as.data.table(openxlsx::read.xlsx(filePath, colNames = TRUE, cols = NULL,
-                                                          sheet = "FCT"))
-  dt.fct[,phytate_mg := as.numeric(phytate_mg)]
-  deleteListCol <- c("inedible_share", "phytate_source","proximates", "minerals", "vitamins", "lipids", "other")
-
-  dt.fct[,(deleteListCol) := NULL]
-  dt.fct[is.na(dt.fct)] <- 0
-  dt.commod <- data.table::as.data.table(openxlsx::read.xlsx(filePath, colNames = TRUE, cols = NULL,
-                                                             sheet = commodName))
-
-  # delete first column of dt.commod which just has notes
-  dt.commod <- dt.commod[,1 := NULL]
-  keepListCol <- c("item_name", "usda_code", "include", "pcn_fdsupply_avg")
-  dt.commod <- dt.commod[,keepListCol, with = FALSE]
-  keepListCol <- c("item_name", "usda_code", "edible_share", nutList)
-  dt.fct <- dt.fct[, keepListCol, with = FALSE]
-  dt.joined <- merge(dt.commod,dt.fct, by = c("item_name","usda_code"))
-  dt.joined <- dt.joined[include == 1,]
-  dt.joined[is.na(dt.joined)] <- 0
-  # nutListtemp <- names(dt.joined)[!names(dt.joined) %in% c("item_name", "usda_code", "include", "pcn_fdsupply_avg", "edible_share" )]
-  # multiply each nutrient by its share of production (pcn_fdsupply_avg) and reduce by its edible share
-
-  dt.joined <- dt.joined[, (nutList) :=
-                           lapply(.SD, function(x) x * dt.joined[['pcn_fdsupply_avg']]
-                                  * dt.joined[['edible_share']] / 100 ),
-                         .SDcols = nutList]
-
-  # sum all the weighted shares
-  temp <- dt.joined[, lapply(.SD, sum, na.rm = TRUE), .SDcols = nutList]
-
-  # get original row for this commodity
-  temp2 <- dt.nutrients[IMPACT_code %in% commodName,]
-  # keep only the descriptor columns for this commodity
-  keepListCol <- c("IMPACT_code", "composite_code", "food_group_code", "staple_code")
-  temp2 <- temp2[,keepListCol, with = FALSE]
-  # combine the descriptor columns with the new results
-  temp <- cbind(temp,temp2)
-  # remove old row for this commodity
-  dt.nutrients <- dt.nutrients[!IMPACT_code %in% commodName,]
-  # add new row for this commodity
-  dt.nutrients <- rbind(dt.nutrients, temp)
-}
-
-# special handling -----
-# c_OMarn is the average of c_OPelag and c_ODmrsl
-namesToAverage <- c("c_OPelag", "c_ODmrsl")
-dt.temp <- dt.nutrients[IMPACT_code %in% namesToAverage,lapply(.SD,mean),
-                        .SDcols = c(nutrients.list)]
-keepListCol <- c("IMPACT_code", "composite_code", "food_group_code", "staple_code")
-dt.temp2 <- dt.nutrients[IMPACT_code %in% "c_OMarn",keepListCol, with = FALSE]
+# # special handling -----
+# # c_OMarn is the average of c_OPelag and c_ODmrsl
+# namesToAverage <- c("c_OPelag", "c_ODmrsl")
+# dt.temp <- dt.nutrients[IMPACT_code %in% namesToAverage,lapply(.SD,mean),
+#                         .SDcols = c(nutrients.list)]
+# keepListCol <- c("IMPACT_code", "composite_code", "food_group_code", "staple_code")
+# dt.temp2 <- dt.nutrients[IMPACT_code %in% "c_OMarn",keepListCol, with = FALSE]
 # combine the descriptor columns with the new results
-temp <- cbind(dt.temp,dt.temp2)
-# remove old row for this commodity
-dt.nutrients <- dt.nutrients[!IMPACT_code %in% "c_OMarn",]
-# add new row for this commodity
-dt.nutrients <- rbind(dt.nutrients, temp)
+# temp <- cbind(dt.temp,dt.temp2)
+# # remove old row for this commodity
+# dt.nutrients <- dt.nutrients[!IMPACT_code %in% "c_OMarn",]
+# # add new row for this commodity
+# dt.nutrients <- rbind(dt.nutrients, temp)
+
 # add kcals to the dt.nutrients table -----
 # add five new columns - kcals.fat, kcals.protein, kcals.carbs, kcals.ethanol, kcals.sugar
 
@@ -281,6 +258,8 @@ inDT <- dt.nutrients
 outName <- "dt.nutrients"
 cleanup(inDT,outName,fileloc("mData"))
 
+# the next few lines were commented out but seem to be needed so I'll uncomment them.
+foodGroupLU <- fileNameList("foodGroupLU")
 dt.foodGroupsInfo <- data.table::as.data.table(openxlsx::read.xlsx(foodGroupLU, sheet = 1, startRow = 1, cols = 1:8, colNames = TRUE))
 inDT <- dt.foodGroupsInfo
 outName <- "dt.foodGroupsInfo"

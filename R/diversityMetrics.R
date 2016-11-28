@@ -243,7 +243,7 @@ system.time(dt.main[, `:=` (MFAD = sum(rdist(.SD)) / .N),
 MFADHolder <- unique(dt.main[, c("scenario","year", "region_code.IMPACT159", "MFAD") ])
 inDT <- MFADHolder
 outName <- "dt.MFAD"
- cleanup(inDT, outName, fileloc("resultsDir"), "csv")
+cleanup(inDT, outName, fileloc("resultsDir"), "csv")
 
 # qualifying nutrient balance score
 #qualifying nutrients

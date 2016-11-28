@@ -35,7 +35,7 @@ createFood <- function(fileShortName) {
   dt.temp.food <- dt.temp[IMPACT_code %in% IMPACTfoodCommodList]
   dt.temp.food <- dt.temp.food[year %in% keepYearList]
   inDT <- dt.temp.food
-  outName <- paste(fileShortName, "food", sep = ".")
+  outName <- paste(fileShortName, "food", sep = "_")
   cleanup(inDT, outName, fileloc("iData"))
   return(dt.temp.food)
 }

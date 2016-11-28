@@ -71,6 +71,9 @@ aggNorder <- function(gdxChoice, DTglobal, aggChoice, scenChoice) {
     merged <- merged[, (keepListCol.SD), with = FALSE]
     data.table::setnames(merged, old = "SDnorm", new = "value")
   }
+  if ("MFAD" %in% names(merged)) {
+    data.table::setnames(merged, old = "MFAD", new = "value")
+  }
 
   #  temp <- temp[, region.budget.share := mean(value), by = c("region_code", "year")]
   merged <- merged[, value := weighted.mean(value, PopX0), by = c("scenario", "region_code", "year")]
@@ -114,8 +117,8 @@ aggNorder <- function(gdxChoice, DTglobal, aggChoice, scenChoice) {
   return(DT)
 }
 
-plotByRegionBar <- function(dt, fileName, title, yLab, yRange,aggChoice) {
-  print(paste("plotting bars by region ", aggChoice, "for ", title))
+plotByRegionBar <- function(dt, fileName, plotTitle, yLab, yRange,aggChoice) {
+  print(paste("plotting bars by region ", aggChoice, "for ", plotTitle))
   temp <- copy(dt)
   regionCodes <- unique(temp$region_code)
   regionNames <- unique(temp$region_name)
@@ -142,14 +145,14 @@ plotByRegionBar <- function(dt, fileName, title, yLab, yRange,aggChoice) {
   temp <- data.matrix(temp)
   # print(temp.wide)
   #  par(mai=c(2,0.82,0.82,0.42))
-  pdf(paste("graphics/", fileName,".", aggChoice, ".pdf", sep = ""), width = 7, height = 5.2)
+  pdf(paste("graphics/", fileName,"_", aggChoice, ".pdf", sep = ""), width = 7, height = 5.2)
   #layout(matrix(c(1,2)), c(1,1), c(1,3))
   #par(mfrow = c(2,1), mai = c(1,1,1,1))
 #  mat = matrix(c(1,2))
 #  layout(mat, heights = c(5,3))
   barlocs <- barplot(temp,  col = colList, ylim = yRange, xaxt = "n",
           legend.text = rownames(temp), args.legend = list(cex = .5, x = "bottomright", inset=c(0,-.3),  xpd=TRUE),
-          beside = TRUE, ylab = yLab,  cex.names = .7, las = 2,  srt = 45, main = title)
+          beside = TRUE, ylab = yLab,  cex.names = .7, las = 2,  srt = 45, main = plotTitle)
 
   regionNames <- colnames(temp)
    text(
@@ -163,12 +166,12 @@ plotByRegionBar <- function(dt, fileName, title, yLab, yRange,aggChoice) {
 #  textplot(temp.wide, cex = 0.6, valign = "top", show.rownames = FALSE, mai = c(.5, .5, .5, .5))
   dev.off()
   write.csv(temp.wide, file = paste("graphics/", fileName, ".", aggChoice, ".csv", sep = ""))
-  print(paste("Done plotting bars by region ", aggChoice, "for ", title))
+  print(paste("Done plotting bars by region ", aggChoice, "for ", plotTitle))
   print(" ")
 
 }
 
-plotByRegionLine <- function(dt, fileName, title, yRange, regionCodes) {
+plotByRegionLine <- function(dt, fileName, plotTitle, yRange, regionCodes) {
   dt.pcGDPX0 <- getNewestVersionIMPACT("dt.pcGDPX0")
   dt.pcGDPX0.2010.ref <- dt.pcGDPX0[year ==  "X2010" & scenario == scenario.base,][,c("scenario","year") :=  NULL]
   temp <- getNewestVersion(dt, fileloc("resultsDir"))
@@ -183,7 +186,7 @@ plotByRegionLine <- function(dt, fileName, title, yRange, regionCodes) {
     if (i == 1) {
       plot(temp[year %in% "X2050" & scenario == scenarios[i],value], type = "l", col = "green",
            xlab = "", xaxt = "n", ylab = "share (%)",
-           main = title, cex.main = 1, ylim = yRange) # common range for requirements share
+           main = plotTitle, cex.main = 1, ylim = yRange) # common range for requirements share
       #      main = nutShortname,cex.main=1, ylim = c(0, round(max(scen.temp$value))))
       par(new = T)
     } else {

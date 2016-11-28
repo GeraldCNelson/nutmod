@@ -173,7 +173,7 @@ repCons <- function(dt.pop, nutReqName, ageRowsToSum) {
   dt.temp.sum[,scenario := substr((scenario),1,4)]
   dt.temp.sum <- unique( dt.temp.sum)
   inDT <- dt.temp.sum
-  outName <- paste(gsub(".ssp","",nutReqName),"percap",sep = ".")
+  outName <- paste(gsub("_ssp","",nutReqName),"percap",sep = "_")
   cleanup(inDT,outName,fileloc("mData"))
 
   temp <- data.table::dcast(
@@ -253,12 +253,10 @@ openxlsx::addStyle(
 
 # for loop for the nutrient requirements worksheets ----
 for (i in 1:length(reqsSSP)) {
-  #nutReq <- paste(reqsSSP[i], "dt.SSP.regions", sep = ".")
-  #nutReq <- eval(parse(text = nutReq))
   dt.temp.internal <-  repCons(dt.pop, reqsSSP[i],ageRowsToSum)
   data.table::setkeyv(dt.temp.internal, c("nutrient", "region_code.IMPACT159"))
 
-  dt.name <- paste(reqsSSP[i], "percap", sep = ".")
+  dt.name <- paste(reqsSSP[i], "percap", sep = "_")
   #print(dt.name)
   openxlsx::addWorksheet(wb = wbGeneral, sheetName = dt.name)
   openxlsx::addStyle(
