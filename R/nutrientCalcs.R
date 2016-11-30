@@ -423,19 +423,19 @@ generateSum <- function(dt.IMPACTfood, scenarioListIMPACT) {
   switch.useCookingRetnValues <- keyVariable("switch.useCookingRetnValues")
   switch.fixFish <- keyVariable("switch.fixFish") #get rid of nutrient info for shrimp, tuna, and salmon because they are not currently in the FBS data
   dt.nutrients <- cookingRetFishCorrect(switch.useCookingRetnValues, switch.fixFish)
-
+  print("Multiplying dt.nutrients by 10 so in same units (kgs) as IMPACT commodities")
   nutListReq <- names(dt.nutrients)[2:(ncol(dt.nutrients))]
   deleteListRow <- c("food_group_code", "staple_code")
   nutListReq <- nutListReq[!nutListReq %in% deleteListRow]
+  dt.nutrients[, (nutListReq) := lapply(.SD, function(x) (x * 10)), .SDcols = nutListReq]
+
   nutListReq.Q <-   paste(nutListReq, "Q", sep = ".")
   #  nutListReq.sum.all <- paste(nutListReq, "sum.all", sep = ".")
   nutListReq.sum.all <- paste(nutListReq, sep = ".")
   # nutListReq.sum.staple <- paste(nutListReq, "sum.staple", sep = ".")
   nutListReq.sum.staple <- paste(nutListReq, sep = ".")
 
-  print("Multiplying dt.nutrients by 10 so in same units (kgs) as IMPACT commodities")
-  dt.nutrients[, (nutListReq) := lapply(.SD, function(x) (x * 10)), .SDcols = nutListReq]
-  data.table::setkey(dt.nutrients, IMPACT_code)
+   data.table::setkey(dt.nutrients, IMPACT_code)
   data.table::setkeyv(dt.food, c("scenario","region_code.IMPACT159","IMPACT_code","year" ))
   dt.foodnNuts <-  merge(dt.food, dt.nutrients, by = "IMPACT_code", all = TRUE)
   # multiply the food item by the nutrients it contains and copy into a table called dt.food.agg

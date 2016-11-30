@@ -102,6 +102,10 @@ print("Running dataPrep.NutrientRequirements.R")
 source("R/dataPrep.NutrientRequirements.R")
 # newDFname, mData - nutrient requirements adjusted to SSP age and gender categories, example is req.RDA.macro.ssp.2016-06-22.rds
 
+print("Running bioavail.R")
+source("R/bioavail.R")
+# does adjustments to iron and zinc for bioavailability. Results are in files called PR.xxx
+
 print("Running dataManagement.SSPPop.R")
 source("R/dataManagement.SSPPop.R")
 #paste(gsub(".ssp","",nutReqName),"percap",sep = "."), mData - Nutrient requirements adjusted for population distribution, example is req.EAR.percap.2016-06-24.rds
@@ -128,20 +132,25 @@ source("R/nutCalcsProcessing.R")
 print("Running diversityMetrics.R")
 source("R/diversityMetrics.R")
 #creating list of .rds files in data
+print("create list of .rds files in data")
 dt.resultsFiles <- data.table::as.data.table(list.files(path = fileloc("resultsDir"), pattern = "*.rds"))
 data.table::setnames(dt.resultsFiles, old = "V1", new = "fileName")
 dt.resultsFiles[, reqTypeName := gsub(".{15}$","",dt.resultsFiles$fileName)]
+
 # this csv file is hand edited. Don't delete!
 descriptionLookup <- fread(paste(fileloc("rawData"), "descriptionLookup.csv", sep = "/"))
 dt.resultsFiles <- merge(dt.resultsFiles,descriptionLookup, by = "reqTypeName")
 inDT <- dt.resultsFiles
 outName <- "resultFileLookup"
 cleanup(inDT, outName, fileloc("mData"))
-
 print("Copying files for shiny app")
 source("R/copyFilestoNutrientModeling.R") # move results needed for the shiny app.R in the nutrientModeling folder
-
-print("Generate graphs")
+# generate graphs
 source("R/aggRun.R")
 
+# Rscript Sweave --encoding=utf-8 Rnw/compilePDF.Rnw
+# library( cacheSweave )
+# Sweave( "Rnw/compilePDF.Rnw", driver = cacheSweaveDriver)
+#
+# source("Rnw/compilePDF.Rnw")
 

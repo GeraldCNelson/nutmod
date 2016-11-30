@@ -115,16 +115,21 @@ f.ratios.all <- function(){
 
   inDT <- dt.sum_reqRatio_long
   inDT[, nutrient := gsub("_reqRatio", "", nutrient)]
+  print(paste0("dt.sum_reqRatio_long"))
+  print(unique(inDT$nutrient))
   outName <- paste(reqShortName, "sum_reqRatio", sep = "_")
   cleanup(inDT, outName, fileloc("resultsDir"), "csv")
 
   inDT <- dt.all.ratio.long
+  print(paste0("dt.all.ratio.long"))
+  print(unique(inDT$nutrient))
   outName <- paste(reqShortName, "all_ratio", sep = "_")
   cleanup(inDT, outName, fileloc("resultsDir"), "csv")
 
   inDT <- dt.all_reqRatio_long
   inDT[, nutrient := gsub("_reqRatio_all", "", nutrient)]
-  outName <- paste(reqShortName, "all_reqRatio", sep = "_")
+  print(paste0("dt.all_reqRatio_long"))
+  print(unique(inDT$nutrient))
   cleanup(inDT, outName, fileloc("resultsDir"), "csv")
 
 }

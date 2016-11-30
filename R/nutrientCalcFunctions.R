@@ -76,7 +76,7 @@
 cookingRetFishCorrect <- function(switch.useCookingRetnValues, switch.fixFish) {
   # dt.nutrients is in nutrient per 100 grams of the edible portion
   dt.nutrients <- getNewestVersion("dt.nutrients")
-# drop columns not needed.
+# drop columns that are not needed.
   deleteListCol <- c("edible_share", "IMPACT_conversion")
   dt.nutrients[, (deleteListCol) := NULL]
 
@@ -93,8 +93,9 @@ cookingRetFishCorrect <- function(switch.useCookingRetnValues, switch.fixFish) {
       nutrientName <-
         substr(x = nutrientsWcookingRet[i], 1, nchar(nutrientsWcookingRet[i]) - 3)
       nutRetName <- nutrientsWcookingRet[i]
+      # multiply amount of nutrient times the cooking retention value (in percent) and divide by 100 to get to share
       dt.nutrients[,(nutrientName) := eval(parse(text = nutrientName)) *
-                eval(parse(text = nutRetName))]
+                eval(parse(text = nutRetName)) / 100]
     }
     dt.nutrients <- dt.nutrients[,(c(nutrientsWcookingRet)) := NULL]
   }

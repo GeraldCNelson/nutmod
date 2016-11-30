@@ -292,7 +292,7 @@ incCats <- c("lowInc", "lowMidInc", "upMidInc", "highInc")
 DincCats <- c("DlowInc", "DlowMidInc", "DupMidInc", "DhighInc")
 scen2050list <- c("SSP2-GFDL", "SSP2-IPSL", "SSP2-HGEM")
 for (i in nutlistmacro) {
-  fileName <- paste(i, "macro_reqRatio_WB", sep = "_")
+  fileName <- paste(i, "macro_reqRatio.WB", sep = "_")
   fileIn <- data.table::fread(paste("graphics/", fileName, ".csv", sep = ""), select = 2:6)
   for (j in scen2050list) {
     for (k in 1:length(incCats)) {
@@ -308,7 +308,7 @@ for (i in nutlistmacro) {
 }
 
 for (i in nutlistminrls) {
-  fileName <- paste(i, "minrls_reqRatio_WB", sep = "_")
+  fileName <- paste(i, "minrls.reqRatio.WB", sep = "_")
   fileIn <- data.table::fread(paste("graphics/", fileName, ".csv", sep = ""), select = 2:6)
   for (j in scen2050list) {
     for (k in 1:length(incCats)) {

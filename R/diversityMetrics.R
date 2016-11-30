@@ -76,6 +76,9 @@ switch.useCookingRetnValues <- keyVariable("switch.useCookingRetnValues")
 switch.fixFish <- keyVariable("switch.fixFish") #get rid of nutrient info for shrimp, tuna, and salmon because they are not currently in the FBS data
 #dt.nutrients is per 100 gm of the raw product (ie before edible portion is applied)
 dt.nutrients <- cookingRetFishCorrect(switch.useCookingRetnValues, switch.fixFish)
+print("Multiplying dt.nutrients by 10 so in same units (kgs) as IMPACT commodities")
+nutListReq <- names(dt.nutrients)[2:(ncol(dt.nutrients))]
+dt.nutrients[, (nutListReq) := lapply(.SD, function(x) (x * 10)), .SDcols = nutListReq]
 
 dt.nutrientNames_Units <- getNewestVersion("dt.nutrientNames_Units", fileloc("mData"))
 keepListCol <- c(macroNutrients, vitamins, minerals, fattyAcids)
@@ -110,6 +113,9 @@ nutlist <- names(dt.nutrients)[!names(dt.nutrients) %in% "IMPACT_code"]
 nutlist <- nutlist[!nutlist %in% c("fat_g", "ft_acds_tot_sat_g", "ft_acds_mono_unsat_g", "ft_acds_plyunst_g", "ft_acds_tot_trans_g")]
 
 # for nutrient distance measures such as in the MFAD, all nutrients must be divided by their RDA
+# this is the adequacy ratio.
+
+dt.RDA.macro_all_reqRatio <- getNewestVersion("dt.RDA.macro_all_reqRatio", )
 reqsListPercap <- keyVariable("reqsListPercap") # this line here to remind that there are other items in the reqsList
 keepListReqs <- c("req.RDA.vits.percap", "req.RDA.minrls.percap", "req.RDA.macro.percap",
                   "req.PR.iron.percap", "req.PR.zinc.percap")
