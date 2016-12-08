@@ -20,9 +20,9 @@ if (!exists("getNewestVersion", mode = "function"))
   source("R/workbookFunctions.R")
   source("R/nutrientCalcFunctions.R")}
 
-numStyle <- openxlsx::createStyle(numFmt = "0.00")
-numStyle3 <- openxlsx::createStyle(numFmt = "0.000")
-shareStyle <- openxlsx::createStyle(numFmt = "0.0%")
+numStyle <- openxlsx::createStyle(numFmt = "0.00", halign = "right")
+numStyle3 <- openxlsx::createStyle(numFmt = "0.000", halign = "right")
+shareStyle <- openxlsx::createStyle(numFmt = "0.0%", halign = "right")
 textStyle <- openxlsx::createStyle(fontName = NULL, fontSize = NULL, fontColour = NULL,
                                    numFmt = "GENERAL", border = NULL, borderColour = getOption("openxlsx.borderColour",
                                                                                                "black"), borderStyle = getOption("openxlsx.borderStyle", "thin"),

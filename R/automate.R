@@ -8,13 +8,13 @@
 
 ptm <- proc.time()
 
-#install needed packages
+#check installation of needed packages
 list.of.packages <- c("data.table", "openxlsx", "dplyr", "utils", "ggplot2", "stringi", "tidyr", "splitstackshape",
                       "gridExtra","gplots")
 new.packages <- list.of.packages[!(list.of.packages %in% installed.packages()[,"Package"])]
 if (length(new.packages)) install.packages(new.packages)
 
-print("The packages below are needed and currently available on by downloading from github")
+print("The packages below are needed and currently available for downloading from github")
 print(paste("This set of scripts needs version 1.9.7 or greater of the data.table package. Version", as.character(packageVersion("data.table")), "is currently being used."))
 # print(paste("This set of scripts needs version 3.1.23 or greater of the openxlsx package. Version", as.character(packageVersion("openxlsx")), "is currently being used."))
 
@@ -54,7 +54,7 @@ source("R/gdxrrwSetup.R") # creates dt.scenarioListIMPACT and dt.IMPACTgdxParams
 print(" ")
 print("Running dataPrep.IMPACT.R")
 source("R/dataPrep.IMPACT.R")
-# - creates files in iData
+# - creates files in iData, the directory path is data/IMPACTData
 # dt.IMPACTmetaData
 # paste(dt,varName, sep = ".") - one file for each IMPACT variable, example is dt.PerCapKCAL.2016-06-21.rds
 # dt.CSEs
@@ -94,17 +94,19 @@ print("Running dataManagement.ODBCaccess.R")
 source("R/dataManagement.ODBCaccess.R")
 #Manipulates the results of the ODBC_access script and prepare for dataPrep.nutrientData.R
 
-print("Running dataPrep.nutrientData.R")
-source("R/dataPrep.nutrientData.R") # - creates dt.cookingRet and dt.nutrients, mData. Note that
+#print("Running dataPrep.nutrientData.R")
+#source("R/dataPrep.nutrientData.R") # - creates dt.cookingRet and dt.nutrients, mData. Note that
 # dt.nutrients does NOT take into account loss in cooking. That is done later and depends on a switch (search for switch.xxx .
+# Update 12/3/2016 - all the relevant code in dataPrep.nutrientData.R has been moved to dataManagement.ODBCaccess.R
 
 print("Running dataPrep.NutrientRequirements.R")
 source("R/dataPrep.NutrientRequirements.R")
 # newDFname, mData - nutrient requirements adjusted to SSP age and gender categories, example is req.RDA.macro.ssp.2016-06-22.rds
 
-print("Running bioavail.R")
-source("R/bioavail.R")
-# does adjustments to iron and zinc for bioavailability. Results are in files called PR.xxx
+# print("Running bioavail.R")
+# source("R/bioavail.R")
+# # does adjustments to iron and zinc for bioavailability. Results are in files called PR.xxx
+# this has been incorporated into nutrientCalcs.R
 
 print("Running dataManagement.SSPPop.R")
 source("R/dataManagement.SSPPop.R")
@@ -126,7 +128,7 @@ source("R/nutCalcsProcessing.R")
 # cleanup(inDT, outName, fileloc("resultsDir"))
 # "all.req.ratio.cMax"
 # cleanup(inDT, outName, fileloc("resultsDir"))
-"all.req.ratio.cMin"
+#all.req.ratio.cMin"
 # dt.energy.ratios - ratio of kcals from specific sources to total kcals
 
 print("Running diversityMetrics.R")
@@ -148,9 +150,14 @@ source("R/copyFilestoNutrientModeling.R") # move results needed for the shiny ap
 # generate graphs
 source("R/aggRun.R")
 
-# Rscript Sweave --encoding=utf-8 Rnw/compilePDF.Rnw
-# library( cacheSweave )
-# Sweave( "Rnw/compilePDF.Rnw", driver = cacheSweaveDriver)
-#
-# source("Rnw/compilePDF.Rnw")
+# copy files to Sweave director
+source("R/copyFilestoSweavedDir.R")
+
+#SWeave combines individual pdfs
+Sweave("Rnw/compilePDF.Rnw", encoding = "UTF-8") # generates a tex file
+tools::texi2pdf("compilePDF.tex") # converts the tex file to pdf
+file.copy(from = "compilePDF.pdf", to = "Rnw", overwrite = TRUE)
+file.remove("compilePDF.tex")
+file.remove("compilePDF.pdf")
+
 

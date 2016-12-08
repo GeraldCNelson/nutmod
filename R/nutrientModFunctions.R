@@ -115,8 +115,9 @@ getNewestVersion <- function(fileShortName, directory, fileType) {
   #  if (length(newestFile) == 0) {
   # check to see if the short file name is in the list from the relevant directory
   # print(paste("fileShortName is ", fileShortName))
-  # print(fileLongName)
+ #  print(fileLongName)
   if (!fileLongName %in% list.files(path = mData)) {
+
     stop(sprintf("There is no file  '%s' in directory %s", fileShortName, mData))
   } else {
     #   print(fileLongName)
@@ -349,8 +350,8 @@ keyVariable <- function(variableName) {
       "req.PR.iron",
       "req.PR.zinc"
     )
-  reqsListPercap <- paste(reqsList,".percap", sep = "")
-  reqsListSSP <- paste(reqsList,".ssp", sep = "")
+  reqsListPercap <- paste(reqsList,"_percap", sep = "")
+  reqsListSSP <- paste(reqsList,"_ssp", sep = "")
   dropListCty <- c("GRL", "FSM", "GRD", "PRK")
   commonList <- paste("common.", reqsList, sep = "")
   c( "common.EAR", "common.RDA.vits", "common.RDA.minrls", "common.RDA.macro", "common.UL.vits","common.UL.minrls")
@@ -1053,6 +1054,7 @@ gdxFileNameChoice <- function() {
   cat("2. for the USAID nutrient modeling paper\n")
   cat("Note: the relevant gdx file must be in the data-raw/IMPACTdata directory\n")
   choice <- readline(prompt = "Choose the number of the gdx file you want to use. \n")
+  choice <- "1" # so there will be a definite value
   if (choice == "1") gdxFileName <- "Micronutrient-Inputs-07252016.gdx" # - gdx with multiple SSP results
   if (choice == "2") gdxFileName <- "Micronutrient-Inputs-USAID.gdx"  #-  gdx for the USAID results
   cat("Your gdx file name choice is ", gdxFileName)

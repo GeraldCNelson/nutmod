@@ -27,7 +27,7 @@ orderRegions <- function(DT,aggChoice) {
   if (aggChoice == "I3regions") {
     # percap GDP data for ordering
     dt.pcGDPX0 <- getNewestVersionIMPACT("dt.pcGDPX0")
-   # dt.pcGDPX0 <- dt.pcGDPX0[scenario %in% eval(parse(text = (scenChoice)))[!eval(parse(text = (scenChoice))) %in% "2010"],]
+    # dt.pcGDPX0 <- dt.pcGDPX0[scenario %in% eval(parse(text = (scenChoice)))[!eval(parse(text = (scenChoice))) %in% "2010"],]
     # dt.pcGDPX0 <- unique(dt.pcGDPX0[,c("IMPACT_code","FoodAvailability","PCX0","PWX0","CSE") :=  NULL])
     dt.pcGDPX0 <- dt.pcGDPX0[year %in% c("X2010","X2050"), ]
     #data.table::setkeyv(dt.GDP,c("region_code.IMPACT159"))
@@ -47,7 +47,7 @@ orderRegions <- function(DT,aggChoice) {
 }
 
 aggNorder <- function(gdxChoice, DTglobal, aggChoice, scenChoice) {
- # print(paste("running aggNorder for ", gdxChoice, " and ", i))
+  # print(paste("running aggNorder for ", gdxChoice, " and ", i))
   DT <- getNewestVersion(DTglobal, fileloc("resultsDir"))
   setkey(DT, NULL)
   dt.regions <- regionAgg(aggChoice)
@@ -106,10 +106,10 @@ aggNorder <- function(gdxChoice, DTglobal, aggChoice, scenChoice) {
     scenOrder.SSPs <- c("2010", "SSP2-NoCC-REF", "SSP1-NoCC-REF", "SSP3-NoCC-REF", "SSP2-GFDL-REF", "SSP2-IPSL-REF", "SSP2-HGEM-REF")
     DT <- DT[scenario %in% scenOrder.SSPs, ] # doesn't need eval-parse because the list is defined inside the function
 
-  # order by scenarios
-  DT[, scenarioOrder := match(scenario, scenOrder.SSPs)]
-  data.table::setorder(DT, scenarioOrder)
-  DT[, scenarioOrder := NULL]
+    # order by scenarios
+    DT[, scenarioOrder := match(scenario, scenOrder.SSPs)]
+    data.table::setorder(DT, scenarioOrder)
+    DT[, scenarioOrder := NULL]
   }
   # order by regions
   DT <- orderRegions(DT, aggChoice)
@@ -127,7 +127,7 @@ plotByRegionBar <- function(dt, fileName, plotTitle, yLab, yRange,aggChoice) {
   if (gdxChoice == "USAID") colList <- c("black", rainbow(10)[1:length(scenarios) - 1])
   legendText <- unique(gsub("-REF", "", scenarios))
 
-   #the use of factor and levels keeps the order of the regions in region_code
+  #the use of factor and levels keeps the order of the regions in region_code
   formula.wide <- "scenario ~ factor(region_code, levels = unique(region_code))"
   temp.wide <- data.table::dcast(
     data = temp,
@@ -148,24 +148,25 @@ plotByRegionBar <- function(dt, fileName, plotTitle, yLab, yRange,aggChoice) {
   pdf(paste("graphics/", fileName,"_", aggChoice, ".pdf", sep = ""), width = 7, height = 5.2)
   #layout(matrix(c(1,2)), c(1,1), c(1,3))
   #par(mfrow = c(2,1), mai = c(1,1,1,1))
-#  mat = matrix(c(1,2))
-#  layout(mat, heights = c(5,3))
+  #  mat = matrix(c(1,2))
+  #  layout(mat, heights = c(5,3))
   barlocs <- barplot(temp,  col = colList, ylim = yRange, xaxt = "n",
-          legend.text = rownames(temp), args.legend = list(cex = .5, x = "bottomright", inset=c(0,-.3),  xpd=TRUE),
-          beside = TRUE, ylab = yLab,  cex.names = .7, las = 2,  srt = 45, main = plotTitle)
+                     legend.text = rownames(temp), args.legend =
+                       list(cex = .5, x = "bottomright", inset = c(0, -0.3), xpd = TRUE),
+                     beside = TRUE, ylab = yLab,  cex.names = .7, las = 2,  srt = 45, main = plotTitle)
 
   regionNames <- colnames(temp)
-   text(
-     colMeans(barlocs),
+  text(
+    colMeans(barlocs),
     par("usr")[3] - 0.1, srt = 45, adj = 1.2,
     labels = regionNames, xpd = TRUE,  cex = 0.6, cex.axis = 0.6)
-   abline(h = 1, lty = 3, lwd = 0.8)
-    colsToRound <- names(temp.wide)[2:length(temp.wide)]
+  abline(h = 1, lty = 3, lwd = 0.8)
+  colsToRound <- names(temp.wide)[2:length(temp.wide)]
   temp.wide[,(colsToRound) := round(.SD,2), .SDcols = colsToRound]
   data.table::setnames(temp.wide, old = names(temp.wide), new = c("scenario", regionCodes))
-#  textplot(temp.wide, cex = 0.6, valign = "top", show.rownames = FALSE, mai = c(.5, .5, .5, .5))
+  #  textplot(temp.wide, cex = 0.6, valign = "top", show.rownames = FALSE, mai = c(.5, .5, .5, .5))
   dev.off()
-  write.csv(temp.wide, file = paste("graphics/", fileName, ".", aggChoice, ".csv", sep = ""))
+  write.csv(temp.wide, file = paste("graphics/", fileName, "_", aggChoice, ".csv", sep = ""))
   print(paste("Done plotting bars by region ", aggChoice, "for ", plotTitle))
   print(" ")
 

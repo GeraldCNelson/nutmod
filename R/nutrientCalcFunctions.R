@@ -74,9 +74,20 @@
 #' }
 
 cookingRetFishCorrect <- function(switch.useCookingRetnValues, switch.fixFish) {
-  # dt.nutrients is in nutrient per 100 grams of the edible portion
   dt.nutrients <- getNewestVersion("dt.nutrients")
-# drop columns that are not needed.
+  cols.cookretn <- names(dt.nutrients)[grep("_cr",names(dt.nutrients))]
+  colsNotToMultiply <- c("IMPACT_code" ,"usda_code","Long_Desc", "food_group_code",
+                         "staple_code", "Ref_Desc", "retentioncode_aus", "RetnDesc", cols.cookretn, "phytate_source",
+                         "IMPACT_conversion", "edible_share", "food_group_code", "staple_code")
+
+  nutrients.list <- names(dt.nutrients)[!(names(dt.nutrients) %in% colsNotToMultiply)]
+  # dt.nutrients is in nutrient per 100 grams of the edible portion
+  # reduce nutrient amount by conversion of meat from carcass to boneless (IMPACT_conversion)
+  dt.nutrients[ , (nutrients.list) := lapply(.SD, `*`, IMPACT_conversion / 100), .SDcols = nutrients.list]
+  # reduce nutrient amount by conversion of all items to edible share
+  dt.nutrients[ , (nutrients.list) := lapply(.SD, `*`, edible_share / 100), .SDcols = nutrients.list]
+
+  # drop columns that are not needed.
   deleteListCol <- c("edible_share", "IMPACT_conversion")
   dt.nutrients[, (deleteListCol) := NULL]
 
@@ -88,22 +99,24 @@ cookingRetFishCorrect <- function(switch.useCookingRetnValues, switch.fixFish) {
     # data.table::setkey(dt.cookRetn,IMPACT_code)
     # dt.temp <- dt.nutrients[dt.cookRetn]
 
-    nutrientsWcookingRet <- names(dt.nutrients)[grep("_cr",names(dt.nutrients))]
-    for (i in 1:length(nutrientsWcookingRet)) {
+    for (i in 1:length(cols.cookretn)) {
       nutrientName <-
-        substr(x = nutrientsWcookingRet[i], 1, nchar(nutrientsWcookingRet[i]) - 3)
-      nutRetName <- nutrientsWcookingRet[i]
+        substr(x = cols.cookretn[i], 1, nchar(cols.cookretn[i]) - 3)
+      nutRetName <- cols.cookretn[i]
       # multiply amount of nutrient times the cooking retention value (in percent) and divide by 100 to get to share
       dt.nutrients[,(nutrientName) := eval(parse(text = nutrientName)) *
-                eval(parse(text = nutRetName)) / 100]
+                     eval(parse(text = nutRetName)) / 100]
     }
-    dt.nutrients <- dt.nutrients[,(c(nutrientsWcookingRet)) := NULL]
+    dt.nutrients <- dt.nutrients[,(c(cols.cookretn)) := NULL]
   }
-# fix fish if TRUE -----
+  # fix fish if TRUE -----
   if (switch.fixFish == "TRUE")  {
-      deleteListRow <- c("c_Shrimp", "c_Tuna", "c_Salmon")
-      dt.nutrients <- dt.nutrients[!IMPACT_code %in% deleteListRow,]
+    deleteListRow <- c("c_Shrimp", "c_Tuna", "c_Salmon")
+    dt.nutrients <- dt.nutrients[!IMPACT_code %in% deleteListRow,]
   }
+  # convert to nutrients per kg of food
+  colsToMultiply <- names(dt.nutrients)[!names(dt.nutrients) %in% colsNotToMultiply]
+  dt.nutrients[, (colsToMultiply) := lapply(.SD, function(x) (x * 10)), .SDcols = colsToMultiply]
   return(dt.nutrients)
 }
 
@@ -125,7 +138,7 @@ budgetShare <- function(dt.IMPACTfood) {
   dt.temp[, budget.PCX0 := (sum(FoodAvailability * PCX0 / 1000 )) / 1000, by = eval(data.table::key(dt.temp))]
   data.table::setkey(dt.temp, budget.PWX0)
   dt.budget <- dt.temp[!duplicated(budget.PCX0),]
-#  deleteListCol <- c("IMPACT_code", "FoodAvailability","PCX0","PWX0","CSE")
+  #  deleteListCol <- c("IMPACT_code", "FoodAvailability","PCX0","PWX0","CSE")
   deleteListCol <- c("IMPACT_code", "FoodAvailability","PCX0","PWX0")
   dt.budget[,(deleteListCol) := NULL]
   # at world prices -----

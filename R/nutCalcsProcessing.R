@@ -22,7 +22,6 @@ if (!exists("getNewestVersion", mode = "function"))
   source("R/workbookFunctions.R")
   source("R/nutrientCalcFunctions.R")}
 
-
 reqList <- keyVariable("reqsList")
 reqsToDelete <- c( "req.EAR", "req.UL.vits", "req.UL.minrls", "req.AMDR.hi", "req.AMDR.lo")
 reqList <- reqList[!reqList %in% reqsToDelete]
@@ -116,7 +115,7 @@ f.ratios.all <- function(){
   inDT <- dt.sum_reqRatio_long
   inDT[, nutrient := gsub("_reqRatio", "", nutrient)]
   print(paste0("dt.sum_reqRatio_long"))
-  print(unique(inDT$nutrient))
+#  print(unique(inDT$nutrient))
   outName <- paste(reqShortName, "sum_reqRatio", sep = "_")
   cleanup(inDT, outName, fileloc("resultsDir"), "csv")
 
@@ -130,6 +129,7 @@ f.ratios.all <- function(){
   inDT[, nutrient := gsub("_reqRatio_all", "", nutrient)]
   print(paste0("dt.all_reqRatio_long"))
   print(unique(inDT$nutrient))
+  outName <- paste(reqShortName, "all_reqRatio", sep = "_")
   cleanup(inDT, outName, fileloc("resultsDir"), "csv")
 
 }
@@ -253,7 +253,7 @@ for (req in reqList) {
   dt.food_agg.master[, scenario := gsub("IRREXP-WUE2", "IRREXP_WUE2", scenario)]
   dt.food_agg.master[, scenario := gsub("PHL-DEV2", "PHL_DEV2", scenario)]
   # get list of nutrients from dt.nutsReqPerCap for the req set of requirements
-  dt.nutsReqPerCap <- getNewestVersion(paste(req,"percap",sep = "."))
+  dt.nutsReqPerCap <- getNewestVersion(paste(req,"percap",sep = "_"))
   nutList <- names( dt.nutsReqPerCap)[4:length(names(dt.nutsReqPerCap))]
   basicKey <- c("scenario", "region_code.IMPACT159", "year")
   cols.all <- names(dt.food_agg.master)[grep(".all", names(dt.food_agg.master))]

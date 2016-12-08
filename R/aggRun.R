@@ -28,9 +28,9 @@ multipleNutsFileList <- c("dt.nutrients.sum.all",
                           "PR.zinc_sum_reqRatio",
                           "PR.iron_sum_reqRatio") # "dt.energy.ratios" not included
 multipleNutsListShortName <- c("nutrients.avail",
-                               "macro.reqRatio",
-                               "minrls.reqRatio",
-                               "vits.reqRatio",
+                               "macro_reqRatio",
+                               "minrls_reqRatio",
+                               "vits_reqRatio",
                                "nutrients.nonstaples.share",
                                "zinc_bioavail_reqRatio",
                                "iron_bioavail_reqRatio",
@@ -80,29 +80,49 @@ dt.nutrientNames_Units <- getNewestVersion("dt.nutrientNames_Units", fileloc("mD
 
 for (l in scenChoiceList) {
   for (i in aggChoiceListBarChart) {
+    # Shannon Diversity -----
     print(paste("Working on bar chart for Shannon Diversity for", i))
     SD.out <- aggNorder(gdxChoice, DTglobal = "dt.shannonDiversity", aggChoice = i, get(l))
     plotByRegionBar(dt = SD.out, fileName = "ShannonDiversity", plotTitle = "Shannon Diversity", yLab = "(percent)", yRange = c(0, 80), aggChoice = i)
 
     print(paste("Working on bar chart for budget share for", i))
     budgetShare.out <- aggNorder(gdxChoice, DTglobal = "dt.budgetShare", aggChoice = i, get(l))
-    plotByRegionBar(dt = budgetShare.out, fileName = "budgetShare", plotTitle = "IMPACT food budget share of per capita income", yLab = "(percent)", yRange = c(0, 50), aggChoice = i)
+    plotByRegionBar(dt = budgetShare.out, fileName = "budgetShare", plotTitle = "IMPACT food budget share of per capita income",
+                    yLab = "(percent)", yRange = c(0, 50), aggChoice = i)
     print(paste("Done with bar chart for budget share for", i))
-
+    # MFAD -----
     print(paste("Working on bar chart for MFAD for", i))
     MFAD.out <- aggNorder(gdxChoice, DTglobal = "dt.MFAD", aggChoice = i, get(l))
-    plotByRegionBar(dt = MFAD.out, fileName = "MFAD", plotTitle = "Modified Functional Attribute Diversity", yLab = "(percent)", yRange = c(0, 120), aggChoice = i)
+    plotByRegionBar(dt = MFAD.out, fileName = "MFAD", plotTitle = "Modified Functional Attribute Diversity",
+                    yLab = "(percent)", yRange = c(0, 120), aggChoice = i)
     print(paste("Done with bar chart for MFAD for", i))
+    # RAOd -----
+    print(paste("Working on bar chart for RaosD for", i))
+    RaoD.out <- aggNorder(gdxChoice, DTglobal = "dt.RaoD", aggChoice = i, get(l))
+    plotByRegionBar(dt = RaoD.out, fileName = "RaoD", plotTitle = "Rao's quadratic entropy",
+                    yLab = "(percent)", yRange = c(0, 1), aggChoice = i)
+    print(paste("Done with bar chart for Raos QE for", i))
+    # food availability -----
+    print(paste("Working on bar chart for food availability for", i))
+    foodAvail.out <- aggNorder(gdxChoice, DTglobal = "dt.foodAvail.foodGroup", aggChoice = i, get(l))
+    plotByRegionBar(dt = foodAvail.out, fileName = "foodAvail.foodGroup", plotTitle = "Food availability by food group",
+                    yLab = "(grams)", yRange = c(0, 100), aggChoice = i)
+    print(paste("Done with bar chart for food availability for", i))
 
-    # print(paste("Working on bar chart for Raos QE for", i))
-    # RaoQE.out <- aggNorder(gdxChoice, DTglobal = "dt.RaoQE", aggChoice = i, get(l))
-    # plotByRegionBar(dt = RaoQE.out, fileName = "RaoQE", plotTitle = "Rao's quadratic entropy", yLab = "(percent)", yRange = c(0, 1), aggChoice = i)
-    # print(paste("Done with bar chart for Raos QE for", i))
+    # # qualifying index -----
+    # print(paste("Working on bar chart for qualifing index for", i))
+    # foodAvail.out <- aggNorder(gdxChoice, DTglobal = "dt.qualIndex", aggChoice = i, get(l))
+    # plotByRegionBar(dt = foodAvail.out, fileName = "qualIndex", plotTitle = "Qualifying Index",
+    #                 yLab = "", yRange = c(0, 100), aggChoice = i)
+    # print(paste("Done with bar chart for qualifying index for", i))
+    #
+    # # disqualifying index -----
+    # print(paste("Working on bar chart for qualifing index for", i))
+    # foodAvail.out <- aggNorder(gdxChoice, DTglobal = "dt.disqualIndex", aggChoice = i, get(l))
+    # plotByRegionBar(dt = foodAvail.out, fileName = "disqualIndex", plotTitle = "Disqualifying Index",
+    #                 yLab = "", yRange = c(0, 100), aggChoice = i)
+    # print(paste("Done with bar chart for disqualifying index for", i))
 
-    # print(paste("Working on bar chart for food availability for", i))
-    # foodAvail.out <- aggNorder(gdxChoice, DTglobal = "dt.foodAvail.foodGroup", aggChoice = i, get(l))
-    # plotByRegionBar(dt = foodAvail.out, fileName = "foodAvail.foodGroup", title = "Food availability by food group", yLab = "(grams)", yRange = c(0, 100), aggChoice = i)
-    # print(paste("Done with bar chart for Raos QE for", i))
 
   }
 
@@ -186,8 +206,8 @@ for (l in scenChoiceList) {
         #     nutlongName <- "energy"
         #     units <- "kilocalories"
         # } else {
-        nutlongName <- dt.nutrientNames_Units[1, get(j)]
-        units <- dt.nutrientNames_Units[2, get(j)]
+        nutlongName <- dt.nutrientNames_Units[1, (j)]
+        units <- dt.nutrientNames_Units[2, (j)]
         # }
         DT <- data.table::copy(temp.in)
         #      DT[, nutrient := cleanupNutrientNames(nutrient)]
@@ -245,7 +265,8 @@ for (l in scenChoiceList) {
           nutTitle <- paste("Non-staple share of ", nutshortName, " availability", sep = "")
           ylab = "(percent)"
         }
-        plotByRegionBar(dt = DT, fileName = paste(j, multipleNutsListShortName[k], sep = "_"), plotTitle = nutTitle, yLab = ylab, yRange = NULL, aggChoice = i)
+        plotByRegionBar(dt = DT, fileName = paste(j, multipleNutsListShortName[k], sep = "_"),
+                        plotTitle = nutTitle, yLab = ylab, yRange = NULL, aggChoice = i)
       }
     }
     print(paste("Done with ", multipleNutsFileList[k]))
@@ -256,7 +277,7 @@ for (l in scenChoiceList) {
 #this is not working right now
 # plotByRegionLine("dt.shannonDiversity", "ShannonDiversity", "Shannon Diversity", yRange = c(20, 80), "I3regions")
 
-# write out zip files
+# write out zip files of the data files in resultsDir
 for (i in multipleNutsFileList) {
   print(paste("writing zip file for", i))
   inDT <- getNewestVersion(i, fileloc("resultsDir"))
@@ -283,7 +304,7 @@ fattyAcids <- c("ft_acds_tot_sat_g", "ft_acds_mono_unsat_g", "ft_acds_plyunst_g"
 nutlistmacro <- c("totalfiber_g")
 nutlistminrls <- c("calcium_mg", "potassium_g")
 nutlistvits <- c("folate_µg", "riboflavin_mg", "vit_a_rae_µg","vit_b12_µg", "vit_e_mg",  "vit_d_µg", "vit_k_µg")
-nutlistbioavail <- c("iron_mg.iron_", "zinc_mg.zinc_")
+nutlistbioavail <- c("iron_mg_iron", "zinc_mg_zinc")
 
 temp <- data.table::data.table(scenario = character(0),
                                lowInc = numeric(0), lowMidInc = numeric(0), upMidInc = numeric(0), highInc = numeric(0),
@@ -292,7 +313,7 @@ incCats <- c("lowInc", "lowMidInc", "upMidInc", "highInc")
 DincCats <- c("DlowInc", "DlowMidInc", "DupMidInc", "DhighInc")
 scen2050list <- c("SSP2-GFDL", "SSP2-IPSL", "SSP2-HGEM")
 for (i in nutlistmacro) {
-  fileName <- paste(i, "macro_reqRatio.WB", sep = "_")
+  fileName <- paste(i, "macro_reqRatio_WB", sep = "_")
   fileIn <- data.table::fread(paste("graphics/", fileName, ".csv", sep = ""), select = 2:6)
   for (j in scen2050list) {
     for (k in 1:length(incCats)) {
@@ -308,7 +329,7 @@ for (i in nutlistmacro) {
 }
 
 for (i in nutlistminrls) {
-  fileName <- paste(i, "minrls.reqRatio.WB", sep = "_")
+  fileName <- paste(i, "minrls_reqRatio_WB", sep = "_")
   fileIn <- data.table::fread(paste("graphics/", fileName, ".csv", sep = ""), select = 2:6)
   for (j in scen2050list) {
     for (k in 1:length(incCats)) {
@@ -324,7 +345,7 @@ for (i in nutlistminrls) {
 }
 
 for (i in nutlistbioavail) {
-  fileName <- paste(i, "bioavail_reqRatio.WB", sep = "")
+  fileName <- paste(i, "bioavail_reqRatio_WB", sep = "_")
   fileIn <- data.table::fread(paste("graphics/", fileName, ".csv", sep = ""), select = 2:6)
   for (j in scen2050list) {
     for (k in 1:length(incCats)) {
