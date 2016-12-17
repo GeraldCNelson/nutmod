@@ -74,7 +74,7 @@
 #' }
 
 cookingRetFishCorrect <- function(switch.useCookingRetnValues, switch.fixFish) {
-  dt.nutrients <- getNewestVersion("dt.nutrients")
+  dt.nutrients <- getNewestVersion("dt.nutrients", fileloc("mData"))
   cols.cookretn <- names(dt.nutrients)[grep("_cr",names(dt.nutrients))]
   colsNotToMultiply <- c("IMPACT_code" ,"usda_code","Long_Desc", "food_group_code",
                          "staple_code", "Ref_Desc", "retentioncode_aus", "RetnDesc", cols.cookretn, "phytate_source",

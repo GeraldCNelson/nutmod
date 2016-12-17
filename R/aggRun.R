@@ -94,13 +94,13 @@ for (l in scenChoiceList) {
     print(paste("Working on bar chart for MFAD for", i))
     MFAD.out <- aggNorder(gdxChoice, DTglobal = "dt.MFAD", aggChoice = i, get(l))
     plotByRegionBar(dt = MFAD.out, fileName = "MFAD", plotTitle = "Modified Functional Attribute Diversity",
-                    yLab = "(percent)", yRange = c(0, 120), aggChoice = i)
+                    yLab = "(percent)", yRange = c(0, 100), aggChoice = i)
     print(paste("Done with bar chart for MFAD for", i))
     # RAOd -----
     print(paste("Working on bar chart for RaosD for", i))
-    RaoD.out <- aggNorder(gdxChoice, DTglobal = "dt.RaoD", aggChoice = i, get(l))
-    plotByRegionBar(dt = RaoD.out, fileName = "RaoD", plotTitle = "Rao's quadratic entropy",
-                    yLab = "(percent)", yRange = c(0, 1), aggChoice = i)
+    RAOqe.out <- aggNorder(gdxChoice, DTglobal = "dt.RAOqe", aggChoice = i, get(l))
+    plotByRegionBar(dt = RAOqe.out, fileName = "RAOqe", plotTitle = "Rao's quadratic entropy",
+                    yLab = "(percent)", yRange = c(0, 100), aggChoice = i)
     print(paste("Done with bar chart for Raos QE for", i))
     # food availability -----
     print(paste("Working on bar chart for food availability for", i))
@@ -261,7 +261,7 @@ for (l in scenChoiceList) {
           ylab = NULL
         }
 
-        if (multipleNutsFileList[k] == "dt.nutrients.nonstapleShare")  {
+        if (multipleNutsFileList[k] == "nutrients_nonstaples_share")  {
           nutTitle <- paste("Non-staple share of ", nutshortName, " availability", sep = "")
           ylab = "(percent)"
         }
