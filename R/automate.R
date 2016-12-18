@@ -148,15 +148,18 @@ source("R/copyFilestoNutrientModeling.R") # move results needed for the shiny ap
 # generate graphs
 source("R/aggRun.R")
 
-Rscript Sweave --encoding=utf-8 Rnw/compilePDF.Rnw
-library( cacheSweave )
-Sweave( "Rnw/compilePDF.Rnw", driver = cacheSweaveDriver, encoding = "utf-8")
-source("Rnw/compilePDF.Rnw")
+library(cacheSweave )
+origWD <- getwd()
+RnwWD <- paste0(origWD,"/Rnw")
+setwd(paste0(origWD,"/Rnw"))
+Sweave( "compileVitsAdequacy.Rnw", driver = cacheSweaveDriver, encoding = "utf-8")
+Sweave( "compileMinrlsAdequacy.Rnw", driver = cacheSweaveDriver, encoding = "utf-8")
+Sweave( "compileMacroAdequacy.Rnw", driver = cacheSweaveDriver, encoding = "utf-8")
+Sweave( "compileFoodgroupAdequacy.Rnw", driver = cacheSweaveDriver, encoding = "utf-8")
 
-Sweave( "Rnw/compileVitsAdequacy.Rnw", driver = cacheSweaveDriver, encoding = "utf-8")
-Sweave( "Rnw/compileMinrlsAdequacy.Rnw", driver = cacheSweaveDriver, encoding = "utf-8")
-Sweave( "Rnw/compileMacroAdequacy.Rnw", driver = cacheSweaveDriver, encoding = "utf-8")
-Sweave( "Rnw/compileFoodgroupAdequacy.Rnw", driver = cacheSweaveDriver, encoding = "utf-8")
-
-source("Rnw/compilePDF.Rnw")
+tools::texi2pdf("compileVitsAdequacy.tex", clean = FALSE, quiet = TRUE)
+tools::texi2pdf("compileMinrlsAdequacy.tex", clean = FALSE, quiet = TRUE)
+tools::texi2pdf("compileMacroAdequacy.tex", clean = FALSE, quiet = TRUE)
+tools::texi2pdf("compileFoodgroupAdequacy.tex", clean = FALSE, quiet = TRUE)
+setwd(origWD)
 

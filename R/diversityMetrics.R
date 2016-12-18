@@ -262,7 +262,7 @@ dt.kcalsInfo <- dt.kcalsInfo[year %in% keepYearList, c("IMPACT_code", "scenario"
 dt.qi <- merge(dt.ratio.adj, dt.kcalsInfo, by = c("IMPACT_code", "scenario", "region_code.IMPACT159", "year" ))
 
 # calculate QI for each for each food item, by scenario and country -----
-dt.qi[,QI := (sum(qi) / Nq) * (kcalsPerCommod / kcalRef),
+dt.qi[,QI := (sum(qi) / Nq) * (kcalRef / kcalsPerCommod ),
       by = c("IMPACT_code", "scenario", "region_code.IMPACT159", "year") ]
 keepListCol.QI <- c("IMPACT_code", "scenario", "region_code.IMPACT159",  "year", "QI")
 dt.QI <- dt.qi[, (keepListCol.QI), with = FALSE]
@@ -281,7 +281,7 @@ outName <- "dt.QIcomp"
 cleanup(inDT, outName, fileloc("resultsDir"), "csv")
 
 # calculate nutrient balance -----
-dt.qi[,NB := (sum(qi.adj) / Nq) * 100,
+dt.qi[, NB := (sum(qi.adj) / Nq) * 100,
       by = c("IMPACT_code", "scenario", "region_code.IMPACT159", "year") ]
 keepListCol.NB <- c("IMPACT_code", "scenario", "region_code.IMPACT159",  "year", "NB")
 dt.NB <- dt.qi[, (keepListCol.NB), with = FALSE]
@@ -319,7 +319,7 @@ dt.di <- data.table::melt(
 )
 dt.di <- merge(dt.di, dt.kcalsInfo, by = c( "IMPACT_code", "scenario", "region_code.IMPACT159", "year"))
 
-dt.di[, DI := (sum(di) / Nd) * (kcalsPerCommod / kcalRef),
+dt.di[, DI := (sum(di) / Nd) * (kcalRef / kcalsPerCommod ),
       by = c("IMPACT_code", "scenario", "region_code.IMPACT159", "year") ]
 keepListCol.QI <- c("IMPACT_code", "scenario", "region_code.IMPACT159",  "year", "DI")
 dt.DI <- dt.di[, (keepListCol.QI), with = FALSE]
@@ -371,8 +371,5 @@ dt.nutBal <- merge(dt.nutreqholder, dt.nutSum.wide, by = c("scenario", "region_c
 
 dt.nutBal[, (nutnames.ratio) := Map(`/`, mget(as.vector(nutnames)), mget(as.vector(nutnames.req)))]
 dt.adequateRatio <- dt.temp[,c(headCols, nutnames.ratio), with = FALSE]
-# qualifying index
-# the ratio of each qualifying nutrient contained in 2000 kcal of a given food relative
-# to its Dietary Reference Intake (DRI) value.
 
 
