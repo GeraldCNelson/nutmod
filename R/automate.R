@@ -148,6 +148,7 @@ source("R/copyFilestoNutrientModeling.R") # move results needed for the shiny ap
 # generate graphs
 source("R/aggRun.R")
 
+# create pdfs of graphics to be pasted into the word doc. They are located in the Rnw directory
 library(cacheSweave )
 origWD <- getwd()
 RnwWD <- paste0(origWD,"/Rnw")
