@@ -98,26 +98,37 @@ cleanup(inDT, outName, fileloc("resultsDir"), "csv")
 
 # for nutrient distance measures such as in the MFAD, all nutrients must be divided by their RDA
 # this is the adequacy ratio.
-dt.ratio.macro <- getNewestVersion("RDA.macro_all_reqRatio", fileloc("resultsDir") )
-dt.ratio.vits <- getNewestVersion("RDA.vits_all_reqRatio", fileloc("resultsDir") )
-dt.ratio.minrls <- getNewestVersion("RDA.minrls_all_reqRatio", fileloc("resultsDir") )
+#get ratios for individual food items
+dt.ratio.macro <- getNewestVersion("RDA.macro_all_reqRatio", fileloc("resultsDir"))
+dt.ratio.vits <- getNewestVersion("RDA.vits_all_reqRatio", fileloc("resultsDir"))
+dt.ratio.minrls <- getNewestVersion("RDA.minrls_all_reqRatio", fileloc("resultsDir"))
+
+#get ratios for sum of all food items
+dt.ratio.macro.sum <- getNewestVersion("RDA.macro_sum_reqRatio", fileloc("resultsDir"))
+dt.ratio.vits.sum <- getNewestVersion("RDA.vits_sum_reqRatio", fileloc("resultsDir"))
+dt.ratio.minrls.sum <- getNewestVersion("RDA.minrls_sum_reqRatio", fileloc("resultsDir"))
 
 # remove iron and zinc from dt.ratio.minrls because the ratios are not based on PR
 dt.ratio.minrls <- dt.ratio.minrls[!nutrient %in% c("iron_mg.reqRatio.all", "zinc_mg.reqRatio.all"),]
+dt.ratio.minrls.sum <- dt.ratio.minrls.sum[!nutrient %in% c("iron_mg", "zinc_mg"),]
 
 # add the PR versions of the req ratios
-dt.ratio.PR.iron <- getNewestVersion("PR.iron_all_reqRatio", fileloc("resultsDir") )
-dt.ratio.PR.zinc <- getNewestVersion("PR.zinc_all_reqRatio", fileloc("resultsDir") )
+dt.ratio.PR.iron <- getNewestVersion("PR.iron_all_reqRatio", fileloc("resultsDir"))
+dt.ratio.PR.zinc <- getNewestVersion("PR.zinc_all_reqRatio", fileloc("resultsDir"))
+dt.ratio.PR.iron.sum <- getNewestVersion("PR.iron_sum_reqRatio", fileloc("resultsDir"))
+dt.ratio.PR.zinc.sum <- getNewestVersion("PR.zinc_sum_reqRatio", fileloc("resultsDir"))
 
 # combine the req ratios for all macro, vits, and minerals that have a req ratio
 dt.ratio <- data.table::rbindlist(list(dt.ratio.macro, dt.ratio.vits, dt.ratio.minrls, dt.ratio.PR.iron, dt.ratio.PR.zinc))
+dt.ratio.sum <- data.table::rbindlist(list(dt.ratio.macro.sum, dt.ratio.vits.sum, dt.ratio.minrls.sum, dt.ratio.PR.iron.sum, dt.ratio.PR.zinc.sum))
 dt.ratio <- dt.ratio[year %in% keepYearList, ]
+dt.ratio.sum <- dt.ratio.sum[year %in% keepYearList, ]
 dt.ratio[, nutrient := gsub(".reqRatio.all", "", nutrient)]
 nutList <- unique(dt.ratio$nutrient)
 regionList <- unique(dt.ratio$region_code.IMPACT159)
 commodityList <- unique(dt.ratio$IMPACT_code)
 
-# make columns for each of the nutrients
+# make columns for each of the nutrients at the individual food item level
 formula.wide <- paste("scenario + region_code.IMPACT159 + year +  IMPACT_code ~ nutrient")
 dt.adequateRatio.nuts <- data.table::dcast(
   data = dt.ratio,
@@ -126,20 +137,27 @@ dt.adequateRatio.nuts <- data.table::dcast(
 )
 dt.adequateRatio.nuts[is.na(dt.adequateRatio.nuts)] <- 0
 
-# # make columns for each of the IMPACT commodities
-formula.wide <- paste("scenario + region_code.IMPACT159 + year + nutrient ~ IMPACT_code")
-dt.adequateRatio.commods <- data.table::dcast(
-  data = dt.ratio,
+# make columns for each of the nutrients at the country level
+formula.wide <- paste("scenario + region_code.IMPACT159 + year ~ nutrient")
+dt.adequateRatio.nuts.sum <- data.table::dcast(
+  data = dt.ratio.sum,
   formula = formula.wide,
   value.var = "value"
 )
-dt.adequateRatio.commods[is.na(dt.adequateRatio.commods)] <- 0
+dt.adequateRatio.nuts.sum[is.na(dt.adequateRatio.nuts.sum)] <- 0
+
+# # # make columns for each of the IMPACT commodities
+# formula.wide <- paste("scenario + region_code.IMPACT159 + year + nutrient ~ IMPACT_code")
+# dt.adequateRatio.commods <- data.table::dcast(
+#   data = dt.ratio,
+#   formula = formula.wide,
+#   value.var = "value"
+# )
+# dt.adequateRatio.commods[is.na(dt.adequateRatio.commods)] <- 0
 
 # do by nutrients
 # MFAD is calculated on one of the triangles of the distance matrix. Since it is symmetrical, we can
 # sum over the whole matrix and divide by 2. .N is the number of food items. It varies by country.
-numVits <- 17
-numCommods <- 58
 dt.MFAD <- data.table::copy(dt.adequateRatio.nuts)
 system.time(dt.MFAD[, `:=` (MFAD = sum(dist(.SD)) / (2 * .N)),
                     by = c("scenario", "year", "region_code.IMPACT159"), .SDcols = nutList])
@@ -182,16 +200,6 @@ inDT <- dt.RAOqe
 outName <- "dt.RAOqe"
 cleanup(inDT, outName, fileloc("resultsDir"))
 
-# #do by commods
-# system.time(dt.adequateRatio.commods[, `:=` (MFAD = sum(dist(.SD)) / .N),
-#                                   by = c("scenario", "year", "region_code.IMPACT159"), .SDcols = commodityList])
-#
-# temp <- dt.adequateRatio.nuts[, dist(.SD),
-#                          by = c("scenario", "year", "region_code.IMPACT159"), .SDcols = nutList]
-
-# keepListCol <- c("scenario", "region_code.IMPACT159", "year", "MFAD" )
-# dt.MFAD.commods <- unique(dt.adequateRatio.nuts[, (keepListCol), with = FALSE])
-
 # nutrient balance score -----
 #qualifying nutrients
 # Water", "protein_g",  "totalfiber_g", "Calcium, Ca", "Iron, Fe", "Magnesium, Mg", "Phosphorus, P",
@@ -227,7 +235,7 @@ proteinKcals <- 4.0630975143
 carbsKcals <- 3.8240917782
 ethanolKcals <- 6.9
 
-# percent of ethanol in each beverage. Not needed here at the moment
+# percent of ethanol in each beverage.
 ethanol.beer.percent <- .04
 ethanol.wine.percent <- .12
 ethanol.spirits.percent <- .47
@@ -252,6 +260,8 @@ dt.kcal.lookup <- dt.nutrients.adj[, c("IMPACT_code", "energy_kcal")]
 # ratio qualifying nutrient intake to requirement can't be greater than 1. Keep only qualifying nutrients
 dt.ratio.adj <- dt.ratio[value > 1, qi.adj := 1][value <= 1, qi.adj := value][nutrient %in% nutrients.qual,]
 data.table::setnames(dt.ratio.adj, old = "value", new = "qi")
+dt.ratio.sum.adj <- dt.ratio.sum[value > 1, qi.adj := 1][value <= 1, qi.adj := value][nutrient %in% nutrients.qual,]
+data.table::setnames(dt.ratio.sum.adj, old = "value", new = "qi")
 
 # get the amount of kcals per day for each food, by scenario and country
 temp <- merge(dt.IMPACTfood, dt.kcal.lookup, by = "IMPACT_code")
@@ -260,6 +270,9 @@ dt.kcalsInfo[, kcalsPerDay := sum(kcalsPerCommod), by = c("scenario",  "year", "
 dt.kcalsInfo <- dt.kcalsInfo[year %in% keepYearList, c("IMPACT_code", "scenario", "region_code.IMPACT159",  "year", "kcalsPerCommod", "kcalsPerDay")]
 
 dt.qi <- merge(dt.ratio.adj, dt.kcalsInfo, by = c("IMPACT_code", "scenario", "region_code.IMPACT159", "year" ))
+dt.kcalsInfo.region <- dt.kcalsInfo[, c("scenario", "region_code.IMPACT159", "year", "kcalsPerDay"), with = FALSE]
+dt.kcalsInfo.region <- unique(dt.kcalsInfo.region)
+dt.qi.sum <- merge(dt.ratio.sum.adj, dt.kcalsInfo.region, by = c("scenario", "region_code.IMPACT159", "year" ))
 
 # calculate QI for each for each food item, by scenario and country -----
 dt.qi[,QI := (sum(qi) / Nq) * (kcalRef / kcalsPerCommod ),
@@ -280,14 +293,14 @@ inDT <-  dt.QIcomp
 outName <- "dt.QIcomp"
 cleanup(inDT, outName, fileloc("resultsDir"), "csv")
 
-# calculate nutrient balance -----
+# calculate nutrient balance for individual commodities -----
 dt.qi[, NB := (sum(qi.adj) / Nq) * 100,
       by = c("IMPACT_code", "scenario", "region_code.IMPACT159", "year") ]
 keepListCol.NB <- c("IMPACT_code", "scenario", "region_code.IMPACT159",  "year", "NB")
 dt.NB <- dt.qi[, (keepListCol.NB), with = FALSE]
 dt.NB <- unique(dt.NB)
 inDT <-  dt.NB
-outName <- "dt.nutBal"
+outName <- "dt.nutBal.commods"
 cleanup(inDT, outName, fileloc("resultsDir"), "csv")
 
 # calculate di for each food -----
@@ -339,37 +352,11 @@ cleanup(inDT, outName, fileloc("resultsDir"), "csv")
 
 # calc NBC as if only one commodity is consumed -----
 
-dt.nuts.sum <- getNewestVersion("dt.nutrients.sum.all", fileloc("resultsDir"))
-dt.nuts.sum <- dt.nuts.sum[nutrient %in% nutrients.qual, ]
-dt.nuts.sum <- dt.nuts.sum[nutrient %in% "energy_kcal" & year %in% keepYearList,][,nutrient := NULL]
-
-# convert value to the energy ratio needed in the Qualifying index
-dt.nutSum.kcal <- dt.nuts.sum[,kcalRatio := value/kcalRef][,value := NULL]
-
-formula.wide <- paste("scenario + region_code.IMPACT159 + year +  IMPACT_code ~ nutrient")
-dt.ratio.qual.wide <- data.table::dcast(
-  data = dt.ratio.adj,
-  formula = formula.wide,
-  value.var = "qi.adj"
-)
-
-dt.ratio.qual.wide <- merge(dt.ratio.qual.wide, dt.nutSum.kcal,
-                            by = c("scenario", "region_code.IMPACT159",  "year"))
-
-formula.wide <- paste("scenario + region_code.IMPACT159 + year ~ nutrient")
-dt.nutSum.wide <- data.table::dcast(
-  data = dt.nutSum,
-  formula = formula.wide,
-  value.var = "value"
-)
-
-dt.nutSum.wide <- dt.nutSum.wide[year %in% yearList,]
-dt.nutSum.wide[, kcal.ratio := (kcals.carbohydrate + kcals.ethanol + kcals.fat + kcals.protein)/Ed]
-dt.nutSum.wide[,c("kcals.carbohydrate", "kcals.ethanol", "kcals.fat", "kcals.protein") := NULL]
-
-dt.nutBal <- merge(dt.nutreqholder, dt.nutSum.wide, by = c("scenario", "region_code.IMPACT159", "year"))
-
-dt.nutBal[, (nutnames.ratio) := Map(`/`, mget(as.vector(nutnames)), mget(as.vector(nutnames.req)))]
-dt.adequateRatio <- dt.temp[,c(headCols, nutnames.ratio), with = FALSE]
-
-
+dt.qi.sum[, value := (sum(qi.adj) / Nq) * 100,
+      by = c( "scenario", "region_code.IMPACT159", "year") ]
+keepListCol.NB.sum <- c("scenario", "region_code.IMPACT159",  "year", "value")
+dt.NB.sum <- dt.qi.sum[, (keepListCol.NB.sum), with = FALSE]
+dt.NB.sum <- unique(dt.NB.sum)
+inDT <-  dt.NB.sum
+outName <- "dt.nutBeneScore"
+cleanup(inDT, outName, fileloc("resultsDir"), "csv")
