@@ -83,47 +83,49 @@ for (l in scenChoiceList) {
     # Shannon Diversity -----
     print(paste("Working on bar chart for Shannon Diversity for", i))
     SD.out <- aggNorder(gdxChoice, DTglobal = "dt.shannonDiversity", aggChoice = i, get(l))
-    plotByRegionBar(dt = SD.out, fileName = "ShannonDiversity", plotTitle = "Shannon Diversity", yLab = "(percent)", yRange = c(0, 80), aggChoice = i)
+    plotByRegionBar(dt = SD.out, fileName = "ShannonDiversity", plotTitle = "Shannon Diversity", yLab = "(percent)",
+                    yRange = c(0, 80), aggChoice = i, oneLine = FALSE)
 
     print(paste("Working on bar chart for budget share for", i))
     budgetShare.out <- aggNorder(gdxChoice, DTglobal = "dt.budgetShare", aggChoice = i, get(l))
     plotByRegionBar(dt = budgetShare.out, fileName = "budgetShare", plotTitle = "IMPACT food budget share of per capita income",
-                    yLab = "(percent)", yRange = c(0, 50), aggChoice = i)
+                    yLab = "(percent)", yRange = c(0, 50), aggChoice = i, oneLine = FALSE)
     print(paste("Done with bar chart for budget share for", i))
     # MFAD -----
     print(paste("Working on bar chart for MFAD for", i))
     MFAD.out <- aggNorder(gdxChoice, DTglobal = "dt.MFAD", aggChoice = i, get(l))
     plotByRegionBar(dt = MFAD.out, fileName = "MFAD", plotTitle = "Modified Functional Attribute Diversity",
-                    yLab = "(percent)", yRange = c(0, 100), aggChoice = i)
+                    yLab = "(percent)", yRange = c(0, 100), aggChoice = i, oneLine = FALSE)
     print(paste("Done with bar chart for MFAD for", i))
-    # RAOd -----
+    # RAOqe -----
     print(paste("Working on bar chart for RaosD for", i))
     RAOqe.out <- aggNorder(gdxChoice, DTglobal = "dt.RAOqe", aggChoice = i, get(l))
     plotByRegionBar(dt = RAOqe.out, fileName = "RAOqe", plotTitle = "Rao's quadratic entropy",
-                    yLab = "(percent)", yRange = c(0, 100), aggChoice = i)
-    print(paste("Done with bar chart for Raos QE for", i))
-    # food availability -----
-    print(paste("Working on bar chart for food availability for", i))
-    foodAvail.out <- aggNorder(gdxChoice, DTglobal = "dt.foodAvail.foodGroup", aggChoice = i, get(l))
-    plotByRegionBar(dt = foodAvail.out, fileName = "foodAvail.foodGroup", plotTitle = "Food availability by food group",
-                    yLab = "(grams)", yRange = c(0, 100), aggChoice = i)
-    print(paste("Done with bar chart for food availability for", i))
+                    yLab = "(percent)", yRange = c(0, 100), aggChoice = i, oneLine = FALSE)
 
-    # # qualifying index -----
-    # print(paste("Working on bar chart for qualifing index for", i))
-    # foodAvail.out <- aggNorder(gdxChoice, DTglobal = "dt.qualIndex", aggChoice = i, get(l))
-    # plotByRegionBar(dt = foodAvail.out, fileName = "qualIndex", plotTitle = "Qualifying Index",
-    #                 yLab = "", yRange = c(0, 100), aggChoice = i)
-    # print(paste("Done with bar chart for qualifying index for", i))
-    #
-    # # disqualifying index -----
-    # print(paste("Working on bar chart for qualifing index for", i))
-    # foodAvail.out <- aggNorder(gdxChoice, DTglobal = "dt.disqualIndex", aggChoice = i, get(l))
-    # plotByRegionBar(dt = foodAvail.out, fileName = "disqualIndex", plotTitle = "Disqualifying Index",
-    #                 yLab = "", yRange = c(0, 100), aggChoice = i)
-    # print(paste("Done with bar chart for disqualifying index for", i))
+    # # food availability -----
+    # print(paste("Working on bar chart for food availability for", i))
+    # foodAvail.out <- aggNorder(gdxChoice, DTglobal = "dt.foodAvail.foodGroup", aggChoice = i, get(l))
+    # plotByRegionBar(dt = foodAvail.out, fileName = "foodAvail.foodGroup", plotTitle = "Food availability by food group",
+    #                 yLab = "(grams)", yRange = c(0, 100), aggChoice = i)
 
+    # nutritional benefit score -----
+    print(paste("Working on bar chart for the NBS for", i))
+    NBS.out <- aggNorder(gdxChoice, DTglobal = "dt.nutBalScore", aggChoice = i, get(l))
+    plotByRegionBar(dt = NBS.out, fileName = "NutBalScore", plotTitle = "Nutrient balance score",
+                    yLab = "(percent)", yRange = c(0, 100), aggChoice = i, oneLine = FALSE)
 
+    # composite QI score -----
+    print(paste("Working on bar chart for the QI composite for", i))
+    compQI.out <- aggNorder(gdxChoice, DTglobal = "dt.compQI", aggChoice = i, get(l))
+    plotByRegionBar(dt = compQI.out, fileName = "compQI", plotTitle = "Composite qualifying index score",
+                    yLab = "(percent)", yRange = c(0, 100), aggChoice = i, oneLine = FALSE)
+
+    # composite DI score -----
+    print(paste("Working on bar chart for the NBS for", i))
+    compDI.out <- aggNorder(gdxChoice, DTglobal = "dt.compDI", aggChoice = i, get(l))
+    plotByRegionBar(dt = compDI.out, fileName = "compDI", plotTitle = "Composite disqualifying index score",
+                    yLab = "(percent)", yRange = c(0, 100), aggChoice = i, oneLine = FALSE)
   }
 
   # food groups -----
@@ -134,8 +136,9 @@ for (l in scenChoiceList) {
   #keep just the scenario.base scenario for 2010 and rename the scenario to 2010
   temp.in <- temp.in[year == "X2010" & scenario == scenario.base |
                        year == "X2050",][year == "X2010", scenario := "2010"]
+  foodGroupList <- unique(temp.in$food_group_code)
   for (i in aggChoiceListBarChart) {
-    for (j in unique(temp.in$food_group_code)) {
+    for (j in foodGroupList) {
       #     for (j in c(macroNutrients, vitamins, minerals)) {
       FG.shortName <- j
       FG.longName <- cleanupNutrientNames(j)
@@ -182,7 +185,8 @@ for (l in scenChoiceList) {
       DT <- orderRegions(DT, i)
       nutTitle <- paste("Average daily availability of ", tolower(FG.longName), sep = "")
       ylab = paste("(",units,")",sep = "")
-      plotByRegionBar(dt = DT, fileName = paste(j, "foodAvail_foodGroup", sep = "_"), plotTitle = nutTitle, yLab = ylab, yRange = NULL, aggChoice = i)
+      plotByRegionBar(dt = DT, fileName = paste(j, "foodAvail_foodGroup", sep = "_"), plotTitle = nutTitle, yLab = ylab,
+                      yRange = NULL, aggChoice = i, oneLine = FALSE)
       print(j)
     }
   }
@@ -193,6 +197,11 @@ for (l in scenChoiceList) {
   for (k in 1:length(multipleNutsFileList)) {
     print(paste("Working on multiple nut file", multipleNutsFileList[k]))
     temp.in <- getNewestVersion(multipleNutsFileList[k], fileloc("resultsDir"))
+
+    #get rid of the iron and zinc req ratios that are not based on physiological requirements
+    if ("RDA.minrls_sum_reqRatio" %in% multipleNutsFileList[k]) {
+      temp.in <- temp.in[!nutrient %in% c("zinc_mg", "iron_mg"),]
+    }
     temp.in <- merge(temp.in, dt.pop, by = c("scenario","region_code.IMPACT159", "year"))
 
     #keep just the scenario.base scenario for 2010 and rename the scenario to 2010
@@ -210,7 +219,6 @@ for (l in scenChoiceList) {
         units <- dt.nutrientNames_Units[2, (j)]
         # }
         DT <- data.table::copy(temp.in)
-        #      DT[, nutrient := cleanupNutrientNames(nutrient)]
         if (units == "g") units <- "grams"
         DT <- DT[nutrient %in% j,]
         DT[, nutrient := NULL]
@@ -255,18 +263,21 @@ for (l in scenChoiceList) {
         if (multipleNutsFileList[k] == "dt.nutrients.sum.all")  {
           nutTitle <- paste("Average daily availability of ", tolower(nutlongName), sep = "")
           ylab = paste("(",units,")",sep = "")
+          drawOneLine = FALSE
         }
         if (multipleNutsFileList[k] %in% reqRatioFiles)  {
           nutTitle <- paste("Adequacy ratio, ", nutshortName, sep = "")
           ylab = NULL
+          drawOneLine = TRUE
         }
 
         if (multipleNutsFileList[k] == "nutrients_nonstaples_share")  {
           nutTitle <- paste("Non-staple share of ", nutshortName, " availability", sep = "")
           ylab = "(percent)"
+          drawOneLine = FALSE
         }
         plotByRegionBar(dt = DT, fileName = paste(j, multipleNutsListShortName[k], sep = "_"),
-                        plotTitle = nutTitle, yLab = ylab, yRange = NULL, aggChoice = i)
+                        plotTitle = nutTitle, yLab = ylab, yRange = NULL, aggChoice = i, oneLine = drawOneLine)
       }
     }
     print(paste("Done with ", multipleNutsFileList[k]))
@@ -274,111 +285,7 @@ for (l in scenChoiceList) {
   }
 } # end of scenChoiceList loop
 
-#this is not working right now
-# plotByRegionLine("dt.shannonDiversity", "ShannonDiversity", "Shannon Diversity", yRange = c(20, 80), "I3regions")
-
-# write out zip files of the data files in resultsDir
-for (i in multipleNutsFileList) {
-  print(paste("writing zip file for", i))
-  inDT <- getNewestVersion(i, fileloc("resultsDir"))
-  write.csv(inDT, file = gzfile(paste("graphics/",i,".csv.zip", sep = "")))
-}
-
-#create zip file of all the graphics outputs for a set of scenarios
-graphs.fileNames <- list.files(path = "graphics")
-zip(zipfile = paste(fileloc("gDir"),"/", scenChoice.name,".zip", sep = ""), files = paste(fileloc("gDir"),"/", graphs.fileNames, sep = ""))
-
-# code to produce a table of req requirements results -----
-# list of potential nutrients to add to the table
-macroNutrients <- c("protein_g", "fat_g", "carbohydrate_g",  "totalfiber_g")
-vitamins <- c("vit_c_mg", "thiamin_mg", "riboflavin_mg", "niacin_mg",
-              "vit_b6_mg", "folate_µg", "vit_b12_µg", "vit_a_rae_µg",
-              "vit_e_mg",  "vit_d_µg", "vit_k_µg")
-minerals <- c("calcium_mg",  "iron_mg", "magnesium_mg", "phosphorus_mg",
-              "potassium_g", "zinc_mg")
-kcals <- c("kcals.fat", "kcals.protein", "kcals.sugar", "kcals.ethanol")
-addedSugar <- c("sugar_g")
-fattyAcids <- c("ft_acds_tot_sat_g", "ft_acds_mono_unsat_g", "ft_acds_plyunst_g",
-                "ft_acds_tot_trans_g")
-
-nutlistmacro <- c("totalfiber_g")
-nutlistminrls <- c("calcium_mg", "potassium_g")
-nutlistvits <- c("folate_µg", "riboflavin_mg", "vit_a_rae_µg","vit_b12_µg", "vit_e_mg",  "vit_d_µg", "vit_k_µg")
-nutlistbioavail <- c("iron_mg_iron", "zinc_mg_zinc")
-
-temp <- data.table::data.table(scenario = character(0),
-                               lowInc = numeric(0), lowMidInc = numeric(0), upMidInc = numeric(0), highInc = numeric(0),
-                               DlowInc = numeric(0), DlowMidInc = numeric(0), DupMidInc = numeric(0), DhighInc = numeric(0))
-incCats <- c("lowInc", "lowMidInc", "upMidInc", "highInc")
-DincCats <- c("DlowInc", "DlowMidInc", "DupMidInc", "DhighInc")
-scen2050list <- c("SSP2-GFDL", "SSP2-IPSL", "SSP2-HGEM")
-for (i in nutlistmacro) {
-  fileName <- paste(i, "macro_reqRatio_WB", sep = "_")
-  fileIn <- data.table::fread(paste("graphics/", fileName, ".csv", sep = ""), select = 2:6)
-  for (j in scen2050list) {
-    for (k in 1:length(incCats)) {
-      baseVal <- fileIn[scenario == "SSP2-NoCC", get(incCats[k])]
-      fileIn[scenario == j, DincCats[k] := (get(incCats[k]) - baseVal)/baseVal]
-    }
-  }
-  category <- data.table::data.table(scenario = i,
-                                     lowInc = NA, lowMidInc = NA, upMidInc = NA, highInc = NA,
-                                     DlowInc = NA, DlowMidInc = NA, DupMidInc = NA, DhighInc = NA)
-  temp <- rbind(temp,category)
-  temp <- rbind(temp, fileIn)
-}
-
-for (i in nutlistminrls) {
-  fileName <- paste(i, "minrls_reqRatio_WB", sep = "_")
-  fileIn <- data.table::fread(paste("graphics/", fileName, ".csv", sep = ""), select = 2:6)
-  for (j in scen2050list) {
-    for (k in 1:length(incCats)) {
-      baseVal <- fileIn[scenario == "SSP2-NoCC", get(incCats[k])]
-      fileIn[scenario == j, DincCats[k] := (get(incCats[k]) - baseVal)/baseVal]
-    }
-  }
-  category <- data.table::data.table(scenario = i,
-                                     lowInc = NA, lowMidInc = NA, upMidInc = NA, highInc = NA,
-                                     DlowInc = NA, DlowMidInc = NA, DupMidInc = NA, DhighInc = NA)
-  temp <- rbind(temp,category)
-  temp <- rbind(temp, fileIn)
-}
-
-for (i in nutlistbioavail) {
-  fileName <- paste(i, "bioavail_reqRatio_WB", sep = "_")
-  fileIn <- data.table::fread(paste("graphics/", fileName, ".csv", sep = ""), select = 2:6)
-  for (j in scen2050list) {
-    for (k in 1:length(incCats)) {
-      baseVal <- fileIn[scenario == "SSP2-NoCC", get(incCats[k])]
-      fileIn[scenario == j, DincCats[k] := (get(incCats[k]) - baseVal)/baseVal]
-    }
-  }
-  category <- data.table::data.table(scenario = i,
-                                     lowInc = NA, lowMidInc = NA, upMidInc = NA, highInc = NA,
-                                     DlowInc = NA, DlowMidInc = NA, DupMidInc = NA, DhighInc = NA)
-  temp <- rbind(temp,category)
-  temp <- rbind(temp, fileIn)
-}
-
-for (i in nutlistvits) {
-  fileName <- paste(i, "vits_reqRatio_WB", sep = "_")
-  fileIn <- data.table::fread(paste("graphics/", fileName, ".csv", sep = ""), select = 2:6)
-  for (j in scen2050list) {
-    for (k in 1:length(incCats)) {
-      baseVal <- fileIn[scenario == "SSP2-NoCC", get(incCats[k])]
-      fileIn[scenario == j, DincCats[k] := (get(incCats[k]) - baseVal)/baseVal]
-    }
-  }
-  category <- data.table::data.table(scenario = i,
-                                     lowInc = NA, lowMidInc = NA, upMidInc = NA, highInc = NA,
-                                     DlowInc = NA, DlowMidInc = NA, DupMidInc = NA, DhighInc = NA)
-  temp <- rbind(temp,category)
-  temp <- rbind(temp, fileIn)
-}
-
-write.csv(temp, file = paste("graphics/reqTable.csv", sep = ""))
-
-# box plots
+# box plots -----
 dt.budgetShare <- getNewestVersion("dt.budgetShare", fileloc("resultsDir"))
 dt.regions <- regionAgg("WB")
 # aggregate to and retain only the relevant regions
@@ -410,12 +317,159 @@ axis(side = 1,
 labels <- gsub("-REF","", unique(temp$region_name))
 #    labels = unique(temp$scenario), srt=45, adj=1, xpd=TRUE,
 #   line = 0.5, lwd = 0, cex.lab = 0.5, cex.axis = 0.6)
-title('Expenditures Share of Per Capita Income, 2050\nAll countries, all scenarios')
+title('Expenditures share of per capita income, 2050\nall countries, all scenarios')
 text(
   c(1, 2, 3, 4),
   par("usr")[3] - 0.1, srt = 45, adj = 1.2,
   labels = labels, xpd = TRUE,  cex = 0.6, cex.axis = 0.6)
 # abline(h = 1, lty = 3, lwd = 0.8)
 dev.off()
+box.stats <- data.table::as.data.table(box.test$stats)
+box.stats.labels <- data.table(rownum = c(1,2,3,4,5), name = c("lowest value", "box bottom", "median", "box top", "highest value"))
+# do this name change so the box stats can be rbinded with the other data
+box.stats <- cbind(box.stats.labels, box.stats)
+data.table::setnames(box.stats,
+                     old = c("name", "V1", "V2", "V3", "V4"),
+                     new = c("scenario", "lowInc", "lowMidInc", "upMidInc", "highInc"))
+fwrite(box.stats, file = "graphics/boxstats_WB.csv")
+
+# line plots -----
+#this is not working right now
+# plotByRegionLine("dt.shannonDiversity", "ShannonDiversity", "Shannon Diversity", yRange = c(20, 80), "I3regions")
+
+# write out zip files of the data files in resultsDir
+for (i in multipleNutsFileList) {
+  print(paste("writing zip file for", i))
+  inDT <- getNewestVersion(i, fileloc("resultsDir"))
+  write.csv(inDT, file = gzfile(paste("graphics/",i,".csv.zip", sep = "")))
+}
+
+#create zip file of all the graphics outputs for a set of scenarios
+graphs.fileNames <- list.files(path = "graphics")
+zip(zipfile = paste(fileloc("gDir"),"/", scenChoice.name,".zip", sep = ""), files = paste(fileloc("gDir"),"/", graphs.fileNames, sep = ""))
+
+# csv to table code  -----
+# list of potential nutrients to add to the table
+macroNutrients <- c("carbohydrate_g", "protein_g", "fat_g",  "totalfiber_g")
+vitamins <- c( "thiamin_mg", "riboflavin_mg", "niacin_mg",
+               "vit_b6_mg", "folate_µg","vit_a_rae_µg", "vit_b12_µg","vit_c_mg",
+               "vit_d_µg", "vit_e_mg", "vit_k_µg")
+minerals <- c("calcium_mg",  "magnesium_mg", "phosphorus_mg",
+              "potassium_g") # note Iron and zinc left out of here because they are in the bioavail group
+kcals <- c("kcals.fat", "kcals.protein", "kcals.sugar", "kcals.ethanol")
+addedSugar <- c("sugar_g")
+fattyAcids <- c("ft_acds_tot_sat_g", "ft_acds_mono_unsat_g", "ft_acds_plyunst_g",
+                "ft_acds_tot_trans_g")
+
+nutlistmacro <- c("carbohydrate_g", "protein_g",  "totalfiber_g")
+nutlistminrls <- c("calcium_mg", "magnesium_mg", "potassium_g", "phosphorus_mg")
+nutlistvits <- c("folate_µg", "riboflavin_mg", "vit_a_rae_µg","vit_b12_µg", "vit_c_mg", "vit_e_mg",  "vit_d_µg",
+                 "vit_k_µg", "thiamin_mg")
+nutlistbioavail <- c("iron_mg_iron", "zinc_mg_zinc")
+diversity <- c("RAOqe", "NutBalScore", "compDI", "compQI")
+budgetShare <- "budgetShare"
+boxStats <- "boxstats"
+dailyAvail.foodgroup <- foodGroupList
+
+csvHolder <- data.table::data.table(scenario = character(0),
+                               # "Low Income" = numeric(0), "Low middle income" = numeric(0),
+                               # "Upper middle income" = numeric(0), "High income" = numeric(0),
+                               # "2050 climate change effect, low income" = numeric(0),
+                               # "2050 climate change effect, low middle income" = numeric(0),
+                               # "2050 climate change effect, upper middle income" = numeric(0),
+                               # "2050 climate change effect, high income" = numeric(0))
+                               lowInc = numeric(0), lowMidInc = numeric(0), upMidInc = numeric(0), highInc = numeric(0),
+                               DlowInc = numeric(0), DlowMidInc = numeric(0), DupMidInc = numeric(0), DhighInc = numeric(0))
+
+incCats <- c("lowInc", "lowMidInc", "upMidInc", "highInc")
+DincCats <- c("DlowInc", "DlowMidInc", "DupMidInc", "DhighInc")
+scen2050list <- c("SSP2-GFDL", "SSP2-IPSL", "SSP2-HGEM")
+#create  xlsx file with the data used to create the figures -----
+figsData <- openxlsx::createWorkbook()
+openxlsx::addWorksheet(wb = figsData, sheetName = "FigureData")
+colHeaders <- c("Low Income", "Low middle income", "Upper middle income", "High income",
+                "2050 climate change effect, low income", "2050 climate change effect, low middle income",
+                "2050 climate change effect, upper middle income", "2050 climate change effect, high income")
+rowCounter <- 1
+
+#write column names to the spreadsheet
+openxlsx::writeData(
+  wb = figsData, sheet = "FigureData", rowNames = FALSE, colNames = TRUE, startCol = 1,
+  x = as.list(colHeaders),
+  startRow = rowCounter
+)
+rowCounter <- rowCounter + 1
+for (i in c(budgetShare, boxStats, nutlistmacro, vitamins, minerals, nutlistbioavail, diversity, dailyAvail.foodgroup)) {
+  if (i %in% c(budgetShare, boxStats, diversity)) {
+    fileName <- paste(i, "WB", sep = "_")
+    figInfo <- "1, affordability,"
+  }
+  if (i %in% nutlistmacro) {
+    fileName <- paste(i, "macro_reqRatio_WB", sep = "_")
+    figInfo <- "3, adequacy, macro nutrients, "
+  }
+  if (i %in% vitamins) {
+    fileName <- paste(i, "vits_reqRatio_WB", sep = "_")
+    figInfo <- "4, adequacy, vitamins, "
+  }
+  if (i %in% minerals) {
+    fileName <- paste(i, "minrls_reqRatio_WB", sep = "_")
+    figInfo <- "4, adequacy, minerals, "
+  }
+  if (i %in% nutlistbioavail) {
+    fileName <- paste(i, "bioavail_reqRatio_WB", sep = "_")
+    figInfo <- "4, adequacy, minerals, "
+  }
+  if (i %in% diversity) {
+    fileName <- paste(i, "WB", sep = "_")
+    figInfo <- "5, diversity metrics, "
+  }
+  if (i %in% dailyAvail.foodgroup) {
+    fileName <- paste(i, "foodAvail_foodGroup_WB", sep = "_")
+    figInfo <- "2, food group availability, "
+  }
+
+  fileIn <- data.table::fread(paste("graphics/", fileName, ".csv", sep = ""), select = 2:6)
+  for (j in scen2050list) {
+    for (k in 1:length(incCats)) {
+      baseVal <- fileIn[scenario == "SSP2-NoCC", get(incCats[k])]
+      fileIn[scenario == j, DincCats[k] := (get(incCats[k]) - baseVal)/baseVal]
+    }
+  }
+  #write name of data set to the spreadsheet
+  nutshortName <- cleanupNutrientNames(i)
+  openxlsx::writeData(
+    wb = figsData, sheet = "FigureData", rowNames = FALSE, colNames = FALSE, startCol = 1,
+    x = paste("Figure", figInfo, nutshortName),
+    startRow = rowCounter
+  )
+  rowCounter <- rowCounter + 1
+
+  openxlsx::writeData(
+    wb = figsData, sheet = "FigureData", rowNames = FALSE, colNames = FALSE, startCol = 1,
+    x = fileIn,
+    startRow = rowCounter
+  )
+  rowCounter <- rowCounter + nrow(fileIn)
+
+  category <- data.table::data.table(scenario = i,
+                                     lowInc = NA, lowMidInc = NA, upMidInc = NA, highInc = NA,
+                                     DlowInc = NA, DlowMidInc = NA, DupMidInc = NA, DhighInc = NA)
+  csvHolder <- rbind(csvHolder,category)
+  csvHolder <- rbind(csvHolder, fileIn)
+}
+
+data.table::setnames(csvHolder,
+                     old = c("lowInc", "lowMidInc", "upMidInc", "highInc", "DlowInc", "DlowMidInc", "DupMidInc", "DhighInc"),
+                     new = colHeaders)
+
+openxlsx::addStyle(
+  wb = figsData, sheet = "FigureData", style = numStyle, cols = 2:length(csvHolder), rows = 2:nrow(csvHolder),
+  gridExpand = TRUE
+)
+
+openxlsx::saveWorkbook(wb = figsData, file = paste("graphics/reqTable.xlsx", sep = ""),
+                       overwrite = TRUE)
+fwrite(csvHolder, file = paste("graphics/reqTable.csv", sep = ""), na = "")
 
 source("R/aggregateResults.R") # is this still necessary?

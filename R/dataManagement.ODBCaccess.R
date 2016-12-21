@@ -1,7 +1,7 @@
 #' @author Gerald C. Nelson, \email{nelson.gerald.c@@gmail.com}
 #' @keywords utilities, nutrient data, IMPACT food commodities nutrient lookup
 # Intro ---------------------------------------------------------------
-#Copyright (C) 2015 Gerald C. Nelson, except where noted
+#Copyright (C) 2016 Gerald C. Nelson, except where noted
 
 #     This program is free software: you can redistribute it and/or modify i
 #     under the terms of the GNU General Public License as published by the Free
@@ -29,6 +29,7 @@
 FOOD_DES <- getNewestVersion("FOOD_DES", fileloc("mData"))
 NUT_DATA <- getNewestVersion("NUT_DATA", fileloc("mData"))
 NUTR_DEF <- getNewestVersion("NUTR_DEF", fileloc("mData"))
+
 # now manipulate the data
 # lists needed everywhere -----
 composites <- c("cbean", "clamb", "cocer", "copul", "cothr", "crpol", "csubf", "ctemf",
@@ -438,16 +439,13 @@ for (i in fishfiles) {
   keepListCol <- c("item_name", "usda_code", "include", "prod_qty_2011", "prod_qty_2012", "prod_qty_2013")
   dt.commod <- dt.commod[,keepListCol, with = FALSE]
   dt.commod <- dt.commod[usda_code %in% USDAcodes & include == 1,]
-  # nutList <- colsToMultiply[!colsToMultiply %in% c("IMPACT_conversion", "edible_share", "calcium_mg_cr",
-  #                                                    "iron_mg_cr", "magnesium_mg_cr", "phosphorus_mg_cr", "potassium_g_cr",
-  #                                                    "zinc_mg_cr", "vit_c_mg_cr", "thiamin_mg_cr", "riboflavin_mg_cr", "niacin_mg_cr", "vit_b6_mg_cr", "vit_b12_µg_cr")]
-
   dt.commod[, foodAvail := (prod_qty_2011 + prod_qty_2012 + prod_qty_2013)/3]
   data.table::setkeyv(dt.commod, c("usda_code"))
   # dt.commod[, foodAvail := sum(foodAvail), by = c("include")]
   dt.commod[, foodAvailRatio := foodAvail/sum(foodAvail)]
 
   dt.temp <- merge(dt.commod, dt.temp.fName, by = "usda_code")
+
   # get rid of bad edible share values
   dt.temp[,edible_share := NULL]
   dt.temp <- merge(dt.temp, dt.edibleShare, by = c("item_name","usda_code"))
@@ -609,5 +607,6 @@ for (i in composites[!composites %in% "c_OMarn"]) {
     )
 }
 
-openxlsx::saveWorkbook(wb = nutSpreadsheet, file = paste0(fileloc("mData"),"/dt.nutrientsDetail.", Sys.Date(), ".xlsx"), overwrite = TRUE)
+openxlsx::saveWorkbook(wb = nutSpreadsheet, file = paste0(fileloc("mData"),"/dt.nutrientsDetail.", Sys.Date(), ".xlsx"),
+                       overwrite = TRUE)
 

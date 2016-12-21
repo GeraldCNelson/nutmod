@@ -115,7 +115,7 @@ f.ratios.all <- function(){
   inDT <- dt.sum_reqRatio_long
   inDT[, nutrient := gsub("_reqRatio", "", nutrient)]
   print(paste0("dt.sum_reqRatio_long"))
-#  print(unique(inDT$nutrient))
+  #  print(unique(inDT$nutrient))
   outName <- paste(reqShortName, "sum_reqRatio", sep = "_")
   cleanup(inDT, outName, fileloc("resultsDir"), "csv")
 
@@ -138,7 +138,7 @@ f.ratios.all <- function(){
 f.ratios.FG <- function(){
   dt.food_agg <- data.table::copy(dt.food_agg.master)
   keepListCol <- c(mainCols, cols.foodGroup)
-  dt.food_agg <- dt.food_agg.master[, (keepListCol), with = FALSE]
+  dt.food_agg <- dt.food_agg[, (keepListCol), with = FALSE]
   foodGroupKey <- c(basicKey, "food_group_code")
   nutList_ratio_foodGroup <-   paste(nutList, "ratio.foodGroup", sep = ".")
   nutList_reqRatio_foodGroup <- paste(nutList, "reqRatio.foodGroup", sep = ".")
@@ -183,10 +183,12 @@ f.ratios.FG <- function(){
 f.ratios.staples <- function(){
   dt.food_agg <- data.table::copy(dt.food_agg.master)
   keepListCol <- c(mainCols, cols.staple)
-  dt.food_agg <- dt.food_agg.master[, (keepListCol), with = FALSE]
+  dt.food_agg <- dt.food_agg[, (keepListCol), with = FALSE]
   stapleKey <- c(basicKey, "staple_code")
+
   # the total daily consumption of each staple
   nutList_sum_staple <-    paste(nutList, "sum.staple", sep = ".")
+
   # the ratio of daily consumption of each nutrient for each staple to the total consumption
   nutList_ratio_staple <-   paste(nutList, "ratio.staple", sep = ".")
   nutList_reqRatio_staple <- paste(nutList, "reqRatio.staple", sep = ".")
@@ -203,6 +205,7 @@ f.ratios.staples <- function(){
   dt.staples.reqRatio <- dt.food_agg[, keepListCol_reqRatio_staple, with = FALSE]
   data.table::setkey(dt.staples.reqRatio, NULL)
   dt.staples.reqRatio <- unique(dt.staples.reqRatio)
+
   #reshape the results to get years in columns
   dt.staples.sum.long <- data.table::melt(
     dt.staples.sum,
@@ -275,7 +278,7 @@ for (req in reqList) {
   f.ratios.staples()
   f.ratios.FG()
 }
-
+# kcals calculations -----
 print("------ working on kcals")
 # # fats, etc share of total kcals ------
 # # source of conversion http://www.convertunits.com/from/joules/to/calorie+[thermochemical]

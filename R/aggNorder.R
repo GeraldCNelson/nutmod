@@ -117,7 +117,7 @@ aggNorder <- function(gdxChoice, DTglobal, aggChoice, scenChoice) {
   return(DT)
 }
 
-plotByRegionBar <- function(dt, fileName, plotTitle, yLab, yRange,aggChoice) {
+plotByRegionBar <- function(dt, fileName, plotTitle, yLab, yRange, aggChoice, oneLine) {
   print(paste("plotting bars by region ", aggChoice, "for ", plotTitle))
   temp <- copy(dt)
   regionCodes <- unique(temp$region_code)
@@ -160,7 +160,7 @@ plotByRegionBar <- function(dt, fileName, plotTitle, yLab, yRange,aggChoice) {
     colMeans(barlocs),
     par("usr")[3] - 0.1, srt = 45, adj = 1.2,
     labels = regionNames, xpd = TRUE,  cex = 0.6, cex.axis = 0.6)
-  abline(h = 1, lty = 3, lwd = 0.8)
+  if (oneLine == TRUE) abline(h = 1, lty = 3, lwd = 0.8)
   colsToRound <- names(temp.wide)[2:length(temp.wide)]
   temp.wide[,(colsToRound) := round(.SD,2), .SDcols = colsToRound]
   data.table::setnames(temp.wide, old = names(temp.wide), new = c("scenario", regionCodes))

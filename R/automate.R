@@ -14,11 +14,11 @@ list.of.packages <- c("data.table", "openxlsx", "dplyr", "utils", "ggplot2", "st
 new.packages <- list.of.packages[!(list.of.packages %in% installed.packages()[,"Package"])]
 if (length(new.packages)) install.packages(new.packages)
 
-print("The packages below are needed and currently available on by downloading from github")
+print("The packages below are needed and currently available on CRAN or by downloading from github")
 print(paste("This set of scripts needs version 1.9.7 or greater of the data.table package. Version", as.character(packageVersion("data.table")), "is currently being used."))
 # print(paste("This set of scripts needs version 3.1.23 or greater of the openxlsx package. Version", as.character(packageVersion("openxlsx")), "is currently being used."))
 
-if (unlist(packageVersion("openxlsx")[[1]])[3] <= 23) {
+if (unlist(packageVersion("openxlsx")[[1]])[2] < 2 & unlist(packageVersion("openxlsx")[[1]])[3] < 23) {
   unlist(strsplit(packageVersion("openxlsx"), ".", fixed = TRUE))[3]
   print("updating openxlsx")
   install.packages(c("Rcpp", "devtools"), dependencies = TRUE)
@@ -26,7 +26,7 @@ if (unlist(packageVersion("openxlsx")[[1]])[3] <= 23) {
   install_github("awalker89/openxlsx")
 }
 
-if (unlist(packageVersion("data.table")[[1]])[3] <= 6) {
+if (unlist(packageVersion("data.table")[[1]])[2] < 9) {
   unlist(strsplit(packageVersion("openxlsx"), ".", fixed = TRUE))[3]
   print("updating data.table")
   install.packages("data.table")
@@ -94,17 +94,17 @@ print("Running dataManagement.ODBCaccess.R")
 source("R/dataManagement.ODBCaccess.R")
 #Manipulates the results of the ODBC_access script and prepare for dataPrep.nutrientData.R
 
-print("Running dataPrep.nutrientData.R")
-source("R/dataPrep.nutrientData.R") # - creates dt.cookingRet and dt.nutrients, mData. Note that
-# dt.nutrients does NOT take into account loss in cooking. That is done later and depends on a switch (search for switch.xxx .
+# print("Running dataPrep.nutrientData.R")
+# source("R/dataPrep.nutrientData.R") # - creates dt.cookingRet and dt.nutrients, mData. Note that
+# # dt.nutrients does NOT take into account loss in cooking. That is done later and depends on a switch (search for switch.xxx .
 
 print("Running dataPrep.NutrientRequirements.R")
 source("R/dataPrep.NutrientRequirements.R")
 # newDFname, mData - nutrient requirements adjusted to SSP age and gender categories, example is req.RDA.macro.ssp.2016-06-22.rds
 
-print("Running bioavail.R")
-source("R/bioavail.R")
-# does adjustments to iron and zinc for bioavailability. Results are in files called PR.xxx
+# print("Running bioavail.R")
+# source("R/bioavail.R")
+# # does adjustments to iron and zinc for bioavailability. Results are in files called PR.xxx
 
 print("Running dataManagement.SSPPop.R")
 source("R/dataManagement.SSPPop.R")

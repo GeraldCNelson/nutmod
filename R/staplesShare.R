@@ -1,8 +1,6 @@
 
 library(shiny)
-library(rsconnect)
 library(data.table)
-library(xtable)
 library(fmsb) # for the spider charts
 library(gdata) # to reorder the scenario names
 source("R/nutrientModFunctions.R")

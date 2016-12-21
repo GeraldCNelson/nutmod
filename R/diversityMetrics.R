@@ -40,6 +40,8 @@ dt.IMPACTfood <- unique(dt.IMPACTfood)
 
 # convert food availability from per year to per day
 dt.IMPACTfood[, foodAvailpDay := FoodAvailability / keyVariable("DinY")][,FoodAvailability := NULL]
+
+#nutrient categories
 macroNutrients <- c("protein_g", "fat_g", "carbohydrate_g",  "totalfiber_g")
 macroNutrients.noFat <- c("protein_g", "carbohydrate_g",  "totalfiber_g")
 vitamins <- c("vit_c_mg", "thiamin_mg", "riboflavin_mg", "niacin_mg",
@@ -52,6 +54,8 @@ addedSugar <- c("sugar_g")
 fattyAcids <- c("ft_acds_tot_sat_g", "ft_acds_mono_unsat_g", "ft_acds_plyunst_g",
                 "ft_acds_tot_trans_g")
 others <- c("caffeine_mg", "phytate_mg", "cholesterol_mg")
+
+#nutrients with cooking retention values
 cookingretention <- c( "thiamin_mg_cr" , "vit_b12_µg_cr", "riboflavin_mg_cr", "niacin_mg_cr", "vit_b6_mg_cr", "calcium_mg_cr",
                        "iron_mg_cr", "folate_µg_cr",  "potassium_g_cr", "magnesium_mg_cr", "phosphorus_mg_cr",
                        "vit_a_rae_µg_cr", "vit_c_mg_cr", "vit_e_mg_cr", "zinc_mg_cr" )
@@ -159,7 +163,7 @@ dt.adequateRatio.nuts.sum[is.na(dt.adequateRatio.nuts.sum)] <- 0
 # MFAD is calculated on one of the triangles of the distance matrix. Since it is symmetrical, we can
 # sum over the whole matrix and divide by 2. .N is the number of food items. It varies by country.
 dt.MFAD <- data.table::copy(dt.adequateRatio.nuts)
-system.time(dt.MFAD[, `:=` (MFAD = sum(dist(.SD)) / (2 * .N)),
+system.time(dt.MFAD[, `:=`(MFAD = sum(dist(.SD)) / (2 * .N)),
                     by = c("scenario", "year", "region_code.IMPACT159"), .SDcols = nutList])
 keepListCol.MFAD <- c("scenario", "region_code.IMPACT159", "year", "MFAD" )
 dt.MFAD <- unique(dt.MFAD[, (keepListCol.MFAD), with = FALSE])
@@ -269,6 +273,23 @@ dt.kcalsInfo <- temp[,kcalsPerCommod := foodAvailpDay * energy_kcal]
 dt.kcalsInfo[, kcalsPerDay := sum(kcalsPerCommod), by = c("scenario",  "year", "region_code.IMPACT159")]
 dt.kcalsInfo <- dt.kcalsInfo[year %in% keepYearList, c("IMPACT_code", "scenario", "region_code.IMPACT159",  "year", "kcalsPerCommod", "kcalsPerDay")]
 
+# create nonstaple share of kcals -----
+dt.foodGroupLU <- getNewestVersion("dt.foodGroupsInfo")
+keepListCol <- c("IMPACT_code", "staple_code")
+dt.foodGroupLU <- dt.foodGroupLU[, (keepListCol), with = FALSE]
+dt.stapleLookup <- merge(dt.kcalsInfo, dt.foodGroupLU, by = "IMPACT_code")
+#dt.stapleLookup[, c("IMPACT_code", "kcalsPerCommod") := NULL]
+dt.stapleLookup <- unique(dt.stapleLookup)
+dt.stapleLookup[,value := sum(kcalsPerCommod) / kcalsPerDay, by = c("scenario", "region_code.IMPACT159", "year", "staple_code")]
+dt.stapleLookup[, c("IMPACT_code", "kcalsPerCommod", "kcalsPerDay") := NULL]
+dt.stapleLookup <- unique(dt.stapleLookup)
+dt.stapleLookup <- dt.stapleLookup[staple_code %in% "nonstaple",]
+inDT <- dt.stapleLookup
+outName <- "dt.nonStapleKcalShare"
+cleanup(inDT, outName, fileloc("resultsDir"))
+
+# back to qi calculation
+
 dt.qi <- merge(dt.ratio.adj, dt.kcalsInfo, by = c("IMPACT_code", "scenario", "region_code.IMPACT159", "year" ))
 dt.kcalsInfo.region <- dt.kcalsInfo[, c("scenario", "region_code.IMPACT159", "year", "kcalsPerDay"), with = FALSE]
 dt.kcalsInfo.region <- unique(dt.kcalsInfo.region)
@@ -277,11 +298,12 @@ dt.qi.sum <- merge(dt.ratio.sum.adj, dt.kcalsInfo.region, by = c("scenario", "re
 # calculate QI for each for each food item, by scenario and country -----
 dt.qi[,QI := (sum(qi) / Nq) * (kcalRef / kcalsPerCommod ),
       by = c("IMPACT_code", "scenario", "region_code.IMPACT159", "year") ]
+dt.qi[is.na(QI), QI := 0]
 keepListCol.QI <- c("IMPACT_code", "scenario", "region_code.IMPACT159",  "year", "QI")
 dt.QI <- dt.qi[, (keepListCol.QI), with = FALSE]
 dt.QI <- unique(dt.QI)
 inDT <-  dt.QI
-outName <- "dt.qualIndex"
+outName <- "dt.indexQual"
 cleanup(inDT, outName, fileloc("resultsDir"), "csv")
 
 # calculate QIcomposite -----
@@ -289,8 +311,9 @@ dt.qi[, QI.comp := sum(QI * kcalsPerCommod / kcalsPerDay), by = c("scenario", "y
 keepListCol.QIcomp <- c("scenario", "region_code.IMPACT159",  "year", "QI.comp")
 dt.QIcomp <- dt.qi[, (keepListCol.QIcomp), with = FALSE]
 dt.QIcomp <- unique(dt.QIcomp)
+data.table::setnames(dt.QIcomp, old = "QI.comp", new = "value")
 inDT <-  dt.QIcomp
-outName <- "dt.QIcomp"
+outName <- "dt.compQI"
 cleanup(inDT, outName, fileloc("resultsDir"), "csv")
 
 # calculate nutrient balance for individual commodities -----
@@ -334,11 +357,12 @@ dt.di <- merge(dt.di, dt.kcalsInfo, by = c( "IMPACT_code", "scenario", "region_c
 
 dt.di[, DI := (sum(di) / Nd) * (kcalRef / kcalsPerCommod ),
       by = c("IMPACT_code", "scenario", "region_code.IMPACT159", "year") ]
+dt.di[is.na(DI), DI := 0]
 keepListCol.QI <- c("IMPACT_code", "scenario", "region_code.IMPACT159",  "year", "DI")
 dt.DI <- dt.di[, (keepListCol.QI), with = FALSE]
 dt.DI <- unique(dt.DI)
 inDT <-  dt.DI
-outName <- "dt.disqualIndex"
+outName <- "dt.indexDisqual"
 cleanup(inDT, outName, fileloc("resultsDir"), "csv")
 
 # calculate DIcomposite -----
@@ -346,8 +370,9 @@ dt.di[, DI.comp := sum(DI * kcalsPerCommod / kcalsPerDay), by = c("scenario", "y
 keepListCol.DIcomp <- c("scenario", "region_code.IMPACT159",  "year", "DI.comp")
 dt.DIcomp <- dt.di[, (keepListCol.DIcomp), with = FALSE]
 dt.DIcomp <- unique(dt.DIcomp)
+data.table::setnames(dt.DIcomp, old = "DI.comp", new = "value")
 inDT <-  dt.DIcomp
-outName <- "dt.DIcomp"
+outName <- "dt.compDI"
 cleanup(inDT, outName, fileloc("resultsDir"), "csv")
 
 # calc NBC as if only one commodity is consumed -----
@@ -358,5 +383,5 @@ keepListCol.NB.sum <- c("scenario", "region_code.IMPACT159",  "year", "value")
 dt.NB.sum <- dt.qi.sum[, (keepListCol.NB.sum), with = FALSE]
 dt.NB.sum <- unique(dt.NB.sum)
 inDT <-  dt.NB.sum
-outName <- "dt.nutBeneScore"
+outName <- "dt.nutBalScore"
 cleanup(inDT, outName, fileloc("resultsDir"), "csv")

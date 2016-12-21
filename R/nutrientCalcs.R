@@ -1,7 +1,7 @@
 #' @author Gerald C. Nelson, \email{nelson.gerald.c@@gmail.com}
 #' @keywords utilities, nutrient data, IMPACT food commodities nutrient lookup
 # Intro ---------------------------------------------------------------
-#Copyright (C) 2015 Gerald C. Nelson, except where noted
+#Copyright (C) 2016 Gerald C. Nelson, except where noted
 
 # This program is free software: you can redistribute it and/or modify it
 # under the terms of the GNU General Public License as published by the Free
@@ -331,11 +331,6 @@ generateResults.dataPrep <- function(req, dt.IMPACTfood, scenarioListIMPACT, dt.
   temp.foodgroup.sum[, c("IMPACT_code", "foodAvailpDay") := NULL]
   temp.foodgroup.sum <- unique(temp.foodgroup.sum)
   data.table::setnames(temp.foodgroup.sum, old = "foodavail.foodgroup.sum", new = "value")
-  # formula.wide <- paste("region_code.IMPACT159 + year + food_group_code ~ scenario")
-  # temp.foodgroup.sum.wide <- data.table::dcast(
-  # data = temp.foodgroup.sum,
-  # formula = formula.wide,
-  # value.var = "foodavail.foodgroup.sum")
   inDT <- temp.foodgroup.sum
   outName <- "dt.foodAvail.foodGroup"
   cleanup(inDT, outName, fileloc("resultsDir"), "csv")
