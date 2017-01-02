@@ -131,7 +131,6 @@ f.ratios.all <- function(){
   print(unique(inDT$nutrient))
   outName <- paste(reqShortName, "all_reqRatio", sep = "_")
   cleanup(inDT, outName, fileloc("resultsDir"), "csv")
-
 }
 
 # foodGroup function
@@ -274,6 +273,7 @@ for (req in reqList) {
   #               all.x = TRUE)
   # dt.foodNnuts[,(scenarioComponents) := NULL]
 
+# run the ratios functions -----
   f.ratios.all()
   f.ratios.staples()
   f.ratios.FG()

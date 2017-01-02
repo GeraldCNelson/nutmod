@@ -113,7 +113,7 @@ dt.popTot <- dt.SSP.scen[, pop.tot := sum(value), by = eval(data.table::key(dt.S
 dt.popTot[,ageGenderCode := NULL]
 dt.popTot <- unique(dt.popTot)
 #a temporary line of code for testing
-# nutReqName <- "req.UL.minrls.ssp"
+# nutReqName <- "req.RDA.minrls_ssp"
 
 
 #' Title repCons

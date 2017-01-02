@@ -30,9 +30,10 @@ copyFile <- function(fileName, sourceDir, destDir) {
 }
 
 copyListFromMacro <- c("carbohydrate_g_macro_reqRatio_WB.pdf", "protein_g_macro_reqRatio_WB.pdf", "totalfiber_g_macro_reqRatio_WB.pdf")
-copyListFromMinrls <- c("calcium_mg_minrls_reqRatio_WB.pdf","folate_µg_vits_reqRatio_WB.pdf","iron_mg_iron_bioavail_reqRatio_WB.pdf",
-                        "zinc_mg_zinc_bioavail_reqRatio_WB.pdf", "magnesium_mg_minrls_reqRatio_WB.pdf", "phosphorus_mg_minrls_reqRatio_WB.pdf",
-                        "potassium_g_minrls_reqRatio_WB.pdf")
+copyListFromMinrls <- c("calcium_mg_minrls_reqRatio_WB.pdf","folate_µg_vits_reqRatio_WB.pdf",
+                        "iron_mg_minrls_reqRatio_WB.pdf",
+                        "magnesium_mg_minrls_reqRatio_WB.pdf", "phosphorus_mg_minrls_reqRatio_WB.pdf",
+                        "potassium_g_minrls_reqRatio_WB.pdf","zinc_mg_minrls_reqRatio_WB.pdf")
 copyListFromVits <- c("niacin_mg_vits_reqRatio_WB.pdf", "riboflavin_mg_vits_reqRatio_WB.pdf",
                       "thiamin_mg_vits_reqRatio_WB.pdf", "vit_a_rae_µg_vits_reqRatio_WB.pdf", "vit_b6_mg_vits_reqRatio_WB.pdf",
                       "vit_b12_µg_vits_reqRatio_WB.pdf", "vit_c_mg_vits_reqRatio_WB.pdf", "vit_d_µg_vits_reqRatio_WB.pdf",
@@ -43,6 +44,8 @@ copyListFromAvailByFG <- c("alcohol_foodAvail_foodGroup_WB.pdf", "beverages_food
                            "meats_foodAvail_foodGroup_WB.pdf", "nutsNseeds_foodAvail_foodGroup_WB.pdf", "oils_foodAvail_foodGroup_WB.pdf",
                            "pulses_foodAvail_foodGroup_WB.pdf", "rootsNPlaintain_foodAvail_foodGroup_WB.pdf",
                            "sweeteners_foodAvail_foodGroup_WB.pdf", "vegetables_foodAvail_foodGroup_WB.pdf")
+copyListFromDiversity <- c("nonStapleShare_WB.pdf", "RAOqe_WB.pdf")
+copyListFromNBS  <- c("compQI_WB.pdf", "compDI_WB.pdf", "NutBalScore_WB.pdf")
 copyListFromOther <- c("caffeine_mg_nutrients.avail_WB.pdf", "cholesterol_mg_nutrients.avail_WB.pdf")
 
 for (i in copyListFromMacro) {
@@ -62,9 +65,17 @@ for (i in copyListFromAvailByFG) {
   print(sprintf("copying file %s from graphics directory to %s", i, destDir))
   copyFile(i, sourceDir, destDir)
 }
+for (i in copyListFromDiversity) {
+  print(sprintf("copying file %s from graphics directory to %s", i, destDir))
+  copyFile(i, sourceDir, destDir)
+}
+for (i in copyListFromNBS) {
+  print(sprintf("copying file %s from graphics directory to %s", i, destDir))
+  copyFile(i, sourceDir, destDir)
+}
 
 #rename files in Snw
-copyList <- c(copyListFromMacro, copyListFromMinrls, copyListFromVits, copyListFromAvailByFG)
+copyList <- c(copyListFromMacro, copyListFromMinrls, copyListFromVits, copyListFromAvailByFG, copyListFromDiversity, copyListFromNBS)
 copyListNew <- gsub(".","_",copyList, fixed = TRUE) # get rid of all periods
 copyListNew <- gsub("_pdf",".pdf",copyListNew, fixed = TRUE) # add one back for the file type
 copyList <- paste0(getwd(),"/graphics/", copyList)

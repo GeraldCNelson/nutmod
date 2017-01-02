@@ -24,16 +24,14 @@ multipleNutsFileList <- c("dt.nutrients.sum.all",
                           "RDA.macro_sum_reqRatio",
                           "RDA.minrls_sum_reqRatio",
                           "RDA.vits_sum_reqRatio",
-                          "dt.nutrients.nonstapleShare",
-                          "PR.zinc_sum_reqRatio",
-                          "PR.iron_sum_reqRatio") # "dt.energy.ratios" not included
+                          "dt.nutrients.nonstapleShare")
 multipleNutsListShortName <- c("nutrients.avail",
                                "macro_reqRatio",
                                "minrls_reqRatio",
                                "vits_reqRatio",
                                "nutrients.nonstaples.share",
-                               "zinc_bioavail_reqRatio",
-                               "iron_bioavail_reqRatio",
+                               # "zinc_bioavail_reqRatio",
+                               # "iron_bioavail_reqRatio",
                                "foodAvail.foodGroup")
 #nutrients grouping
 macroNutrients <- c("protein_g", "fat_g", "carbohydrate_g",  "totalfiber_g")
@@ -43,9 +41,9 @@ vitamins <- c("vit_c_mg", "thiamin_mg", "riboflavin_mg", "niacin_mg",
 minerals <- c("calcium_mg",  "iron_mg", "magnesium_mg", "phosphorus_mg",
               "potassium_g", "zinc_mg")
 kcals <- c("kcals.fat", "kcals.protein", "kcals.sugar", "kcals.ethanol")
-addedSugar <- c("sugar_g")
 fattyAcids <- c("ft_acds_tot_sat_g", "ft_acds_mono_unsat_g", "ft_acds_plyunst_g",
                 "ft_acds_tot_trans_g")
+other <- c("sugar_g", "cholesterol_mg")
 
 # scenChoices for the USAID gdx are scenarioList.prodEnhance, scenarioList.waterMan, scenarioList.addEnhance, scenarioList.comp
 # scenChoice for SSPs is scenOrder.SSPs
@@ -101,7 +99,7 @@ for (l in scenChoiceList) {
     print(paste("Working on bar chart for RaosD for", i))
     RAOqe.out <- aggNorder(gdxChoice, DTglobal = "dt.RAOqe", aggChoice = i, get(l))
     plotByRegionBar(dt = RAOqe.out, fileName = "RAOqe", plotTitle = "Rao's quadratic entropy",
-                    yLab = "(percent)", yRange = c(0, 100), aggChoice = i, oneLine = FALSE)
+                    yLab = NULL, yRange = c(0, 100), aggChoice = i, oneLine = FALSE)
 
     # # food availability -----
     # print(paste("Working on bar chart for food availability for", i))
@@ -109,23 +107,29 @@ for (l in scenChoiceList) {
     # plotByRegionBar(dt = foodAvail.out, fileName = "foodAvail.foodGroup", plotTitle = "Food availability by food group",
     #                 yLab = "(grams)", yRange = c(0, 100), aggChoice = i)
 
-    # nutritional benefit score -----
+    # nonstaple share of kcals -----
+    print(paste("Working on bar chart for the nonstaple share of kcals for", i))
+    nonStapleShare.out <- aggNorder(gdxChoice, DTglobal = "dt.nonStapleKcalShare", aggChoice = i, get(l))
+    plotByRegionBar(dt = nonStapleShare.out, fileName = "nonStapleShare", plotTitle = "Non-staple share of energy",
+                    yLab = "(percent)", yRange = c(0, 100), aggChoice = i, oneLine = FALSE)
+
+    # nutrition benefit score -----
     print(paste("Working on bar chart for the NBS for", i))
     NBS.out <- aggNorder(gdxChoice, DTglobal = "dt.nutBalScore", aggChoice = i, get(l))
     plotByRegionBar(dt = NBS.out, fileName = "NutBalScore", plotTitle = "Nutrient balance score",
-                    yLab = "(percent)", yRange = c(0, 100), aggChoice = i, oneLine = FALSE)
+                    yLab = NULL, yRange = c(0, 100), aggChoice = i, oneLine = FALSE)
 
     # composite QI score -----
     print(paste("Working on bar chart for the QI composite for", i))
     compQI.out <- aggNorder(gdxChoice, DTglobal = "dt.compQI", aggChoice = i, get(l))
-    plotByRegionBar(dt = compQI.out, fileName = "compQI", plotTitle = "Composite qualifying index score",
-                    yLab = "(percent)", yRange = c(0, 100), aggChoice = i, oneLine = FALSE)
+    plotByRegionBar(dt = compQI.out, fileName = "compQI", plotTitle = "Composite qualifying index",
+                    yLab = NULL, yRange = c(0, 100), aggChoice = i, oneLine = FALSE)
 
     # composite DI score -----
     print(paste("Working on bar chart for the NBS for", i))
     compDI.out <- aggNorder(gdxChoice, DTglobal = "dt.compDI", aggChoice = i, get(l))
-    plotByRegionBar(dt = compDI.out, fileName = "compDI", plotTitle = "Composite disqualifying index score",
-                    yLab = "(percent)", yRange = c(0, 100), aggChoice = i, oneLine = FALSE)
+    plotByRegionBar(dt = compDI.out, fileName = "compDI", plotTitle = "Composite disqualifying index",
+                    yLab = NULL, yRange = c(0, 100), aggChoice = i, oneLine = FALSE)
   }
 
   # food groups -----
@@ -139,7 +143,7 @@ for (l in scenChoiceList) {
   foodGroupList <- unique(temp.in$food_group_code)
   for (i in aggChoiceListBarChart) {
     for (j in foodGroupList) {
-      #     for (j in c(macroNutrients, vitamins, minerals)) {
+      #     for (j in c(macroNutrients, vitamins, minerals, fattyAcids, others)) {
       FG.shortName <- j
       FG.longName <- cleanupNutrientNames(j)
       units <- "g"
@@ -197,11 +201,6 @@ for (l in scenChoiceList) {
   for (k in 1:length(multipleNutsFileList)) {
     print(paste("Working on multiple nut file", multipleNutsFileList[k]))
     temp.in <- getNewestVersion(multipleNutsFileList[k], fileloc("resultsDir"))
-
-    #get rid of the iron and zinc req ratios that are not based on physiological requirements
-    if ("RDA.minrls_sum_reqRatio" %in% multipleNutsFileList[k]) {
-      temp.in <- temp.in[!nutrient %in% c("zinc_mg", "iron_mg"),]
-    }
     temp.in <- merge(temp.in, dt.pop, by = c("scenario","region_code.IMPACT159", "year"))
 
     #keep just the scenario.base scenario for 2010 and rename the scenario to 2010
@@ -258,8 +257,7 @@ for (l in scenChoiceList) {
         #     }
 
         DT <- orderRegions(DT, i)
-        reqRatioFiles <- c( "RDA.macro_sum_reqRatio", "RDA.minrls_sum_reqRatio", "RDA.vits_sum_reqRatio",
-                            "PR.zinc_sum_reqRatio", "PR.iron_sum_reqRatio")
+        reqRatioFiles <- c( "RDA.macro_sum_reqRatio", "RDA.minrls_sum_reqRatio", "RDA.vits_sum_reqRatio")
         if (multipleNutsFileList[k] == "dt.nutrients.sum.all")  {
           nutTitle <- paste("Average daily availability of ", tolower(nutlongName), sep = "")
           ylab = paste("(",units,")",sep = "")
@@ -271,7 +269,7 @@ for (l in scenChoiceList) {
           drawOneLine = TRUE
         }
 
-        if (multipleNutsFileList[k] == "nutrients_nonstaples_share")  {
+        if (multipleNutsFileList[k] == "dt.nutrients.nonstapleShare")  {
           nutTitle <- paste("Non-staple share of ", nutshortName, " availability", sep = "")
           ylab = "(percent)"
           drawOneLine = FALSE
@@ -351,23 +349,24 @@ zip(zipfile = paste(fileloc("gDir"),"/", scenChoice.name,".zip", sep = ""), file
 # csv to table code  -----
 # list of potential nutrients to add to the table
 macroNutrients <- c("carbohydrate_g", "protein_g", "fat_g",  "totalfiber_g")
-vitamins <- c( "thiamin_mg", "riboflavin_mg", "niacin_mg",
-               "vit_b6_mg", "folate_µg","vit_a_rae_µg", "vit_b12_µg","vit_c_mg",
+vitamins <- c( "folate_µg", "thiamin_mg", "niacin_mg", "riboflavin_mg",
+               "vit_b6_mg", "vit_a_rae_µg", "vit_b12_µg","vit_c_mg",
                "vit_d_µg", "vit_e_mg", "vit_k_µg")
-minerals <- c("calcium_mg",  "magnesium_mg", "phosphorus_mg",
-              "potassium_g") # note Iron and zinc left out of here because they are in the bioavail group
+minerals <- c("calcium_mg",  "iron_mg", "magnesium_mg", "phosphorus_mg",
+              "potassium_g", "zinc_mg")
 kcals <- c("kcals.fat", "kcals.protein", "kcals.sugar", "kcals.ethanol")
 addedSugar <- c("sugar_g")
 fattyAcids <- c("ft_acds_tot_sat_g", "ft_acds_mono_unsat_g", "ft_acds_plyunst_g",
                 "ft_acds_tot_trans_g")
 
-nutlistmacro <- c("carbohydrate_g", "protein_g",  "totalfiber_g")
-nutlistminrls <- c("calcium_mg", "magnesium_mg", "potassium_g", "phosphorus_mg")
-nutlistvits <- c("folate_µg", "riboflavin_mg", "vit_a_rae_µg","vit_b12_µg", "vit_c_mg", "vit_e_mg",  "vit_d_µg",
-                 "vit_k_µg", "thiamin_mg")
-nutlistbioavail <- c("iron_mg_iron", "zinc_mg_zinc")
-diversity <- c("RAOqe", "NutBalScore", "compDI", "compQI")
+nutlistmacro <- c("carbohydrate_g", "protein_g",  "totalfiber_g") # fat is excluded here
+# nutlistminrls <- c("calcium_mg", "magnesium_mg", "potassium_g", "phosphorus_mg")
+# nutlistvits <- c("folate_µg", "riboflavin_mg", "vit_a_rae_µg","vit_b12_µg", "vit_c_mg", "vit_e_mg",  "vit_d_µg",
+#                  "vit_k_µg", "thiamin_mg")
+diversity.1 <- c("nonStapleShare", "RAOqe")
+diversity.2 <- c("NutBalScore", "compDI", "compQI")
 budgetShare <- "budgetShare"
+nonStapleShareKcals <- "nonStapleShare"
 boxStats <- "boxstats"
 dailyAvail.foodgroup <- foodGroupList
 
@@ -399,10 +398,14 @@ openxlsx::writeData(
   startRow = rowCounter
 )
 rowCounter <- rowCounter + 1
-for (i in c(budgetShare, boxStats, nutlistmacro, vitamins, minerals, nutlistbioavail, diversity, dailyAvail.foodgroup)) {
-  if (i %in% c(budgetShare, boxStats, diversity)) {
+for (i in c(budgetShare, boxStats, nutlistmacro, vitamins, minerals, diversity.1, diversity.2, dailyAvail.foodgroup)) {
+  if (i %in% c(budgetShare, boxStats)) {
     fileName <- paste(i, "WB", sep = "_")
     figInfo <- "1, affordability,"
+  }
+  if (i %in% dailyAvail.foodgroup) {
+    fileName <- paste(i, "foodAvail_foodGroup_WB", sep = "_")
+    figInfo <- "2, food group availability, "
   }
   if (i %in% nutlistmacro) {
     fileName <- paste(i, "macro_reqRatio_WB", sep = "_")
@@ -416,17 +419,21 @@ for (i in c(budgetShare, boxStats, nutlistmacro, vitamins, minerals, nutlistbioa
     fileName <- paste(i, "minrls_reqRatio_WB", sep = "_")
     figInfo <- "4, adequacy, minerals, "
   }
-  if (i %in% nutlistbioavail) {
-    fileName <- paste(i, "bioavail_reqRatio_WB", sep = "_")
-    figInfo <- "4, adequacy, minerals, "
-  }
-  if (i %in% diversity) {
+  # if (i %in% nutlistbioavail) {
+  #   fileName <- paste(i, "bioavail_reqRatio_WB", sep = "_")
+  #   figInfo <- "4, adequacy, minerals, "
+  # }
+  if (i %in% nonStapleShareKcals) {
     fileName <- paste(i, "WB", sep = "_")
     figInfo <- "5, diversity metrics, "
   }
-  if (i %in% dailyAvail.foodgroup) {
-    fileName <- paste(i, "foodAvail_foodGroup_WB", sep = "_")
-    figInfo <- "2, food group availability, "
+  if (i %in% diversity.1) {
+    fileName <- paste(i, "WB", sep = "_")
+    figInfo <- "5, diversity metrics, "
+  }
+  if (i %in% diversity.2) {
+    fileName <- paste(i, "WB", sep = "_")
+    figInfo <- "2, Nutrient balance metrics, "
   }
 
   fileIn <- data.table::fread(paste("graphics/", fileName, ".csv", sep = ""), select = 2:6)
@@ -470,6 +477,6 @@ openxlsx::addStyle(
 
 openxlsx::saveWorkbook(wb = figsData, file = paste("graphics/reqTable.xlsx", sep = ""),
                        overwrite = TRUE)
-fwrite(csvHolder, file = paste("graphics/reqTable.csv", sep = ""), na = "")
+data.table::fwrite(csvHolder, file = paste("graphics/reqTable.csv", sep = ""), na = "")
 
-source("R/aggregateResults.R") # is this still necessary?
+# source("R/aggregateResults.R") # is this still necessary?

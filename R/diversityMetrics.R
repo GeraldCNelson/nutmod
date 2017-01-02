@@ -1,6 +1,6 @@
 #' @author Gerald C. Nelson, \email{nelson.gerald.c@@gmail.com}
 #' @keywords utilities, nutrient data, IMPACT food commodities nutrient lookup
-# Intro ---------------------------------------------------------------
+# Intro ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 #Copyright (C) 2015 Gerald C. Nelson, except where noted
 
 #     This program is free software: you can redistribute it and/or modify it
@@ -30,7 +30,7 @@ library(data.table)
 
 keepYearList <- c("X2010","X2050")
 
-# Read IMPACT food data ----------
+# Read IMPACT food data ------------------------------
 dt.IMPACTfood <- getNewestVersionIMPACT("dt.IMPACTfood")
 keepListCol <- c("scenario", "region_code.IMPACT159", "year", "IMPACT_code", "FoodAvailability")
 dt.IMPACTfood <- dt.IMPACTfood[year %in% keepYearList, ]
@@ -60,7 +60,7 @@ cookingretention <- c( "thiamin_mg_cr" , "vit_b12_µg_cr", "riboflavin_mg_cr", "
                        "iron_mg_cr", "folate_µg_cr",  "potassium_g_cr", "magnesium_mg_cr", "phosphorus_mg_cr",
                        "vit_a_rae_µg_cr", "vit_c_mg_cr", "vit_e_mg_cr", "zinc_mg_cr" )
 
-# read in nutrients data and optionally apply cooking retention values -----
+# read in nutrients data and optionally apply cooking retention values ---------------
 # switch.useCookingRetnValues <- keyVariable("switch.useCookingRetnValues")
 # switch.fixFish <- keyVariable("switch.fixFish") #get rid of nutrient info for shrimp, tuna, and salmon because they are not currently in the FBS data
 # #dt.nutrients.adj is per kg of the edible portion and after cooking losses are applied)
@@ -70,7 +70,7 @@ cookingretention <- c( "thiamin_mg_cr" , "vit_b12_µg_cr", "riboflavin_mg_cr", "
 # keepListCol <- c(macroNutrients, vitamins, minerals, fattyAcids)
 # dt.nutrientNames_Units <- dt.nutrientNames_Units[,(keepListCol), with = FALSE]
 
-# Shannon diversity ratio -----
+# Shannon diversity ratio ---------------
 #SD = - sum(s_i * ln(s_i)
 dt.SDfood <- data.table::copy(dt.IMPACTfood)
 dt.SDfood[,foodQ.sum := sum(foodAvailpDay), by = c("scenario","region_code.IMPACT159", "year")]
@@ -89,7 +89,7 @@ inDT <- dt.SDfood
 outName <- "dt.shannonDiversity"
 cleanup(inDT, outName, fileloc("resultsDir"), "csv")
 
-# MFAD calculations -----
+# MFAD calculations ---------------
 #mfad = ((sum over i from 1 to n)((sum over j from 1 to n) of d_ij/n)
 #d_ij = sum over k from 1 to K(i_k - j_k)^2
 # K is number of nutrients,
@@ -112,19 +112,19 @@ dt.ratio.macro.sum <- getNewestVersion("RDA.macro_sum_reqRatio", fileloc("result
 dt.ratio.vits.sum <- getNewestVersion("RDA.vits_sum_reqRatio", fileloc("resultsDir"))
 dt.ratio.minrls.sum <- getNewestVersion("RDA.minrls_sum_reqRatio", fileloc("resultsDir"))
 
-# remove iron and zinc from dt.ratio.minrls because the ratios are not based on PR
-dt.ratio.minrls <- dt.ratio.minrls[!nutrient %in% c("iron_mg.reqRatio.all", "zinc_mg.reqRatio.all"),]
-dt.ratio.minrls.sum <- dt.ratio.minrls.sum[!nutrient %in% c("iron_mg", "zinc_mg"),]
+# # remove iron and zinc from dt.ratio.minrls because the ratios are not based on PR
+# dt.ratio.minrls <- dt.ratio.minrls[!nutrient %in% c("iron_mg.reqRatio.all", "zinc_mg.reqRatio.all"),]
+# dt.ratio.minrls.sum <- dt.ratio.minrls.sum[!nutrient %in% c("iron_mg", "zinc_mg"),]
 
-# add the PR versions of the req ratios
-dt.ratio.PR.iron <- getNewestVersion("PR.iron_all_reqRatio", fileloc("resultsDir"))
-dt.ratio.PR.zinc <- getNewestVersion("PR.zinc_all_reqRatio", fileloc("resultsDir"))
-dt.ratio.PR.iron.sum <- getNewestVersion("PR.iron_sum_reqRatio", fileloc("resultsDir"))
-dt.ratio.PR.zinc.sum <- getNewestVersion("PR.zinc_sum_reqRatio", fileloc("resultsDir"))
+# # add the PR versions of the req ratios
+# dt.ratio.PR.iron <- getNewestVersion("PR.iron_all_reqRatio", fileloc("resultsDir"))
+# dt.ratio.PR.zinc <- getNewestVersion("PR.zinc_all_reqRatio", fileloc("resultsDir"))
+# dt.ratio.PR.iron.sum <- getNewestVersion("PR.iron_sum_reqRatio", fileloc("resultsDir"))
+# dt.ratio.PR.zinc.sum <- getNewestVersion("PR.zinc_sum_reqRatio", fileloc("resultsDir"))
 
 # combine the req ratios for all macro, vits, and minerals that have a req ratio
-dt.ratio <- data.table::rbindlist(list(dt.ratio.macro, dt.ratio.vits, dt.ratio.minrls, dt.ratio.PR.iron, dt.ratio.PR.zinc))
-dt.ratio.sum <- data.table::rbindlist(list(dt.ratio.macro.sum, dt.ratio.vits.sum, dt.ratio.minrls.sum, dt.ratio.PR.iron.sum, dt.ratio.PR.zinc.sum))
+dt.ratio <- data.table::rbindlist(list(dt.ratio.macro, dt.ratio.vits, dt.ratio.minrls)) #, dt.ratio.PR.iron, dt.ratio.PR.zinc))
+dt.ratio.sum <- data.table::rbindlist(list(dt.ratio.macro.sum, dt.ratio.vits.sum, dt.ratio.minrls.sum)) #, dt.ratio.PR.iron.sum, dt.ratio.PR.zinc.sum))
 dt.ratio <- dt.ratio[year %in% keepYearList, ]
 dt.ratio.sum <- dt.ratio.sum[year %in% keepYearList, ]
 dt.ratio[, nutrient := gsub(".reqRatio.all", "", nutrient)]
@@ -184,7 +184,7 @@ keepListCol.RAOqe <- c("scenario", "region_code.IMPACT159", "year", "RAOqe" )
 dt.RAOqe <- unique(dt.RAOqe[, (keepListCol.RAOqe), with = FALSE])
 data.table::setnames(dt.RAOqe, old = "RAOqe", new = "value")
 
-# scale to 0 to 100 range
+# scale RAOqe to 0 to 100 range
 dt.RAOqe[, value := 100 * (value - min(value)) / (max(value) - min(value)),
          by = c("scenario", "year")]
 
@@ -204,7 +204,7 @@ inDT <- dt.RAOqe
 outName <- "dt.RAOqe"
 cleanup(inDT, outName, fileloc("resultsDir"))
 
-# nutrient balance score -----
+# nutrient balance score ---------------
 #qualifying nutrients
 # Water", "protein_g",  "totalfiber_g", "Calcium, Ca", "Iron, Fe", "Magnesium, Mg", "Phosphorus, P",
 # "Potassium, K", "Zinc, Zn", "Vitamin C, total ascorbic acid", "Thiamin", "Riboflavin", "Niacin",
@@ -260,11 +260,13 @@ Nq <- length(nutrients.qual)
 Nd <- length(nutrients.disqual)
 dt.kcal.lookup <- dt.nutrients.adj[, c("IMPACT_code", "energy_kcal")]
 
-# calculate qi for each food -----
+# calculate qi for each food ---------------
 # ratio qualifying nutrient intake to requirement can't be greater than 1. Keep only qualifying nutrients
-dt.ratio.adj <- dt.ratio[value > 1, qi.adj := 1][value <= 1, qi.adj := value][nutrient %in% nutrients.qual,]
+dt.ratio.adj <- dt.ratio[nutrient %in% nutrients.qual,]
+dt.ratio.adj[value > 1, qi.adj := 1][value <= 1, qi.adj := value]
 data.table::setnames(dt.ratio.adj, old = "value", new = "qi")
-dt.ratio.sum.adj <- dt.ratio.sum[value > 1, qi.adj := 1][value <= 1, qi.adj := value][nutrient %in% nutrients.qual,]
+dt.ratio.sum.adj <- dt.ratio.sum[nutrient %in% nutrients.qual,]
+dt.ratio.sum.adj[value > 1, qi.adj := 1][value <= 1, qi.adj := value]
 data.table::setnames(dt.ratio.sum.adj, old = "value", new = "qi")
 
 # get the amount of kcals per day for each food, by scenario and country
@@ -273,7 +275,7 @@ dt.kcalsInfo <- temp[,kcalsPerCommod := foodAvailpDay * energy_kcal]
 dt.kcalsInfo[, kcalsPerDay := sum(kcalsPerCommod), by = c("scenario",  "year", "region_code.IMPACT159")]
 dt.kcalsInfo <- dt.kcalsInfo[year %in% keepYearList, c("IMPACT_code", "scenario", "region_code.IMPACT159",  "year", "kcalsPerCommod", "kcalsPerDay")]
 
-# create nonstaple share of kcals -----
+# create nonstaple share of kcals ---------------
 dt.foodGroupLU <- getNewestVersion("dt.foodGroupsInfo")
 keepListCol <- c("IMPACT_code", "staple_code")
 dt.foodGroupLU <- dt.foodGroupLU[, (keepListCol), with = FALSE]
@@ -284,19 +286,20 @@ dt.stapleLookup[,value := sum(kcalsPerCommod) / kcalsPerDay, by = c("scenario", 
 dt.stapleLookup[, c("IMPACT_code", "kcalsPerCommod", "kcalsPerDay") := NULL]
 dt.stapleLookup <- unique(dt.stapleLookup)
 dt.stapleLookup <- dt.stapleLookup[staple_code %in% "nonstaple",]
+# convert to percent
+dt.stapleLookup[,value := value * 100]
 inDT <- dt.stapleLookup
 outName <- "dt.nonStapleKcalShare"
 cleanup(inDT, outName, fileloc("resultsDir"))
 
 # back to qi calculation
-
 dt.qi <- merge(dt.ratio.adj, dt.kcalsInfo, by = c("IMPACT_code", "scenario", "region_code.IMPACT159", "year" ))
 dt.kcalsInfo.region <- dt.kcalsInfo[, c("scenario", "region_code.IMPACT159", "year", "kcalsPerDay"), with = FALSE]
 dt.kcalsInfo.region <- unique(dt.kcalsInfo.region)
 dt.qi.sum <- merge(dt.ratio.sum.adj, dt.kcalsInfo.region, by = c("scenario", "region_code.IMPACT159", "year" ))
 
-# calculate QI for each for each food item, by scenario and country -----
-dt.qi[,QI := (sum(qi) / Nq) * (kcalRef / kcalsPerCommod ),
+# calculate QI for each for each food item, by scenario and country ---------------
+dt.qi[, QI := (sum(qi) / Nq) * (kcalRef / kcalsPerCommod ),
       by = c("IMPACT_code", "scenario", "region_code.IMPACT159", "year") ]
 dt.qi[is.na(QI), QI := 0]
 keepListCol.QI <- c("IMPACT_code", "scenario", "region_code.IMPACT159",  "year", "QI")
@@ -306,7 +309,7 @@ inDT <-  dt.QI
 outName <- "dt.indexQual"
 cleanup(inDT, outName, fileloc("resultsDir"), "csv")
 
-# calculate QIcomposite -----
+# calculate QIcomposite ---------------
 dt.qi[, QI.comp := sum(QI * kcalsPerCommod / kcalsPerDay), by = c("scenario", "year", "region_code.IMPACT159")]
 keepListCol.QIcomp <- c("scenario", "region_code.IMPACT159",  "year", "QI.comp")
 dt.QIcomp <- dt.qi[, (keepListCol.QIcomp), with = FALSE]
@@ -316,7 +319,7 @@ inDT <-  dt.QIcomp
 outName <- "dt.compQI"
 cleanup(inDT, outName, fileloc("resultsDir"), "csv")
 
-# calculate nutrient balance for individual commodities -----
+# calculate nutrient balance for individual commodities ---------------
 dt.qi[, NB := (sum(qi.adj) / Nq) * 100,
       by = c("IMPACT_code", "scenario", "region_code.IMPACT159", "year") ]
 keepListCol.NB <- c("IMPACT_code", "scenario", "region_code.IMPACT159",  "year", "NB")
@@ -326,7 +329,7 @@ inDT <-  dt.NB
 outName <- "dt.nutBal.commods"
 cleanup(inDT, outName, fileloc("resultsDir"), "csv")
 
-# calculate di for each food -----
+# calculate di for each food ---------------
 temp <- merge(dt.IMPACTfood, dt.nutrients.disqual, by = "IMPACT_code")
 # calculate ethanol for each food
 temp[IMPACT_code %in% "c_beer", ethanol_g := ethanol.beer]
@@ -357,6 +360,7 @@ dt.di <- merge(dt.di, dt.kcalsInfo, by = c( "IMPACT_code", "scenario", "region_c
 
 dt.di[, DI := (sum(di) / Nd) * (kcalRef / kcalsPerCommod ),
       by = c("IMPACT_code", "scenario", "region_code.IMPACT159", "year") ]
+
 dt.di[is.na(DI), DI := 0]
 keepListCol.QI <- c("IMPACT_code", "scenario", "region_code.IMPACT159",  "year", "DI")
 dt.DI <- dt.di[, (keepListCol.QI), with = FALSE]
@@ -365,7 +369,7 @@ inDT <-  dt.DI
 outName <- "dt.indexDisqual"
 cleanup(inDT, outName, fileloc("resultsDir"), "csv")
 
-# calculate DIcomposite -----
+# calculate DIcomposite ---------------
 dt.di[, DI.comp := sum(DI * kcalsPerCommod / kcalsPerDay), by = c("scenario", "year", "region_code.IMPACT159")]
 keepListCol.DIcomp <- c("scenario", "region_code.IMPACT159",  "year", "DI.comp")
 dt.DIcomp <- dt.di[, (keepListCol.DIcomp), with = FALSE]
@@ -375,8 +379,7 @@ inDT <-  dt.DIcomp
 outName <- "dt.compDI"
 cleanup(inDT, outName, fileloc("resultsDir"), "csv")
 
-# calc NBC as if only one commodity is consumed -----
-
+# calculate NBS as if only one commodity is consumed ---------------
 dt.qi.sum[, value := (sum(qi.adj) / Nq) * 100,
       by = c( "scenario", "region_code.IMPACT159", "year") ]
 keepListCol.NB.sum <- c("scenario", "region_code.IMPACT159",  "year", "value")

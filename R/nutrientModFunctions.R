@@ -330,7 +330,6 @@ keyVariable <- function(variableName) {
   scenarioListSSP.GDP <- c("SSP1_v9_130325", "SSP2_v9_130325", "SSP3_v9_130325",
                            "SSP4_v9_130325", "SSP5_v9_130325")
 
-
   # scenarioListIMPACT <- as.character(read.csv(file = paste(fileloc("mData"),"scenarioListIMPACT.csv", sep = "/"), stringsAsFactors = FALSE)[,1])
   DinY <- 365 #see http://stackoverflow.com/questions/9465817/count-days-per-year for a way to deal with leap years
   #' #' countries to remove because of poor data
@@ -346,9 +345,11 @@ keyVariable <- function(variableName) {
       "req.UL.vits",
       "req.UL.minrls",
       "req.AMDR.hi",
-      "req.AMDR.lo",
-      "req.PR.iron",
-      "req.PR.zinc"
+      "req.AMDR.lo"
+# commmented out because as of Dec 25, 2016, PR requirements for iron and zinc are now in req.RDA.minrls
+            # ,
+      # "req.PR.iron",
+      # "req.PR.zinc"
     )
   reqsListPercap <- paste(reqsList,"_percap", sep = "")
   reqsListSSP <- paste(reqsList,"_ssp", sep = "")

@@ -13,7 +13,7 @@
 #     or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
 #     for more details at http://www.gnu.org/licenses/.
 
-#' @description Manipulate the results of the ODBC_access script and prepare for dataPrep.nutrientData.R
+#' @description Manipulate the results of the ODBC_access script and prepare data for dataPrep.nutrientData.R
 
 #' @include nutrientModFunctions.R
 #' @include workbookFunctions.R
@@ -50,7 +50,7 @@ other <- c("caffeine_mg", "cholesterol_mg")
 #  IMPACT nutrient code - nutCode. Also has other info from NUTR_DEF for these nutrients
 dt.nutcodeLookup <- data.table::as.data.table(openxlsx::read.xlsx("data-raw/NutrientData/NutrientCodeLookup.xlsx"))
 dt.nutcodeLookup[, Nutr_No := as.character(Nutr_No)]
-Encoding(dt.nutcodeLookup$unit) <- "UTF-8"
+#Encoding(dt.nutcodeLookup$unit) <- "unknown" - for some reason this adds a stray character
 nutcodes <- sort(unique(dt.nutcodeLookup$Nutr_No))
 # keep just info on the nutrients we're interested in
 nut_data <-  NUT_DATA[Nutr_No %in% nutcodes, ]
@@ -60,6 +60,7 @@ dt.composites_crop_lookup <- data.table::as.data.table(openxlsx::read.xlsx("data
 
 # phytate information
 dt.phytateLookup <- data.table::as.data.table(openxlsx::read.xlsx("data-raw/NutrientData/nutrientDetails/phytateSources.xlsx"))
+#dt.phytateLookup[, c("edible_share.fromPhytateSource", "phytate_source", "inedible_share.fromPhytate") := NULL]
 
 # IMPACT codes
 dt.IMPACTcodeLookup <- data.table::as.data.table(openxlsx::read.xlsx("data-raw/NutrientData/nutrientDetails/IMPACTCodeLookup.xlsx"))
@@ -67,7 +68,6 @@ dt.IMPACTcodeLookup <- dt.IMPACTcodeLookup[is.na(IMPACT_conversion), IMPACT_conv
 dt.compositesLookup <- dt.IMPACTcodeLookup[IMPACT_code %in% composites,] # keep info on composite commodities
 dt.singleCodeLookup <- dt.IMPACTcodeLookup[!IMPACT_code %in% composites,] # keep info on single commodities
 dt.phytateLookup <- dt.phytateLookup[usda_code %in% dt.IMPACTcodeLookup$usda_code, ]
-
 dt.retentionLookup <- data.table::as.data.table(openxlsx::read.xlsx("data-raw/NutrientData/nutrientDetails/retentionLookup.xlsx"))
 dt.retentionLookup[, retentioncode_aus := as.character(retentioncode_aus)]
 dt.singleCodeLookup <- merge(dt.singleCodeLookup, dt.phytateLookup, by = "usda_code", all.x = TRUE) #add phytate info to single commodities
@@ -106,10 +106,12 @@ dt.cookingRetn.aus <- dt.cookingRetn.aus[Tagname == "VITE",]
 dt.cookingRetn.aus[, Nutr_No := "323"][, nutCode := "vit_e_mg"] # add the nutrient number and nutcode for vitamin e
 dt.cookingRetn.aus[, Retn_Factor := Retn_Factor * 100] # convert to same units as dt.cookRetn
 dt.cookingRetn <- rbind(dt.cookingRetn, dt.cookingRetn.aus)
+Encoding(dt.cookingRetn$nutCode) <- "unknown"
 
 #now add _cr columns and convert to wide
 dt.cookingRetn[, nutCode := paste0(nutCode,"_cr")]
 cols.cookingRet <- unique(dt.cookingRetn$nutCode) # list of cooking retention columns
+
 formula.wide <- paste("RetnDesc + Retn_Code   ~ nutCode")
 dt.cookingRetn.wide <- data.table::dcast(
   data = dt.cookingRetn,
@@ -127,14 +129,24 @@ USDAcodes <- dt.singleCodeLookup[,usda_code]
 nut_data <- NUT_DATA[usda_code %in% USDAcodes,]
 #weight <- WEIGHT[usda_code %in% USDAcodes,]
 food_des <- FOOD_DES[usda_code %in% USDAcodes,]
+food_des[is.na(Refuse), Refuse := 100]
 
 dt <- merge(nutr_def, nut_data, by = "Nutr_No") #combine nutrient codes and names
 dt <- merge(dt, food_des, by = "usda_code") #combine nutrient info with food descriptive info
+# note: this was added Jan 1, 2017 because of an error message that showed up after I added more items to the phytate info spreadsheet
+#I added allow.cartesian = TRUE
 dt <- merge(dt, dt.singleCodeLookup, by = c("usda_code"), all.x = TRUE) #combine IMPACT code info and phytate info
 dt <- merge(dt, dt.nutcodeLookup, by = c("NutrDesc", "Nutr_No", "unit"), all.x = TRUE)
-Encoding(dt$nutCode) <- "UTF-8"
+Encoding(dt$nutCode) <- "unknown"
+data.table::setkey(dt, NULL)
 
-formula.wide <- paste("IMPACT_code + usda_code  + Long_Desc + IMPACT_conversion + Ref_Desc + edible_share + phytate_mg + phytate_source  ~ nutCode")
+ keepListCol <- c("IMPACT_code", "usda_code", "Long_Desc", "IMPACT_conversion", "Ref_Desc",
+                       "edible_share", "phytate_mg", "phytate_source", "nutCode", "Nutr_Val")
+ dt <- dt[, (keepListCol), with = FALSE]
+ dt <- unique(dt)
+formula.wide <- paste("IMPACT_code + usda_code  + Long_Desc + IMPACT_conversion + Ref_Desc +
+                      edible_share + phytate_mg + phytate_source  ~ nutCode")
+
 dt.wide <- data.table::dcast(
   data = dt,
   formula = formula.wide,
@@ -157,7 +169,7 @@ for (col in cols.cookingRet) inDT[is.na(get(col)), (col) := 100]
 if (!"ft_acds_tot_trans_g" %in% oldOrder) inDT[, ft_acds_tot_trans_g := 0]
 head <- c("IMPACT_code", "usda_code", "Long_Desc", "IMPACT_conversion", "Ref_Desc", "edible_share", "phytate_mg")
 cookRetInfo <- c("retentioncode_aus", "RetnDesc" )
-extran <- oldOrder[!oldOrder %in% c(head,     macroNutrients, minerals, vitamins, addedSugar, fattyAcids, other, cookRetInfo, cols.cookingRet)]
+extran <- oldOrder[!oldOrder %in% c(head,         macroNutrients, minerals, vitamins, addedSugar, fattyAcids, other, cookRetInfo, cols.cookingRet)]
 data.table::setcolorder(inDT,     c(head, extran, macroNutrients, minerals, vitamins, addedSugar, fattyAcids, other, cookRetInfo, cols.cookingRet))
 inDT[, 6:length(inDT)][is.na(inDT[, 6:length(inDT)])] <- 0
 outName <- "dt.nutSingleCommodLookup_sr28"
@@ -183,10 +195,12 @@ for (i in 1:nrow(dt.compositesLookup)) {
   dt <- merge(dt, food_des, by = "usda_code") #combine nutrient info with food descriptive info
   dt <- merge(dt, dt.singleCodeLookup, by = c("usda_code"), all.x = TRUE) #combine IMPACT code info and phytate info
   dt <- merge(dt, dt.nutcodeLookup, by = c("NutrDesc", "Nutr_No", "unit"), all.x = TRUE)
-  Encoding(dt$nutCode) <- "UTF-8"
+  Encoding(dt$nutCode) <- "unknown"
 
-  #  formula.wide <- paste("IMPACT_code + usda_code  + Long_Desc + IMPACT_conversion + Ref_Desc + edible_share + phytate_mg  ~ nutCode")
-  formula.wide <- paste("IMPACT_code + usda_code  + Long_Desc + IMPACT_conversion + Ref_Desc + edible_share + phytate_mg + phytate_source  ~ nutCode")
+  #  formula.wide <- paste("IMPACT_code + usda_code  + Long_Desc + IMPACT_conversion + Ref_Desc +
+  # edible_share + phytate_mg  ~ nutCode")
+  formula.wide <- paste("IMPACT_code + usda_code  + Long_Desc + IMPACT_conversion + Ref_Desc +
+                        edible_share + phytate_mg + phytate_source  ~ nutCode")
   dt.wide <- data.table::dcast(
     data = dt,
     formula = formula.wide,
@@ -234,7 +248,7 @@ for (i in comps.simpleAverage) {
   data.table::setcolorder(finout, names(temp))
   #  dt.temp <- rbind(dt.temp,finout)
   temp <- names(dt.nutrients)
-  Encoding(temp) <- "UTF-8"
+  Encoding(temp) <- "unknown"
   data.table::setnames(dt.nutrients, old = names(dt.nutrients), new = temp)
   data.table::setnames(finout, old = names(finout), new = temp)
   dt.nutrients <- rbind(dt.nutrients, finout)
@@ -387,7 +401,7 @@ for (i in cropComposites) {
   dt.temp <- dt.temp[, lapply(.SD, sum, na.rm = TRUE), .SDcols = colsToMultiply]
   dt.temp <- cbind(dt.header, dt.temp)
   temp <- names(dt.nutrients)
-  Encoding(temp) <- "UTF-8"
+  Encoding(temp) <- "unknown"
   #data.table::setnames(dt.nutrients, old = names(dt.nutrients), new = temp)
   data.table::setnames(finout, old = names(finout), new = temp)
 
@@ -467,7 +481,7 @@ for (i in fishfiles) {
   dt.temp <- dt.temp[, lapply(.SD, sum, na.rm = TRUE), .SDcols = colsToMultiply]
   dt.temp <- cbind(dt.header, dt.temp)
   temp <- names(dt.nutrients)
-  Encoding(temp) <- "UTF-8"
+  Encoding(temp) <- "unknown"
   data.table::setnames(dt.nutrients, old = names(dt.nutrients), new = temp)
   data.table::setnames(finout, old = names(finout), new = temp)
   dt.nutrients <- rbind(dt.nutrients, dt.temp)
@@ -483,7 +497,7 @@ dt.header <- data.table::data.table(IMPACT_code = "c_OMarn",  usda_code = NA,
                                     RetnDesc = NA, retentioncode_aus = NA, phytate_source = NA)
 dt.temp <- cbind(dt.header, dt.temp)
 temp <- names(dt.nutrients)
-Encoding(temp) <- "UTF-8"
+Encoding(temp) <- "unknown"
 temp <- gsub("Â","", temp)
 data.table::setnames(dt.nutrients, old = names(dt.nutrients), new = temp)
 data.table::setnames(finout, old = names(finout), new = temp)
@@ -494,10 +508,10 @@ dt.nutrientNames_Units <- openxlsx::read.xlsx("data-raw/NutrientData/nutrientNam
 
 # the next few lines are just to ensure correct encoding for mu.
 temp <- names(dt.nutrientNames_Units)
-Encoding(temp) <- "UTF-8"
+Encoding(temp) <- "unknown"
 data.table::setnames(dt.nutrientNames_Units, old = names(dt.nutrientNames_Units), new = temp)
 temp <- names(dt.nutrients)
-Encoding(temp) <- "UTF-8"
+Encoding(temp) <- "unknown"
 data.table::setnames(dt.nutrients, old = names(dt.nutrients), new = temp)
 
 # add kcals to the dt.nutrients table -----
