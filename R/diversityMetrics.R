@@ -252,8 +252,8 @@ ethanol.spirits <- ethanol.spirits.percent * 1000
 switch.useCookingRetnValues <- keyVariable("switch.useCookingRetnValues")
 switch.fixFish <- keyVariable("switch.fixFish") #get rid of nutrient info for shrimp, tuna, and salmon because they are not currently in the FBS data
 #dt.nutrients.adj is per kg of the raw product after IMPACT conversion and edible portion adjustments applied)
-dt.nutrients.adj <- cookingRetFishCorrect(switch.useCookingRetnValues, switch.fixFish)
-dt.nutrients.qual <- dt.nutrients.adj[,c("IMPACT_code", nutrients.qual), with = FALSE]
+dt.nutrients.adj <- cookingRetFishCorrect(switch.useCookingRetnValues, switch.fixFish) # used only for disqualifying nutrients
+# dt.nutrients.qual <- dt.nutrients.adj[,c("IMPACT_code", nutrients.qual), with = FALSE]
 dt.nutrients.disqual <- dt.nutrients.adj[,c("IMPACT_code", nutrients.disqual), with = FALSE]
 # Nq <- length(dt.nutrients.qual) - 1
 Nq <- length(nutrients.qual)

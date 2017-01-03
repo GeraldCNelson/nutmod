@@ -48,7 +48,7 @@ copyListFromResults <- c("dt.energy.ratios", "dt.budgetShare",
 
 copyListFromData <- c("dt.regions.all", "dt.foodGroupsInfo", "resultFileLookup", "dt.scenarioListIMPACT")
 copyListFromiData <- c("dt.IMPACTgdxParams")
-copyCsvFromData <- c("fileDocumentation.csv")
+#copyCsvFromData <- c("fileDocumentation.csv")
 
 for (i in copyListFromResults) {
   print(sprintf("copying file %s from results to nutrientModeling/data", i))
@@ -61,9 +61,9 @@ for (i in copyListFromData) {
 for (i in copyListFromiData) {
   copyFile(i, fileloc("iData"),"nutrientModeling/data", "rds")
 }
-for (i in copyCsvFromData) {
-  copyFile(i, fileloc("mData"),"nutrientModeling/data", "csv")
-}
+# for (i in copyCsvFromData) {
+#   copyFile(i, fileloc("mData"),"nutrientModeling/data", "csv")
+# }
 
 file.copy("R/nutrientModFunctions.R", "nutrientModeling/global.R", overwrite = TRUE)
 

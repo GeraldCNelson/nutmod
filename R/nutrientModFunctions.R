@@ -207,14 +207,14 @@ cleanup <- function(inDT, outName, dir, writeFiles) {
   outFile <- paste(dir, "/", outName, "_", Sys.Date(), ".rds", sep = "")
   saveRDS(inDT, file = outFile)
 
-  # update files documentation -----
-  #  fileDoc <- data.table::as.data.table(read.csv(paste(fileloc("mData"), "fileDocumentation.csv", sep = "/"),
-  fileDoc <- data.table::fread(paste(fileloc("mData"), "fileDocumentation.csv", sep = "/"),
-      header = TRUE, colClasses = c("character","character","character"))
-  fileDoc <- fileDoc[!fileShortName == outName]
-  fileDocUpdate <- as.list(c(outName, outFile, paste0(names(inDT), collapse = ", ")))
-  fileDoc <- rbind(fileDoc, fileDocUpdate)
-  write.csv(fileDoc, paste(fileloc("mData"), "fileDocumentation.csv", sep = "/"), row.names = FALSE)
+  # # update files documentation -----
+  # # fileDoc <- data.table::fread(paste(fileloc("mData"), "fileDocumentation.csv", sep = "/"),
+  # fileDoc <- data.table::as.data.table(read.csv(paste(fileloc("mData"), "fileDocumentation.csv", sep = "/"),
+  #     header = TRUE, colClasses = c("character","character","character")))
+  # fileDoc <- fileDoc[!fileShortName == outName]
+  # fileDocUpdate <- as.list(c(outName, outFile, paste0(names(inDT), collapse = ", ")))
+  # fileDoc <- rbind(fileDoc, fileDocUpdate)
+  # write.csv(fileDoc, paste(fileloc("mData"), "fileDocumentation.csv", sep = "/"), row.names = FALSE)
 
   #print(proc.time())
   if (missing(writeFiles)) {writeFiles = "xlsx"}
@@ -454,7 +454,7 @@ metadata <- function() {
 
   inDT <- data.table::as.data.table(metadata)
   outName <- "dt.metadata"
-  cleanup(inDT,outName,fileloc("resultsDir"))
+  cleanup(inDT,outName, fileloc("resultsDir"))
 }
 
 #' Title fileNameList returns a list of filenames, with or without complete paths
@@ -1034,7 +1034,8 @@ rawToChar(block[seq_len(ns)], run the following commands in a shell.
 
 gdxLibraryLocationCheck <- function() {
   dt.metadata <- getNewestVersion("dt.metadata", fileloc("resultsDir"))
-  gdxLibLoc <- dt.metadata[file_description %in% "Location and name of GAMS program; needed for the gdx data import process", file_name_location]
+  gdxLibLoc <- dt.metadata[file_description %in%
+                             "Location and name of GAMS program; needed for the gdx data import process", file_name_location]
   if (gdxrrw::igdx(gamsSysDir = gdxLibLoc, silent = TRUE) %in% 0L) {
     print(paste("The nutrient modeling software thinks your GAMS liberary path is", gdxLibLoc, " R can't find it there."))
     if (choice %in% "n") {

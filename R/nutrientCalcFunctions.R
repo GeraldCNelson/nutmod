@@ -75,6 +75,19 @@
 
 cookingRetFishCorrect <- function(switch.useCookingRetnValues, switch.fixFish) {
   dt.nutrients <- getNewestVersion("dt.nutrients", fileloc("mData"))
+  # dt.nutrients[,c("zinc_mg", "iron_mg") := NULL] #remove non bioavailable values
+  # dt.bioavail_zinc <- getNewestVersion("dt.bioavail_zinc", fileloc("resultsDir"))
+  # dt.bioavail_iron <- getNewestVersion("dt.bioavail_iron", fileloc("resultsDir"))
+  # keepListCol.zinc <- c("scenario", "region_code.IMPACT159", "year", "zinc_mg")
+  # keepListCol.iron <- c("scenario", "region_code.IMPACT159", "year", "iron_mg")
+  # dt.bioavail_zinc <- dt.bioavail_zinc[,(keepListCol.zinc), with = FALSE]
+  # dt.bioavail_iron <- dt.bioavail_iron[,(keepListCol.iron), with = FALSE]
+  # dt.nutrients.temp <- dt.bioavail_iron[,c("scenario", "region_code.IMPACT159", "year")]
+  # dt.nutrients.temp.zinc <- cbind(dt.nutrients.temp, dt.nutrients)
+  #
+  # dt.nutrients <- merge(dt.nutrients, dt.bioavail_iron, by = c("scenario", "region_code.IMPACT159", "year"))
+  # dt.nutrients <- merge(dt.nutrients, dt.bioavail_zinc, by = c("scenario", "region_code.IMPACT159", "year"))
+
   cols.cookretn <- names(dt.nutrients)[grep("_cr",names(dt.nutrients))]
   colsNotToMultiply <- c("IMPACT_code" ,"usda_code","Long_Desc", "food_group_code",
                          "staple_code", "Ref_Desc", "retentioncode_aus", "RetnDesc", cols.cookretn, "phytate_source",

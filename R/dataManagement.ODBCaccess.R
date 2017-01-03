@@ -59,19 +59,21 @@ data.table::setnames(nutr_def, old = "Units", new = "unit")
 dt.composites_crop_lookup <- data.table::as.data.table(openxlsx::read.xlsx("data-raw/NutrientData/nutrientDetails/composites.crop.lookup.xlsx", cols = 1:7))
 
 # phytate information
-dt.phytateLookup <- data.table::as.data.table(openxlsx::read.xlsx("data-raw/NutrientData/nutrientDetails/phytateSources.xlsx"))
-#dt.phytateLookup[, c("edible_share.fromPhytateSource", "phytate_source", "inedible_share.fromPhytate") := NULL]
+dt.phytateLU <- data.table::as.data.table(openxlsx::read.xlsx("data-raw/NutrientData/nutrientDetails/phytateSources.xlsx"))
+dt.phytateLU[,phytate_mg := as.numeric(phytate_mg)]
+dt.phytateLU <- dt.phytateLU[is.na(phytate_mg), phytate_mg := 0]
+dt.phytateLU[, Long_Desc := NULL]
+#dt.phytateLU[, c("edible_share.fromPhytateSource", "phytate_source", "inedible_share.fromPhytate") := NULL]
 
 # IMPACT codes
 dt.IMPACTcodeLookup <- data.table::as.data.table(openxlsx::read.xlsx("data-raw/NutrientData/nutrientDetails/IMPACTCodeLookup.xlsx"))
 dt.IMPACTcodeLookup <- dt.IMPACTcodeLookup[is.na(IMPACT_conversion), IMPACT_conversion := 100]
 dt.compositesLookup <- dt.IMPACTcodeLookup[IMPACT_code %in% composites,] # keep info on composite commodities
 dt.singleCodeLookup <- dt.IMPACTcodeLookup[!IMPACT_code %in% composites,] # keep info on single commodities
-dt.phytateLookup <- dt.phytateLookup[usda_code %in% dt.IMPACTcodeLookup$usda_code, ]
+dt.phytateLookup <- dt.phytateLU[usda_code %in% dt.IMPACTcodeLookup$usda_code, ]
 dt.retentionLookup <- data.table::as.data.table(openxlsx::read.xlsx("data-raw/NutrientData/nutrientDetails/retentionLookup.xlsx"))
 dt.retentionLookup[, retentioncode_aus := as.character(retentioncode_aus)]
 dt.singleCodeLookup <- merge(dt.singleCodeLookup, dt.phytateLookup, by = "usda_code", all.x = TRUE) #add phytate info to single commodities
-dt.singleCodeLookup <- dt.singleCodeLookup[is.na(phytate_mg), phytate_mg := 0]
 dt.singleCodeLookup <- dt.singleCodeLookup[is.na(edible_share.fromPhytateSource), edible_share.fromPhytateSource := 100]
 dt.singleCodeLookup <- merge(dt.singleCodeLookup, dt.retentionLookup, by = "IMPACT_code", all.x = TRUE)
 
@@ -176,7 +178,9 @@ outName <- "dt.nutSingleCommodLookup_sr28"
 cleanup(inDT, outName, fileloc("mData"), "xlsx")
 # create dt to hold all the lookup values - dt.nutrients
 dt.nutrients <- inDT
-# done with single codes
+# done with single codes -----
+
+# work on composites -----
 
 # remove c_OMarn from the composites list. Later make it the average of c_OPelag and c_ODmrsl
 dt.compositesLookup <- dt.compositesLookup[!IMPACT_code %in% "c_OMarn",]
@@ -193,13 +197,18 @@ for (i in 1:nrow(dt.compositesLookup)) {
 
   dt <- merge(nutr_def, nut_data, by = "Nutr_No") #combine nutrient codes and names
   dt <- merge(dt, food_des, by = "usda_code") #combine nutrient info with food descriptive info
-  dt <- merge(dt, dt.singleCodeLookup, by = c("usda_code"), all.x = TRUE) #combine IMPACT code info and phytate info
+  dt.phytateLookup <- dt.phytateLookup[usda_code %in% USDAcodes, ]
+  dt <- merge(dt, dt.phytateLU, by = "usda_code", all.x = TRUE) #add phytate info to commodities in the composite commodity
+  dt[is.na(phytate_mg), phytate_mg := 0]
+#  dt <- merge(dt, dt.compositesLookup, by = c("usda_code"), all.x = TRUE) #combine IMPACT code info and phytate info
   dt <- merge(dt, dt.nutcodeLookup, by = c("NutrDesc", "Nutr_No", "unit"), all.x = TRUE)
+  dt[, IMPACT_code := fName]
   Encoding(dt$nutCode) <- "unknown"
+  data.table::setkey(dt, NULL)
 
-  #  formula.wide <- paste("IMPACT_code + usda_code  + Long_Desc + IMPACT_conversion + Ref_Desc +
+  #  formula.wide <- paste(" usda_code  + Long_Desc + Ref_Desc +
   # edible_share + phytate_mg  ~ nutCode")
-  formula.wide <- paste("IMPACT_code + usda_code  + Long_Desc + IMPACT_conversion + Ref_Desc +
+  formula.wide <- paste("IMPACT_code + usda_code  + Long_Desc +  Ref_Desc +
                         edible_share + phytate_mg + phytate_source  ~ nutCode")
   dt.wide <- data.table::dcast(
     data = dt,
@@ -231,7 +240,6 @@ for (i in 1:nrow(dt.compositesLookup)) {
   assign(paste0("dt.",dt.compositesLookup$IMPACT_code[i]), inDT)
 }
 
-# work on composites
 # work on composites that use simple averages of nutrients
 comps.simpleAverage <- c("cbean", "clamb",  "crpol")
 dt.temp <- data.table::copy(inDT[FALSE,])
