@@ -34,16 +34,14 @@ print("The packages below are needed and currently available on CRAN or by downl
 print(paste("This set of scripts needs version 1.9.7 or greater of the data.table package. Version", as.character(packageVersion("data.table")), "is currently being used."))
 # print(paste("This set of scripts needs version 3.1.23 or greater of the openxlsx package. Version", as.character(packageVersion("openxlsx")), "is currently being used."))
 
-if (unlist(packageVersion("openxlsx")[[1]])[2] < 2 & unlist(packageVersion("openxlsx")[[1]])[3] < 23) {
-  unlist(strsplit(packageVersion("openxlsx"), ".", fixed = TRUE))[3]
+if (packageVersion("openxlsx") < "3.1.23") {
   print("updating openxlsx")
   install.packages(c("Rcpp", "devtools"), dependencies = TRUE)
   require(devtools)
   install_github("awalker89/openxlsx")
 }
 
-if (unlist(packageVersion("data.table")[[1]])[2] < 9) {
-  unlist(strsplit(packageVersion("openxlsx"), ".", fixed = TRUE))[3]
+if (packageVersion("data.table") < "1.9.7") {
   print("updating data.table")
   install.packages("data.table")
 }
