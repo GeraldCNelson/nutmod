@@ -208,13 +208,13 @@ cleanup <- function(inDT, outName, dir, writeFiles) {
   saveRDS(inDT, file = outFile)
 
   # # update files documentation -----
-  # # fileDoc <- data.table::fread(paste(fileloc("mData"), "fileDocumentation.csv", sep = "/"),
-  # fileDoc <- data.table::as.data.table(read.csv(paste(fileloc("mData"), "fileDocumentation.csv", sep = "/"),
-  #     header = TRUE, colClasses = c("character","character","character")))
-  # fileDoc <- fileDoc[!fileShortName == outName]
-  # fileDocUpdate <- as.list(c(outName, outFile, paste0(names(inDT), collapse = ", ")))
-  # fileDoc <- rbind(fileDoc, fileDocUpdate)
-  # write.csv(fileDoc, paste(fileloc("mData"), "fileDocumentation.csv", sep = "/"), row.names = FALSE)
+  # Note: fileDocumentation.csv is started over every time automate.R is run
+  fileDoc <- data.table::as.data.table(read.csv(paste(fileloc("rawData"), "fileDocumentation.csv", sep = "/"),
+      header = TRUE, colClasses = c("character","character","character")))
+  fileDoc <- fileDoc[!fileShortName == outName]
+  fileDocUpdate <- as.list(c(outName, outFile, paste0(names(inDT), collapse = ", ")))
+  fileDoc <- rbind(fileDoc, fileDocUpdate)
+  write.csv(fileDoc, paste(fileloc("mData"), "fileDocumentation.csv", sep = "/"), row.names = FALSE)
 
   #print(proc.time())
   if (missing(writeFiles)) {writeFiles = "xlsx"}
@@ -725,15 +725,20 @@ reqTypeChoice <- "RDA.macro.all.reqRatio"
 dir <- fileloc("resultsDir"); scenarioName <- "SSP3-NoCC"
 
 nutReqDataPrep <- function(reqTypeChoice, countryCode, scenarioName, years, dir) {
-  resultFileLookup <- getNewestVersion("resultFileLookup")
-  SSPname <- stringi::stri_split_fixed(scenarioName, "-", simplify = TRUE)[1]
-  climModel <- stringi::stri_split_fixed(scenarioName, "-", simplify = TRUE)[2]
+  resultFileLookup <- getNewestVersion("resultFileLookup", fileloc("mData"))
+  # SSPname <- stringi::stri_split_fixed(scenarioName, "-", simplify = TRUE)[1]
+  # climModel <- stringi::stri_split_fixed(scenarioName, "-", simplify = TRUE)[2]
   experiment <- stringi::stri_split_fixed(scenarioName, "-", simplify = TRUE)[3]
-  if (is.na(experiment)) {experiment <- "REF"}
+  #if (is.na(experiment)) {experiment <- "REF"}
+  if (is.na(experiment)) {scenarioName <- paste(scenarioName, "-REF", sep = "")}
 
   fileName <- resultFileLookup[reqTypeName == reqTypeChoice, fileName]
   if (length(fileName) == "0") print(paste(reqTypeChoice, "is not a valid choice", sep = " "))
   reqRatios.long <- getNewestVersion(reqTypeChoice, dir)
+ # reqRatios.long <- reqRatios.long[scenario %in% scenarioName, ]
+  reqRatios.long <- reqRatios.long[scenario %in% scenarioName &
+                                     region_code.IMPACT159 %in% countryCode &
+                                     year %in% years, ]
   #  print(head(reqRatios))
   # keepListCol <- c("scenario", "SSP", "climate_model", "experiment", "RCP", "region_code.IMPACT159",
   #                  "nutrient",  "year", "value")
@@ -747,41 +752,42 @@ nutReqDataPrep <- function(reqTypeChoice, countryCode, scenarioName, years, dir)
   #   data = reqRatios, id.vars = idVars, measure.vars = measureVars, variable.name = "year",
   #   value.name = "value", variable.factor = FALSE)
 
-  formula.ratios <- paste("scenario + SSP + climate_model + experiment + region_code.IMPACT159 + year ~ nutrient")
+#  formula.ratios <- paste("scenario + SSP + climate_model + experiment + region_code.IMPACT159 + year ~ nutrient")
+  formula.ratios <- paste("scenario + region_code.IMPACT159 + year ~ nutrient")
   reqRatios.wide <- data.table::dcast(
     reqRatios.long,
     formula = formula.ratios,
     value.var = "value")
 
-  i <- countryCode; j <- SSPname; k <- climModel; m <- experiment; l <- years
-
-  reqRatios.nuts <-
-    reqRatios.wide[region_code.IMPACT159 %in% i & SSP %in% j & climate_model %in% k &
-                     experiment == m]
+  # i <- countryCode; j <- SSPname; k <- climModel; m <- experiment; l <- years
+  #
+  # reqRatios.nuts <-
+  #   reqRatios.wide[region_code.IMPACT159 %in% i & SSP %in% j & climate_model %in% k &
+  #                    experiment == m]
   #get rid of year along with the others
-  deleteListCol <- c("scenario", "SSP", "climate_model", "experiment", "region_code.IMPACT159", "year")
-  reqRatios.nuts[,(deleteListCol) := NULL]
-  spokeCols <- names(reqRatios.nuts)
+  deleteListCol <- c("scenario", "region_code.IMPACT159", "year")
+  reqRatios.wide[,(deleteListCol) := NULL]
+  spokeCols <- names(reqRatios.wide)
   #  nutListShort <- cleanupNutrientNames(spokeCols)
 
-  reqRatios.nuts[is.nan(get(spokeCols)),  (spokeCols) := 0, with = FALSE]
-  reqRatios.nuts <- reqRatios.nuts[,(spokeCols) := round(.SD,2), .SDcols = spokeCols]
+  reqRatios.wide[is.nan(get(spokeCols)),  (spokeCols) := 0]
+  reqRatios.wide <- reqRatios.wide[,(spokeCols) := round(.SD,2), .SDcols = spokeCols]
 
   # radarchart- If maxmin is TRUE, this must include maximum values as row 1 and minimum values as row 2 for each variables
-  colMins <- as.list(c(rep.int(0,ncol(reqRatios.nuts))))
-  reqRatios.nuts[, nmax := max(.SD), .SDcols = spokeCols]
-  cMax <- round(reqRatios.nuts[1,nmax])
-  colMaxs <- as.list(c(rep.int(cMax,ncol(reqRatios.nuts) - 1))) # -1 because nmax is a temporary column
-  reqRatios.nuts[,nmax := NULL]
+  colMins <- as.list(c(rep.int(0,ncol(reqRatios.wide))))
+  reqRatios.wide[, nmax := max(.SD), .SDcols = spokeCols]
+  cMax <- round(reqRatios.wide[1,nmax])
+  colMaxs <- as.list(c(rep.int(cMax,ncol(reqRatios.wide) - 1))) # -1 because nmax is a temporary column
+  reqRatios.wide[,nmax := NULL]
 
   # include the requirement ratio of 1
-  reqRatioRow <- as.list(c(rep(1,ncol(reqRatios.nuts))))
-  reqRatios.nuts <- rbind(colMaxs, colMins, reqRatioRow, reqRatios.nuts)
+  reqRatioRow <- as.list(c(rep(1,ncol(reqRatios.wide))))
+  reqRatios.wide <- rbind(colMaxs, colMins, reqRatioRow, reqRatios.wide)
 
-  reqRatios.nuts[, (spokeCols) := lapply(.SD, as.numeric), .SDcols = spokeCols]
-  reqRatios.nuts[is.nan(get(spokeCols)),  (spokeCols) := 0, with = FALSE]
-  data.table::setnames(reqRatios.nuts, old = names(reqRatios.nuts), new = cleanupNutrientNames(names(reqRatios.nuts)))
-  return(reqRatios.nuts)
+  reqRatios.wide[, (spokeCols) := lapply(.SD, as.numeric), .SDcols = spokeCols]
+  reqRatios.wide[is.nan(get(spokeCols)),  (spokeCols) := 0]
+  data.table::setnames(reqRatios.wide, old = names(reqRatios.wide), new = cleanupNutrientNames(names(reqRatios.wide)))
+  return(reqRatios.wide)
 }
 
 nutReqSpiderGraph <- function(reqTypeName, countryCode, scenarioName, years, dir) {

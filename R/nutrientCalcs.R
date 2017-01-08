@@ -502,6 +502,7 @@ generateSum <- function(dt.IMPACTfood, scenarioListIMPACT, dt.nutrients.adj) {
   dt.nut.sum.staple.long <- unique(dt.nut.sum.staple.long)
   inDT <- dt.nut.sum.staple.long
   outName <- "dt.nutrients.sum.staples"
+  cleanup(inDT,outName, fileloc("resultsDir"))
 
   # Create non staple share of nutrient dt
   shareFormula <- "scenario + region_code.IMPACT159 + nutrient + year ~ staple_code"

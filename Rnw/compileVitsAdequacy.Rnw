@@ -1,0 +1,12 @@
+% from http://tex.stackexchange.com/questions/5228/can-one-tex-file-output-to-multiple-pdf-files
+\documentclass{article}
+\usepackage{pdfpages}
+\begin{document}
+
+% vitamin adequacy ratio
+\includepdfmerge[nup=2x3]{folate_µg_vits_reqRatio_WB.pdf, niacin_mg_vits_reqRatio_WB.pdf, riboflavin_mg_vits_reqRatio_WB.pdf,
+      thiamin_mg_vits_reqRatio_WB.pdf, vit_a_rae_µg_vits_reqRatio_WB.pdf, vit_b6_mg_vits_reqRatio_WB.pdf,
+      vit_b12_µg_vits_reqRatio_WB.pdf, vit_c_mg_vits_reqRatio_WB.pdf, vit_d_µg_vits_reqRatio_WB.pdf,
+      vit_e_mg_vits_reqRatio_WB.pdf, vit_k_µg_vits_reqRatio_WB.pdf}
+\end{document}
+

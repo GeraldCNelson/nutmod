@@ -146,7 +146,8 @@ source("R/nutCalcsProcessing.R")
 
 cat("Running diversityMetrics.R\n\n")
 source("R/diversityMetrics.R")
-#creating list of .rds files in data
+
+#creating list of .rds files in results
 cat("create list of .rds files in data\n\n")
 dt.resultsFiles <- data.table::as.data.table(list.files(path = fileloc("resultsDir"), pattern = "*.rds"))
 data.table::setnames(dt.resultsFiles, old = "V1", new = "fileName")
@@ -154,14 +155,15 @@ dt.resultsFiles[, reqTypeName := gsub(".{15}$","",dt.resultsFiles$fileName)]
 
 # this csv file is hand edited. Don't delete!
 descriptionLookup <- fread(paste(fileloc("rawData"), "descriptionLookup.csv", sep = "/"))
-dt.resultsFiles <- merge(dt.resultsFiles,descriptionLookup, by = "reqTypeName")
+dt.resultsFiles <- merge(dt.resultsFiles,descriptionLookup, by = "reqTypeName", all.x = TRUE)
 inDT <- dt.resultsFiles
 outName <- "resultFileLookup"
 cleanup(inDT, outName, fileloc("mData"))
+
 print("Copying files for shiny app")
 source("R/copyFilestoNutrientModeling.R") # move results needed for the shiny app.R in the nutrientModeling folder
 
-# generate graphs
+library(dtplyr)# generate graphs
 source("R/aggRun.R")
 
 print("Copying files to Rnw directory for Sweave")

@@ -15,7 +15,7 @@
 #' @include workbookFunctions.R
 #' @include nutrientCalcFunctions.R
 #if (!exists("getNewestVersion", mode = "function"))
-  {source("R/nutrientModFunctions.R")
+{source("R/nutrientModFunctions.R")
   source("R/workbookFunctions.R")
   source("R/nutrientCalcFunctions.R")
 }
@@ -38,13 +38,15 @@ copyFile <- function(fileShortName, sourceDir, destDir, fileType) {
   file.copy(from = paste(sourceDir, oldVersionList, sep = "/"), to = destDir, overwrite = TRUE)
 }
 
-copyListFromResults <- c("dt.energy.ratios", "dt.budgetShare",
-                         "RDA.macro.sum.req.ratio", "RDA.vits.sum.req.ratio", "RDA.minrls.sum.req.ratio",
-                         "RDA.macro.staples.ratio","RDA.vits.staples.ratio", "RDA.minrls.staples.ratio",
-                         "RDA.macro.FG.ratio","RDA.vits.FG.ratio", "RDA.minrls.FG.ratio",
-                         "UL.vits.sum.req.ratio", "UL.minrls.sum.req.ratio",  "dt.shannonDiversity", "metaData",
-                         "UL.minrls.FG.ratio", "UL.vits.FG.ratio", "dt.nutrients.sum.all", "dt.nutrients.sum.staples",
-                         "PR.iron.sum.req.ratio", "PR.iron.sum.req.ratio")
+copyListFromResults <- c("dt.energy_ratios", "dt.budgetShare",
+                         "RDA.macro_sum_reqRatio", "RDA.vits_sum_reqRatio", "RDA.minrls_sum_reqRatio",
+                         "RDA.macro_staples_ratio","RDA.vits_staples_ratio", "RDA.minrls_staples_ratio",
+                         "RDA.macro_FG_reqRatio","RDA.vits_FG_reqRatio", "RDA.minrls_FG_reqRatio",
+#                         "UL.vits.sum.req.ratio", "UL.minrls.sum.req.ratio",
+#                         "UL.minrls.FG.ratio", "UL.vits.FG.ratio",
+                         "dt.nonStapleKcalShare","dt.RAOqe", "dt.compQI", "dt.compDI", "dt.nutBalScore", "dt.metadata",
+                         "dt.nutrients.sum.all",  "dt.nutrients.sum.staples")
+#, "dt.nutrients.sum.staples")
 
 copyListFromData <- c("dt.regions.all", "dt.foodGroupsInfo", "resultFileLookup", "dt.scenarioListIMPACT")
 copyListFromiData <- c("dt.IMPACTgdxParams")
@@ -70,8 +72,8 @@ file.copy("R/nutrientModFunctions.R", "nutrientModeling/global.R", overwrite = T
 # zip up csv files in the results directory
 
 zipFileName <- paste("results/resultsCSVzip", Sys.Date(), "zip", sep = "_" )
-     regExp <- paste("(?=^", ")(?=.*csv$)", sep = "")
- zipList <-     grep(regExp, list.files(fileloc("resultsDir")), value = TRUE,  perl = TRUE)
- zipList <- paste("results", zipList, sep = "/")
+regExp <- paste("(?=^", ")(?=.*csv$)", sep = "")
+zipList <-     grep(regExp, list.files(fileloc("resultsDir")), value = TRUE,  perl = TRUE)
+zipList <- paste("results", zipList, sep = "/")
 # zip(zipfile = zipFileName, files = zipList, flags = "-r9X", extras = "",  zip = Sys.getenv("R_ZIPCMD", "zip"))
 

@@ -1,0 +1,9 @@
+% from http://tex.stackexchange.com/questions/5228/can-one-tex-file-output-to-multiple-pdf-files
+\documentclass{article}
+\usepackage{pdfpages}
+\begin{document}
+% macro nutrients adequacy ratio
+\includepdfmerge[nup=2x2]{carbohydrate_g_macro_reqRatio_WB.pdf, protein_g_macro_reqRatio_WB.pdf, totalfiber_g_macro_reqRatio_WB.pdf}
+
+\end{document}
+

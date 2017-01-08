@@ -1,13 +1,13 @@
 # To make sure data and script files are up to date, first run copyFilestoNutrientModeling.R
 # This is a Shiny web application. You can run the application by clicking
-# the 'Run App' button above.
+# the 'Run App' button in RStudio
 library(shiny)
 library(rsconnect)
 library(data.table)
 library(xtable)
 library(fmsb) # for the spider charts
 library(gdata) # to reorder the scenario names
-library(dplyr)
+library(dtplyr)
 source("global.R")
 library(shinythemes)
 options(repos = c(CRAN = "https://cran.rstudio.com"))
@@ -18,7 +18,8 @@ options(repos = c(CRAN = "https://cran.rstudio.com"))
 # rsconnect::deployApp(appDir = paste(getwd(),"nutrientModeling", sep = "/"))
 dt.regions <- getNewestVersion("dt.regions.all", fileloc("mData"))
 countryNames <- sort(unique(dt.regions$region_name.IMPACT159))
-scenarioNames <- sort(keyVariable("scenarioListIMPACT"))
+dt.scenarioListIMPACT <- getNewestVersion("dt.scenarioListIMPACT", fileloc("mData"))
+scenarioNames <- unique(dt.scenarioListIMPACT$scenario)
 # refScenarios <- c("SSP2-NoCC", "SSP2-HGEM", "SSP2-IPSL")
 # scenarioNames <- c(refScenarios, scenarioNames[!scenarioNames %in% refScenarios])
 resultFileLookup <-
@@ -48,9 +49,8 @@ ui <- fluidPage(
       wellPanel(
         includeHTML("www/affordabilityText.html"),
         helpText(
-          "Choose from the drop downs below to see country-specific shares",
-          "expenditures on food by a representative consumer compared",
-          "to per capita income."
+          "Choose from the drop down below to see country-specific shares ",
+          "of the cost of per capita food availability in per capita income."
         ),
         selectInput(
           inputId = "countryName",
@@ -99,9 +99,9 @@ ui <- fluidPage(
                          column(width = 6, plotOutput("adequacySpiderGraphP2", height = "250px")
                          )),
                 fluidRow(align = "center",
-                         column(width = 6, div(tableOutput("adequacyTableP1"), style = "font-size:60%")
+                         column(width = 6, div(tableOutput("adequacyTableP1"), style = "font-size:65%")
                          ),
-                         column(width = 6, div(tableOutput("adequacyTableP2"), style = "font-size:60%")
+                         column(width = 6, div(tableOutput("adequacyTableP2"), style = "font-size:65%")
                          )),
                 fluidRow(align = "center",
                          column(width = 6, plotOutput("adequacySpiderGraphP3", height = "250px")
@@ -109,9 +109,9 @@ ui <- fluidPage(
                          column(width = 6, plotOutput("adequacySpiderGraphP4", height = "250px")
                          )),
                 fluidRow(align = "center",
-                         column(width = 6, div(tableOutput("adequacyTableP3"), style = "font-size:60%")
+                         column(width = 6, div(tableOutput("adequacyTableP3"), style = "font-size:65%")
                          ),
-                         column(width = 6, div(tableOutput("adequacyTableP4"), style = "font-size:60%")
+                         column(width = 6, div(tableOutput("adequacyTableP4"), style = "font-size:65%")
                          )),
                 fluidRow(align = "center",
                          column(width = 6, plotOutput("adequacySpiderGraphP5", height = "250px")
@@ -119,9 +119,9 @@ ui <- fluidPage(
                          column(width = 6, plotOutput("energyRatioBarPlot", height = "250px")
                          )),
                 fluidRow(align = "center",
-                         column(width = 6, div(tableOutput("adequacyTableP5"), style = "font-size:60%")
+                         column(width = 6, div(tableOutput("adequacyTableP5"), style = "font-size:65%")
                          ),
-                         column(width = 6, div(tableOutput("energyRatioTable"), style = "font-size:60%")
+                         column(width = 6, div(tableOutput("energyRatioTable"), style = "font-size:65%")
                          )),
                 includeHTML("www/adequacyWeightedRequirement.html")
       )
@@ -271,20 +271,28 @@ ui <- fluidPage(
 )
 
 server <- function(input, output) {
+
   years <- c("X2010", "X2030", "X2050")
-#  years <- c("X2010", "X2050")
+  #  years <- c("X2010", "X2050")
   yearsClean <- gsub("X", "", years)
-  # dt.energyRatios <- getNewestVersion("dt.energy.ratios", fileloc("mData"))
-  # keepYearList <- keyVariable("keepYearList")
-  # idVars <- c("scenario", "region_code.IMPACT159", "nutrient")
-  # dt.energyRatios.long <-  data.table::melt(
-  #   dt.energyRatios,
-  #   id.vars = idVars,
-  #   variable.name = "year",
-  #   measure.vars = keepYearList,
-  #   variable.factor = FALSE
-  # )
-  # dt.energyRatios.long <- dt.energyRatios.long[year %in% years,]
+  dt.energy_ratios <- getNewestVersion("dt.energy_ratios")
+  dt.energy_ratios <- dt.energy_ratios[year %in% years]
+  formula.energy.ratios <- paste("scenario + region_code.IMPACT159 + nutrient ~ year")
+  dt.energy_ratios.wide <- data.table::dcast(
+    dt.energy_ratios,
+    formula = formula.energy.ratios,
+    value.var = "value")
+  nutnames <- cleanupNutrientNames(unique(dt.energy_ratios.wide$nutrient))
+
+  dt.budgetShare <- getNewestVersion("dt.budgetShare", fileloc("mData"))
+  dt.budgetShare <- dt.budgetShare[year %in% years]
+  keepListCol <- c("scenario", "region_code.IMPACT159", "year", "pcGDPX0", "incSharePCX0")
+  formula.budgetShare <- paste("scenario + region_code.IMPACT159  ~ year")
+  dt.budgetShare <- dt.budgetShare[, (keepListCol), with = FALSE]
+  dt.budgetShare.wide <- data.table::dcast(
+    dt.budgetShare,
+    formula = formula.budgetShare,
+    value.var = c("pcGDPX0", "incSharePCX0"))
 
   # adequacy server side -----
   output$adequacySpiderGraphP1 <- renderPlot({
@@ -292,7 +300,7 @@ server <- function(input, output) {
     scenarioName <- input$adequacyScenarioName
     countryCode <-
       countryCodeLookup(countryName, fileloc("mData"))
-    reqType <- "RDA.macro.sum.req.ratio"
+    reqType <- "RDA.macro_sum_reqRatio"
     #    print(paste(countryName, scenarioName, countryCode))
     nutReqSpiderGraph(reqType, countryCode, scenarioName, years, fileloc("mData"))
   })
@@ -302,15 +310,13 @@ server <- function(input, output) {
     scenarioName <- input$adequacyScenarioName
     countryCode <-
       countryCodeLookup(countryName, fileloc("mData"))
-    reqType <- "RDA.macro.sum.req.ratio"
+    reqType <- "RDA.macro_sum_reqRatio"
     temp <-
       as.data.table(nutReqDataPrep(reqType, countryCode, scenarioName, years, fileloc("mData"))
       )
     namelist <- colnames(temp)
     temp <- temp[4:nrow(temp)][, year := yearsClean]
     setcolorder(temp, c("year", namelist))
-    #      print(temp)
-    temp
   }, include.rownames = FALSE)
 
   output$adequacySpiderGraphP2 <- renderPlot({
@@ -318,7 +324,7 @@ server <- function(input, output) {
     scenarioName <- input$adequacyScenarioName
     countryCode <-
       countryCodeLookup(countryName, fileloc("mData"))
-    reqType <- "RDA.vits.sum.req.ratio"
+    reqType <- "RDA.vits_sum_reqRatio"
     temp  <-
       nutReqSpiderGraph(reqType, countryCode, scenarioName, years, fileloc("mData"))
   })
@@ -328,7 +334,7 @@ server <- function(input, output) {
     scenarioName <- input$adequacyScenarioName
     countryCode <-
       countryCodeLookup(countryName, fileloc("mData"))
-    reqType <- "RDA.vits.sum.req.ratio"
+    reqType <- "RDA.vits_sum_reqRatio"
     temp <-
       nutReqDataPrep(reqType, countryCode, scenarioName, years, fileloc("mData"))
     namelist <- colnames(temp)
@@ -341,7 +347,7 @@ server <- function(input, output) {
     countryName <- input$adequacyCountryName
     scenarioName <- input$adequacyScenarioName
     countryCode <- countryCodeLookup(countryName, fileloc("mData"))
-    reqType <- "RDA.minrls.sum.req.ratio"
+    reqType <- "RDA.minrls_sum_reqRatio"
     #   years <- c("X2010","X2030","X2050")
     nutReqSpiderGraph(reqType, countryCode, scenarioName, years, fileloc("mData"))
   })
@@ -351,7 +357,7 @@ server <- function(input, output) {
     scenarioName <- input$adequacyScenarioName
     countryCode <-
       countryCodeLookup(countryName, fileloc("mData"))
-    reqType <- "RDA.minrls.sum.req.ratio"
+    reqType <- "RDA.minrls_sum_reqRatio"
     temp <-
       nutReqDataPrep(reqType, countryCode, scenarioName, years, fileloc("mData"))
     namelist <- colnames(temp)
@@ -360,96 +366,92 @@ server <- function(input, output) {
   }, include.rownames = FALSE)
 
 
-  output$adequacySpiderGraphP4 <- renderPlot({
-    countryName <- input$adequacyCountryName
-    scenarioName <- input$adequacyScenarioName
-    countryCode <- countryCodeLookup(countryName, fileloc("mData"))
-    reqType <- "UL.minrls.sum.req.ratio"
-    #   years <- c("X2010","X2030","X2050")
-    nutReqSpiderGraph(reqType, countryCode, scenarioName, years, fileloc("mData"))
-  })
+  # output$adequacySpiderGraphP4 <- renderPlot({
+  #   countryName <- input$adequacyCountryName
+  #   scenarioName <- input$adequacyScenarioName
+  #   countryCode <- countryCodeLookup(countryName, fileloc("mData"))
+  #   reqType <- "UL.minrls.sum.req.ratio"
+  #   #   years <- c("X2010","X2030","X2050")
+  #   nutReqSpiderGraph(reqType, countryCode, scenarioName, years, fileloc("mData"))
+  # })
 
-  output$adequacyTableP4 <- renderTable({
-    countryName <- input$adequacyCountryName
-    scenarioName <- input$adequacyScenarioName
-    countryCode <- countryCodeLookup(countryName, fileloc("mData"))
-    reqType <- "UL.minrls.sum.req.ratio"
-    temp <-
-      nutReqDataPrep(reqType, countryCode, scenarioName, years, fileloc("mData"))
-    namelist <- colnames(temp)
-    temp <- temp[4:nrow(temp)][, year := yearsClean]
-    setcolorder(temp, c("year", namelist))
-  }, include.rownames = FALSE)
+  # output$adequacyTableP4 <- renderTable({
+  #   countryName <- input$adequacyCountryName
+  #   scenarioName <- input$adequacyScenarioName
+  #   countryCode <- countryCodeLookup(countryName, fileloc("mData"))
+  #   reqType <- "UL.minrls.sum.req.ratio"
+  #   temp <-
+  #     nutReqDataPrep(reqType, countryCode, scenarioName, years, fileloc("mData"))
+  #   namelist <- colnames(temp)
+  #   temp <- temp[4:nrow(temp)][, year := yearsClean]
+  #   setcolorder(temp, c("year", namelist))
+  # }, include.rownames = FALSE)
 
 
-  output$adequacySpiderGraphP5 <- renderPlot({
-    countryName <- input$adequacyCountryName
-    scenarioName <- input$adequacyScenarioName
-    countryCode <- countryCodeLookup(countryName, fileloc("mData"))
-    reqType <- "UL.vits.sum.req.ratio"
-    nutReqSpiderGraph(reqType, countryCode, scenarioName, years, fileloc("mData"))
-  })
+  # output$adequacySpiderGraphP5 <- renderPlot({
+  #   countryName <- input$adequacyCountryName
+  #   scenarioName <- input$adequacyScenarioName
+  #   countryCode <- countryCodeLookup(countryName, fileloc("mData"))
+  #   reqType <- "UL.vits.sum.req.ratio"
+  #   nutReqSpiderGraph(reqType, countryCode, scenarioName, years, fileloc("mData"))
+  # })
 
-  output$adequacyTableP5 <- renderTable({
-    countryName <- input$adequacyCountryName
-    scenarioName <- input$adequacyScenarioName
-    countryCode <-
-      countryCodeLookup(countryName, fileloc("mData"))
-    reqType <- "UL.vits.sum.req.ratio"
-    temp <-
-      nutReqDataPrep(reqType, countryCode, scenarioName, years, fileloc("mData"))
-    namelist <- colnames(temp)
-    temp <- temp[4:nrow(temp)][, year := yearsClean]
-    setcolorder(temp, c("year", namelist))
-  }, include.rownames = FALSE)
+  # output$adequacyTableP5 <- renderTable({
+  #   countryName <- input$adequacyCountryName
+  #   scenarioName <- input$adequacyScenarioName
+  #   countryCode <-
+  #     countryCodeLookup(countryName, fileloc("mData"))
+  #   reqType <- "UL.vits.sum.req.ratio"
+  #   temp <-
+  #     nutReqDataPrep(reqType, countryCode, scenarioName, years, fileloc("mData"))
+  #   namelist <- colnames(temp)
+  #   temp <- temp[4:nrow(temp)][, year := yearsClean]
+  #   setcolorder(temp, c("year", namelist))
+  # }, include.rownames = FALSE)
 
   # energy ratio bar chart -----
   output$energyRatioBarPlot <- renderPlot({
-    dt.energy.ratios <- getNewestVersion("dt.energy.ratios")
     countryName <- input$adequacyCountryName
     scenarioName <- input$adequacyScenarioName
     countryCode <- countryCodeLookup(countryName, fileloc("mData"))
-    temp <- dt.energy.ratios[region_code.IMPACT159 == countryCode & scenario == scenarioName,]
-    keepListCol <- c("region_code.IMPACT159", "nutrient", "year")
-    temp <- temp[,(keepListCol), with = FALSE]
-    temp <- temp[year %in% years,]
-    nutnames <- cleanupNutrientNames(temp[1:4,nutrient])
-    colors_in <- c( "yellow", "green", "blue","red" )
-    barplot(as.matrix(temp[1:4,yearsClean, with = FALSE]), main = "Share of energy consumption",
+    temp <- dt.energy_ratios.wide[region_code.IMPACT159 %in% countryCode & scenario %in% scenarioName,]
+    colors_in <- c( "gray", "green", "blue", "red", "yellow" )
+   # print(as.matrix(temp[1:4,years, with = FALSE]))
+    barplot(as.matrix(temp[2:6,years, with = FALSE]), main = "Share of energy consumption",
             col = colors_in, ylim = c(0,1))
-    legend(x = "bottomright", y = NULL, legend = nutnames, bty = "n", pch = 20,
+    legend(x = "bottomright", y = NULL, legend = nutnames[2:length(nutnames)], bty = "n", pch = 20,
            col = colors_in, text.col = "black", cex = .8, pt.cex = .8, pt.lwd = 1,
            y.intersp = .8)
-
   })
 
   output$energyRatioTable <- renderTable({
-    dt.energy.ratios <- getNewestVersion("dt.energy.ratios")
     countryName <- input$adequacyCountryName
     scenarioName <- input$adequacyScenarioName
     countryCode <- countryCodeLookup(countryName, fileloc("mData"))
-    temp <- dt.energy.ratios[region_code.IMPACT159 == countryCode & scenario == scenarioName,]
+    temp <- dt.energy_ratios.wide[region_code.IMPACT159 == countryCode & scenario == scenarioName,]
+    print(temp)
     keepListCol <- c("region_code.IMPACT159", "nutrient", years)
     temp <- temp[,(keepListCol), with = FALSE]
     setnames(temp, old = c("region_code.IMPACT159",years), new = c("region", yearsClean))
     temp[,region := NULL]
-    nutnames <- cleanupNutrientNames(temp[,nutrient])
     temp[,nutrient := nutnames]
-    temp[1:4]
+    temp[1:6]
   }, include.rownames = FALSE)
+
   # staples diversity metrics -----
   output$nonStapleEnergyShareTable <- renderTable({
-    dt.stapleShares <- getNewestVersion("dt.nutrients.sum.staples")
+    dt.stapleShares <- getNewestVersion("dt.nutrients.sum.staples", fileloc("resultsDir"))
     countryName <- input$stapleCountryName
     scenarioName <- input$stapleScenarioName
     countryCode <- countryCodeLookup(countryName, fileloc("mData"))
     nutrientGroupStaples <- input$nutrientGroupStaples
     temp <- dt.stapleShares[region_code.IMPACT159 == countryCode &
                               scenario == scenarioName & year %in% years,]
+
     macroNutrients <- c("protein_g.sum.staple", "fat_g.sum.staple", "carbohydrate_g.sum.staple",  "totalfiber_g.sum.staple")
     vitamins <- c("vit_c_mg.sum.staple", "thiamin_mg.sum.staple", "riboflavin_mg.sum.staple", "niacin_mg.sum.staple",
                   "vit_b6_mg.sum.staple", "folate_µg.sum.staple", "vit_b12_µg.sum.staple", "vit_a_rae_µg.sum.staple",
-                  "vit_e_mg.sum.staple",  "vit_d_μg.sum.staple", "vit_k_µg.sum.staple")
+                  "vit_e_mg.sum.staple","vit_d_µg.sum.staple","vit_k_µg.sum.staple")
     minerals <- c("calcium_mg.sum.staple",  "iron_mg.sum.staple", "magnesium_mg.sum.staple", "phosphorus_mg.sum.staple",
                   "potassium_g.sum.staple", "sodium_g.sum.staple", "zinc_mg.sum.staple")
     kcals <- c("kcals.fat.sum.staple", "kcals.protein.sum.staple", "kcals.sugar.sum.staple", "kcals.ethanol.sum.staple")
@@ -496,9 +498,9 @@ server <- function(input, output) {
   output$NutDiverFGspiderGraphP1 <- renderPlot({
     countryName <- input$FGcountryName
     reqName <- input$nutrientGroup
-    if (reqName == "macro nutrients") reqFileName <- "RDA.macro.FG.ratio"
-    if (reqName == "minerals") reqFileName <- "RDA.minrls.FG.ratio"
-    if (reqName == "vitamins") reqFileName <- "RDA.vits.FG.ratio"
+    if (reqName == "macro nutrients") reqFileName <- "RDA.macro_FGRatio"
+    if (reqName == "minerals") reqFileName <- "RDA.minrl_FGRatio"
+    if (reqName == "vitamins") reqFileName <- "RDA.vits_FGRatio"
     scenarioName <- input$FGscenarioName
     countryCode <-
       countryCodeLookup(countryName, fileloc("mData"))
@@ -511,24 +513,22 @@ server <- function(input, output) {
     #scenarioName <- input$scenarioName
     countryCode <-
       countryCodeLookup(countryName, fileloc("mData"))
-    dt.budgetShare <-
-      getNewestVersion("dt.budgetShare", fileloc("mData"))
     keepListCol <-
       c("scenario", "year", "pcGDPX0", "budget.PCX0", "incSharePCX0")
-    temp <- dt.budgetShare[region_code.IMPACT159 == countryCode &
-                             year %in% years, keepListCol, with = FALSE]
-    temp[, incSharePCX0 := incSharePCX0 * 100]
-    setnames(
-      temp,
-      old = c("pcGDPX0", "budget.PCX0", "incSharePCX0"),
-      new = c("Per capita GDP", "Budget", "Expend. share (%)")
-    )
-    # reorder scenarios in temp to be the same order as scenarioNames
+    temp <- dt.budgetShare.wide[region_code.IMPACT159 == countryCode]
+temp[, region_code.IMPACT159 := NULL]
+    #    setnames(
+    #   temp,
+    #   old = c("pcGDPX0", "budget.PCX0", "incSharePCX0"),
+    #   new = c("Per capita GDP", "Budget", "Expend. share (%)")
+    # )
+    # # reorder scenarios in temp to be the same order as scenarioNames
     temp$scenario <-
       reorder.factor(temp$scenario, new.order = scenarioNames)
     temp <- temp %>% arrange(scenario)
     temp
   }, include.rownames = FALSE)
+
 
   # diversityTable -----
   output$diversityTable <- renderTable({
@@ -551,7 +551,7 @@ server <- function(input, output) {
 
   # metadataTable ------
   output$metadataTable <- renderTable({
-    metaData <- getNewestVersion("metaData", fileloc("mData"))
+    metaData <- getNewestVersion("dt.metadata", fileloc("mData"))
     metaData
   })
 
@@ -560,17 +560,18 @@ server <- function(input, output) {
     metaData <- getNewestVersion("dt.IMPACTgdxParams", fileloc("mData"))
     metaData
   }, include.rownames = FALSE)
-  # IMPACTfoodgroupLookupTable ------
+
+    # IMPACTfoodgroupLookupTable ------
 
   output$IMPACTfoodgroupTable <- renderTable({
-    foodGroupLU <-
-      getNewestVersion("dt.foodGroupsInfo")
-    foodGroupLU
+    foodGroupLU <- getNewestVersion("dt.foodGroupsInfo")
+    keepListCol <- c( "IMPACT_code",  "description", "food_group_assignment", "food_group_code", "staple_code" )
+    foodGroupLU <- foodGroupLU[, (keepListCol), with = FALSE]
   }, include.rownames = FALSE)
 
   output$fileDocumentation <- renderTable({
-    fileDocumentation <-
-      read.csv("data/fileDocumentation.csv", stringsAsFactors = FALSE)
+    fileDocumentation <- getNewestVersion("resultFileLookup", fileloc("mData"))
+#      read.csv("data/fileDocumentation.csv", stringsAsFactors = FALSE)
     fileDocumentation
   }, include.rownames = FALSE)
 }

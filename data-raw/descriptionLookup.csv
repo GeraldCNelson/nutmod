@@ -1,95 +1,55 @@
 reqTypeName,description
-all.req.ratio.cMax,
-all.req.ratio.cMin,
-AMDR.hi.all.ratio,
-AMDR.hi.all.req.ratio,
-AMDR.hi.all.sum,
-AMDR.hi.FG.ratio,
-AMDR.hi.FG.req.ratio,Share of AMDR upper level amounts by food group
-AMDR.hi.staples.ratio,
-AMDR.hi.staples.req.ratio,Share of AMDR upper level amounts by staple
-AMDR.hi.staples.sum,
-AMDR.hi.sum.req.ratio,
-AMDR.lo.all.ratio,
-AMDR.lo.all.req.ratio,
-AMDR.lo.all.sum,
-AMDR.lo.FG.ratio,Share of AMDR lower level amounts by food group
-AMDR.lo.FG.req.ratio,
-AMDR.lo.staples.ratio,Share of AMDR lower level amounts by staple
-AMDR.lo.staples.req.ratio,
-AMDR.lo.staples.sum,
-AMDR.lo.sum.req.ratio,
+dt.bioavail_iron,"Includes the iron bioavailabiity ratio by scenario, country, and year"
+dt.bioavail_zinc,"Includes the zinc bioavailabiity ratio by scenario, country, and year"
 dt.budgetShare,Share of cost of IMPACT commodities in per capita income
-dt.energy.ratios,
-dt.IMPACTmetaData,IMPACT meta data
-dt.nutrients.sum,
+dt.compDI,Composite disqualifying index
+dt.compQI,composite qualifying index
+dt.energy_ratios,
+dt.foodAvail.foodGroup,
+dt.indexDisqual,"Disqualifying index by food, by scenario, country, and year"
+dt.indexQual,"Qualifying index by food, by scenario, country, and year"
+dt.metadata,IMPACT meta data
+dt.MFAD,Modified Functional Attribute Diversity metric
+dt.nonStapleKcalShare,
+dt.nutBal.commods,"nutrient balance score for each food item by scenario, country, and year"
+dt.nutBalScore,"Nutrient balance score by scenario, country, and year"
+dt.nutrients.nonstapleShare,"Nonstaple share of nutrients by scenario, country, and year"
 dt.nutrients.sum.all,
 dt.nutrients.sum.staples,
+dt.RAOqe,Rao's quadratic entropy metric
 dt.shannonDiversity,Shannon diversity results
-EAR.all.ratio,
-EAR.all.req.ratio,
-EAR.all.sum,
-EAR.FG.ratio,
-EAR.FG.req.ratio,
-EAR.staples.ratio,Share of EAR requirement from staples
-EAR.staples.req.ratio,Share of EAR from staples
-EAR.staples.sum,
-EAR.sum.req.ratio,
-FG.req.ratio.cMax,
-FG.req.ratio.cMin,
-food.agg.AMDR.hi,
-food.agg.AMDR.lo,
-food.agg.EAR,
-food.agg.RDA.macro,
-food.agg.RDA.minrls,
-food.agg.RDA.vits,
-food.agg.UL.minrls,
-food.agg.UL.vits,
-metaData,Meta data for the project
-RDA.macro.all.ratio,Share of macronutrient availability by food item
-RDA.macro.all.req.ratio,Share of macronutrient RDA by food item
-RDA.macro.all.sum,Availability of macronutrients
-RDA.macro.FG.ratio,Share of macronutrients by food group
-RDA.macro.FG.req.ratio,Share of macronutrients RDA by food group
-RDA.macro.staples.ratio,Share of macronutrients from staples
-RDA.macro.staples.req.ratio,Share of macronutrients RDA by staple
-RDA.macro.staples.sum,Total Availability of macronutrients by staple
-RDA.macro.sum.req.ratio,Share of macronutrient availability to RDA
-RDA.minrls.all.ratio,Share of mineral nutrient availability by food item
-RDA.minrls.all.req.ratio,Share of mineral nutrient RDA by food item
-RDA.minrls.all.sum,Availability of mineral nutrients by food item
-RDA.minrls.FG.ratio,Share of mineral nutrients by food group
-RDA.minrls.FG.req.ratio,Share of mineral nutrients RDA by food group
-RDA.minrls.staples.ratio,Share of mineral nutrients from staples
-RDA.minrls.staples.req.ratio,Share of mineral nutrients RDA by staple
-RDA.minrls.staples.sum,Total availability of mineral nutrients by staple
-RDA.minrls.sum.req.ratio,Share of mineral nutrient availability to RDA
-RDA.vits.all.ratio,Share of vitamin availability by food item
-RDA.vits.all.req.ratio,Share of vitamin RDA by food item
-RDA.vits.all.sum,Availability of vitamins by food item
-RDA.vits.FG.ratio,Share of vitamins by food group
-RDA.vits.FG.req.ratio,Share of vitamins RDA by food group
-RDA.vits.staples.ratio,Share of vitamins from staples
-RDA.vits.staples.req.ratio,Share of vitamins RDA by staple
-RDA.vits.staples.sum,Total availability of vitamins by staple
-RDA.vits.sum.req.ratio,Share of vitamin availability to RDA
-staples.req.ratio.cMax,
-staples.req.ratio.cMin,
-UL.minrls.all.ratio,
-UL.minrls.all.req.ratio,
-UL.minrls.all.sum,
-UL.minrls.FG.ratio,
-UL.minrls.FG.req.ratio,
-UL.minrls.staples.ratio,
-UL.minrls.staples.req.ratio,
-UL.minrls.staples.sum,
-UL.minrls.sum.req.ratio,
-UL.vits.all.ratio,
-UL.vits.all.req.ratio,
-UL.vits.all.sum,
-UL.vits.FG.ratio,
-UL.vits.FG.req.ratio,
-UL.vits.staples.ratio,
-UL.vits.staples.req.ratio,
-UL.vits.staples.sum,
-UL.vits.sum.req.ratio,
+food_agg_AMDR.hi,
+food_agg_AMDR.lo,
+food_agg_EAR,
+food_agg_RDA.macro,
+food_agg_RDA.minrls,
+food_agg_RDA.vits,
+food_agg_UL.minrls,
+food_agg_UL.vits,
+RDA.macro_all_ratio,Share of macronutrient availability by food item
+RDA.macro_all_reqRatio,Share of macronutrient RDA by food item
+RDA.macro_all_sum,Availability of macronutrients
+RDA.macro_FGratio,Share of macronutrients by food group
+RDA.macro_FG_reqRatio,Share of macronutrients RDA by food group
+RDA.macro_staples_ratio,Share of macronutrients from staples
+RDA.macro_staples_reqRatio,Share of macronutrients RDA by staple
+RDA.macro_staples_sum,Total Availability of macronutrients by staple
+RDA.macro_sum_reqRatio,Share of macronutrient availability to RDA
+RDA.minrls_all_ratio,Share of mineral nutrient availability by food item
+RDA.minrls_all_reqRatio,Share of mineral nutrient RDA by food item
+RDA.minrls_all_sum,Availability of mineral nutrients by food item
+RDA.minrls_FG_ratio,Share of mineral nutrients by food group
+RDA.minrls_FG_reqRatio,Share of mineral nutrients RDA by food group
+RDA.minrls_staples_ratio,Share of mineral nutrients from staples
+RDA.minrls_staples_reqRatio,Share of mineral nutrients RDA by staple
+RDA.minrls_staples_sum,Total availability of mineral nutrients by staple
+RDA.minrls_sum_reqRatio,Share of mineral nutrient availability to RDA
+RDA.vits_all_ratio,Share of vitamin availability by food item
+RDA.vits_all_reqRatio,Share of vitamin RDA by food item
+RDA.vits_all_sum,Availability of vitamins by food item
+RDA.vits_FG_ratio,Share of vitamins by food group
+RDA.vits_FG_reqRatio,Share of vitamins RDA by food group
+RDA.vits_staples_ratio,Share of vitamins from staples
+RDA.vits_staples_reqRatio,Share of vitamins RDA by staple
+RDA.vits_staples_sum,Total availability of vitamins by staple
+RDA.vits_sum_reqRatio,Share of vitamin availability to RDA
