@@ -26,7 +26,7 @@ if (!exists("getNewestVersion", mode = "function"))
 reqsList <- keyVariable("reqsListPercap")
 # exclude the following from the graphing
 deleteList <- c("req.EAR.percap","req.UL.vits.percap",
-                "req.UL.minrls.percap", "req.AMDR.hi","req.AMDR.lo")
+                "req.UL.minrls.percap", "req.AMDR_hi","req.AMDR_lo")
 
 scenario <- "SSP2-GFDL" # for testing
 scenarioResults <- function(scenario) {}

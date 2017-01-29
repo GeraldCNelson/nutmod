@@ -1,0 +1,11 @@
+% from http://tex.stackexchange.com/questions/5228/can-one-tex-file-output-to-multiple-pdf-files
+\documentclass{article}
+\usepackage{pdfpages}
+\begin{document}
+
+% foodgroup availability ratio
+\includepdfmerge[nup=2x3]{
+sweeteners_foodAvail_foodGroup_WB.pdf, vegetables_foodAvail_foodGroup_WB.pdf}
+
+\end{document}
+

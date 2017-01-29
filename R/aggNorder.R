@@ -1,9 +1,19 @@
 #' @author Gerald C. Nelson, \email{nelson.gerald.c@@gmail.com}
-#' @keywords nutrient data,
-#' @title Calculate nutrient deltas across scenarios
-#' @name delta.R
-#' @include nutrientModFunctions.R
-#if (!exists("getNewestVersion", mode = "function"))
+#' @keywords utilities, nutrient data, IMPACT food commodities nutrient lookup
+# Intro ---------------------------------------------------------------
+#Copyright (C) 2016 Gerald C. Nelson, except where noted
+
+# This program is free software: you can redistribute it and/or modify it
+# under the terms of the GNU General Public License as published by the Free
+# Software Foundation, either version 3 of the License, or (at your option)
+# any later version.
+#
+# This program is distributed in the hope that it will be useful, but
+# WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
+# or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License
+# for more details at http://www.gnu.org/licenses/.
+#' @description A script to hold functions used for graphing in aggRun.R.
+
 {source("R/nutrientModFunctions.R")
   source("R/workbookFunctions.R")
   source("R/nutrientCalcFunctions.R")
@@ -12,11 +22,12 @@
 library(data.table)
 library(gridExtra)
 library(gplots)
+library(ggplot2)
 
 # population for weighting -----
 dt.pop <- getNewestVersion("dt.PopX0", fileloc("iData"))
 
-orderRegions <- function(DT,aggChoice) {
+orderRegions <- function(DT, aggChoice) {
   # order by regions
   if (aggChoice == "WB") {
     regionOrder <- c("lowInc","lowMidInc", "upMidInc","highInc")
@@ -76,14 +87,15 @@ aggNorder <- function(gdxChoice, DTglobal, aggChoice, scenChoice) {
   }
 
   #  temp <- temp[, region.budget.share := mean(value), by = c("region_code", "year")]
+  # aggregation takes place in the next line of code. It says create the variable value from the old variable value, averaged by the region
+  # code and year using the popX) value as weights
   merged <- merged[, value := weighted.mean(value, PopX0), by = c("scenario", "region_code", "year")]
   keepListCol <- c("scenario",  "year", "region_code", "region_name", "value")
   merged <- merged[, (keepListCol), with = FALSE]
   data.table::setkey(merged, NULL)
   DT <- unique(merged)
   #keep just the scenario.base scenario for 2010 and rename the scenario to 2010, then delete year column
-  DT <- DT[year == "X2010" & scenario == scenario.base |
-             year == "X2050",]
+  DT <- DT[year == "X2010" & scenario == scenario.base | year == "X2050",]
   DT <- DT[year == "X2010", scenario := "2010"][, year := NULL]
 
   # order of scenario and regions
@@ -102,12 +114,12 @@ aggNorder <- function(gdxChoice, DTglobal, aggChoice, scenChoice) {
     DT[, scenarioOrder := NULL]
   }
   if (gdxChoice == "SSPs") {
-    # do manipulations on the gdx data that has 3 SSP scenarios and 3 climate change scenarios.
-    scenOrder.SSPs <- c("2010", "SSP2-NoCC-REF", "SSP1-NoCC-REF", "SSP3-NoCC-REF", "SSP2-GFDL-REF", "SSP2-IPSL-REF", "SSP2-HGEM-REF")
-    DT <- DT[scenario %in% scenOrder.SSPs, ] # doesn't need eval-parse because the list is defined inside the function
+    # do manipulations on the gdx data that has the scenarios in scenChoice.
+    scenOrder <- c("2010", scenChoice)
+    DT <- DT[scenario %in% scenOrder, ] # doesn't need eval-parse because the list is defined inside the function
 
     # order by scenarios
-    DT[, scenarioOrder := match(scenario, scenOrder.SSPs)]
+    DT[, scenarioOrder := match(scenario, scenOrder)]
     data.table::setorder(DT, scenarioOrder)
     DT[, scenarioOrder := NULL]
   }
@@ -117,17 +129,52 @@ aggNorder <- function(gdxChoice, DTglobal, aggChoice, scenChoice) {
   return(DT)
 }
 
-plotByRegionBar <- function(dt, fileName, plotTitle, yLab, yRange, aggChoice, oneLine) {
-  print(paste("plotting bars by region ", aggChoice, "for ", plotTitle))
+plotByRegionBar <- function(dt, fileName, plotTitle, yLab, yRange, aggChoice, scenOrder, oneLine, colorList) {
+  print(paste("plotting bars by region", aggChoice, "for", plotTitle))
   temp <- copy(dt)
   regionCodes <- unique(temp$region_code)
   regionNames <- unique(temp$region_name)
   scenarios <- unique(temp$scenario)
-  if (gdxChoice == "SSPs") colList <- c("black", "red", "red2", "red4", "green", "green2", "green4")
-  if (gdxChoice == "USAID") colList <- c("black", rainbow(10)[1:length(scenarios) - 1])
-  legendText <- unique(gsub("-REF", "", scenarios))
 
-  #the use of factor and levels keeps the order of the regions in region_code
+  # initial attempts to use ggplot
+  temp[, scenario := gsub("-REF", "", scenario)]
+  scenOrder <- gsub("-REF", "", scenOrder)
+  # temp <- temp[order(region_code)]
+  if (aggChoice %in% "WB") regionNameOrder <- c("Low income", "Lower middle income", "Upper middle income", "High income")
+  if (aggChoice %in% "AggReg1") regionNameOrder <- regionNames
+  if (aggChoice %in% "tenregions") regionNameOrder <- regionNames
+  scenarioNameOrder <- scenOrder
+  temp[, region_name := factor(region_name, levels =  regionNameOrder)]
+  temp[, scenario := factor(scenario, levels = scenarioNameOrder)]
+  scenario.econ <- c("SSP2-NoCC", "SSP1-NoCC", "SSP3-NoCC")
+  scenario.clim <- c("SSP2-HGEM")
+  # min.econ <- temp[scenario %in% scenario.econ,  min(value), by = c("region_code")]
+  # temp[scenario %in% scenario.econ, value.min.econ := min(value), by = c("region_code")]
+  # temp[scenario %in% scenario.econ, value.max.econ := max(value), by = c("region_code")]
+  # temp[scenario %in% scenario.clim, value.min.clim := min(value), by = c("region_code")]
+  # temp[scenario %in% scenario.clim, value.max.clim := max(value), by = c("region_code")]
+  # temp[scenario %in% "2010", value.min.econ := value]
+  # temp[scenario %in% "2010", value.max.econ := value]
+  # temp[scenario %in% "2010", value.min.clim := value]
+  # temp[scenario %in% "2010", value.max.clim := value]
+  #
+  # draw bars
+  pdf(paste("graphics/", fileName,"_", aggChoice, ".pdf", sep = ""), width = 7, height = 5.2, useDingbats=FALSE)
+  p <- ggplot(temp, aes(x = region_name, y = value, fill = scenario, order = c("region_name") )) +
+    geom_bar(stat = "identity", position = "dodge", color = "black") +
+    theme(legend.position = "right") +
+    theme(axis.text.x = element_text(angle = 45, hjust = 1)) +
+    scale_fill_manual(values = colorList) +
+    theme(plot.title = element_text(hjust = 0.5)) +
+    ggtitle(plotTitle) +
+    ylim(yRange) +
+    labs(y = yLab, x = NULL)
+
+  if (oneLine == TRUE) p + geom_abline(intercept = 1, slope = 0)
+    print(p)
+  # geom_errorbar(aes(ymin = value.min.econ, ymax = value.max.econ), color = "red", size = 2, position = position_dodge(0.9), width = 0.5) +
+  # geom_errorbar(aes(ymin = value.min.clim, ymax = value.max.clim), color = "green", size = 2, position = position_dodge(0.2), width = 0.5)
+  dev.off()
   formula.wide <- "scenario ~ factor(region_code, levels = unique(region_code))"
   temp.wide <- data.table::dcast(
     data = temp,
@@ -138,41 +185,74 @@ plotByRegionBar <- function(dt, fileName, plotTitle, yLab, yRange, aggChoice, on
   temp.wide[, scenarioOrder := NULL]
   #temp.out <- data.table::copy(temp.wide)
   data.table::setnames(temp.wide, old = regionCodes, new = regionNames)
-  temp.wide[, scenario := gsub("-REF", "", scenario)]
-  temp <- as.data.frame(temp.wide)
-  rownames(temp) <- temp[,1]
-  temp[1] = NULL
-  temp <- data.matrix(temp)
-  # print(temp.wide)
-  #  par(mai=c(2,0.82,0.82,0.42))
-  pdf(paste("graphics/", fileName,"_", aggChoice, ".pdf", sep = ""), width = 7, height = 5.2)
-  #layout(matrix(c(1,2)), c(1,1), c(1,3))
-  #par(mfrow = c(2,1), mai = c(1,1,1,1))
-  #  mat = matrix(c(1,2))
-  #  layout(mat, heights = c(5,3))
-  barlocs <- barplot(temp,  col = colList, ylim = yRange, xaxt = "n",
-                     legend.text = rownames(temp), args.legend =
-                       list(cex = .5, x = "bottomright", inset = c(0, -0.3), xpd = TRUE),
-                     beside = TRUE, ylab = yLab,  cex.names = .7, las = 2,  srt = 45, main = plotTitle)
 
-  regionNames <- colnames(temp)
-  text(
-    colMeans(barlocs),
-    par("usr")[3] - 0.1, srt = 45, adj = 1.2,
-    labels = regionNames, xpd = TRUE,  cex = 0.6, cex.axis = 0.6)
-  if (oneLine == TRUE) abline(h = 1, lty = 3, lwd = 0.8)
   colsToRound <- names(temp.wide)[2:length(temp.wide)]
   temp.wide[,(colsToRound) := round(.SD,2), .SDcols = colsToRound]
   data.table::setnames(temp.wide, old = names(temp.wide), new = c("scenario", regionCodes))
   #  textplot(temp.wide, cex = 0.6, valign = "top", show.rownames = FALSE, mai = c(.5, .5, .5, .5))
-  dev.off()
   write.csv(temp.wide, file = paste("graphics/", fileName, "_", aggChoice, ".csv", sep = ""))
-  print(paste("Done plotting bars by region ", aggChoice, "for ", plotTitle))
-  print(" ")
+  # #draw lines
+  # temp2 <- temp[scenario %in% c("2010", "SSP2-NoCC") & region_code %in% "lowInc",]
+  # ggplot(temp2, aes(x = region_name, y = value, fill = scenario, order = c("region_name") )) +
+  #   theme(axis.text.x = element_text(angle = 45, hjust = 1)) +
+  #   geom_line(aes(group = 1)) +
+  #   geom_point(size = 2) +
+  #   theme(plot.title = element_text(hjust = 0.5)) +
+  #   ggtitle(plotTitle) +
+  #   ylim(yRange) +
+  #   labs(y = yLab, x = NULL) +
+  #   geom_errorbar(aes(ymin = value.min.econ, ymax = value.max.econ), color = "green", size = 2, width = 0.2)
+
+
+  # ###
+
+  #the use of factor and levels keeps the order of the regions in region_code
+  # formula.wide <- "scenario ~ factor(region_code, levels = unique(region_code))"
+  # temp.wide <- data.table::dcast(
+  #   data = temp,
+  #   formula = formula.wide,
+  #   value.var = "value")
+  # temp.wide[, scenarioOrder := match(scenario, scenarios)]
+  # data.table::setorder(temp.wide, scenarioOrder)
+  # temp.wide[, scenarioOrder := NULL]
+  # #temp.out <- data.table::copy(temp.wide)
+  # data.table::setnames(temp.wide, old = regionCodes, new = regionNames)
+  # temp.wide[, scenario := gsub("-REF", "", scenario)]
+  # temp <- as.data.frame(temp.wide)
+  #
+  # rownames(temp) <- temp[,1]
+  # temp[1] = NULL
+  # temp <- data.matrix(temp)
+  # # print(temp.wide)
+  # #  par(mai=c(2,0.82,0.82,0.42))
+  # # pdf(paste("graphics/", fileName,"_", aggChoice, ".pdf", sep = ""), width = 7, height = 5.2)
+  # # #layout(matrix(c(1,2)), c(1,1), c(1,3))
+  # # #par(mfrow = c(2,1), mai = c(1,1,1,1))
+  # # #  mat = matrix(c(1,2))
+  # # #  layout(mat, heights = c(5,3))
+  # # barlocs <- barplot(temp,  col = colorList, ylim = yRange, xaxt = "n",
+  # #                    legend.text = rownames(temp), args.legend =
+  # #                      list(cex = .5, x = "bottomright", inset = c(0, -0.3), xpd = TRUE),
+  # #                    beside = TRUE, ylab = yLab,  cex.names = .7, las = 2,  srt = 45, main = plotTitle)
+  #
+  # regionNames <- colnames(temp)
+  # text(
+  #   colMeans(barlocs),
+  #   par("usr")[3] - 0.1, srt = 45, adj = 1.2,
+  #   labels = regionNames, xpd = TRUE,  cex = 0.6, cex.axis = 0.6)
+  # if (oneLine == TRUE) abline(h = 1, lty = 3, lwd = 0.8)
+  # colsToRound <- names(temp.wide)[2:length(temp.wide)]
+  # temp.wide[,(colsToRound) := round(.SD,2), .SDcols = colsToRound]
+  # data.table::setnames(temp.wide, old = names(temp.wide), new = c("scenario", regionCodes))
+  # #  textplot(temp.wide, cex = 0.6, valign = "top", show.rownames = FALSE, mai = c(.5, .5, .5, .5))
+  # dev.off()
+  # write.csv(temp.wide, file = paste("graphics/", fileName, "_", aggChoice, ".csv", sep = ""))
+  # print(paste("Done plotting bars by region ", aggChoice, "for ", plotTitle))
+  #cat("\n\n")
 
 }
 
-plotByRegionLine <- function(dt, fileName, plotTitle, yRange, regionCodes) {
+plotByRegionLine <- function(dt, fileName, plotTitle, yRange, regionCodes, colorList) {
   dt.pcGDPX0 <- getNewestVersionIMPACT("dt.pcGDPX0")
   dt.pcGDPX0.2010.ref <- dt.pcGDPX0[year ==  "X2010" & scenario == scenario.base,][,c("scenario","year") :=  NULL]
   temp <- getNewestVersion(dt, fileloc("resultsDir"))
@@ -180,7 +260,6 @@ plotByRegionLine <- function(dt, fileName, plotTitle, yRange, regionCodes) {
   temp <- temp[region_code.IMPACT159 %in% regionAgg("I3regions")]
   scenarios <- unique(temp$scenario)
   pdf(paste("graphics/", fileName, ".pdf", sep = ""))
-  colList <- c("red", "red2", "red4", "green", "green2", "green4", "black")
   par(mfrow = c(1,1))
   legendText <- NULL
   for (i in 1:length(scenarios)) {
@@ -191,7 +270,7 @@ plotByRegionLine <- function(dt, fileName, plotTitle, yRange, regionCodes) {
       #      main = nutShortname,cex.main=1, ylim = c(0, round(max(scen.temp$value))))
       par(new = T)
     } else {
-      lines(temp[year %in% "X2050" & scenario == scenarios[i],value], col = colList[i])
+      lines(temp[year %in% "X2050" & scenario == scenarios[i],value], col = colorList[i])
       par(new = F)
     }
     legendText <- c(legendText,scenarios[i])
@@ -203,9 +282,53 @@ plotByRegionLine <- function(dt, fileName, plotTitle, yRange, regionCodes) {
   abline(h = 1, lty = 3, lwd = 0.8)
   legendText <- gsub("-REF", "", legendText)
   legend(x = "topright", y = NULL, legend = legendText, bty = "n", pch = 20,
-         col = colList, text.col = "black", cex = .5, pt.cex = .5, pt.lwd = 1,
+         col = colorList, text.col = "black", cex = .5, pt.cex = .5, pt.lwd = 1,
          y.intersp = .8)
   dev.off()
+}
+
+# error bars-----
+plotByRegionErrorBars <- function(dt, fileName, plotTitle, yLab, yRange, aggChoice, oneLine) {
+  print(paste("plotting lines with error bars by region ", aggChoice, "for ", plotTitle))
+  temp <- copy(dt)
+  regionCodes <- unique(temp$region_code)
+  regionNames <- unique(temp$region_name)
+  scenarios <- unique(temp$scenario)
+  if (gdxChoice == "SSPs") colorList <- c("black", "red", "red3", "red4", "green", "green3", "green4")
+  if (gdxChoice == "USAID") colorList <- c("black", rainbow(10)[1:length(scenarios) - 1])
+  legendText <- unique(gsub("-REF", "", scenarios))
+
+  # initial attempts to use ggplot
+  temp[, scenario := gsub("-REF", "", scenario)]
+  # temp <- temp[order(region_code)]
+  regionNameOrder <- c("Low income", "Lower middle income", "Upper middle income", "High income")
+  scenarioNameOrder <- c("2010", "SSP2-NoCC", "SSP1-NoCC", "SSP3-NoCC", "SSP2-GFDL", "SSP2-IPSL", "SSP2-HGEM")
+  temp[, region_name := factor(region_name, levels =  regionNameOrder)]
+  temp[, scenario := factor(scenario, levels = scenarioNameOrder)]
+  scenario.econ <- c("SSP2-NoCC", "SSP1-NoCC", "SSP3-NoCC")
+  scenario.clim <- c("SSP2-GFDL", "SSP2-IPSL", "SSP2-HGEM")
+  min.econ <- temp[scenario %in% scenario.econ,  min(value), by = c("region_code")]
+  temp[scenario %in% scenario.econ, value.max.econ := max(value), by = c("region_code")]
+  temp[scenario %in% scenario.clim, value.min.clim := min(value), by = c("region_code")]
+  temp[scenario %in% scenario.clim, value.max.clim := max(value), by = c("region_code")]
+  temp[scenario %in% "2010", value.min.econ := value]
+  temp[scenario %in% "2010", value.max.econ := value]
+  temp[scenario %in% "2010", value.min.clim := value]
+  temp[scenario %in% "2010", value.max.clim := value]
+  #
+
+  #draw lines
+  temp2 <- temp[scenario %in% c("2010", "SSP2-NoCC") & region_code %in% "lowInc",]
+  ggplot(temp2, aes(x = region_name, y = value, fill = scenario, order = c("region_name") )) +
+    theme(axis.text.x = element_text(angle = 45, hjust = 1)) +
+    geom_line(aes(group = 1)) +
+    geom_point(size = 2) +
+    theme(plot.title = element_text(hjust = 0.5)) +
+    ggtitle(plotTitle) +
+    ylim(yRange) +
+    labs(y = yLab, x = NULL) +
+    geom_errorbar(aes(ymin = value.min.econ, ymax = value.max.econ),color = "green",
+                  size = 2, width = 0.2)
 }
 
 # nutStackedBarGraph

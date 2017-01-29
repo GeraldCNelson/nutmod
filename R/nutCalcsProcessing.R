@@ -23,8 +23,30 @@ if (!exists("getNewestVersion", mode = "function"))
   source("R/nutrientCalcFunctions.R")}
 
 reqList <- keyVariable("reqsList")
-reqsToDelete <- c( "req.EAR", "req.UL.vits", "req.UL.minrls", "req.AMDR.hi", "req.AMDR.lo")
+#reqsToDelete <- c( "req.EAR", "req.UL.vits", "req.UL.minrls", "req.AMDR_hi", "req.AMDR_lo")
+reqsToDelete <- c( "req.EAR", "req.AMDR_hi", "req.AMDR_lo" ) #, "req.UL.vits", "req.UL.minrls")
 reqList <- reqList[!reqList %in% reqsToDelete]
+AMDRs <-  c("req.AMDR_hi", "req.AMDR_lo")
+
+#do AMDRs as a special case
+for (i in AMDRs) {
+  print(paste0("------ working on ", i))
+  reqShortName <- gsub("req.", "", i)
+  temp <- paste("food_agg_", reqShortName, sep = "")
+  DT <- getNewestVersion(temp, fileloc("resultsDir"))
+  basicKey <- c("scenario", "region_code.IMPACT159", "year")
+
+  DT.long <- data.table::melt(
+  DT,
+  id.vars = basicKey,
+  measure.vars =  c("carbohydrate_g.reqRatio.all", "fat_g.reqRatio.all" , "protein_g.reqRatio.all"),
+  variable.name = "nutrient",
+  value.name = "value", variable.factor = FALSE)
+  DT.long[, nutrient := gsub(".reqRatio.all", "",nutrient)]
+  inDT <- DT.long
+  outName <- paste(reqShortName, "sum_reqRatio", sep = "_")
+  cleanup(inDT, outName, fileloc("resultsDir"), "csv")
+}
 
 # individual food function
 req <- "req.RDA.vits" # - for testing purposes
@@ -256,7 +278,7 @@ for (req in reqList) {
   dt.food_agg.master[, scenario := gsub("PHL-DEV2", "PHL_DEV2", scenario)]
   # get list of nutrients from dt.nutsReqPerCap for the req set of requirements
   dt.nutsReqPerCap <- getNewestVersion(paste(req,"percap",sep = "_"))
-  nutList <- names( dt.nutsReqPerCap)[4:length(names(dt.nutsReqPerCap))]
+  nutList <- names(dt.nutsReqPerCap)[4:length(names(dt.nutsReqPerCap))]
   basicKey <- c("scenario", "region_code.IMPACT159", "year")
   cols.all <- names(dt.food_agg.master)[grep(".all", names(dt.food_agg.master))]
   cols.staple <- names(dt.food_agg.master)[grep(".staple", names(dt.food_agg.master))]

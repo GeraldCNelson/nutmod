@@ -100,9 +100,9 @@ getNewestVersion <- function(fileShortName, directory, fileType) {
   # tailLength <- 15 # to remove data and the period and csv or rds
   # if (fileType == "xlsx") tailLength <- 16 # for xlsx files
   # fillIn <- paste('.{', tailLength, '}$', sep = "")
-  fileShortName <- paste(fileShortName,"_2", sep = "") # this should get rid of the multiple files problem
+  fileShortNameTest <- paste(fileShortName,"_2", sep = "") # this should get rid of the multiple files problem
   filesofFileType <- list.files(mData)[grep(fileType,list.files(mData))]
-  fileLongName <- filesofFileType[grep(fileShortName, filesofFileType, fixed = TRUE)]
+  fileLongName <- filesofFileType[grep(fileShortNameTest, filesofFileType, fixed = TRUE)]
   #  temp <- gsub(fillIn, "", list.files(mData))
   # filesList <-
   #   grep(regExp,
@@ -116,8 +116,7 @@ getNewestVersion <- function(fileShortName, directory, fileType) {
   # check to see if the short file name is in the list from the relevant directory
   # print(paste("fileShortName is ", fileShortName))
  #  print(fileLongName)
-  if (!fileLongName %in% list.files(path = mData)) {
-
+  if (length(fileLongName) == 0) {
     stop(sprintf("There is no file  '%s' in directory %s", fileShortName, mData))
   } else {
     #   print(fileLongName)
@@ -208,15 +207,15 @@ cleanup <- function(inDT, outName, dir, writeFiles) {
   saveRDS(inDT, file = outFile)
 
   # # update files documentation -----
-  # Note: fileDocumentation.csv is started over every time automate.R is run
-  fileDoc <- data.table::as.data.table(read.csv(paste(fileloc("rawData"), "fileDocumentation.csv", sep = "/"),
-      header = TRUE, colClasses = c("character","character","character")))
-  fileDoc <- fileDoc[!fileShortName == outName]
-  fileDocUpdate <- as.list(c(outName, outFile, paste0(names(inDT), collapse = ", ")))
-  fileDoc <- rbind(fileDoc, fileDocUpdate)
-  write.csv(fileDoc, paste(fileloc("mData"), "fileDocumentation.csv", sep = "/"), row.names = FALSE)
-
-  #print(proc.time())
+  # Note: fileDocumentation.csv is currently not being used.
+ # fileDoc <- data.table::as.data.table(read.csv(paste(fileloc("rawData"), "fileDocumentation.csv", sep = "/"),
+  #     header = TRUE, colClasses = c("character","character","character")))
+  # fileDoc <- fileDoc[!fileShortName == outName]
+  # fileDocUpdate <- as.list(c(outName, outFile, paste0(names(inDT), collapse = ", ")))
+  # fileDoc <- rbind(fileDoc, fileDocUpdate)
+  # write.csv(fileDoc, paste(fileloc("mData"), "fileDocumentation.csv", sep = "/"), row.names = FALSE)
+  #
+  # #print(proc.time())
   if (missing(writeFiles)) {writeFiles = "xlsx"}
   if (nrow(inDT) > 50000) {
     sprintf("number of rows in the data, %s, greater than 50,000. Not writing xlsx or csv", nrow(inDT))
@@ -275,6 +274,8 @@ cleanupNutrientNames <- function(nutList) {
   nutList <- gsub(".sum.all","",nutList)
   nutList <- gsub("rootsNPlaintain","roots and plantain",nutList)
   nutList <- gsub("nutsNseeds","nuts and seeds",nutList)
+  nutList <- gsub("beverages","Nonalcoholic beverages",nutList)
+  nutList <- gsub("alcohol","Alcoholic beverages",nutList)
 
   return(nutList)
 }
@@ -344,8 +345,8 @@ keyVariable <- function(variableName) {
       "req.RDA.macro",
       "req.UL.vits",
       "req.UL.minrls",
-      "req.AMDR.hi",
-      "req.AMDR.lo"
+      "req.AMDR_hi",
+      "req.AMDR_lo"
 # commmented out because as of Dec 25, 2016, PR requirements for iron and zinc are now in req.RDA.minrls
             # ,
       # "req.PR.iron",
@@ -355,7 +356,7 @@ keyVariable <- function(variableName) {
   reqsListSSP <- paste(reqsList,"_ssp", sep = "")
   dropListCty <- c("GRL", "FSM", "GRD", "PRK")
   commonList <- paste("common.", reqsList, sep = "")
-  c( "common.EAR", "common.RDA.vits", "common.RDA.minrls", "common.RDA.macro", "common.UL.vits","common.UL.minrls")
+  c( "common.EAR", "common.RDA.vits", "common.RDA.minrls", "common.RDA.macro", "common.AMDR_hi", "common.AMDR_lo","common.UL.vits","common.UL.minrls")
   userName <- "Gerald C. Nelson"
   if (variableName == "list") {
     return(

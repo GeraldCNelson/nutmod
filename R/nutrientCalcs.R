@@ -40,7 +40,7 @@ switch.fixFish <- keyVariable("switch.fixFish") #get rid of nutrient info for sh
 dt.nutrients.adj <- cookingRetFishCorrect(switch.useCookingRetnValues, switch.fixFish)
 
 # calculate the share of per capita income spent on IMPACT commodities
-budgetShare(dt.IMPACTfood)
+budgetShareNpriceGrowth(dt.IMPACTfood)
 
 keepListCol <- c("scenario", "IMPACT_code", "region_code.IMPACT159", "FoodAvailability", "year")
 dt.IMPACTfood <- dt.IMPACTfood[, keepListCol, with = FALSE]
@@ -236,19 +236,20 @@ generateResults.dataPrep <- function(req, dt.IMPACTfood, scenarioListIMPACT, dt.
     dt.food.agg <- temp[,iron_mg.Q := iron_mg.Q * bioavailability.iron/100][,c("bioavailability.iron") := NULL]
 
     # zinc bioavailability -----
-    dt.bioavail.zinc <- data.table::copy(dt.bioavail)
-    dt.bioavail.zinc[, `:=`(zinc.raw_mg = zinc_mg.Q,
+    dt.bioavail_zinc <- data.table::copy(dt.bioavail)
+    dt.bioavail_zinc[, `:=`(zinc.raw_mg = zinc_mg.Q,
                             phytate_mg = phytate_mg.Q
     )]
     keepListCol <- c("IMPACT_code", "scenario", "region_code.IMPACT159", "year", "zinc.raw_mg", "phytate_mg")
-    dt.bioavail.zinc <- dt.bioavail.zinc[, (keepListCol), with = FALSE]
-    dt.bioavail.zinc[,`:=`(
+    dt.bioavail_zinc <-  dt.bioavail_zinc[, (keepListCol), with = FALSE]
+    dt.bioavail_zinc[,`:=`(
       sum.zinc.raw_mg = sum(zinc.raw_mg),
       sum.phytate_mg = sum(phytate_mg)),
       by = .(scenario, region_code.IMPACT159, year)]
-    deleteListCol <- c("IMPACT_code", "zinc.raw_mg", "phytate_mg")
-    dt.bioavail.zinc[, (deleteListCol) := NULL]
-    dt.bioavail.zinc <- unique(dt.bioavail.zinc)
+    #   deleteListCol <- c("IMPACT_code", "zinc.raw_mg", "phytate_mg")
+    deleteListCol <- c("IMPACT_code", "phytate_mg")
+    dt.bioavail_zinc[, (deleteListCol) := NULL]
+    dt.bioavail_zinc <- unique( dt.bioavail_zinc)
     # This is based on equation 11 of 1. L. V. Miller, N. F. Krebs, K. M. Hambidge,
     # A mathematical model of zinc absorption in humans as a function of dietary zinc and phytate.
     # J. Nutr. 137, 135–41 (2007).
@@ -268,114 +269,145 @@ generateResults.dataPrep <- function(req, dt.IMPACTfood, scenarioListIMPACT, dt.
 
     # dt.bioavail[, molarRatio := (sum.phytate_mg/phytMolecMass) / (sum.zinc.raw_mg/zincAtomMass)]
     # millernum2010 -  subset of equation 11 in Miller 2007 that is used twice
-    dt.bioavail.zinc[, tdp := sum.phytate_mg/phytMolecMass][, tdz := sum.zinc.raw_mg/zincAtomMass]
-    dt.bioavail.zinc[, millernum2010 := amax2010 + tdz + kr2010 * (1 + (tdp / kp2010))]
-    dt.bioavail.zinc[, taz := 0.5 * (millernum2010 - sqrt(millernum2010^2 - 4 * amax2010 * tdz))]
-    dt.bioavail.zinc[, zinc_mg := taz * zincAtomMass]
-    dt.bioavail.zinc[, bioavailability.zinc := 100 * zinc_mg/sum.zinc.raw_mg]
-    dt.bioavail.zinc <- unique(dt.bioavail.zinc)
-    inDT <- dt.bioavail.zinc
+    dt.bioavail_zinc[, tdp := sum.phytate_mg/phytMolecMass][, tdz := sum.zinc.raw_mg/zincAtomMass]
+    dt.bioavail_zinc[, millernum2010 := amax2010 + tdz + kr2010 * (1 + (tdp / kp2010))]
+    dt.bioavail_zinc[, taz := 0.5 * (millernum2010 - sqrt(millernum2010^2 - 4 * amax2010 * tdz))]
+    dt.bioavail_zinc[, zinc_mg := taz * zincAtomMass]
+    dt.bioavail_zinc[, bioavailability.zinc := 100 * zinc_mg/sum.zinc.raw_mg]
+    dt.bioavail_zinc <- unique( dt.bioavail_zinc)
+    inDT <-  dt.bioavail_zinc
     outName <- "dt.bioavail_zinc"
     cleanup(inDT, outName, fileloc("resultsDir"), "csv")
-    keepListCol <- c("scenario","region_code.IMPACT159", "year", "bioavailability.zinc")
-    dt.bioavail.zinc <- dt.bioavail.zinc[, (keepListCol), with = FALSE]
+    #   keepListCol <- c("scenario","region_code.IMPACT159", "year", "bioavailability.zinc")
+    keepListCol <- c("scenario","region_code.IMPACT159", "year", "sum.zinc.raw_mg", "sum.phytate_mg", "bioavailability.zinc")
+    dt.bioavail_zinc <-  dt.bioavail_zinc[, (keepListCol), with = FALSE]
+
+    #do some graphing
+    dt.regions <- regionAgg("WB")
+    scenChoice <- "SSP1-NoCC-REF"
+    gyear <- "X2010"
+    mainTitle <- paste("Dietary zinc vs dietary phytate;\n ", "scenario - ", scenChoice, ", year - ", gyear, sep = "")
+    temp.all <- merge( dt.bioavail_zinc, dt.regions, by = "region_code.IMPACT159")
+    pdf(paste("graphics/phytatePlot",gyear,".pdf", sep = ""))
+    par(mai = c(.8,1,0.8,.5),oma = c(1,1,2,1), mfrow = c(2,2))
+    for (i in unique(temp.all$region_code)) {
+      gTitle <- paste("Income group - ", i, sep = "")
+      temp <- temp.all[region_code %in% i & scenario %in% "SSP1-NoCC-REF" & year %in% "X2050",]
+      plot(temp$sum.zinc.raw_mg, temp$sum.phytate_mg, type = "p", main = gTitle,
+           xlab = "Dietary zinc (mg)", ylab = "Dietary phytate (mg)", ylim = c(800,8000),
+           xlim = c(0,30), pch = 16, cex = .7)
+    }
+    mtext(mainTitle, outer = TRUE, cex = 1)
+    dev.off()
+    # get rid of dietary zinc and phytate in dt.bioavail_zinc. Only needed for graphing above
+    dt.bioavail_zinc[, c("sum.phytate_mg", "sum.zinc.raw_mg") := NULL]
+    dt.bioavail_zinc <- unique(dt.bioavail_zinc)
+
     # adjust zinc in dt.food.agg
-    temp <- merge(dt.food.agg, dt.bioavail.zinc, by = c("scenario", "region_code.IMPACT159", "year"))
-    dt.food.agg <- temp[,zinc_mg.Q := zinc_mg.Q * bioavailability.zinc/100][,c("bioavailability.zinc") := NULL]
+    temp <- merge(dt.food.agg,  dt.bioavail_zinc, by = c("scenario", "region_code.IMPACT159", "year"))
+    dt.food.agg <- temp[,zinc_mg.Q := zinc_mg.Q * bioavailability.zinc/100]
+    dt.food.agg[,c("bioavailability.zinc") := NULL]
   }
   # end of iron and zinc bioavalability calculations -----
 
   # create name lists for use in operations below -----
+    # the total daily availability of each nutrient
+    nutListReq.sum.all <- paste(nutListReq, "sum.all", sep = ".")
+    # the ratio of daily availability of each nutrient from each commodity to the total availability
+    nutListreqRatio.all <- paste(nutListReq, "ratio.all", sep = ".")
+    # the ratio of daily availability of each nutrient to the nutrient requirement
+    nutListReq.reqRatio.all <- paste(nutListReq, "reqRatio.all", sep = ".")
 
-  # the total daily availability of each nutrient
-  nutListReq.sum.all <- paste(nutListReq, "sum.all", sep = ".")
-  # the ratio of daily availability of each nutrient from each commodity to the total availability
-  nutListreqRatio.all <- paste(nutListReq, "ratio.all", sep = ".")
-  # the ratio of daily availability of each nutrient to the nutrient requirement
-  nutListReq.reqRatio.all <- paste(nutListReq, "reqRatio.all", sep = ".")
+    # the total daily consumption of each staple
+    nutListReq.sum.staples <- paste(nutListReq, "sum.staple", sep = ".")
+    # the ratio of daily consumption of each nutrient for each staple to the total consumption
+    nutListreqRatio.staples <- paste(nutListReq, "ratio.staple", sep = ".")
+    # the ratio of daily consumption of each nutrient for each staple by the nutrient requirement
+    nutListReq.reqRatio.staples <- paste(nutListReq, "reqRatio.staple", sep = ".")
 
-  # the total daily consumption of each staple
-  nutListReq.sum.staples <- paste(nutListReq, "sum.staple", sep = ".")
-  # the ratio of daily consumption of each nutrient for each staple to the total consumption
-  nutListreqRatio.staples <- paste(nutListReq, "ratio.staple", sep = ".")
-  # the ratio of daily consumption of each nutrient for each staple by the nutrient requirement
-  nutListReq.reqRatio.staples <- paste(nutListReq, "reqRatio.staple", sep = ".")
+    # the total daily consumption of each food group
+    nutListReq.sum.foodGroup <- paste(nutListReq, "sum.foodGroup", sep = ".")
+    # the ratio of daily consumption of each nutrient for each foodGroup to the total consumption
+    nutListReq.reqRatio.foodGroup <- paste(nutListReq, "reqRatio.foodGroup", sep = ".")
+    # the ratio of daily consumption of each nutrient for each foodGroup by the nutrient requirement
+    nutListreqRatio.foodGroup <- paste(nutListReq, "ratio.foodGroup", sep = ".")
+    # calculate sums and ratios, for all food items, by staples, and by food groups -----
+    # these keys are used to determine what is summed over or ratio made with
+    allKey <- c("scenario", "region_code.IMPACT159", "year")
+    sumKey <- c("scenario", "region_code.IMPACT159", "year","IMPACT_code")
+    stapleKey <- c("scenario", "region_code.IMPACT159", "year", "staple_code")
+    foodGroupKey <- c("scenario", "region_code.IMPACT159", "year", "food_group_code")
+    if (!req %in% c("req.AMDR_hi_percap", "req.AMDR_lo_percap")) {
+    # # first sum
+    # ## individual nutrients from all commodities
+    data.table::setkeyv(dt.food.agg, allKey)
+    dt.food.agg <- dt.food.agg[, (nutListReq.sum.all) := lapply(.SD, sum), .SDcols = nutListReq.Q,
+                               by = eval(data.table::key(dt.food.agg))]
+    # print(paste("summing nutrient for all commodities for ", req, sep = ""))
+    # print(proc.time())
 
-  # the total daily consumption of each food group
-  nutListReq.sum.foodGroup <- paste(nutListReq, "sum.foodGroup", sep = ".")
-  # the ratio of daily consumption of each nutrient for each foodGroup to the total consumption
-  nutListReq.reqRatio.foodGroup <- paste(nutListReq, "reqRatio.foodGroup", sep = ".")
-  # the ratio of daily consumption of each nutrient for each foodGroup by the nutrient requirement
-  nutListreqRatio.foodGroup <- paste(nutListReq, "ratio.foodGroup", sep = ".")
-  # calculate sums and ratios, for all food items, by staples, and by food groups -----
-  # these keys are used to determine what is summed over or ratio made with
-  allKey <- c("scenario", "region_code.IMPACT159", "year")
-  sumKey <- c("scenario", "region_code.IMPACT159", "year","IMPACT_code")
-  stapleKey <- c("scenario", "region_code.IMPACT159", "year", "staple_code")
-  foodGroupKey <- c("scenario", "region_code.IMPACT159", "year", "food_group_code")
+    ## individual nutrients by staples
+    data.table::setkeyv(dt.food.agg,stapleKey)
+    dt.food.agg <- dt.food.agg[, (nutListReq.sum.staples) := lapply(.SD, sum), .SDcols = nutListReq.Q,
+                               by = eval(data.table::key(dt.food.agg))]
 
-  # # first sum
-  # ## individual nutrients from all commodities
-  data.table::setkeyv(dt.food.agg, allKey)
-  dt.food.agg <- dt.food.agg[, (nutListReq.sum.all) := lapply(.SD, sum), .SDcols = nutListReq.Q,
-                             by = eval(data.table::key(dt.food.agg))]
-  # print(paste("summing nutrient for all commodities for ", req, sep = ""))
-  # print(proc.time())
+    print(paste("summing by food group ", req, sep = ""))
+    print(proc.time())
 
-  ## individual nutrients by staples
-  data.table::setkeyv(dt.food.agg,stapleKey)
-  dt.food.agg <- dt.food.agg[, (nutListReq.sum.staples) := lapply(.SD, sum), .SDcols = nutListReq.Q,
-                             by = eval(data.table::key(dt.food.agg))]
+    ## individual nutrients by food group -----
+    data.table::setkeyv(dt.food.agg,foodGroupKey)
+    dt.food.agg <- dt.food.agg[, (nutListReq.sum.foodGroup) := lapply(.SD, sum), .SDcols = nutListReq.Q,
+                               by = eval(data.table::key(dt.food.agg))]
+    data.table::setkey(dt.food.agg, NULL)
+    dt.food.agg <- unique(dt.food.agg)
 
-  print(paste("summing by food group ", req, sep = ""))
-  print(proc.time())
+    # sum foodavail by food group -----
+    temp <- dt.food.agg[, c("scenario", "region_code.IMPACT159", "year", "IMPACT_code", "foodAvailpDay","food_group_code") , with = FALSE]
+    temp <- temp[year %in% c("X2010", "X2050")]
 
-  ## individual nutrients by food group -----
-  data.table::setkeyv(dt.food.agg,foodGroupKey)
-  dt.food.agg <- dt.food.agg[, (nutListReq.sum.foodGroup) := lapply(.SD, sum), .SDcols = nutListReq.Q,
-                             by = eval(data.table::key(dt.food.agg))]
-  data.table::setkey(dt.food.agg, NULL)
-  dt.food.agg <- unique(dt.food.agg)
+    #sum and convert to grams
+    temp.foodgroup.sum <- temp[, foodavail.foodgroup.sum := sum(foodAvailpDay) * 1000,
+                               by = c("scenario", "region_code.IMPACT159","year","food_group_code")]
+    temp.foodgroup.sum[, c("IMPACT_code", "foodAvailpDay") := NULL]
+    temp.foodgroup.sum <- unique(temp.foodgroup.sum)
+    data.table::setnames(temp.foodgroup.sum, old = "foodavail.foodgroup.sum", new = "value")
+    inDT <- temp.foodgroup.sum
+    outName <- "dt.foodAvail.foodGroup"
+    cleanup(inDT, outName, fileloc("resultsDir"), "csv")
 
-  # sum foodavail by food group -----
-  temp <- dt.food.agg[, c("scenario", "region_code.IMPACT159", "year", "IMPACT_code", "foodAvailpDay","food_group_code") , with = FALSE]
-  temp <- temp[year %in% c("X2010", "X2050")]
+    # now calculate ratios of nutrient by group to total consumption of the nutrient
+    # nutrient from each food item to the total
+    #dt.food.ratio <- data.table::copy(dt.all.sum[,(nutListreqRatio) := dt.all.sum[[nutListReq.Q]] / dt.all.sum[[nutListReq.sum]]])
 
-  #sum and convert to grams
-  temp.foodgroup.sum <- temp[, foodavail.foodgroup.sum := sum(foodAvailpDay) * 1000,
-                             by = c("scenario", "region_code.IMPACT159","year","food_group_code")]
-  temp.foodgroup.sum[, c("IMPACT_code", "foodAvailpDay") := NULL]
-  temp.foodgroup.sum <- unique(temp.foodgroup.sum)
-  data.table::setnames(temp.foodgroup.sum, old = "foodavail.foodgroup.sum", new = "value")
-  inDT <- temp.foodgroup.sum
-  outName <- "dt.foodAvail.foodGroup"
-  cleanup(inDT, outName, fileloc("resultsDir"), "csv")
+    print(paste("calculating nutrient share ratios ", req, sep = ""))
+    print(proc.time())
 
-  # now calculate ratios of nutrient by group to total consumption of the nutrient
-  # nutrient from each food item to the total
-  #dt.food.ratio <- data.table::copy(dt.all.sum[,(nutListreqRatio) := dt.all.sum[[nutListReq.Q]] / dt.all.sum[[nutListReq.sum]]])
+    # ratio of nutrient from each food item to the total
+    for (k in 1:length(nutListReq)) {
+      dt.food.agg[,nutListreqRatio.all[k] := get(nutListReq.Q[k]) / get(nutListReq.sum.all[k])]
+    }
+    # ratio of nutrient from each staple item to the total
+    for (k in 1:length(nutListReq)) {
+      dt.food.agg[,nutListreqRatio.staples[k] := get(nutListReq.sum.staples[k]) / get(nutListReq.sum.all[k])]
+    }
+    # ratio of nutrient from each food group item to the total
+    for (k in 1:length(nutListReq)) {
+      dt.food.agg[,nutListreqRatio.foodGroup[k] := get(nutListReq.sum.foodGroup[k]) / get(nutListReq.sum.all[k])]
+    }
 
-  print(paste("calculating nutrient share ratios ", req, sep = ""))
-  print(proc.time())
-
-  # ratio of nutrient from each food item to the total
-  for (k in 1:length(nutListReq)) {
-    dt.food.agg[,nutListreqRatio.all[k] := get(nutListReq.Q[k]) / get(nutListReq.sum.all[k])]
+    leadingCols <- c("scenario", "region_code.IMPACT159",
+                     "year", "IMPACT_code", "foodAvailpDay", "food_group_code", "staple_code")
+    laggingCols <- names(dt.food.agg)[!names(dt.food.agg) %in% leadingCols]
+    data.table::setcolorder(dt.food.agg, c(leadingCols, laggingCols))
   }
-  # ratio of nutrient from each staple item to the total
-  for (k in 1:length(nutListReq)) {
-    dt.food.agg[,nutListreqRatio.staples[k] := get(nutListReq.sum.staples[k]) / get(nutListReq.sum.all[k])]
-  }
-  # ratio of nutrient from each food group item to the total
-  for (k in 1:length(nutListReq)) {
-    dt.food.agg[,nutListreqRatio.foodGroup[k] := get(nutListReq.sum.foodGroup[k]) / get(nutListReq.sum.all[k])]
-  }
 
-  leadingCols <- c("scenario", "region_code.IMPACT159",
-                   "year", "IMPACT_code", "foodAvailpDay", "food_group_code", "staple_code")
-  laggingCols <- names(dt.food.agg)[!names(dt.food.agg) %in% leadingCols]
-  data.table::setcolorder(dt.food.agg, c(leadingCols, laggingCols))
-
+  # set up AMDRs
+  if (req %in% c("req.AMDR_hi_percap", "req.AMDR_lo_percap")) {
+    dt.kcals.nutrient.ratio <- getNewestVersion("dt.kcals.nutrient.ratio", fileloc("mData"))
+    data.table::setnames(dt.kcals.nutrient.ratio, old = nutListReq, new = nutListReq.Q) # to work with code for other ratios
+    keepListCol <- c( "scenario", "region_code.IMPACT159", "year", "fat_g.Q", "protein_g.Q", "carbohydrate_g.Q" )
+    dt.food.agg <- dt.kcals.nutrient.ratio[, (keepListCol), with = FALSE]
+    }
   # now do ratios with nutrient requirements
   print(paste("calculating nutrient requirement ratios for ", req, sep = ""))
   print(proc.time())
@@ -389,6 +421,10 @@ generateResults.dataPrep <- function(req, dt.IMPACTfood, scenarioListIMPACT, dt.
   dt.food.agg <- merge(dt.food.agg,dt.nutsReqPerCap, by = c(allKey), all.x = TRUE)
   leadingCols <- c("scenario", "region_code.IMPACT159",
                    "year", "IMPACT_code", "foodAvailpDay", "food_group_code", "staple_code")
+  if (req %in% c("req.AMDR_hi_percap", "req.AMDR_lo_percap")) {
+    leadingCols <- c("scenario", "region_code.IMPACT159",
+                     "year")
+  }
   laggingCols <- names(dt.food.agg)[!names(dt.food.agg) %in% leadingCols]
   data.table::setcolorder(dt.food.agg, c(leadingCols, laggingCols))
 
@@ -396,14 +432,19 @@ generateResults.dataPrep <- function(req, dt.IMPACTfood, scenarioListIMPACT, dt.
   for (k in 1:length(nutListReq)) {
     dt.food.agg[,nutListReq.reqRatio.all[k] := get(nutListReq.Q[k]) / get(nutListReq.Req[k])]
   }
-
+  if (req %in% c("req.AMDR_hi_percap", "req.AMDR_lo_percap")) {
+    keeplistCol <- c("scenario" ,"region_code.IMPACT159","year", "carbohydrate_g.reqRatio.all", "fat_g.reqRatio.all", "protein_g.reqRatio.all")
+    dt.food.agg <- dt.food.agg[, (keeplistCol), with = FALSE]
+    }
   print(paste("finished with ratio for each food item ", req, sep = ""))
   print(proc.time())
+
+  if (!req %in% c("req.AMDR_hi_percap", "req.AMDR_lo_percap")) { # because staples and food groups are not relevant for AMDR
 
   # ratio of nutrient from each staple item to the requirement
   for (k in 1:length(nutListReq)) {
     dt.food.agg[,nutListReq.reqRatio.staples[k] := get(nutListReq.sum.staples[k]) / get(nutListReq.Req[k])]
-  }
+   }
   print(paste("finished with ratio for the staple/non staple categories ", req, sep = ""))
   print(proc.time())
 
@@ -413,8 +454,8 @@ generateResults.dataPrep <- function(req, dt.IMPACTfood, scenarioListIMPACT, dt.
   }
   print(paste("finished with requirement ratio for the food group categories ", req, sep = ""))
   print(proc.time())
+  }
   inDT <- dt.food.agg
-
   temp <- gsub("req.","",req)
   reqShortName <- gsub(".percap","",temp)
   outName <- paste("food_agg_",reqShortName,sep = "")
@@ -430,6 +471,7 @@ generateSum <- function(dt.IMPACTfood, scenarioListIMPACT, dt.nutrients.adj) {
   keepListCol.zinc <- c("scenario", "region_code.IMPACT159", "year", "bioavailability.zinc")
   keepListCol.iron <- c("scenario", "region_code.IMPACT159", "year", "bioavailability.iron")
   dt.bioavail_zinc <- dt.bioavail_zinc[,(keepListCol.zinc), with = FALSE]
+  dt.bioavail_zinc <- unique(dt.bioavail_zinc)
   dt.bioavail_iron <- dt.bioavail_iron[,(keepListCol.iron), with = FALSE]
   dt.food <- data.table::copy(dt.IMPACTfood)
   dt.food <- dt.food[scenario %in% scenarioListIMPACT,]
@@ -509,12 +551,14 @@ generateSum <- function(dt.IMPACTfood, scenarioListIMPACT, dt.nutrients.adj) {
   dt.nut.nonstaple.share.wide <- data.table::dcast(data = dt.nut.sum.staple.long,
                                                    formula = shareFormula,
                                                    value.var = "value")
-  dt.nut.nonstaple.share.wide <- dt.nut.nonstaple.share.wide[, value := 100 * nonstaple/(nonstaple + staple) ]
+  dt.nut.nonstaple.share.wide[, value := 100 * nonstaple/(nonstaple + staple) ][is.na(value), value := 0]
+
   dt.nut.nonstaple.share.long <- dt.nut.nonstaple.share.wide[,c("nonstaple", "staple") := NULL]
   inDT <- dt.nut.nonstaple.share.long
   outName <- "dt.nutrients.nonstapleShare"
   cleanup(inDT, outName, fileloc("resultsDir"))
 }
+
 # run generateResults script -----
 for (i in 1:length(reqsListPercap)) {
   generateResults.dataPrep(reqsListPercap[i],dt.IMPACTfood,scenarioListIMPACT, dt.nutrients.adj)

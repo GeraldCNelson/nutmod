@@ -140,7 +140,7 @@ cookingRetFishCorrect <- function(switch.useCookingRetnValues, switch.fixFish) {
 #' @param region - the grouping of countries to aggregate to
 #' @return null
 #' @export
-budgetShare <- function(dt.IMPACTfood) {
+budgetShareNpriceGrowth <- function(dt.IMPACTfood) {
   # prices are in 2005 dollars per metric ton
   # pcGDP is in 1000 2005 dollars
   # 'FoodAvailability' variable is in kgs/person/year. DinY is days in year
@@ -151,6 +151,76 @@ budgetShare <- function(dt.IMPACTfood) {
   dt.temp[, budget.PCX0 := (sum(FoodAvailability * PCX0 / 1000 )) / 1000, by = eval(data.table::key(dt.temp))]
   data.table::setkey(dt.temp, budget.PWX0)
   dt.budget <- dt.temp[!duplicated(budget.PCX0),]
+
+  # get world price change from 2010 to 2050 by food groups
+  dt.foodGroupsInfo <- getNewestVersion("dt.foodGroupsInfo", fileloc("mData"))
+  dt.foodGroupsInfo[, c("description", "food_group_assignment", "food_groups", "food_group_codes", "staple_category") := NULL]
+
+  dt.temp <- merge(dt.foodGroupsInfo, dt.temp, by = "IMPACT_code")
+  deleteListRow <- c("c_aqan","c_aqpl", "c_beer", "c_Crust", "c_FrshD", "c_FshOil", "c_Mllsc", "c_ODmrsl", "c_OMarn",
+                     "c_OPelag", "c_spirits", "c_wine")
+  keepListYears <- c("X2010", "X2050")
+  dt.temp <- dt.temp[!IMPACT_code %in% deleteListRow & year %in% keepListYears]
+  keepListCol <- c("scenario","IMPACT_code", "FoodAvailability", "food_group_code", "staple_code", "year", "PWX0")
+  dt.temp <- dt.temp[,(keepListCol), with = FALSE]
+  dt.temp <- unique(dt.temp)
+
+  dt.temp <- dt.temp[, growthRatePW :=  lapply(.SD, function(x)((x/data.table::shift(x))^(1/(2050 - 2010)) - 1) * 100),
+                     .SDcols = "PWX0", by = c("scenario","IMPACT_code")]
+
+  dt.temp <- dt.temp[year %in% "X2050"]
+  dt.temp[, c("year", "PWX0") := NULL]
+
+  formula.wide.scen <- "IMPACT_code + FoodAvailability + food_group_code + staple_code ~ scenario"
+  dt.temp.wide.scen <- data.table::dcast(
+    data = dt.temp,
+    formula = formula.wide.scen,
+    value.var = "growthRatePW")
+
+  formula.wide.FG <- "IMPACT_code+ FoodAvailability + staple_code + scenario ~ food_group_code"
+  dt.temp.wide.FG <- data.table::dcast(
+    data = dt.temp,
+    formula = formula.wide.FG,
+    value.var = "growthRatePW")
+
+  formula.wide.staple <- "IMPACT_code+ FoodAvailability + food_group_code + scenario ~ staple_code"
+  dt.temp.wide.FG <- data.table::dcast(
+    data = dt.temp,
+    formula = formula.wide.staple,
+    value.var = "growthRatePW")
+
+  #calculate weighted average price growth rate by food groups
+  dt.temp[, growthRateAve.FG := weighted.mean(growthRatePW, FoodAvailability), by = c("scenario", "food_group_code")]
+  #calculate weighted average price growth rate by food groups
+  dt.temp[, growthRateAve.staple := weighted.mean(growthRatePW, FoodAvailability), by = c("scenario", "staple_code")]
+
+  dt.temp.FG <- data.table::copy(dt.temp)
+  deleteListCol <- c("IMPACT_code","growthRatePW", "FoodAvailability")
+  dt.temp.FG <- unique(dt.temp.FG[, c(deleteListCol, "staple_code", "growthRateAve.staple") := NULL])
+
+  dt.temp.staple <- data.table::copy(dt.temp)
+  dt.temp.staple <- unique(dt.temp.staple[, c(deleteListCol, "food_group_code", "growthRateAve.FG") := NULL])
+
+  formula.wide.staple.scen <- "staple_code  ~ scenario"
+  dt.temp.staple.wide.scen <- data.table::dcast(
+    data = dt.temp.staple,
+    formula = formula.wide.staple.scen,
+    value.var = "growthRateAve.staple")
+
+  inDT <- dt.temp.staple.wide.scen
+  outName <- "dt.priceGrowth.staple.wide"
+  cleanup(inDT, outName, fileloc("resultsDir"), "xlsx")
+
+  formula.wide.FG.scen <- "food_group_code  ~ scenario"
+  dt.temp.FG.wide.scen <- data.table::dcast(
+    data = dt.temp.FG,
+    formula = formula.wide.FG.scen,
+    value.var = "growthRateAve.FG")
+
+  inDT <- dt.temp.FG.wide.scen
+outName <- "dt.priceGrowth.FG.wide"
+cleanup(inDT, outName, fileloc("resultsDir"), "xlsx")
+
   #  deleteListCol <- c("IMPACT_code", "FoodAvailability","PCX0","PWX0","CSE")
   deleteListCol <- c("IMPACT_code", "FoodAvailability","PCX0","PWX0")
   dt.budget[,(deleteListCol) := NULL]
