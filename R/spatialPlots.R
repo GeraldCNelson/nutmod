@@ -10,6 +10,7 @@ library(rgdal)
 library(jsonlite)
 library(RCurl)
 library(gpclib)
+library(broom)
 
 
 {source("R/nutrientModFunctions.R")
@@ -82,14 +83,14 @@ for (i in variablesToPlot) {
 
 # using ggplot
 #worldMap <- map_data("world")
-worldMap <- map_data("world")
-ggplot() + geom_polygon(data = worldMap, aes(x = long, y = lat, group = group)) +
-  coord_fixed(1.3)
+# worldMap <- map_data("world")
+# ggplot() + geom_polygon(data = worldMap, aes(x = long, y = lat, group = group)) +
+#   coord_fixed(1.3)
 
 # for theme_map
 theme_map <- function(base_size = 9, base_family="") {
   require(grid)
-  theme_bw(base_size=base_size, base_family=base_family) %+replace%
+  theme_bw(base_size = base_size, base_family = base_family) %+replace%
     theme(axis.line = element_blank(),
           axis.text = element_blank(),
           axis.ticks = element_blank(),
@@ -108,23 +109,24 @@ theme_map <- function(base_size = 9, base_family="") {
 #world <- readOGR(dsn="https://raw.githubusercontent.com/nvkelso/natural-earth-vector/master/geojson/ne_50m_admin_0_countries.geojson", layer="OGRGeoJSON")
 world <- readOGR(dsn = "data-raw/spatialData/ne_50m_admin_0_countries.geojson", layer = "OGRGeoJSON")
 
+
 # remove antarctica
 world <- world[!world$iso_a3 %in% c("ATA"),]
 
 world <- spTransform(world, CRS("+proj=wintri"))
-
+# alternative would be CRS("+proj=longlat")) for WGS 84
 # dat_url <- getURL("https://gist.githubusercontent.com/hrbrmstr/7a0ddc5c0bb986314af3/raw/6a07913aded24c611a468d951af3ab3488c5b702/pop.csv")
 # pop <- read.csv(text=dat_url, stringsAsFactors=FALSE, header=TRUE)
-gpclibPermit() # may not need this after installing rgeos
-map <- fortify(world, region = "iso_a3")
+#gpclibPermit()
+worldMap <- broom::tidy(world, region = "iso_a3")
 
-gpclibPermit()# data frame of markers
-labs <- data.frame(lat = c(39.5, 35.50),
-                   lon = c(-98.35, 103.27),
-                   title = c("US", "China"))
+#gpclibPermit()# data frame of markers
+# labs <- data.frame(lat = c(39.5, 35.50),
+#                    lon = c(-98.35, 103.27),
+#                    title = c("US", "China"))
 
 # pre-project them to winkel-tripel
-coordinates(labs) <-  ~lon+lat
+# coordinates(labs) <-  ~lon+lat
 # c_labs <- as.data.frame(SpatialPointsDataFrame(spTransform(
 #   SpatialPoints(labs, CRS("+proj=longlat")), CRS("+proj=wintri")),
 #   labs@data))
@@ -146,15 +148,25 @@ dt.spatialPlotData <- dt.spatialPlotData[region_code.IMPACT159 %in% "RAP", regio
 
 dt.spatialPlotData <- dt.spatialPlotData[year %in% c("X2050"),]
 dt.spatialPlotData <- dt.spatialPlotData[year == "X2050", scenario := "2050"][, year := NULL]
+dt.spatialPlotData <- dt.spatialPlotData[!region_code.IMPACT159 == "SOM",] #get rid of Somalia data.
+data.table::setnames(dt.spatialPlotData, old = "region_code.IMPACT159", new = "id")
+
 dt.spatialPlotData <- as.data.frame(dt.spatialPlotData)
 
-gg <- ggplot()
-gg <- gg + geom_map(data = map, map = map,
-                    aes(x = long, y = lat, map_id = id, group = group),
-                    fill="#ffffff", color = NA)
-gg <- gg + geom_map(data = dt.spatialPlotData, map = map, color = "white", size = 0.15,
-                    aes(fill = incSharePCX0), group = region_code.IMPACT159, map_id = region_code.IMPACT159)
-gg <- gg + geom_point(data=c_labs, aes(x=lon, y=lat), size=4)
+ggplot(worldMap, aes(x = long, y = lat, group=group)) + geom_path() +
+
+  geom_map(map = worldMap, aes(map_id = id, fill = incSharePWX0), color = "black")
+#+ coord_map() - Note takes a lot of computation
++  expand_limits(x = worldMap$long, y = worldMap$lat)
+
+
+gg <- ggplot(dt.spatialPlotData, aes(fill = "incSharePCX0"))
+gg <- gg + geom_map( map = worldMap,
+                   aes(map_id = id))
+ #                   aes(map_id = id, group = group), color = NA)
+gg <- gg + geom_map( map = worldMap, color = "white", size = 0.15,
+                    aes(map_id = id, fill = incSharePCX0))
+#gg <- gg + geom_point(data = c_labs, aes(x = lon, y = lat), size = 4)
 gg <- gg + scale_fill_gradient(low = "#f7fcb9", high = "#31a354", name = "Budget Share (percent)")
 gg <- gg + labs(title = "IMPACT food budget share of\n2050 per capita income")
 gg <- gg + coord_equal(ratio = 1)
