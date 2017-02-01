@@ -171,7 +171,7 @@ plotByRegionBar <- function(dt, fileName, plotTitle, yLab, yRange, aggChoice, sc
     labs(y = yLab, x = NULL)
 
   if (oneLine == TRUE) p + geom_abline(intercept = 1, slope = 0)
-    print(p)
+  print(p)
   # geom_errorbar(aes(ymin = value.min.econ, ymax = value.max.econ), color = "red", size = 2, position = position_dodge(0.9), width = 0.5) +
   # geom_errorbar(aes(ymin = value.min.clim, ymax = value.max.clim), color = "green", size = 2, position = position_dodge(0.2), width = 0.5)
   dev.off()
@@ -250,6 +250,37 @@ plotByRegionBar <- function(dt, fileName, plotTitle, yLab, yRange, aggChoice, sc
   # print(paste("Done plotting bars by region ", aggChoice, "for ", plotTitle))
   #cat("\n\n")
 
+}
+
+plotByBoxPlot2050 <- function(dt, fileName, plotTitle, yLab, yRange, aggChoice ){
+  print(paste("plotting boxplot for 2050 by region", aggChoice))
+  temp <- copy(dt)
+  regionCodes <- unique(temp$region_code)
+  regionNames <- unique(temp$region_name)
+
+
+  # initial attempts to use ggplot
+  temp[, scenario := gsub("-REF", "", scenario)]
+  scenOrder <- gsub("-REF", "", scenOrder)
+  # temp <- temp[order(region_code)]
+  if (aggChoice %in% "WB") regionNameOrder <- c("Low income", "Lower middle income", "Upper middle income", "High income")
+  if (aggChoice %in% "AggReg1") regionNameOrder <- regionNames
+  if (aggChoice %in% "tenregions") regionNameOrder <- regionNames
+  temp[, region_name := factor(region_name, levels =  regionNameOrder)]
+
+  # draw boxplot
+  pdf(paste("graphics/", fileName,"_", aggChoice, ".pdf", sep = ""), width = 7, height = 5.2, useDingbats = FALSE)
+  p <- ggplot(temp, aes(x = region_name, y = incSharePCX0)) +
+    geom_boxplot(stat = "boxplot", position = "dodge", color = "black", outlier.shape = NA) + # outlier.shape = NA, gets rid of outlier dots
+    theme(legend.position = "right") +
+    theme(axis.text.x = element_text(angle = 45, hjust = 1)) +
+    scale_fill_manual(values = colorList) +
+    theme(plot.title = element_text(hjust = 0.5)) +
+    ggtitle(plotTitle) +
+    ylim(yRange) +
+    labs(y = yLab, x = NULL)
+  print(p)
+  dev.off()
 }
 
 plotByRegionLine <- function(dt, fileName, plotTitle, yRange, regionCodes, colorList) {

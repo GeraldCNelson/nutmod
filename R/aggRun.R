@@ -103,6 +103,7 @@ for (l in scenChoiceList) {
                     yRange = yRangeMinMax, aggChoice = i, scenOrder, oneLine = FALSE, colorList)
  #   yRange = c(0, 80), aggChoice = i, oneLine = FALSE)
 
+    # Budget share -----
     print(paste("Working on bar chart for budget share for", i))
     DT <- aggNorder(gdxChoice, DTglobal = "dt.budgetShare", aggChoice = i, get(l))
     ylab <- "(percent)"
@@ -329,13 +330,12 @@ print(j)
            drawOneLine = TRUE
          }
         if (multipleNutsFileList[k] == "dt.nutrients.nonstapleShare")  {
-browser()
                     nutTitle <- paste("Non-staple share of ", nutshortName, " availability", sep = "")
           ylab = "(percent)"
           drawOneLine = FALSE
         }
         if (ylab %in%  "(percent)") {yRangeMinMax <- c(0,100)} else {yRangeMinMax <- c(0, max(DT$value) )}
-        plotByRegionBar(dt = DT, fiileName = paste(j, multipleNutsListShortName[k], sep = "_"),
+        plotByRegionBar(dt = DT, fileName = paste(j, multipleNutsListShortName[k], sep = "_"),
                         plotTitle = nutTitle, yLab = ylab, yRange = yRangeMinMax, aggChoice = i,
                         scenOrder, oneLine = drawOneLine, colorList)
       }
@@ -345,53 +345,75 @@ browser()
   }
 } # end of scenChoiceList loop
 
-# box plots -----
+# box plot of budget share in 2050 new ----
 dt.budgetShare <- getNewestVersion("dt.budgetShare", fileloc("resultsDir"))
-dt.regions <- regionAgg("WB")
+#dt.regions <- regionAgg("WB")
 # aggregate to and retain only the relevant regions
 dt.budgetShare <- merge(dt.budgetShare, dt.regions, by = "region_code.IMPACT159")
-keepListCol.incShare <- c("scenario","year", "region_code.IMPACT159", "region_code", "region_name", "incSharePCX0")
+keepListCol.incShare <- c("scenario" ,"year", "region_code.IMPACT159", "region_code", "region_name", "incSharePCX0")
 dt.budgetShare <- dt.budgetShare[, (keepListCol.incShare), with = FALSE]
-scenario.base <- "SSP2-NoCC-REF"
-dt.budgetShare <- dt.budgetShare[year == "X2010" & scenario == scenario.base |
-                                   year == "X2050",]
-dt.budgetShare <- dt.budgetShare[year == "X2010", scenario := "2010"][, year := NULL]
 # get rid of Somalia because it's budget share is 500 * per cap income
 dt.budgetShare <- dt.budgetShare[!region_code.IMPACT159 == "SOM",]
-temp <- dt.budgetShare
-WBregionLevels <- c("lowInc", "lowMidInc", "upMidInc", "highInc")
-temp[,region_code := factor(region_code, levels = WBregionLevels)]
-# sort by the region codes
-temp <- temp[order(region_code),]
-yRange <- range(temp$incSharePCX0)
-pdf(paste("graphics/budgetShareBoxPlot", ".pdf", sep = ""))
-box.test <- boxplot(incSharePCX0 ~ region_code, data = temp, range = 0,
-                    #                    at = c(1, 2, 4, 5, 6),
-                    xaxt = 'n',
-                    ylim = yRange,
-                    ylab = "(percent)",
-                    col = c('white', 'white smoke', 'gray'))
-axis(side = 1,
-     at = c(1, 2, 3, 4),
-     labels = FALSE)
-labels <- gsub("-REF","", unique(temp$region_name))
-#    labels = unique(temp$scenario), srt=45, adj=1, xpd=TRUE,
-#   line = 0.5, lwd = 0, cex.lab = 0.5, cex.axis = 0.6)
-title('Expenditures share of per capita income, 2050\nall countries, all scenarios')
-text(
-  c(1, 2, 3, 4),
-  par("usr")[3] - 0.1, srt = 45, adj = 1.2,
-  labels = labels, xpd = TRUE,  cex = 0.6, cex.axis = 0.6)
-# abline(h = 1, lty = 3, lwd = 0.8)
-dev.off()
-box.stats <- data.table::as.data.table(box.test$stats)
-box.stats.labels <- data.table(rownum = c(1,2,3,4,5), name = c("lowest value", "box bottom", "median", "box top", "highest value"))
-# do this name change so the box stats can be rbinded with the other data
-box.stats <- cbind(box.stats.labels, box.stats)
-data.table::setnames(box.stats,
-                     old = c("name", "V1", "V2", "V3", "V4"),
-                     new = c("scenario", "lowInc", "lowMidInc", "upMidInc", "highInc"))
-fwrite(box.stats, file = "graphics/boxstats_WB.csv")
+scenario.base <- "SSP2-NoCC-REF"
+dt.budgetShare <- dt.budgetShare[year == "X2050" & scenario == scenario.base]
+dt.budgetShare[, c("year", "scenario") := NULL]
+DT <- dt.budgetShare
+
+ylab <- "(percent)"
+filename <- "budgetShareBoxPlot"
+plottitle = "IMPACT food budget share of 2050 per capita income"
+for (i in aggChoiceListBarChart) {
+#  DTalt <- aggNorder(gdxChoice, DTglobal = "dt.budgetShare", aggChoice = i, get(l))
+
+plotByBoxPlot2050(dt = temp, fileName = filename, plotTitle = plottitle, yLab = ylab, yRange = c(0,50), aggChoice = i )
+}
+# box plots, old code -----
+# dt.budgetShare <- getNewestVersion("dt.budgetShare", fileloc("resultsDir"))
+# dt.regions <- regionAgg("WB")
+# # aggregate to and retain only the relevant regions
+# dt.budgetShare <- merge(dt.budgetShare, dt.regions, by = "region_code.IMPACT159")
+# keepListCol.incShare <- c("scenario","year", "region_code.IMPACT159", "region_code", "region_name", "incSharePCX0")
+# dt.budgetShare <- dt.budgetShare[, (keepListCol.incShare), with = FALSE]
+# scenario.base <- "SSP2-NoCC-REF"
+# dt.budgetShare <- dt.budgetShare[year == "X2010" & scenario == scenario.base |
+#                                    year == "X2050",]
+# dt.budgetShare <- dt.budgetShare[year == "X2010", scenario := "2010"][, year := NULL]
+# # get rid of Somalia because it's budget share is 500 * per cap income
+# dt.budgetShare <- dt.budgetShare[!region_code.IMPACT159 == "SOM",]
+# temp <- dt.budgetShare
+# WBregionLevels <- c("lowInc", "lowMidInc", "upMidInc", "highInc")
+# temp[,region_code := factor(region_code, levels = WBregionLevels)]
+# # sort by the region codes
+# temp <- temp[order(region_code),]
+# yRange <- range(temp$incSharePCX0)
+# pdf(paste("graphics/budgetShareBoxPlot", ".pdf", sep = ""))
+# box.test <- boxplot(incSharePCX0 ~ region_code, data = temp, range = 0,
+#                     #                    at = c(1, 2, 4, 5, 6),
+#                     xaxt = 'n',
+#                     ylim = yRange,
+#                     ylab = "(percent)",
+#                     col = c('white', 'white smoke', 'gray'))
+# axis(side = 1,
+#      at = c(1, 2, 3, 4),
+#      labels = FALSE)
+# labels <- gsub("-REF","", unique(temp$region_name))
+# #    labels = unique(temp$scenario), srt=45, adj=1, xpd=TRUE,
+# #   line = 0.5, lwd = 0, cex.lab = 0.5, cex.axis = 0.6)
+# title('Expenditures share of per capita income, 2050\nall countries, all scenarios')
+# text(
+#   c(1, 2, 3, 4),
+#   par("usr")[3] - 0.1, srt = 45, adj = 1.2,
+#   labels = labels, xpd = TRUE,  cex = 0.6, cex.axis = 0.6)
+# # abline(h = 1, lty = 3, lwd = 0.8)
+# dev.off()
+# box.stats <- data.table::as.data.table(box.test$stats)
+# box.stats.labels <- data.table(rownum = c(1,2,3,4,5), name = c("lowest value", "box bottom", "median", "box top", "highest value"))
+# # do this name change so the box stats can be rbinded with the other data
+# box.stats <- cbind(box.stats.labels, box.stats)
+# data.table::setnames(box.stats,
+#                      old = c("name", "V1", "V2", "V3", "V4"),
+#                      new = c("scenario", "lowInc", "lowMidInc", "upMidInc", "highInc"))
+# fwrite(box.stats, file = "graphics/boxstats_WB.csv")
 
 # line plots -----
 #this is not working right now

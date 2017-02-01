@@ -969,7 +969,7 @@ regionAgg <- function(aggChoice) {
   # region info setup for aggregating -----
   dt.regions.all <- getNewestVersion("dt.regions.all")
   I3regions <- sort(unique(dt.regions.all$region_code.IMPACT159))
-  tenregions <- sort(c("NIC", "BRA", "CHM", "ETH", "IND", "GHA","TZA", "FRP", "VNM", "USA"))
+  tenregions <- sort(c("NIC", "BRA", "CHM", "ETH", "IND", "GHA", "TZA", "FRP", "VNM", "USA"))
   AggReg1 <- sort(unique(dt.regions.all$region_code.AggReg1))
   AggReg2 <- sort(unique(dt.regions.all$region_code.AggReg2))
   twoEconGroup <- sort(unique(dt.regions.all$region_code.EconGroup))
