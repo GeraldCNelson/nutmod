@@ -27,7 +27,8 @@ multipleNutsFileList <- c("dt.nutrients.sum.all",
                           "dt.nutrients.nonstapleShare",
                           "dt.MRVRatios",
                           "AMDR_hi_sum_reqRatio",
-                          "AMDR_lo_sum_reqRatio")
+                          "AMDR_lo_sum_reqRatio",
+                          "dt.foodAvail.foodGroup")
 multipleNutsListShortName <- c("nutrients.avail",
                                "macro_reqRatio",
                                "minrls_reqRatio",
@@ -39,6 +40,7 @@ multipleNutsListShortName <- c("nutrients.avail",
                                "AMDR_hi",
                                "AMDR_lo",
                                "foodAvail.foodGroup")
+
 #nutrients grouping
 macroNutrients <- c("protein_g", "fat_g", "carbohydrate_g",  "totalfiber_g")
 vitamins <- c("vit_c_mg", "thiamin_mg", "riboflavin_mg", "niacin_mg",
@@ -84,7 +86,7 @@ if (gdxFileName == "Micronutrient-Inputs-USAID.gdx") {
 dt.nutrientNames_Units <- getNewestVersion("dt.nutrientNames_Units", fileloc("mData"))
 
 for (l in scenChoiceList) {
-  #put here so its easy to see alignment of colors and bars
+  #put colorlist here so its easy to see alignment of colors and bars
   scenOrder <- get(scenChoiceList)
  if (l %in% "scenOrderSSP") {
    colorList <- c("black", "red", "green4", "red3", "red4") #put here so its easy to see alignment of colors and bars
@@ -174,6 +176,16 @@ print(paste("Done with bar chart for MFAD for", i))
     plotByRegionBar(dt = DT, fileName = "compDI", plotTitle = "Composite disqualifying index",
                     yLab = ylab, yRange = yRangeMinMax, aggChoice = i,  scenOrder, oneLine = FALSE, colorList)
 #    yLab = NULL, yRange = c(0, 100), aggChoice = i, oneLine = FALSE)
+
+    # stacked kcal bar chart ----
+    print(paste("Working on stacked kcal bar chart for ", i))
+    DT <- aggNorder(gdxChoice, DTglobal = "dt.kcals.values", aggChoice = i, get(l))
+    DT <- DT[nutrient %in% c("sugar_g", "ft_acds_tot_sat_g"), ]
+    ylab <- "(Kcals)"
+    if (ylab %in%  "(percent)") {yRangeMinMax <- c(0,100)} else {yRangeMinMax <- c(0, round(max(DT$value)) )}
+    plotByRegionStackedBar(dt = DT, fileName = "kcals.values", plotTitle = "Average daily dietary energy by source",
+                    yLab = ylab, yRange = yRangeMinMax, aggChoice = i,  scenOrder, oneLine = FALSE, colorList)
+
   }
 
   # food groups -----
@@ -321,7 +333,7 @@ print(j)
 
          if (multipleNutsFileList[k] %in% "AMDR_hi_sum_reqRatio")  {
            nutTitle <- paste("AMDR high, ", nutshortName, sep = "")
-           ylab = "(AMDR, low)"
+           ylab = "(AMDR, high)"
            drawOneLine = TRUE
          }
          if (multipleNutsFileList[k] %in% "AMDR_lo_sum_reqRatio")  {
@@ -356,7 +368,7 @@ dt.budgetShare <- dt.budgetShare[, (keepListCol.incShare), with = FALSE]
 dt.budgetShare <- dt.budgetShare[!region_code.IMPACT159 == "SOM",]
 scenario.base <- "SSP2-NoCC-REF"
 dt.budgetShare <- dt.budgetShare[year == "X2050" & scenario == scenario.base]
-dt.budgetShare[, c("year", "scenario") := NULL]
+dt.budgetShare[, c("year") := NULL]
 DT <- dt.budgetShare
 
 ylab <- "(percent)"
@@ -365,8 +377,20 @@ plottitle = "IMPACT food budget share of 2050 per capita income"
 for (i in aggChoiceListBarChart) {
 #  DTalt <- aggNorder(gdxChoice, DTglobal = "dt.budgetShare", aggChoice = i, get(l))
 
-plotByBoxPlot2050(dt = temp, fileName = filename, plotTitle = plottitle, yLab = ylab, yRange = c(0,50), aggChoice = i )
+plotByBoxPlot2050(dt = DT, fileName = filename, plotTitle = plottitle, yLab = ylab, yRange = c(0,50), aggChoice = i )
 }
+# the method commented out below to get the box plots stats doesn't work with geom_boxplot. The following link has a
+# way to do this but I'm not going to implement right now.
+# http://stackoverflow.com/questions/23970118/how-to-add-summary-information-to-geom-boxplot
+
+# box.stats <- data.table::as.data.table(box.test$stats)
+# box.stats.labels <- data.table(rownum = c(1,2,3,4,5), name = c("lowest value", "box bottom", "median", "box top", "highest value"))
+# # do this name change so the box stats can be rbinded with the other data
+# box.stats <- cbind(box.stats.labels, box.stats)
+# data.table::setnames(box.stats,
+#                      old = c("name", "V1", "V2", "V3", "V4"),
+#                      new = c("scenario", "lowInc", "lowMidInc", "upMidInc", "highInc"))
+# fwrite(box.stats, file = "graphics/boxstats_WB.csv")
 # box plots, old code -----
 # dt.budgetShare <- getNewestVersion("dt.budgetShare", fileloc("resultsDir"))
 # dt.regions <- regionAgg("WB")
@@ -406,14 +430,7 @@ plotByBoxPlot2050(dt = temp, fileName = filename, plotTitle = plottitle, yLab = 
 #   labels = labels, xpd = TRUE,  cex = 0.6, cex.axis = 0.6)
 # # abline(h = 1, lty = 3, lwd = 0.8)
 # dev.off()
-# box.stats <- data.table::as.data.table(box.test$stats)
-# box.stats.labels <- data.table(rownum = c(1,2,3,4,5), name = c("lowest value", "box bottom", "median", "box top", "highest value"))
-# # do this name change so the box stats can be rbinded with the other data
-# box.stats <- cbind(box.stats.labels, box.stats)
-# data.table::setnames(box.stats,
-#                      old = c("name", "V1", "V2", "V3", "V4"),
-#                      new = c("scenario", "lowInc", "lowMidInc", "upMidInc", "highInc"))
-# fwrite(box.stats, file = "graphics/boxstats_WB.csv")
+
 
 # line plots -----
 #this is not working right now
@@ -453,7 +470,7 @@ diversity.1 <- c("nonStapleShare", "RAOqe")
 diversity.2 <- c("NutBalScore", "compDI", "compQI")
 budgetShare <- "budgetShare"
 nonStapleShareKcals <- "nonStapleShare"
-boxStats <- "boxstats"
+#boxStats <- "boxstats"
 dailyAvail.foodgroup <- foodGroupList
 
 csvHolder <- data.table::data.table(scenario = character(0),
@@ -484,9 +501,12 @@ openxlsx::writeData(
   startRow = rowCounter
 )
 rowCounter <- rowCounter + 1
-for (i in c(budgetShare, boxStats, nutlistmacro, vitamins, minerals, diversity.1, diversity.2, dailyAvail.foodgroup)) {
-  if (i %in% c(budgetShare, boxStats)) {
-    fileName <- paste(i, "WB", sep = "_")
+#boxstats removed for now
+#for (i in c(budgetShare, boxStats, nutlistmacro, vitamins, minerals, diversity.1, diversity.2, dailyAvail.foodgroup)) {
+  for (i in c(budgetShare, nutlistmacro, vitamins, minerals, diversity.1, diversity.2, dailyAvail.foodgroup)) {
+ #   if (i %in% c(budgetShare, boxStats)) {
+      if (i %in% c(budgetShare)) {
+        fileName <- paste(i, "WB", sep = "_")
     figInfo <- "1, affordability,"
   }
   if (i %in% dailyAvail.foodgroup) {
@@ -526,7 +546,7 @@ for (i in c(budgetShare, boxStats, nutlistmacro, vitamins, minerals, diversity.1
   for (j in scen2050list) {
     for (k in 1:length(incCats)) {
       baseVal <- fileIn[scenario == "SSP2-NoCC", get(incCats[k])]
-      fileIn[scenario == j, DincCats[k] := (get(incCats[k]) - baseVal)/baseVal]
+      fileIn[scenario == j, DincCats[k] := (get(incCats[k]) - baseVal) / baseVal]
     }
   }
   #write name of data set to the spreadsheet

@@ -3,7 +3,7 @@
 # and parameters for IMPACT and generates
 #scenarios of per capita consumption.
 
-#Copyright (C) 2015 Gerald C. Nelson, except where noted
+#Copyright (C) 2015 - 2017 Gerald C. Nelson, except where noted
 
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -16,7 +16,7 @@
 # GNU General Public License for more details at http://www.gnu.org/licenses/.
 # options(warn=2)
 #' @include nutrientModFunctions.R
-if (!exists("getNewestVersion", mode = "function"))
+#if (!exists("getNewestVersion", mode = "function"))
 {source("R/nutrientModFunctions.R")
   source("R/workbookFunctions.R")
   source("R/nutrientCalcFunctions.R")}
@@ -353,20 +353,9 @@ for (scenarioChoice in scenarioListSSP.GDP) {
   }
 }
 
-#
-# # add an SSP population to the final data table ----
-# data.table::setkeyv(dt.SSPPopClean, c("scenario", "ISO_code", "year"))
-# dt.SSPPopTot <- dt.SSPPopClean[, sum(value), by = eval(data.table::key(dt.SSPPopClean))]
-# data.table::setnames(dt.SSPPopTot,"V1","pop.tot")
-# data.table::setkeyv(dt.SSPPopTot, c("scenario","ISO_code","year"))
-# data.table::setkeyv(dt.final, c("scenario","ISO_code","year"))
-#
-# dt.final[,pop := dt.SSPPopTot$pop]
-#
 # #keep only years in keepYearList
 # needs to be reloaded to get rid of year0 added above
-keepYearList <- keyVariable("keepYearList")
-dt.final <- dt.final[year %in% keepYearList,]
+dt.final <- dt.final[year %in% keyVariable("keepYearList"),]
 
 inDT <- dt.final
 outName <- "dt.alcScenarios"

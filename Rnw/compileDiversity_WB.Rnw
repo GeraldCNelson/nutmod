@@ -1,0 +1,10 @@
+% from http://tex.stackexchange.com/questions/5228/can-one-tex-file-output-to-multiple-pdf-files
+\documentclass{article}
+\usepackage{pdfpages}
+\begin{document}
+
+% mineral nutrients adequacy ratio
+\includepdfmerge[nup=2x2]{nonStapleShare_WB.pdf, RAOqe_WB.pdf}
+
+\end{document}
+

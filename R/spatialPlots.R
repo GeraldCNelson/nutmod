@@ -1,5 +1,5 @@
 library(sp)
-library(rworldmap)
+#library(rworldmap)
 library(maps)
 library(mapdata)
 library(ggplot2)
@@ -20,26 +20,45 @@ library(gridExtra)
   source("R/workbookFunctions.R")
   source("R/nutrientCalcFunctions.R")}
 
+# needed for maps of nutrient availability
+dt.nutrientNames_Units <- getNewestVersion("dt.nutrientNames_Units", fileloc("mData"))
+
 # naturalearth world map geojson
 #world <- readOGR(dsn="https://raw.githubusercontent.com/nvkelso/natural-earth-vector/master/geojson/ne_50m_admin_0_countries.geojson", layer="OGRGeoJSON")
-world <- readOGR(dsn = "data-raw/spatialData/ne_50m_admin_0_countries.geojson", layer = "OGRGeoJSON")
+#world <- readOGR(dsn = "data-raw/spatialData/ne_50m_admin_0_countries.geojson", layer = "OGRGeoJSON")
+world <- readOGR(dsn = "data-raw/spatialData/ne_110m_admin_0_countries.geojson", layer = "OGRGeoJSON")
 
-# remove antarctica
+# remove antarctica and some other small countries
 world <- world[!world$iso_a3 %in% c("ATA"),]
+othersToRemove <- c("ABW", "AIA", "ALA", "AND", "ASM", "AFT")
+world <- world[!world$iso_a3 %in% othersToRemove,]
+world <- world[!world$type %in% "Dependency",]
 
 world <- spTransform(world, CRS("+proj=longlat"))
+
+#world.simp <- gSimplify(world, tol = .1, topologyPreserve = TRUE)
 #wintri
 # alternative would be CRS("+proj=longlat")) for WGS 84
 # dat_url <- getURL("https://gist.githubusercontent.com/hrbrmstr/7a0ddc5c0bb986314af3/raw/6a07913aded24c611a468d951af3ab3488c5b702/pop.csv")
 # pop <- read.csv(text=dat_url, stringsAsFactors=FALSE, header=TRUE)
 
 worldMap <- broom::tidy(world, region = "iso_a3")
-variablesToPlot <- c("dt.budgetShare", "dt.RAOqe", "dt.nutBalScore","dt.compQI", "dt.compDI","dt.KcalShare.nonstaple", "dt.KcalShare.foodgroup", "dt.foodAvail.foodGroup")
+#worldMap.simp <- broom::tidy(world.simp, region = "iso_a3")
 
-for (i in variablesToPlot) {
+variablesToPlot.single <- c("dt.budgetShare", "dt.RAOqe", "dt.nutBalScore","dt.compQI", "dt.compDI","dt.KcalShare.nonstaple")
+variablesToPlot.mult <- c("dt.KcalShare.foodgroup", "dt.foodAvail.foodGroup", "dt.nutrients.sum.all")
+
+for (i in c(variablesToPlot.single, variablesToPlot.mult)) {
+  print(paste0("working on ", i))
   dt.spatialPlotData <- getNewestVersion(i, fileloc("resultsDir"))
+
+  scenlist <- unique(dt.spatialPlotData$scenario)
   dt.spatialPlotData <- dt.spatialPlotData[year %in% c("X2010", "X2050"),]
-  dt.spatialPlotData <- dt.spatialPlotData[year == "X2010", scenario := "2010"][, year := NULL]
+  #note the use of scenario in i is because there are slight differences in the 2010 values for some variables in some scenarios. This code means only of them is chosen
+  dt.spatialPlotData <- dt.spatialPlotData[year == "X2010" & scenario %in% "SSP2-NoCC-REF", `:=`(
+    scenario = "2010", year = "2010")]
+  dt.spatialPlotData <- dt.spatialPlotData[!year %in% "X2010",]
+  dt.spatialPlotData[, year := NULL]
   # get the new order
   scenlist <- unique(dt.spatialPlotData$scenario)
 
@@ -47,10 +66,12 @@ for (i in variablesToPlot) {
   if ("SSP3-NoCC-REF" %in% scenlist) {
     # do manipulations on the gdx data that has 3 SSP scenarios and 3 climate change scenarios, but just use 1 climate scenario.
     #    scenOrder.SSPs <- c("2010", "SSP2-NoCC-REF", "SSP1-NoCC-REF", "SSP3-NoCC-REF", "SSP2-GFDL-REF", "SSP2-IPSL-REF", "SSP2-HGEM-REF")
-    scenOrder.SSPs <- c("2010", "SSP2-NoCC-REF", "SSP2-HGEM-REF", "SSP1-NoCC-REF", "SSP3-NoCC-REF")
-    dt.spatialPlotData[, scenarioOrder := match(scenario, scenOrder.SSPs)]
+    scenOrder <- c("2010", "SSP2-NoCC-REF", "SSP2-HGEM-REF", "SSP1-NoCC-REF", "SSP3-NoCC-REF")
+    dt.spatialPlotData[, scenarioOrder := match(scenario, scenOrder)]
     data.table::setorder(dt.spatialPlotData, scenarioOrder)
     dt.spatialPlotData[, scenarioOrder := NULL]
+  } else {
+    stop("SSP3-NoCC-REF is not in scenlist")
   }
 
   # country code cleanup
@@ -70,67 +91,114 @@ for (i in variablesToPlot) {
   data.table::setnames(dt.spatialPlotData, old = "region_code.IMPACT159", new = "id")
 
   if (i %in% "dt.budgetShare") {
-    setnames(dt.spatialPlotData, old = "incSharePCX0", new = "value")
     dt.spatialPlotData[, c("pcGDPX0", "budget.PWX0", "budget.PCX0", "incSharePWX0") := NULL]
+    setnames(dt.spatialPlotData, old = "incSharePCX0", new = "value")
     dt.spatialPlotData <- unique(dt.spatialPlotData)
     titleText <- "IMPACT food budget share of per capita income"
     legendText <- "Percent"
+    lowColor <- "green"
+    highColor <- "dark red"
+    fillLimits <- c(0, 40)
+    fileName <- "budgetShare"
+    spData <- dt.spatialPlotData
+    generateWorldMaps(spData, scenOrder, titleText, legendText, lowColor, highColor, fillLimits)
   }
   if (i %in% "dt.RAOqe") {
     titleText <- "Rao's Quadratic Entropy"
     legendText <- "Legend"
+    lowColor <- "dark red"
+    highColor <- "green"
+    fillLimits <- c(0, 90)
+    fileName <- "RAOqe"
+    spData <- dt.spatialPlotData
+    generateWorldMaps(spData, scenOrder, titleText, legendText, lowColor, highColor, fillLimits)
   }
   if (i %in% "dt.nutBalScore") {
     titleText <- "Nutrient Balance Score"
     legendText <- "Legend"
+    lowColor <- "red"
+    highColor <- "green"
+    fillLimits <- c(0, 90)
+    fileName <- "NBS"
+    spData <- dt.spatialPlotData
+    generateWorldMaps(spData, scenOrder, titleText, legendText, lowColor, highColor, fillLimits)
   }
   if (i %in% "dt.compQI") {
     titleText <- "Composite Qualifying Index"
     legendText <- "Legend"
+    lowColor <- "red"
+    highColor <- "green"
+    fillLimits <- c(0, 20)
+    fileName <- "compQI"
+    spData <- dt.spatialPlotData
+    generateWorldMaps(spData, scenOrder, titleText, legendText, lowColor, highColor, fillLimits)
   }
   if (i %in% "dt.compDI") {
     titleText <- "Composite Disqualifying Index"
     legendText <- "Legend"
+    lowColor <- "green"
+    highColor <- "dark red"
+    fillLimits <- c(0, 90)
+    fileName <- "compDI"
+    spData <- dt.spatialPlotData
+    generateWorldMaps(spData, scenOrder, titleText, legendText, lowColor, highColor, fillLimits)
   }
   if (i %in% "dt.KcalShare.nonstaple") {
-    titleText <- "Non-staple Share of Kilocalories (percent)"
-    legendText <- "Legend"
+    titleText <- "Non-staple Share of Kilocalories"
+    legendText <- "(Percent)"
+    lowColor <- "red"
+    highColor <- "green"
+    fillLimits <- c(0, 90)
+    fileName <- "KcalShare.nonstaple"
+    spData <- dt.spatialPlotData
+    generateWorldMaps(spData, scenOrder, titleText, legendText, lowColor, highColor, fillLimits)
   }
   if (i %in% "dt.KcalShare.foodgroup") {
-    titleText <- "Daily per capita food availability by food group (grams)"
-    legendText <- "Legend"
+    titleText <- "Foodgroup Share of Kilocalories"
+    legendText <- "(Percent)"
+    lowColor <- "white"
+    highColor <- "dark red"
+    fillLimits <- c(0, 90)
+    for (l in unique(dt.spatialPlotData$food_group_code)) {
+      fileName <- paste0("KcalShare.foodgroup.", l)
+      spData <- dt.spatialPlotData[food_group_code %in% l,]
+      generateWorldMaps(spData, scenOrder, titleText, legendText, lowColor, highColor, fillLimits)
+    }
   }
 
-  # pdf(paste("graphics/map",i, ".pdf", sep = ""))
-  # par(mai = c(0,0,0.2,0), oma = c(1,1,4,1),xaxs="i",yaxs = "i", mfrow = c(4,2))
-  scenGraphs <- vector("list", length(scenOrder.SSPs))
-  for (j in 1:length(scenOrder.SSPs)) {
-    k <- scenOrder.SSPs[j]
-    temp.sp <- dt.spatialPlotData[scenario %in% k,]
-    temp.sp <- as.data.frame(temp.sp)
-    titleText.complete <- paste0(titleText,"\n", k,",", i)
-    gg <- ggplot(temp.sp, aes(map_id = id)) +
-      geom_map(aes(fill = temp.sp$value), map = worldMap, color = "white") +
-      expand_limits(x = worldMap$long, y = worldMap$lat) +
-      labs(title =  k, x = NULL, y = NULL) +
-      theme(plot.title = element_text(size = 14, hjust = 0.5)) +
-      scale_fill_gradient(low = "white", high = "dark red", guide = "legend", name = legendText, limits=c(0, 40)) +
-      labs(lText = legendText) +
-      #  theme(legend.position = "bottom") +
-      theme(legend.justification = c(0,0), legend.position = c(0,0)) +
-      # guides(lText = guide_legend(title.position="top", title.hjust = 0.5))  +
-      theme(axis.ticks = element_blank(),axis.title = element_blank(), axis.text.x = element_blank(),axis.text.y = element_blank())
-    # print(gg)
-     plotName.new <- paste0("plot.", gsub("-", "_",k))
-   assign(plotName.new, gg)
- #     scenGraphs[[j]] <- gg
-   }
-  multiplot(plotlist = scenGraphs, cols = 2)
-  # mtext(titleText, outer = TRUE, cex = 1.5)
-  # dev.off()
+  if (i %in% "dt.foodAvail.foodGroup") {
+    titleText <- "Daily per capita food availability by food group"
+    legendText <- "Grams"
+    lowColor <- "white"
+    highColor <- "dark red"
+    fillLimits <- c(0, 700)
+    for (l in unique(dt.spatialPlotData$food_group_code)) {
+      if (l %in% "rootsNPlaintain")  fillLimits <- c(0, 1700)
+      fillLimits[2] <- round(max(spData$value))
+      spData <- dt.spatialPlotData[food_group_code %in% l,]
+      fileName <- paste0("foodAvail.foodgroup.", l)
+      generateWorldMaps(spData = spData, scenOrder = scenOrder, titleText = titleText, legendText = legendText, lowColor = lowColor, highColor = highColor,
+                        fillLimits = fillLimits, fileName = fileName)
+    }
+    if (i %in% "dt.nutrients.sum.all") {
+      titleText <- "Daily per capita nutrient availability of"
+      legendText <- "Legend"
+      lowColor <- "white"
+      highColor <- "dark red"
+      fillLimits <- c(0, 700)
+      for (l in unique(dt.spatialPlotData$nutrient)) {
+        fileName <- paste0("nutrientAvail.", l)
+        spData <- dt.spatialPlotData[nutrient %in% l,]
+        fillLimits[2] <- round(max(spData$value))
+        nutlongName <- dt.nutrientNames_Units[1, (l)]
+        legendText <- dt.nutrientNames_Units[2, (l)]
+        titleText <- paste(titleText, nutlongName)
+        generateWorldMaps(spData = spData, scenOrder = scenOrder, titleText = titleText, legendText = legendText, lowColor = lowColor, highColor = highColor,
+                          fillLimits = fillLimits, fileName = fileName)
+      }
+    }
+  }
 }
-
-
 
 # old code -----
 #variablesToPlot <- c("dt.budgetShare", "dt.RAOqe", "dt.nutBalScore","dt.compQI", "dt.compDI","dt.KcalShare.nonstaple", "dt.KcalShare.foodgroup", "dt.foodAvail.foodGroup")
@@ -151,20 +219,7 @@ for (i in variablesToPlot) {
 #   if (i %in% "dt.compDI") {mainTitle <- "Composite Disqualifying Index"}
 #   if (i %in% "dt.KcalShare.nonstaple") {mainTitle <- "Non-staple Share of Kilocalories (percent)"}
 #   if (i %in% "dt.KcalShare.foodgroup") {mainTitle <- "Daily per capita food availability by food group (grams)"}
-#   # country code cleanup
-#   dt.spatialPlotData <- dt.spatialPlotData[region_code.IMPACT159 %in% "FRP", region_code.IMPACT159 := "FRA"]
-#   dt.spatialPlotData <- dt.spatialPlotData[region_code.IMPACT159 %in% "CHM", region_code.IMPACT159 := "CHN"]
-#   dt.spatialPlotData <- dt.spatialPlotData[region_code.IMPACT159 %in% "CHP", region_code.IMPACT159 := "CHE"]
-#   dt.spatialPlotData <- dt.spatialPlotData[region_code.IMPACT159 %in% "DNP", region_code.IMPACT159 := "DNK"]
-#   dt.spatialPlotData <- dt.spatialPlotData[region_code.IMPACT159 %in% "FNP", region_code.IMPACT159 := "FIN"]
-#   dt.spatialPlotData <- dt.spatialPlotData[region_code.IMPACT159 %in% "ITP", region_code.IMPACT159 := "ITA"]
-#   dt.spatialPlotData <- dt.spatialPlotData[region_code.IMPACT159 %in% "MOR", region_code.IMPACT159 := "MAR"]
-#   dt.spatialPlotData <- dt.spatialPlotData[region_code.IMPACT159 %in% "SPP", region_code.IMPACT159 := "ESP"]
-#   dt.spatialPlotData <- dt.spatialPlotData[region_code.IMPACT159 %in% "UKP", region_code.IMPACT159 := "GBR"]
-#   dt.spatialPlotData <- dt.spatialPlotData[region_code.IMPACT159 %in% "BLX", region_code.IMPACT159 := "BEL"]
-#   dt.spatialPlotData <- dt.spatialPlotData[region_code.IMPACT159 %in% "SDP", region_code.IMPACT159 := "SDN"]
-#   dt.spatialPlotData <- dt.spatialPlotData[region_code.IMPACT159 %in% "RAP", region_code.IMPACT159 := "ARE"]
-#
+
 #   dt.spatialPlotData <- dt.spatialPlotData[year %in% c("X2010", "X2050"),]
 #   dt.spatialPlotData <- dt.spatialPlotData[year == "X2010", scenario := "2010"][, year := NULL]
 #

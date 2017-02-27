@@ -1,0 +1,12 @@
+% from http://tex.stackexchange.com/questions/5228/can-one-tex-file-output-to-multiple-pdf-files
+\documentclass{article}
+\usepackage{pdfpages}
+\begin{document}
+
+% mineral nutrients adequacy ratio
+\includepdfmerge[nup=2x3]{calcium_mg_minrls_reqRatio_WB.pdf,iron_mg_minrls_reqRatio_WB.pdf,
+                        magnesium_mg_minrls_reqRatio_WB.pdf, phosphorus_mg_minrls_reqRatio_WB.pdf, potassium_g_minrls_reqRatio_WB.pdf,
+                        zinc_mg_minrls_reqRatio_WB.pdf}
+
+\end{document}
+

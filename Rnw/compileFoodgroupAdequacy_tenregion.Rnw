@@ -1,0 +1,15 @@
+% from http://tex.stackexchange.com/questions/5228/can-one-tex-file-output-to-multiple-pdf-files
+\documentclass{article}
+\usepackage{pdfpages}
+\begin{document}
+
+% foodgroup availability ratio
+\includepdfmerge[nup=2x3]{alcohol_foodAvail_foodGroup_tenregions.pdf, beverages_foodAvail_foodGroup_tenregions.pdf,
+                           cereals_foodAvail_foodGroup_tenregions.pdf, dairy_foodAvail_foodGroup_tenregions.pdf,
+                           eggs_foodAvail_foodGroup_tenregions.pdf, fish_foodAvail_foodGroup_tenregions.pdf, fruits_foodAvail_foodGroup_tenregions.pdf,
+                           meats_foodAvail_foodGroup_tenregions.pdf, nutsNseeds_foodAvail_foodGroup_tenregions.pdf, oils_foodAvail_foodGroup_tenregions.pdf,
+                           pulses_foodAvail_foodGroup_tenregions.pdf, rootsNPlaintain_foodAvail_foodGroup_tenregions.pdf,
+                           sweeteners_foodAvail_foodGroup_tenregions.pdf, vegetables_foodAvail_foodGroup_tenregions.pdf}
+
+\end{document}
+

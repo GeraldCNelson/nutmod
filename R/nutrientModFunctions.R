@@ -1069,3 +1069,117 @@ gdxFileNameChoice <- function() {
   cat("Your gdx file name choice is ", gdxFileName)
   return(gdxFileName)
 }
+
+# Multiple plot function -----
+# from http://www.cookbook-r.com/Graphs/Multiple_graphs_on_one_page_(ggplot2)/
+#
+# ggplot objects can be passed in ..., or to plotlist (as a list of ggplot objects)
+# - cols:   Number of columns in layout
+# - layout: A matrix specifying the layout. If present, 'cols' is ignored.
+#
+# If the layout is something like matrix(c(1,2,3,3), nrow=2, byrow=TRUE),
+# then plot 1 will go in the upper left, 2 will go in the upper right, and
+# 3 will go all the way across the bottom.
+#
+multiplot <- function(plotlist=NULL, file, cols=1, layout=NULL) {
+  library(grid)
+
+  # Make a list from the ... arguments and plotlist
+  # plots <- c(list(...), plotlist)
+plots <- plotlist
+  numPlots = length(plots)
+
+  # If layout is NULL, then use 'cols' to determine layout
+  if (is.null(layout)) {
+    # Make the panel
+    # ncol: Number of columns of plots
+    # nrow: Number of rows needed, calculated from # of cols
+    layout <- matrix(seq(1, cols * ceiling(numPlots/cols)),
+                     ncol = cols, nrow = ceiling(numPlots/cols))
+  }
+
+  if (numPlots==1) {
+    print(plots[[1]])
+
+  } else {
+    # Set up the page
+    grid.newpage()
+    pushViewport(viewport(layout = grid.layout(nrow(layout), ncol(layout))))
+
+    # Make each plot, in the correct location
+    for (i in 1:numPlots) {
+      # Get the i,j matrix positions of the regions that contain this subplot
+      matchidx <- as.data.frame(which(layout == i, arr.ind = TRUE))
+
+      print(plots[[i]], vp = viewport(layout.pos.row = matchidx$row,
+                                      layout.pos.col = matchidx$col))
+    }
+  }
+}
+
+# generateWorldMaps -----
+# code to generate choropleth world maps. In principle it should be able to handle an arbitrary number of scenarios
+generateWorldMaps <- function(spData, scenOrder, titleText, legendText, lowColor, highColor, fillLimits, fileName){
+  scenGraphs <- list()
+  for (j in 1:length(scenOrder)) {
+    k <- scenOrder[j]
+    temp.sp <- spData[scenario %in% k,]
+#    temp.sp[,scenario := NULL]
+    temp.sp <- as.data.frame(temp.sp)
+    summary(temp.sp)
+    plotName.new <- paste0("plot.", gsub("-", "_",k))
+    print(plotName.new)
+    gg <- ggplot(temp.sp, aes(map_id = id))
+    gg <- gg + geom_map(aes(fill = temp.sp$value), map = worldMap, color = "white")
+    gg <- gg + expand_limits(x = worldMap$long, y = worldMap$lat)
+    gg <- gg + labs(title =  k, hjust = 0.5, x = NULL, y = NULL) +
+      theme(plot.title = element_text(size = 10, hjust = 0.5)) +
+      scale_fill_gradient(low = lowColor, high = highColor, guide = "legend", name = legendText, limits = fillLimits) +
+      labs(lText = legendText) +
+      #  theme(legend.position = "bottom") +
+      theme(legend.justification = c(0,0), legend.position = c(0,0)) +
+      # guides(lText = guide_legend(title.position="top", title.hjust = 0.5))  +
+      theme(axis.ticks = element_blank(),axis.title = element_blank(), axis.text.x = element_blank(),axis.text.y = element_blank())
+    scenGraphs[[plotName.new]] <- gg
+  }
+  # multiplot(plotlist = scenGraphs, cols = 2)
+
+  # good source of information on using grid to place graphics - https://stat.ethz.ch/R-manual/R-devel/library/grid/doc/grid.pdf
+
+  # code below is modified from multiplot
+  cols <- 2
+  numPlots <- length(scenGraphs)
+  layout <- matrix(seq(1, cols * ceiling(numPlots/cols)),
+                   ncol = cols, nrow = ceiling(numPlots/cols), byrow = TRUE)
+  grid.newpage()
+  # +1 is for the title
+  rows <- nrow(layout) + 1
+  gridHeight <- unit(rep_len(1, nrow), "null")
+  pushViewport(viewport(layout = grid.layout(rows, ncol(layout), widths = unit(rep_len(1, cols), "null"), heights = unit(c(1, 5,5,5), "null"))))
+  # title goes in the first row and across all columns
+  grid.text(titleText, vp = viewport(layout.pos.row = 1, layout.pos.col = 1:cols))
+
+  # Make each plot, in the correct location
+  for (i in 1:numPlots) {
+    # Get the i,j matrix positions of the regions that contain this subplot
+    matchidx <- as.data.frame(which(layout == i, arr.ind = TRUE))
+    pdf(paste("graphics/worldMap", fileName, "_", , ".pdf", sep = ""), width = 7, height = 5.2, useDingbats = FALSE)
+
+    print(scenGraphs[[i]], vp = viewport(layout.pos.row = matchidx$row + 1,
+                                         layout.pos.col = matchidx$col))
+    dev.off()
+  }
+}
+# this commented out code is supposed to print the legend in a separate view port. It's not working yet.
+# library(gridExtra)
+# g_legend <- function(a.gplot){
+#   tmp <- ggplot_gtable(ggplot_build(a.gplot))
+#   leg <- which(sapply(tmp$grobs, function(x) x$name) == "guide-box")
+#   legend <- tmp$grobs[[leg]]
+#   legend
+# }
+# # get the legend from the first graph
+# legend <- g_legend(scenGraphs[[1]])
+#
+# grid.arrange(legend, scenGraphs[[1]] + theme(legend.position = 'none'),
+#              ncol = 2, nrow = rows, widths = c(1/6,5/6))

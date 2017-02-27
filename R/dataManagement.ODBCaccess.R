@@ -40,7 +40,7 @@ vitamins <- c("vit_c_mg", "thiamin_mg", "riboflavin_mg", "niacin_mg",
               "vit_e_mg",  "vit_d_µg", "vit_k_µg")
 minerals <- c("calcium_mg",  "iron_mg", "magnesium_mg", "phosphorus_mg",
               "potassium_g", "zinc_mg")
-kcals <- c("kcals.fat", "kcals.protein", "kcals.sugar", "kcals.ethanol")
+kcals <- c("kcals.fat_g", "kcals.protein_g", "kcals.sugar_g", "kcals.carbohydrate_g", "kcals.ethanol_g")
 addedSugar <- c("sugar_g")
 fattyAcids <- c("ft_acds_tot_sat_g", "ft_acds_mono_unsat_g", "ft_acds_plyunst_g",
                 "ft_acds_tot_trans_g")
@@ -52,6 +52,7 @@ dt.nutcodeLookup <- data.table::as.data.table(openxlsx::read.xlsx("data-raw/Nutr
 dt.nutcodeLookup[, Nutr_No := as.character(Nutr_No)]
 #Encoding(dt.nutcodeLookup$unit) <- "unknown" - for some reason this adds a stray character
 nutcodes <- sort(unique(dt.nutcodeLookup$Nutr_No))
+
 # keep just info on the nutrients we're interested in
 nut_data <-  NUT_DATA[Nutr_No %in% nutcodes, ]
 nutr_def <-  NUTR_DEF[Nutr_No %in% nutcodes, ]
@@ -142,10 +143,10 @@ dt <- merge(dt, dt.nutcodeLookup, by = c("NutrDesc", "Nutr_No", "unit"), all.x =
 Encoding(dt$nutCode) <- "unknown"
 data.table::setkey(dt, NULL)
 
- keepListCol <- c("IMPACT_code", "usda_code", "Long_Desc", "IMPACT_conversion", "Ref_Desc",
-                       "edible_share", "phytate_mg", "phytate_source", "nutCode", "Nutr_Val")
- dt <- dt[, (keepListCol), with = FALSE]
- dt <- unique(dt)
+keepListCol <- c("IMPACT_code", "usda_code", "Long_Desc", "IMPACT_conversion", "Ref_Desc",
+                 "edible_share", "phytate_mg", "phytate_source", "nutCode", "Nutr_Val")
+dt <- dt[, (keepListCol), with = FALSE]
+dt <- unique(dt)
 formula.wide <- paste("IMPACT_code + usda_code  + Long_Desc + IMPACT_conversion + Ref_Desc +
                       edible_share + phytate_mg + phytate_source  ~ nutCode")
 
@@ -156,7 +157,8 @@ dt.wide <- data.table::dcast(
 
 dt.wide <- merge(dt.wide,dt.retentionLookup, by = c("IMPACT_code"), all.x = TRUE)  #add retention code to dt.wide
 dt.wide[, retfactor_desc := NULL]
-
+# change total fat in ctea to be the sum of the fat constituents
+dt.wide["cteas", fat_g := ft_acds_mono_unsat_g + ft_acds_plyunst_g + ft_acds_tot_sat_g + ft_acds_tot_trans_g]
 # the requirement for potassium is expressed in grams; the Access data are in mg. We convert it here to g
 dt.wide[ ,potassium_g := potassium_g/1000]
 
@@ -200,7 +202,7 @@ for (i in 1:nrow(dt.compositesLookup)) {
   dt.phytateLookup <- dt.phytateLookup[usda_code %in% USDAcodes, ]
   dt <- merge(dt, dt.phytateLU, by = "usda_code", all.x = TRUE) #add phytate info to commodities in the composite commodity
   dt[is.na(phytate_mg), phytate_mg := 0]
-#  dt <- merge(dt, dt.compositesLookup, by = c("usda_code"), all.x = TRUE) #combine IMPACT code info and phytate info
+  #  dt <- merge(dt, dt.compositesLookup, by = c("usda_code"), all.x = TRUE) #combine IMPACT code info and phytate info
   dt <- merge(dt, dt.nutcodeLookup, by = c("NutrDesc", "Nutr_No", "unit"), all.x = TRUE)
   dt[, IMPACT_code := fName]
   Encoding(dt$nutCode) <- "unknown"
@@ -511,7 +513,7 @@ data.table::setnames(dt.nutrients, old = names(dt.nutrients), new = temp)
 data.table::setnames(finout, old = names(finout), new = temp)
 dt.nutrients <- rbind(dt.nutrients, dt.temp)
 # add nutrient names and units
-# need to add "kcals.ethanol", "kcals.fat", "kcals.carbohydrate","kcals.protein", "kcals.sugar"
+# need to add "kcals.ethanol", "kcals.fat_g", "kcals.carbohydrate","kcals.protein", "kcals.sugar"
 dt.nutrientNames_Units <- openxlsx::read.xlsx("data-raw/NutrientData/nutrientNames_Units.xlsx", colNames = TRUE)
 
 # the next few lines are just to ensure correct encoding for mu.
@@ -523,13 +525,13 @@ Encoding(temp) <- "unknown"
 data.table::setnames(dt.nutrients, old = names(dt.nutrients), new = temp)
 
 # add kcals to the dt.nutrients table -----
-# add five new columns to dt.nutrientNames_Units - kcals.fat, kcals.protein, kcals.carbs, kcals.ethanol, kcals.sugar
+# add five new columns to dt.nutrientNames_Units - kcals.fat_g, kcals.protein, kcals.carbs, kcals.ethanol, kcals.sugar
 tempDT <- data.table::data.table(
-  kcals.ethanol      = c("Ethanol", "kcals"),
-  kcals.fat          = c("Fat", "kcals"),
-  kcals.carbohydrate = c("Carbohydrate, by difference", "kcals"),
-  kcals.protein      = c("Protein", "kcals"),
-  kcals.sugar        = c("Sugars, total", "kcals")
+  kcals.ethanol_g      = c("Ethanol", "kcals"),
+  kcals.fat_g          = c("Fat", "kcals"),
+  kcals.carbohydrate_g = c("Carbohydrate, by difference", "kcals"),
+  kcals.protein_g      = c("Protein", "kcals"),
+  kcals.sugar_g        = c("Sugars, total", "kcals")
 )
 
 dt.nutrientNames_Units <- cbind(dt.nutrientNames_Units, tempDT)
@@ -538,31 +540,65 @@ inDT <- dt.nutrientNames_Units
 outName <- "dt.nutrientNames_Units"
 cleanup(inDT, outName, fileloc("mData"))
 
+# Conversion for future reference - The unit of energy is the kilojoule (kJ) or megajoule (1 MJ = 1,000 kJ)
+# 4.18 kilojoules are equal to 1 kilocalorie. From https://www.nrv.gov.au/dietary-energy
+
 # source of conversion http://www.convertunits.com/from/joules/to/calorie+[thermochemical]
 # 1 kJ = 0.23900573614 thermochemical /food calorie (kCal)
 # 1 Kcal = 4.184 kJ
 # fat 37kJ/g - 8.8432122371 kCal/g; protein 17kJ/g - 4.0630975143 kCal/g; carbs 16kJ/g - 3.8240917782 kCal/g
 #  beer - 4% ethanol, wine - 12% ethanol, spirits - 47% ethanol
-fatKcals <- 8.8432122371
-proteinKcals <- 4.0630975143
-carbsKcals <- 3.8240917782
-ethanolKcals <- 6.9
-ethanol.beer <- .04
-ethanol.wine <- .12
-ethanol.spirits <- .47
+kcals.fat_per_g <- 8.8432122371
+kcals.protein_per_g <- 4.0630975143
+kcals.carbs_per_g <- 3.8240917782
+kcals.ethanol_per_g <- 6.9
+ethanol.share.beer <- .04
+ethanol.share.wine <- .12
+ethanol.share.spirits <- .47
 
-# alcoholic beverages need to have ethanol energy content included
-dt.nutrients[, kcals.fat := fat_g * fatKcals]
-dt.nutrients[, kcals.protein := protein_g * proteinKcals]
-dt.nutrients[, kcals.carbohydrate := carbohydrate_g * carbsKcals]
-dt.nutrients[, kcals.sugar := sugar_g * carbsKcals]
-# do alcoholic beverages separately
-dt.nutrients[IMPACT_code == "c_beer", kcals.ethanol := ethanolKcals * ethanol.beer * 100] # beer
-dt.nutrients[IMPACT_code == "c_wine", kcals.ethanol := ethanolKcals * ethanol.wine * 100] # wine
-dt.nutrients[IMPACT_code == "c_spirits", kcals.ethanol := ethanolKcals * ethanol.spirits * 100] # spirits
-dt.nutrients[is.na(kcals.ethanol), kcals.ethanol := 0]
-data.table::setorder(dt.nutrients,IMPACT_code)
+dt.nutrients[, `:=`(
+  kcals.fat_g = fat_g * kcals.fat_per_g,
+  kcals.protein_g = protein_g * kcals.protein_per_g,
+  kcals.carbohydrate_g = carbohydrate_g * kcals.carbs_per_g,
+  kcals.sugar_g = sugar_g * kcals.carbs_per_g,
+  kcals.ft_acds_tot_sat_g = ft_acds_tot_sat_g * kcals.fat_per_g
+)]
+
+# do alcoholic beverages separately. Units of consumption are kgs of beverage. Multipy by 1000 because kcals.ethanol_g are in grams
+
+# beer
+dt.nutrients[IMPACT_code == "c_beer", `:=`(
+  carbohydrate_g = carbohydrate_g + 100 * ethanol.share.beer,
+  kcals.ethanol_g = kcals.ethanol_per_g * ethanol.share.beer * 100
+
+)]
+dt.nutrients[IMPACT_code == "c_beer", `:=`(
+  kcals.carbohydrate_g = kcals.carbohydrate_g + kcals.ethanol_g,
+  energy_kcal = energy_kcal + kcals.ethanol_g
+  )]
+
+# wine
+dt.nutrients[IMPACT_code == "c_wine", `:=`(
+  carbohydrate_g = carbohydrate_g + 100 * ethanol.share.wine,
+  kcals.ethanol_g = kcals.ethanol_per_g * ethanol.share.wine * 100
+)]
+dt.nutrients[IMPACT_code == "c_wine", `:=`(
+  kcals.carbohydrate_g = kcals.carbohydrate_g + kcals.ethanol_g,
+  energy_kcal = energy_kcal + kcals.ethanol_g
+)]
+# spirits
+dt.nutrients[IMPACT_code == "c_spirits", `:=`(
+  carbohydrate_g = carbohydrate_g + 100 * ethanol.share.spirits,
+  kcals.ethanol_g = kcals.ethanol_per_g * ethanol.share.spirits * 100
+)]
+dt.nutrients[IMPACT_code == "c_spirits", `:=`(
+  kcals.carbohydrate_g = kcals.carbohydrate_g + kcals.ethanol_g,
+  energy_kcal = energy_kcal + kcals.ethanol_g
+)]
+
+dt.nutrients[is.na(kcals.ethanol_g), kcals.ethanol_g := 0]
 dt.nutrients[phytate_source == 0, phytate_source := NA]
+data.table::setorder(dt.nutrients,IMPACT_code)
 
 # work on food group stuff to add to dt.nutrients
 # create dt.foodGroupsInfo from the excel spreadsheet for use in other R scripts.
@@ -613,7 +649,7 @@ for (i in composites[!composites %in% "c_OMarn"]) {
   openxlsx::addWorksheet(wb = nutSpreadsheet, sheetName = i)
   dtName <- eval(parse(text = paste0("dt.", i)))
 
-    openxlsx::writeData(
+  openxlsx::writeData(
     wb = nutSpreadsheet,
     x = dtName,
     sheet = i,
@@ -622,11 +658,11 @@ for (i in composites[!composites %in% "c_OMarn"]) {
     rowNames = FALSE,
     colNames = TRUE
   )
-    openxlsx::addStyle(
-      wb = nutSpreadsheet, sheet = i, style = numStyle, cols = 2:length(dtName),
-      rows = 2:(length(dtName)),
-      gridExpand = TRUE
-    )
+  openxlsx::addStyle(
+    wb = nutSpreadsheet, sheet = i, style = numStyle, cols = 2:length(dtName),
+    rows = 2:(length(dtName)),
+    gridExpand = TRUE
+  )
 }
 
 openxlsx::saveWorkbook(wb = nutSpreadsheet, file = paste0(fileloc("mData"),"/dt.nutrientsDetail.", Sys.Date(), ".xlsx"),

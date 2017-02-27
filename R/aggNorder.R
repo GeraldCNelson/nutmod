@@ -91,6 +91,10 @@ aggNorder <- function(gdxChoice, DTglobal, aggChoice, scenChoice) {
   # code and year using the popX) value as weights
   merged <- merged[, value := weighted.mean(value, PopX0), by = c("scenario", "region_code", "year")]
   keepListCol <- c("scenario",  "year", "region_code", "region_name", "value")
+  if ("nutrient" %in% names(merged))  {
+    nutOrder <- c("carbo.other", "ethanol_g", "sugar_g", "fat.other", "ft_acds_tot_sat_g", "protein_g")
+  keepListCol <- c("scenario",  "year", "region_code", "region_name", "nutrient","value")
+    }
   merged <- merged[, (keepListCol), with = FALSE]
   data.table::setkey(merged, NULL)
   DT <- unique(merged)
@@ -122,6 +126,13 @@ aggNorder <- function(gdxChoice, DTglobal, aggChoice, scenChoice) {
     DT[, scenarioOrder := match(scenario, scenOrder)]
     data.table::setorder(DT, scenarioOrder)
     DT[, scenarioOrder := NULL]
+
+    #order by nutrients
+    if ("nutrient" %in% names(DT)) {
+      DT[, nutOrder := match(nutrient, nutOrder)]
+      data.table::setorder(DT, nutOrder)
+      DT[, nutOrder := NULL]
+    }
   }
   # order by regions
   DT <- orderRegions(DT, aggChoice)
@@ -136,8 +147,7 @@ plotByRegionBar <- function(dt, fileName, plotTitle, yLab, yRange, aggChoice, sc
   regionNames <- unique(temp$region_name)
   scenarios <- unique(temp$scenario)
 
-  # initial attempts to use ggplot
-  temp[, scenario := gsub("-REF", "", scenario)]
+   temp[, scenario := gsub("-REF", "", scenario)]
   scenOrder <- gsub("-REF", "", scenOrder)
   # temp <- temp[order(region_code)]
   if (aggChoice %in% "WB") regionNameOrder <- c("Low income", "Lower middle income", "Upper middle income", "High income")
@@ -146,28 +156,20 @@ plotByRegionBar <- function(dt, fileName, plotTitle, yLab, yRange, aggChoice, sc
   scenarioNameOrder <- scenOrder
   temp[, region_name := factor(region_name, levels =  regionNameOrder)]
   temp[, scenario := factor(scenario, levels = scenarioNameOrder)]
-  scenario.econ <- c("SSP2-NoCC", "SSP1-NoCC", "SSP3-NoCC")
-  scenario.clim <- c("SSP2-HGEM")
-  # min.econ <- temp[scenario %in% scenario.econ,  min(value), by = c("region_code")]
-  # temp[scenario %in% scenario.econ, value.min.econ := min(value), by = c("region_code")]
-  # temp[scenario %in% scenario.econ, value.max.econ := max(value), by = c("region_code")]
-  # temp[scenario %in% scenario.clim, value.min.clim := min(value), by = c("region_code")]
-  # temp[scenario %in% scenario.clim, value.max.clim := max(value), by = c("region_code")]
-  # temp[scenario %in% "2010", value.min.econ := value]
-  # temp[scenario %in% "2010", value.max.econ := value]
-  # temp[scenario %in% "2010", value.min.clim := value]
-  # temp[scenario %in% "2010", value.max.clim := value]
-  #
+
   # draw bars
-  pdf(paste("graphics/", fileName,"_", aggChoice, ".pdf", sep = ""), width = 7, height = 5.2, useDingbats=FALSE)
+  pdf(paste("graphics/", fileName, "_", aggChoice, ".pdf", sep = ""), width = 7, height = 5.2, useDingbats = FALSE)
+  if (round(max(temp$value) - yRange[2]) == 0) yRange[2] <- max(temp$value) # will hopefully deal with rare situation
+  # when all elements of value are the same as the max y range
   p <- ggplot(temp, aes(x = region_name, y = value, fill = scenario, order = c("region_name") )) +
     geom_bar(stat = "identity", position = "dodge", color = "black") +
     theme(legend.position = "right") +
     theme(axis.text.x = element_text(angle = 45, hjust = 1)) +
+    scale_y_continuous(limits=yRange) +
     scale_fill_manual(values = colorList) +
     theme(plot.title = element_text(hjust = 0.5)) +
     ggtitle(plotTitle) +
-    ylim(yRange) +
+ #   ylim(yRange) +
     labs(y = yLab, x = NULL)
 
   if (oneLine == TRUE) p + geom_abline(intercept = 1, slope = 0)
@@ -252,12 +254,72 @@ plotByRegionBar <- function(dt, fileName, plotTitle, yLab, yRange, aggChoice, sc
 
 }
 
+plotByRegionStackedBar <- function(dt, fileName, plotTitle, yLab, yRange, aggChoice, scenOrder, oneLine, colorList) {
+  print(paste("plotting stacked bars by region", aggChoice, "for", plotTitle))
+  temp <- copy(dt)
+  regionCodes <- unique(temp$region_code)
+  regionNames <- unique(temp$region_name)
+  scenarios <- unique(temp$scenario)
+
+  temp[, scenario := gsub("-REF", "", scenario)]
+  scenOrder <- gsub("-REF", "", scenOrder)
+  # temp <- temp[order(region_code)]
+  if (aggChoice %in% "WB") regionNameOrder <- c("Low income", "Lower middle income", "Upper middle income", "High income")
+  if (aggChoice %in% "AggReg1") regionNameOrder <- regionNames
+  if (aggChoice %in% "tenregions") regionNameOrder <- regionNames
+  scenarioNameOrder <- scenOrder
+  temp[, region_name := factor(region_name, levels =  regionNameOrder)]
+  temp[, scenario := factor(scenario, levels = scenarioNameOrder)]
+
+  # draw bars
+  pdf(paste("graphics/", fileName, "_", aggChoice, ".pdf", sep = ""), width = 7, height = 5.2, useDingbats = FALSE)
+  if (max(temp$value) - yRange[2] > 0) yRange[2] <- 10^ceiling(log10(x)) # will hopefully deal with rare situation
+  # when all elements of value are the same as the max y range
+  p <- ggplot(temp, aes(x = scenario, y = value, fill = nutrient, order = c("region_name") )) +
+    geom_bar(stat = "identity", position = "stack", color = "black") +
+    facet_wrap(~ region_name) +
+    theme(legend.position = "right") +
+    theme(axis.text.x = element_text(angle = 45, hjust = 1)) +
+    scale_y_continuous(limits = yRange) +
+    scale_fill_manual(values = colorList) +
+    theme(plot.title = element_text(hjust = 0.5)) +
+    ggtitle(plotTitle) +
+    #   ylim(yRange) +
+    labs(y = yLab, x = NULL)
+
+  if (oneLine == TRUE) p + geom_abline(intercept = 1, slope = 0)
+  print(p)
+  # geom_errorbar(aes(ymin = value.min.econ, ymax = value.max.econ), color = "red", size = 2, position = position_dodge(0.9), width = 0.5) +
+  # geom_errorbar(aes(ymin = value.min.clim, ymax = value.max.clim), color = "green", size = 2, position = position_dodge(0.2), width = 0.5)
+  dev.off()
+  formula.wide <- "scenario ~ factor(region_code, levels = unique(region_code))"
+  temp.wide <- data.table::dcast(
+    data = temp,
+    formula = formula.wide,
+    value.var = "value")
+  temp.wide[, scenarioOrder := match(scenario, scenarios)]
+  data.table::setorder(temp.wide, scenarioOrder)
+  temp.wide[, scenarioOrder := NULL]
+  #temp.out <- data.table::copy(temp.wide)
+  data.table::setnames(temp.wide, old = regionCodes, new = regionNames)
+
+  colsToRound <- names(temp.wide)[2:length(temp.wide)]
+  temp.wide[,(colsToRound) := round(.SD,2), .SDcols = colsToRound]
+  data.table::setnames(temp.wide, old = names(temp.wide), new = c("scenario", regionCodes))
+  #  textplot(temp.wide, cex = 0.6, valign = "top", show.rownames = FALSE, mai = c(.5, .5, .5, .5))
+  write.csv(temp.wide, file = paste("graphics/", fileName, "_", aggChoice, ".csv", sep = ""))
+
+}
+
+
+
+
+
 plotByBoxPlot2050 <- function(dt, fileName, plotTitle, yLab, yRange, aggChoice ){
   print(paste("plotting boxplot for 2050 by region", aggChoice))
   temp <- copy(dt)
   regionCodes <- unique(temp$region_code)
   regionNames <- unique(temp$region_name)
-
 
   # initial attempts to use ggplot
   temp[, scenario := gsub("-REF", "", scenario)]
