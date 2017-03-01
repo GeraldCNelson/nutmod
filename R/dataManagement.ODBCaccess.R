@@ -548,9 +548,9 @@ cleanup(inDT, outName, fileloc("mData"))
 # 1 Kcal = 4.184 kJ
 # fat 37kJ/g - 8.8432122371 kCal/g; protein 17kJ/g - 4.0630975143 kCal/g; carbs 16kJ/g - 3.8240917782 kCal/g
 #  beer - 4% ethanol, wine - 12% ethanol, spirits - 47% ethanol
-kcals.fat_per_g <- 8.8432122371
-kcals.protein_per_g <- 4.0630975143
-kcals.carbs_per_g <- 3.8240917782
+kcals.fat_per_g <- 8.84
+kcals.protein_per_g <- 4.06
+kcals.carbs_per_g <- 3.82
 kcals.ethanol_per_g <- 6.9
 ethanol.share.beer <- .04
 ethanol.share.wine <- .12
@@ -564,36 +564,42 @@ dt.nutrients[, `:=`(
   kcals.ft_acds_tot_sat_g = ft_acds_tot_sat_g * kcals.fat_per_g
 )]
 
-# do alcoholic beverages separately. Units of consumption are kgs of beverage. Multipy by 1000 because kcals.ethanol_g are in grams
+# Total energy includes everything, from protein, fats, carbohydrates, fiber, ethyl alcohol, etc. all converted at some appropriate rate from gms to kcals
+# Carbohydrates by difference doesn’t include alcohol.
+#
+# So here’s my current plan (Feb 27, 2017)
+# Total energy is what I’ll use in the denominator of the various NBC calculations
+# I’ll use
+# -          8.84 to convert grams of saturated fat to kcals
+# -          3.82 to convert grams of sugar to kcals
+# -          6.9 to convert grams of alcohol to kcals
+#
+#
+# I’ll initially use saturated fat, sugar, and alcohol as disqualifying nutrients.
+# They will have the MRV values of
+# -          sugar_g - 10 percent of dietary energy
+# -          saturated fat <- 10 percent of dietary energy
+# -          ethanol <- 20 * ethanol_per_g
+
+# add kcals.ethanol_g column
+dt.nutrients[, kcals.ethanol_g := 0]
 
 # beer
 dt.nutrients[IMPACT_code == "c_beer", `:=`(
-  carbohydrate_g = carbohydrate_g + 100 * ethanol.share.beer,
-  kcals.ethanol_g = kcals.ethanol_per_g * ethanol.share.beer * 100
-
+  kcals.ethanol_g = kcals.ethanol_per_g * ethanol.share.beer * 100,
+  kcals.carbohydrate_g = kcals.carbohydrate_g + kcals.ethanol_g
 )]
-dt.nutrients[IMPACT_code == "c_beer", `:=`(
-  kcals.carbohydrate_g = kcals.carbohydrate_g + kcals.ethanol_g,
-  energy_kcal = energy_kcal + kcals.ethanol_g
-  )]
 
 # wine
 dt.nutrients[IMPACT_code == "c_wine", `:=`(
-  carbohydrate_g = carbohydrate_g + 100 * ethanol.share.wine,
-  kcals.ethanol_g = kcals.ethanol_per_g * ethanol.share.wine * 100
+  kcals.ethanol_g = kcals.ethanol_per_g * ethanol.share.wine * 100,
+  kcals.carbohydrate_g = kcals.carbohydrate_g + kcals.ethanol_g
 )]
-dt.nutrients[IMPACT_code == "c_wine", `:=`(
-  kcals.carbohydrate_g = kcals.carbohydrate_g + kcals.ethanol_g,
-  energy_kcal = energy_kcal + kcals.ethanol_g
-)]
+
 # spirits
 dt.nutrients[IMPACT_code == "c_spirits", `:=`(
-  carbohydrate_g = carbohydrate_g + 100 * ethanol.share.spirits,
-  kcals.ethanol_g = kcals.ethanol_per_g * ethanol.share.spirits * 100
-)]
-dt.nutrients[IMPACT_code == "c_spirits", `:=`(
-  kcals.carbohydrate_g = kcals.carbohydrate_g + kcals.ethanol_g,
-  energy_kcal = energy_kcal + kcals.ethanol_g
+  kcals.ethanol_g = kcals.ethanol_per_g * ethanol.share.spirits * 100,
+  kcals.carbohydrate_g = kcals.carbohydrate_g + kcals.ethanol_g
 )]
 
 dt.nutrients[is.na(kcals.ethanol_g), kcals.ethanol_g := 0]

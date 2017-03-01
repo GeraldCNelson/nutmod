@@ -20,7 +20,11 @@
 {source("R/nutrientModFunctions.R")
   source("R/workbookFunctions.R")
   source("R/nutrientCalcFunctions.R")}
+
+# get the years over which the FBS data should be averaged to create starting values
 FBSyearsToAverage <- keyVariable("FBSyearsToAverage")
+
+# get the list of years we need to keep
 keepYearList <- keyVariable("keepYearList")
 #need to include the n-1 year for the elasticity calculations
 year1 <- as.numeric(substr(keepYearList[1], 2, 5)); year2 <- as.numeric(substr(keepYearList[2], 2, 5))
