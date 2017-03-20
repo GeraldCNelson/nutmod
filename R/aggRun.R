@@ -58,8 +58,8 @@ other <- c("sugar_g", "cholesterol_mg")
 if (gdxFileName == "Micronutrient-Inputs-07252016.gdx") {
   gdxChoice <- "SSPs"
   scenario.base <- "SSP2-NoCC-REF"
-#  scenOrder <- c("2010", "SSP2-NoCC-REF", "SSP1-NoCC-REF", "SSP3-NoCC-REF", "SSP2-GFDL-REF",
-#                 "SSP2-IPSL-REF", "SSP2-HGEM-REF")
+  #  scenOrder <- c("2010", "SSP2-NoCC-REF", "SSP1-NoCC-REF", "SSP3-NoCC-REF", "SSP2-GFDL-REF",
+  #                 "SSP2-IPSL-REF", "SSP2-HGEM-REF")
   scenOrderSSP <- c("2010",  "SSP2-NoCC-REF", "SSP2-HGEM-REF", "SSP1-NoCC-REF","SSP3-NoCC-REF")
   scenChoiceList <- "scenOrderSSP"
   scenChoice.name <- "SSP"
@@ -88,89 +88,90 @@ dt.nutrientNames_Units <- getNewestVersion("dt.nutrientNames_Units", fileloc("mD
 for (l in scenChoiceList) {
   #put colorlist here so its easy to see alignment of colors and bars
   scenOrder <- get(scenChoiceList)
- if (l %in% "scenOrderSSP") {
-   colorList <- c("black", "red", "green4", "red3", "red4") #put here so its easy to see alignment of colors and bars
- } else {
-   colorList <- c("black", rainbow(10)[1:length(c("prodEnhance", "waterMan", "addEnhance", "comp")) - 1])
-}
+  if (l %in% "scenOrderSSP") {
+    colorList <- c("black", "red", "green4", "red3", "red4") #put here so its easy to see alignment of colors and bars
+  } else {
+    colorList <- c("black", rainbow(10)[1:length(c("prodEnhance", "waterMan", "addEnhance", "comp")) - 1])
+  }
 
   for (i in aggChoiceListBarChart) {
-    # Shannon Diversity -----
-    print(paste("Working on bar chart for Shannon Diversity for", i))
-    DT <- aggNorder(gdxChoice, DTglobal = "dt.shannonDiversity", aggChoice = i, get(l))
-    ylab <- "(percent)"
-    filename = "ShannonDiversity"
-    if (ylab %in%  "(percent)") {yRangeMinMax <- c(0,100)} else {yRangeMinMax <- c(0, max(DT$value) )}
-    plotByRegionBar(dt = DT, fileName = filename, plotTitle = "Shannon Diversity", yLab = ylab,
-                    yRange = yRangeMinMax, aggChoice = i, scenOrder, oneLine = FALSE, colorList)
- #   yRange = c(0, 80), aggChoice = i, oneLine = FALSE)
+    #    # Shannon Diversity -----
+    #    print(paste("Working on bar chart for Shannon Diversity for", i))
+    #    DT <- aggNorder(gdxChoice, DTglobal = "dt.shannonDiversity", aggChoice = i, scenChoice = get(l), mergedVals =  c("scenario", "region_code", "year"))
+    #    ylab <- "(percent)"
+    #    filename = "ShannonDiversity"
+    #    if (ylab %in%  "(percent)") {yRangeMinMax <- c(0,100)} else {yRangeMinMax <- c(0, max(DT$value) )}
+    #    plotByRegionBar(dt = DT, fileName = filename, plotTitle = "Shannon Diversity", yLab = ylab,
+    #                    yRange = yRangeMinMax, aggChoice = i, scenOrder, oneLine = FALSE, colorList)
+    # #   yRange = c(0, 80), aggChoice = i, oneLine = FALSE)
 
     # Budget share -----
     print(paste("Working on bar chart for budget share for", i))
-    DT <- aggNorder(gdxChoice, DTglobal = "dt.budgetShare", aggChoice = i, get(l))
+    DT <- aggNorder(gdxChoice, DTglobal = "dt.budgetShare", aggChoice = i, scenChoice = get(l), mergedVals =  c("scenario", "region_code", "year"))
     ylab <- "(percent)"
     filename <- "budgetShare"
     if (ylab %in%  "(percent)") {yRangeMinMax <- c(0,100)} else {yRangeMinMax <- c(0, max(DT$value) )}
     if (filename %in% "budgetShare") yRangeMinMax <- c(0,60) #custom
     plotByRegionBar(dt = DT, fileName = filename, plotTitle = "IMPACT food budget share of per capita income",
                     yLab = ylab, yRange = yRangeMinMax, aggChoice = i,  scenOrder, oneLine = FALSE, colorList)
-  #  yLab = "(percent)", yRange = c(0, 50), aggChoice = i, oneLine = FALSE)
+    #  yLab = "(percent)", yRange = c(0, 50), aggChoice = i, oneLine = FALSE)
 
-print(paste("Done with bar chart for budget share for", i))
-    # MFAD -----
-    print(paste("Working on bar chart for MFAD for", i))
-    DT <- aggNorder(gdxChoice, DTglobal = "dt.MFAD", aggChoice = i, get(l))
-    ylab <- "(percent)"
-    if (ylab %in%  "(percent)") {yRangeMinMax <- c(0,100)} else {yRangeMinMax <- c(0, max(DT$value) )}
-    plotByRegionBar(dt = DT, fileName = "MFAD", plotTitle = "Modified Functional Attribute Diversity",
-                    yLab = ylab, yRange = yRangeMinMax, aggChoice = i,  scenOrder, oneLine = FALSE, colorList)
-  #  yLab = "(percent)", yRange = c(0, 100), aggChoice = i, oneLine = FALSE)
-print(paste("Done with bar chart for MFAD for", i))
+    print(paste("Done with bar chart for budget share for", i))
+    #     # MFAD -----
+    #     print(paste("Working on bar chart for MFAD for", i))
+    #     DT <- aggNorder(gdxChoice, DTglobal = "dt.MFAD", aggChoice = i, scenChoice = get(l), mergedVals =  c("scenario", "region_code", "year"))
+    #     ylab <- "(percent)"
+    #     if (ylab %in%  "(percent)") {yRangeMinMax <- c(0,100)} else {yRangeMinMax <- c(0, max(DT$value) )}
+    #     plotByRegionBar(dt = DT, fileName = "MFAD", plotTitle = "Modified Functional Attribute Diversity",
+    #                     yLab = ylab, yRange = yRangeMinMax, aggChoice = i,  scenOrder, oneLine = FALSE, colorList)
+    #   #  yLab = "(percent)", yRange = c(0, 100), aggChoice = i, oneLine = FALSE)
+    # print(paste("Done with bar chart for MFAD for", i))
     # RAOqe -----
     print(paste("Working on bar chart for Rao's QE for", i))
-    DT <- aggNorder(gdxChoice, DTglobal = "dt.RAOqe", aggChoice = i, scenChoice = get(l))
+    DT <- aggNorder(gdxChoice, DTglobal = "dt.RAOqe", aggChoice = i, scenChoice = get(l), mergedVals =  c("scenario", "region_code", "year"))
     DTglobalylab <- ""
     if (ylab %in%  "(percent)") {yRangeMinMax <- c(0,100)} else {yRangeMinMax <- c(0, max(DT$value) )}
     plotByRegionBar(dt = DT, fileName = "RAOqe", plotTitle = "Rao's quadratic entropy",
                     yLab = ylab, yRange = yRangeMinMax, aggChoice = i,  scenOrder, oneLine = FALSE, colorList)
- #   yLab = NULL, yRange = c(0, 100), aggChoice = i, oneLine = FALSE)
+    #   yLab = NULL, yRange = c(0, 100), aggChoice = i, oneLine = FALSE)
 
     # # food availability -----
     # print(paste("Working on bar chart for food availability for", i))
-    # foodAvail.out <- aggNorder(gdxChoice, DTglobal = "dt.foodAvail.foodGroup", aggChoice = i, get(l))
+    # foodAvail.out <- aggNorder(gdxChoice, DTglobal = "dt.foodAvail.foodGroup", aggChoice = i, scenChoice = get(l), mergedVals =  c("scenario", "region_code", "year"))
     # plotByRegionBar(dt = foodAvail.out, fileName = "foodAvail.foodGroup", plotTitle = "Food availability by food group",
     #                 yLab = "(grams)", yRange = c(0, 100), aggChoice = i)
 
     # nonstaple share of kcals -----
     print(paste("Working on bar chart for the nonstaple share of kcals for", i))
-    DT <- aggNorder(gdxChoice, DTglobal = "dt.KcalShare.nonstaple", aggChoice = i, get(l))
+    DT <- aggNorder(gdxChoice, DTglobal = "dt.KcalShare.nonstaple", aggChoice = i, scenChoice = get(l),
+                    mergedVals =  c("scenario", "region_code", "year", "staple_code"))
     ylab <- "(percent)"
     if (ylab %in%  "(percent)") {yRangeMinMax <- c(0,100)} else {yRangeMinMax <- c(0, max(DT$value) )}
     plotByRegionBar(dt = DT, fileName = "nonStapleShare", plotTitle = "Non-staple share of energy",
                     yLab = ylab, yRange = yRangeMinMax, aggChoice = i,  scenOrder, oneLine = FALSE, colorList)
- #   yLab = "(percent)", yRange = c(0, 100), aggChoice = i, oneLine = FALSE)
+    #   yLab = "(percent)", yRange = c(0, 100), aggChoice = i, oneLine = FALSE)
 
     # nutrition benefit score -----
     print(paste("Working on bar chart for the NBS for", i))
-    DT <- aggNorder(gdxChoice, DTglobal = "dt.nutBalScore", aggChoice = i, get(l))
+    DT <- aggNorder(gdxChoice, DTglobal = "dt.nutBalScore", aggChoice = i, scenChoice = get(l), mergedVals =  c("scenario", "region_code", "year"))
     ylab <- "" # this creates the ylab variable and leaves it empty. NULL deletes it!
     if (ylab %in%  "(percent)") {yRangeMinMax <- c(0,100)} else {yRangeMinMax <- c(0, max(DT$value) )}
     plotByRegionBar(dt = DT, fileName = "NutBalScore", plotTitle = "Nutrient balance score",
                     yLab = ylab, yRange = yRangeMinMax, aggChoice = i,  scenOrder, oneLine = FALSE, colorList)
  #   yLab = NULL, yRange = c(0, 100), aggChoice = i, oneLine = FALSE)
 
-    # composite QI score -----
-    print(paste("Working on bar chart for the QI composite for", i))
-    DT <- aggNorder(gdxChoice, DTglobal = "dt.compQI", aggChoice = i, get(l))
-    ylab <- ""
-    if (ylab %in%  "(percent)") {yRangeMinMax <- c(0,100)} else {yRangeMinMax <- c(0, max(DT$value) )}
-    plotByRegionBar(dt = DT, fileName = "compQI", plotTitle = "Composite qualifying index",
-                    yLab = ylab, yRange = yRangeMinMax, aggChoice = i,  scenOrder, oneLine = FALSE, colorList)
-  #  yLab = NULL, yRange = c(0, 100), aggChoice = i, oneLine = FALSE)
+  #   # composite QI score -----
+  #   print(paste("Working on bar chart for the QI composite for", i))
+  #   DT <- aggNorder(gdxChoice, DTglobal = "dt.compQI", aggChoice = i, scenChoice = get(l), mergedVals =  c("scenario", "region_code", "year"))
+  #   ylab <- ""
+  #   if (ylab %in%  "(percent)") {yRangeMinMax <- c(0,100)} else {yRangeMinMax <- c(0, max(DT$value) )}
+  #   plotByRegionBar(dt = DT, fileName = "compQI", plotTitle = "Composite qualifying index",
+  #                   yLab = ylab, yRange = yRangeMinMax, aggChoice = i,  scenOrder, oneLine = FALSE, colorList)
+  # #  yLab = NULL, yRange = c(0, 100), aggChoice = i, oneLine = FALSE)
 
     # composite DI score -----
-    print(paste("Working on bar chart for the NBS for", i))
-    DT <- aggNorder(gdxChoice, DTglobal = "dt.compDI", aggChoice = i, get(l))
+    print(paste("Working on bar chart for disqualifying nutrients for", i))
+    DT <- aggNorder(gdxChoice, DTglobal = "dt.compDI", aggChoice = i, scenChoice = get(l), mergedVals =  c("scenario", "region_code", "year"))
     ylab <- ""
     if (ylab %in%  "(percent)") {yRangeMinMax <- c(0,100)} else {yRangeMinMax <- c(0, max(DT$value) )}
     plotByRegionBar(dt = DT, fileName = "compDI", plotTitle = "Composite disqualifying index",
@@ -179,8 +180,9 @@ print(paste("Done with bar chart for MFAD for", i))
 
     # stacked kcal bar chart ----
     print(paste("Working on stacked kcal bar chart for ", i))
-    DT <- aggNorder(gdxChoice, DTglobal = "dt.kcals.values", aggChoice = i, get(l))
-    DT <- DT[nutrient %in% c("sugar_g", "ft_acds_tot_sat_g"), ]
+    DT <- aggNorder(gdxChoice, DTglobal = "dt.kcals.values", aggChoice = i, scenChoice = get(l),
+                    mergedVals =  c("scenario", "region_code", "year", "nutrient"))
+    DT <- DT[nutrient %in% c("kcalsPerDay.carbohydrate", "kcalsPerDay.fat", "kcalsPerDay.other", "kcalsPerDay.protein"), ]
     ylab <- "(Kcals)"
     if (ylab %in%  "(percent)") {yRangeMinMax <- c(0,100)} else {yRangeMinMax <- c(0, round(max(DT$value)) )}
     plotByRegionStackedBar(dt = DT, fileName = "kcals.values", plotTitle = "Average daily dietary energy by source",
@@ -246,7 +248,7 @@ print(paste("Done with bar chart for MFAD for", i))
       nutTitle <- paste("Average daily availability of ", tolower(FG.longName), sep = "")
       ylab = paste("(",units,")",sep = "")
       if (ylab %in%  "(percent)") {yRangeMinMax <- c(0,100)} else {yRangeMinMax <- c(0, max(DT$value) )}
-      plotByRegionBar(dt = DT, fileName = paste(j, "foodAvail_foodGroup", sep = "_"), plotTitle = nutTitle,
+      plotByRegionBar(dt = DT, fileName = paste("foodAvail_foodGroup", j,  sep = "_"), plotTitle = nutTitle,
                       yLab = ylab, yRange = yRangeMinMax, aggChoice = i,  scenOrder, oneLine = FALSE, colorList)
 #      yRange = c(0, 80), aggChoice = i, oneLine = FALSE)
 print(j)
@@ -256,6 +258,9 @@ print(j)
 
   # several nutrients -----
   for (k in 1:length(multipleNutsFileList)) {
+
+#    if (multipleNutsFileList[k] %in% "dt.MRVRatios") browser()
+
     print(paste("Working on multiple nut file", multipleNutsFileList[k]))
     temp.in <- getNewestVersion(multipleNutsFileList[k], fileloc("resultsDir"))
     temp.in <- merge(temp.in, dt.pop, by = c("scenario","region_code.IMPACT159", "year"))
@@ -326,9 +331,10 @@ print(j)
           drawOneLine = TRUE
         }
         if (multipleNutsFileList[k] %in% c("dt.MRVRatios"))  {
-          nutTitle <- paste("Ratio of nutrient to MRV for , ", nutshortName, sep = "")
-          ylab = "(Maximal reference value)"
-          drawOneLine = TRUE
+          nutTitle <- paste("Ratio of nutrient to MRV for ", nutshortName, sep = "")
+#          ylab = "(Maximal reference value)"
+          ylab = ""
+          drawOneLine = FALSE
         }
 
          if (multipleNutsFileList[k] %in% "AMDR_hi_sum_reqRatio")  {
@@ -347,7 +353,7 @@ print(j)
           drawOneLine = FALSE
         }
         if (ylab %in%  "(percent)") {yRangeMinMax <- c(0,100)} else {yRangeMinMax <- c(0, max(DT$value) )}
-        plotByRegionBar(dt = DT, fileName = paste(j, multipleNutsListShortName[k], sep = "_"),
+        plotByRegionBar(dt = DT, fileName = paste(multipleNutsListShortName[k], j, sep = "_"),
                         plotTitle = nutTitle, yLab = ylab, yRange = yRangeMinMax, aggChoice = i,
                         scenOrder, oneLine = drawOneLine, colorList)
       }
@@ -359,25 +365,25 @@ print(j)
 
 # box plot of budget share in 2050 new ----
 dt.budgetShare <- getNewestVersion("dt.budgetShare", fileloc("resultsDir"))
-#dt.regions <- regionAgg("WB")
-# aggregate to and retain only the relevant regions
-dt.budgetShare <- merge(dt.budgetShare, dt.regions, by = "region_code.IMPACT159")
-keepListCol.incShare <- c("scenario" ,"year", "region_code.IMPACT159", "region_code", "region_name", "incSharePCX0")
-dt.budgetShare <- dt.budgetShare[, (keepListCol.incShare), with = FALSE]
 # get rid of Somalia because it's budget share is 500 * per cap income
 dt.budgetShare <- dt.budgetShare[!region_code.IMPACT159 == "SOM",]
-scenario.base <- "SSP2-NoCC-REF"
-dt.budgetShare <- dt.budgetShare[year == "X2050" & scenario == scenario.base]
-dt.budgetShare[, c("year") := NULL]
-DT <- dt.budgetShare
 
 ylab <- "(percent)"
-filename <- "budgetShareBoxPlot"
+filename <- "budgetShareBoxPlot_2050"
 plottitle = "IMPACT food budget share of 2050 per capita income"
 for (i in aggChoiceListBarChart) {
-#  DTalt <- aggNorder(gdxChoice, DTglobal = "dt.budgetShare", aggChoice = i, get(l))
+  # aggregate to and retain only the relevant regions
+  dt.regions <- regionAgg(i)
+  DT <- merge(dt.budgetShare, dt.regions, by = "region_code.IMPACT159")
+  keepListCol.incShare <- c("scenario" ,"year", "region_code.IMPACT159", "region_code", "region_name", "incSharePCX0")
+  DT <- DT[, (keepListCol.incShare), with = FALSE]
+  scenario.base <- "SSP2-NoCC-REF"
+  DT <- DT[year == "X2050" & scenario == scenario.base]
+  DT[, c("year") := NULL]
 
-plotByBoxPlot2050(dt = DT, fileName = filename, plotTitle = plottitle, yLab = ylab, yRange = c(0,50), aggChoice = i )
+  #  DTalt <- aggNorder(gdxChoice, DTglobal = "dt.budgetShare", aggChoice = i, scenChoice = get(l))
+
+  plotByBoxPlot2050(dt = DT, fileName = paste(filename,i, sep = "_"), plotTitle = plottitle, yLab = ylab, yRange = c(0,50), aggChoice = i )
 }
 # the method commented out below to get the box plots stats doesn't work with geom_boxplot. The following link has a
 # way to do this but I'm not going to implement right now.
@@ -467,7 +473,8 @@ nutlistmacro <- c("carbohydrate_g", "protein_g",  "totalfiber_g") # fat is exclu
 # nutlistvits <- c("folate_µg", "riboflavin_mg", "vit_a_rae_µg","vit_b12_µg", "vit_c_mg", "vit_e_mg",  "vit_d_µg",
 #                  "vit_k_µg", "thiamin_mg")
 diversity.1 <- c("nonStapleShare", "RAOqe")
-diversity.2 <- c("NutBalScore", "compDI", "compQI")
+#diversity.2 <- c("NutBalScore", "compDI", "compQI")
+diversity.2 <- c("NutBalScore", "compDI")
 budgetShare <- "budgetShare"
 nonStapleShareKcals <- "nonStapleShare"
 #boxStats <- "boxstats"
@@ -510,23 +517,23 @@ rowCounter <- rowCounter + 1
     figInfo <- "1, affordability,"
   }
   if (i %in% dailyAvail.foodgroup) {
-    fileName <- paste(i, "foodAvail_foodGroup_WB", sep = "_")
+    fileName <- paste( "foodAvail_foodGroup", i, "WB", sep = "_")
     figInfo <- "2, food group availability, "
   }
   if (i %in% nutlistmacro) {
-    fileName <- paste(i, "macro_reqRatio_WB", sep = "_")
+    fileName <- paste("macro_reqRatio", i, "WB", sep = "_")
     figInfo <- "3, adequacy, macro nutrients, "
   }
   if (i %in% vitamins) {
-    fileName <- paste(i, "vits_reqRatio_WB", sep = "_")
+    fileName <- paste("vits_reqRatio", i, "WB", sep = "_")
     figInfo <- "4, adequacy, vitamins, "
   }
   if (i %in% minerals) {
-    fileName <- paste(i, "minrls_reqRatio_WB", sep = "_")
+    fileName <- paste("minrls_reqRatio", i, "WB", sep = "_")
     figInfo <- "4, adequacy, minerals, "
   }
   # if (i %in% nutlistbioavail) {
-  #   fileName <- paste(i, "bioavail_reqRatio_WB", sep = "_")
+  #   fileName <- paste(i, "bioavail_reqRatio", i, "WB", sep = "_")
   #   figInfo <- "4, adequacy, minerals, "
   # }
   if (i %in% nonStapleShareKcals) {

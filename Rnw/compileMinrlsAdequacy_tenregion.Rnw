@@ -4,9 +4,10 @@
 \begin{document}
 
 % mineral nutrients adequacy ratio
-\includepdfmerge[nup=2x3]{calcium_mg_minrls_reqRatio_tenregions.pdf,iron_mg_minrls_reqRatio_tenregions.pdf,
-                        magnesium_mg_minrls_reqRatio_tenregions.pdf, phosphorus_mg_minrls_reqRatio_tenregions.pdf, potassium_g_minrls_reqRatio_tenregions.pdf,
-                        zinc_mg_minrls_reqRatio_tenregions.pdf}
+\includepdfmerge[nup=2x3]{minrls_reqRatio_calcium_mg_tenregions.pdf,
+minrls_reqRatio_iron_mg_tenregions.pdf,minrls_reqRatio_magnesium_mg_tenregions.pdf,
+minrls_reqRatio_phosphorus_mg_tenregions.pdf,minrls_reqRatio_potassium_g_tenregions.pdf,
+minrls_reqRatio_zinc_mg_tenregions.pdf}
 
 \end{document}
 

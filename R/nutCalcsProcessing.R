@@ -356,9 +356,9 @@ dt.nutSum.wide <- data.table::dcast(
   variable.factor = FALSE)
 
 # Note. sum.kcals differs from energy_kcal because alcohol is not included in carbohydrates. Maybe other reasons too
-dt.nutSum.wide[, sum_kcals := kcals.protein + kcals.fat + kcals.carbohydrate + kcals.ethanol]
+dt.nutSum.wide[, sum_kcals := kcals.protein_g + kcals.fat_g + kcals.carbohydrate_g + kcals.ethanol_g]
 dt.nutSum.wide[, diff_kcals := energy_kcal - sum_kcals]
-nutList.kcals <- c("energy_kcal", "kcals.protein", "kcals.carbohydrate", "kcals.sugar", "kcals.fat", "kcals.ethanol")
+nutList.kcals <- c("energy_kcal", "kcals.protein_g", "kcals.carbohydrate_g", "kcals.sugar_g", "kcals.fat_g", "kcals.ethanol_g")
 # #nutList.kcals <- paste(macroKcals,".sum.all", sep = "")
 nutList.ratio <- paste(nutList.kcals,"_share", sep = "")
 basicKey <- c("scenario",  "region_code.IMPACT159", "year")

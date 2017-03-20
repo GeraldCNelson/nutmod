@@ -57,7 +57,7 @@ orderRegions <- function(DT, aggChoice) {
   return(DT)
 }
 
-aggNorder <- function(gdxChoice, DTglobal, aggChoice, scenChoice) {
+aggNorder <- function(gdxChoice, DTglobal, aggChoice, scenChoice, mergedVals) {
   # print(paste("running aggNorder for ", gdxChoice, " and ", i))
   DT <- getNewestVersion(DTglobal, fileloc("resultsDir"))
   setkey(DT, NULL)
@@ -78,7 +78,7 @@ aggNorder <- function(gdxChoice, DTglobal, aggChoice, scenChoice) {
   }
   # deal with the ShannonDiversity data
   if ("SDnorm" %in% names(merged)) {
-    keepListCol.SD <- c("scenario","year", "region_code.IMPACT159", "region_code", "region_name", "SDnorm", "PopX0")
+    keepListCol.SD <- c("scenario","year", "region_code.IMPACT159",  "region_code", "region_name", "SDnorm", "PopX0")
     merged <- merged[, (keepListCol.SD), with = FALSE]
     data.table::setnames(merged, old = "SDnorm", new = "value")
   }
@@ -87,14 +87,17 @@ aggNorder <- function(gdxChoice, DTglobal, aggChoice, scenChoice) {
   }
 
   #  temp <- temp[, region.budget.share := mean(value), by = c("region_code", "year")]
-  # aggregation takes place in the next line of code. It says create the variable value from the old variable value, averaged by the region
-  # code and year using the popX) value as weights
-  merged <- merged[, value := weighted.mean(value, PopX0), by = c("scenario", "region_code", "year")]
-  keepListCol <- c("scenario",  "year", "region_code", "region_name", "value")
+  # aggregation takes place in the next line of code.
+  # It says create the variable value from the old variable value, averaged by the region
+  # code and year (and other variables, in particular nutrient in some cases) using the popX) value as weights
+  merged <- merged[, value := weighted.mean(value, PopX0), by = mergedVals]
+  keepListCol <- c(mergedVals, "region_name", "value")
   if ("nutrient" %in% names(merged))  {
-    nutOrder <- c("carbo.other", "ethanol_g", "sugar_g", "fat.other", "ft_acds_tot_sat_g", "protein_g")
-  keepListCol <- c("scenario",  "year", "region_code", "region_name", "nutrient","value")
-    }
+    # set kcalsPerDay.other to zero if it is less than zero.
+    DT[nutrient %in% "kcalsPerDay.other" & value < 0, value := 0]
+    nutOrder <- c("kcalsPerDay.carbohydrate", "kcalsPerDay.fat", "kcalsPerDay.protein", "kcalsPerDay.other")
+    keepListCol <- c(mergedVals, "region_name", "value")
+  }
   merged <- merged[, (keepListCol), with = FALSE]
   data.table::setkey(merged, NULL)
   DT <- unique(merged)
@@ -147,7 +150,7 @@ plotByRegionBar <- function(dt, fileName, plotTitle, yLab, yRange, aggChoice, sc
   regionNames <- unique(temp$region_name)
   scenarios <- unique(temp$scenario)
 
-   temp[, scenario := gsub("-REF", "", scenario)]
+  temp[, scenario := gsub("-REF", "", scenario)]
   scenOrder <- gsub("-REF", "", scenOrder)
   # temp <- temp[order(region_code)]
   if (aggChoice %in% "WB") regionNameOrder <- c("Low income", "Lower middle income", "Upper middle income", "High income")
@@ -169,7 +172,7 @@ plotByRegionBar <- function(dt, fileName, plotTitle, yLab, yRange, aggChoice, sc
     scale_fill_manual(values = colorList) +
     theme(plot.title = element_text(hjust = 0.5)) +
     ggtitle(plotTitle) +
- #   ylim(yRange) +
+    #   ylim(yRange) +
     labs(y = yLab, x = NULL)
 
   if (oneLine == TRUE) p + geom_abline(intercept = 1, slope = 0)
@@ -273,15 +276,19 @@ plotByRegionStackedBar <- function(dt, fileName, plotTitle, yLab, yRange, aggCho
 
   # draw bars
   pdf(paste("graphics/", fileName, "_", aggChoice, ".pdf", sep = ""), width = 7, height = 5.2, useDingbats = FALSE)
-  if (max(temp$value) - yRange[2] > 0) yRange[2] <- 10^ceiling(log10(x)) # will hopefully deal with rare situation
+  # I think the next line was meant to deal with a situation when yRange[2] (which should be the max) is smaller than
+  # max(temp$value). I don't understand what 10^ceiling(log10(x)) is supposed to accomplish
+  #  if (max(temp$value) - yRange[2] > 0) yRange[2] <- 10^ceiling(log10(x)) # will hopefully deal with rare situation
   # when all elements of value are the same as the max y range
+  #Here's an alternative
+  if (max(temp$value) - yRange[2] > 0) yRange[2] <- max(temp$value)
   p <- ggplot(temp, aes(x = scenario, y = value, fill = nutrient, order = c("region_name") )) +
     geom_bar(stat = "identity", position = "stack", color = "black") +
     facet_wrap(~ region_name) +
     theme(legend.position = "right") +
-    theme(axis.text.x = element_text(angle = 45, hjust = 1)) +
-    scale_y_continuous(limits = yRange) +
-    scale_fill_manual(values = colorList) +
+    theme(axis.text.x = element_text(angle = 70, hjust = 1)) +
+    # scale_y_continuous(limits = yRange) +
+    # scale_fill_manual(values = colorList) +
     theme(plot.title = element_text(hjust = 0.5)) +
     ggtitle(plotTitle) +
     #   ylim(yRange) +
@@ -292,7 +299,7 @@ plotByRegionStackedBar <- function(dt, fileName, plotTitle, yLab, yRange, aggCho
   # geom_errorbar(aes(ymin = value.min.econ, ymax = value.max.econ), color = "red", size = 2, position = position_dodge(0.9), width = 0.5) +
   # geom_errorbar(aes(ymin = value.min.clim, ymax = value.max.clim), color = "green", size = 2, position = position_dodge(0.2), width = 0.5)
   dev.off()
-  formula.wide <- "scenario ~ factor(region_code, levels = unique(region_code))"
+  formula.wide <- "scenario + nutrient ~ factor(region_code, levels = unique(region_code))"
   temp.wide <- data.table::dcast(
     data = temp,
     formula = formula.wide,
@@ -303,17 +310,12 @@ plotByRegionStackedBar <- function(dt, fileName, plotTitle, yLab, yRange, aggCho
   #temp.out <- data.table::copy(temp.wide)
   data.table::setnames(temp.wide, old = regionCodes, new = regionNames)
 
-  colsToRound <- names(temp.wide)[2:length(temp.wide)]
+  colsToRound <- names(temp.wide)[3:length(temp.wide)]
   temp.wide[,(colsToRound) := round(.SD,2), .SDcols = colsToRound]
-  data.table::setnames(temp.wide, old = names(temp.wide), new = c("scenario", regionCodes))
+  data.table::setnames(temp.wide, old = names(temp.wide), new = c("scenario", "nutrient", regionCodes))
   #  textplot(temp.wide, cex = 0.6, valign = "top", show.rownames = FALSE, mai = c(.5, .5, .5, .5))
   write.csv(temp.wide, file = paste("graphics/", fileName, "_", aggChoice, ".csv", sep = ""))
-
 }
-
-
-
-
 
 plotByBoxPlot2050 <- function(dt, fileName, plotTitle, yLab, yRange, aggChoice ){
   print(paste("plotting boxplot for 2050 by region", aggChoice))

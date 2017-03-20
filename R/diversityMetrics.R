@@ -88,7 +88,7 @@ dt.foodQratio[,c("foodAvailpDay","foodQ.sum") := NULL]
 # dt.SDfood[, SDnorm := SD * 100/log(length(foodList))]
 # inDT <- dt.SDfood
 # outName <- "dt.shannonDiversity"
-# cleanup(inDT, outName, fileloc("resultsDir"), "csv")
+# cleanup(inDT, outName, fileloc("resultsDir"), "csv")s
 
 # MFAD calculations ---------------
 #mfad = ((sum over i from 1 to n)((sum over j from 1 to n) of d_ij/n)
@@ -175,6 +175,8 @@ dt.adequateRatio.nuts.sum[is.na(dt.adequateRatio.nuts.sum)] <- 0
 #         by = c("scenario", "year")]
 
 #RAOqe calcs -----
+# get rid of SOM data which is all NaNs
+# dt.foodQratio <- dt.foodQratio[!region_code.IMPACT159 %in% "SOM"]
 dt.RAOqe <- merge(dt.adequateRatio.nuts, dt.foodQratio,
                   by = c("scenario", "year", "region_code.IMPACT159", "IMPACT_code"))
 
@@ -299,6 +301,10 @@ keepListCol <- c("IMPACT_code", "scenario", "region_code.IMPACT159",  "year", "k
                  "kcalsPerDay.sugar", "kcalsPerDay.ft_acds_tot_sat")
 dt.nutrients.kcals <- dt.nutrients.kcals[year %in% keepYearList, (keepListCol), with = FALSE]
 
+# get rid of Somalia data in dt.nutrients.kcals
+
+# dt.nutrients.kcals <- dt.nutrients.kcals[!region_code.IMPACT159 %in% "SOM"]
+
 # create nonstaple share of kcals ---------------
 dt.foodGroupLU <- getNewestVersion("dt.foodGroupsInfo")
 keepListCol <- c("IMPACT_code", "staple_code",  "food_group_code" )
@@ -418,6 +424,7 @@ nutrients.disqual.kcals <- as.vector(paste0("kcalsPerDay.",nutrients.disqual[!nu
 # see http://stackoverflow.com/questions/42471840/r-divide-a-list-or-vector-of-columns-by-a-list-or-vector-of-constants for source
 #dt.nutrients.kcals[, (di) := Map(`/`, mget(nutrients.disqual.kcals), mget(nutrients.disqual.MRV, envir = .GlobalEnv))]
 
+# do calculation for nutrients whose MRV is based on share of kcals
 for (l in seq_along(di)) {
   set(dt.nutrients.kcals, i = NULL, j = di[l], value = (dt.nutrients.kcals[[nutrients.disqual.kcals[l]]] / dt.nutrients.kcals[['kcalsPerDay.tot']]) /
         get(nutrients.disqual.MRV[l]))
@@ -426,13 +433,35 @@ for (l in seq_along(di)) {
 # times 100 to put it on 0 to 100 scale
 
 for (j in di) {
-  set(dt.nutrients.kcals, i=NULL, j=j, value=dt.nutrients.kcals[[j]]*100)
+  set(dt.nutrients.kcals, i = NULL, j = j, value = dt.nutrients.kcals[[j]] * 100)
 }
 
 # do ethanol separately because it is about a specific numbers of kcals rather than share of total
-dt.nutrients.kcals[, dt.ethanol := 100 * kcalsPerDay.ethanol/mrv.ethanol]
+dt.nutrients.kcals[, di.ethanol := 100 * kcalsPerDay.ethanol/mrv.ethanol]
+
+# now add ethanol back to the di list
+di <- c(di, "di.ethanol")
 dt.nutrients.kcals <- unique(dt.nutrients.kcals)
-inDT <- dt.nutrients.kcals
+temp <- data.table::copy(dt.nutrients.kcals)
+keeplistCol <- c("scenario", "region_code.IMPACT159", "year", "di.sugar", "di.ft_acds_tot_sat",
+                 "di.ethanol")
+temp <- temp[, (keeplistCol), with = FALSE]
+
+# use standard nutrient names
+newNames <- gsub("di.", "", di)
+newNames <- paste0(newNames, "_g")
+data.table::setnames(temp, old = di, new = newNames)
+
+temp.long <- data.table::melt(
+  data = temp,
+  id.vars = c("scenario", "region_code.IMPACT159", "year"),
+  measure.vars = newNames,
+  variable.name = "nutrient",
+  value.name = "value",
+  variable.factor = FALSE
+)
+
+inDT <- temp.long
 outName <- "dt.MRVRatios"
 cleanup(inDT, outName, fileloc("resultsDir"))
 
@@ -461,9 +490,11 @@ cleanup(inDT, outName, fileloc("resultsDir"))
 
 # calculate DIcomposite ---------------
 # add alcohol back to the list
-nutrients.disqual.kcals <- as.vector(paste0("di.",nutrients.disqual))
-dt.nutrients.kcals[, DI.comp := sum(get(nutrients.disqual.kcals))/Nd, by = c("scenario", "year", "region_code.IMPACT159")]
-keepListCol.DIcomp <- c("scenario", "region_code.IMPACT159",  "year", "DI.comp")
+nutrients.disqual.kcals <- (paste0("di.",nutrients.disqual))
+# calculate di.comp -----
+dt.nutrients.kcals[, DI.comp := rowSums(.SD), .SDcols = (nutrients.disqual.kcals)]
+dt.nutrients.kcals[, DI.comp :=  DI.comp / Nd]
+keepListCol.DIcomp <- c( "scenario", "region_code.IMPACT159", "year", "DI.comp")
 dt.nutrients.kcals <- dt.nutrients.kcals[, (keepListCol.DIcomp), with = FALSE]
 dt.nutrients.kcals <- unique(dt.nutrients.kcals)
 data.table::setnames(dt.nutrients.kcals, old = "DI.comp", new = "value")

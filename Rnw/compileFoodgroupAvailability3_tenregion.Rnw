@@ -5,7 +5,7 @@
 
 % foodgroup availability ratio
 \includepdfmerge[nup=2x3]{
-sweeteners_foodAvail_foodGroup_tenregions.pdf, vegetables_foodAvail_foodGroup_tenregions.pdf}
+foodAvail_foodGroup_sweeteners_tenregions.pdf, foodAvail_foodGroup_vegetables_tenregions.pdf}
 
 \end{document}
 

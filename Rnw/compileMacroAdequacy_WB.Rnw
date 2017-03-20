@@ -3,7 +3,7 @@
 \usepackage{pdfpages}
 \begin{document}
 % macro nutrients adequacy ratio
-\includepdfmerge[nup=2x2]{carbohydrate_g_macro_reqRatio_WB.pdf, protein_g_macro_reqRatio_WB.pdf, totalfiber_g_macro_reqRatio_WB.pdf}
+\includepdfmerge[nup=2x2]{macro_reqRatio_carbohydrate_g_WB.pdf, macro_reqRatio_protein_g_WB.pdf}
 
 \end{document}
 

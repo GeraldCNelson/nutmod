@@ -44,7 +44,7 @@ kcals <- c("kcals.fat_g", "kcals.protein_g", "kcals.sugar_g", "kcals.carbohydrat
 addedSugar <- c("sugar_g")
 fattyAcids <- c("ft_acds_tot_sat_g", "ft_acds_mono_unsat_g", "ft_acds_plyunst_g",
                 "ft_acds_tot_trans_g")
-other <- c("caffeine_mg", "cholesterol_mg")
+other <- c("ethanol_g", "caffeine_mg", "cholesterol_mg")
 
 # lookup tables -----
 #  IMPACT nutrient code - nutCode. Also has other info from NUTR_DEF for these nutrients
@@ -525,13 +525,15 @@ Encoding(temp) <- "unknown"
 data.table::setnames(dt.nutrients, old = names(dt.nutrients), new = temp)
 
 # add kcals to the dt.nutrients table -----
-# add five new columns to dt.nutrientNames_Units - kcals.fat_g, kcals.protein, kcals.carbs, kcals.ethanol, kcals.sugar
+# add six new columns to dt.nutrientNames_Units - kcals.fat_g, kcals.protein, kcals.carbs, kcals.ethanol,
+# kcals.sugar, kcals.ft_acds_tot_sat_g
 tempDT <- data.table::data.table(
   kcals.ethanol_g      = c("Ethanol", "kcals"),
   kcals.fat_g          = c("Fat", "kcals"),
   kcals.carbohydrate_g = c("Carbohydrate, by difference", "kcals"),
   kcals.protein_g      = c("Protein", "kcals"),
-  kcals.sugar_g        = c("Sugars, total", "kcals")
+  kcals.sugar_g        = c("Sugars, total", "kcals"),
+  kcals.ft_acds_tot_sat_g        = c("Fatty acids, total saturated", "kcals")
 )
 
 dt.nutrientNames_Units <- cbind(dt.nutrientNames_Units, tempDT)

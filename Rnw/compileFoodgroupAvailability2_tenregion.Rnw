@@ -5,9 +5,9 @@
 
 % foodgroup availability ratio
 \includepdfmerge[nup=2x3]{
-fruits_foodAvail_foodGroup_tenregions.pdf, meats_foodAvail_foodGroup_tenregions.pdf,
-nutsNseeds_foodAvail_foodGroup_tenregions.pdf, oils_foodAvail_foodGroup_tenregions.pdf,
-pulses_foodAvail_foodGroup_tenregions.pdf, rootsNPlaintain_foodAvail_foodGroup_tenregions.pdf
+foodAvail_foodGroup_fruits_WB.pdf, foodAvail_foodGroup_meats_WB.pdf,
+foodAvail_foodGroup_nutsNseeds_WB.pdf, foodAvail_foodGroup_oils_WB.pdf,
+foodAvail_foodGroup_pulses_WB.pdf, foodAvail_foodGroup_rootsNPlaintain_WB.pdf
 }
 
 \end{document}

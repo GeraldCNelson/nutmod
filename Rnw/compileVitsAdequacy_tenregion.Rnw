@@ -4,9 +4,6 @@
 \begin{document}
 
 % vitamin adequacy ratio
-\includepdfmerge[nup=2x3]{folate_µg_vits_reqRatio_tenregions.pdf, niacin_mg_vits_reqRatio_tenregions.pdf, riboflavin_mg_vits_reqRatio_tenregions.pdf,
-      thiamin_mg_vits_reqRatio_tenregions.pdf, vit_a_rae_µg_vits_reqRatio_tenregions.pdf, vit_b6_mg_vits_reqRatio_tenregions.pdf,
-      vit_b12_µg_vits_reqRatio_tenregions.pdf, vit_c_mg_vits_reqRatio_tenregions.pdf, vit_d_µg_vits_reqRatio_tenregions.pdf,
-      vit_e_mg_vits_reqRatio_tenregions.pdf, vit_k_µg_vits_reqRatio_tenregions.pdf}
+\includepdfmerge[nup=2x3]{vits_reqRatio_folate_µg_tenregions.pdf,vits_reqRatio_niacin_mg_tenregions.pdf,vits_reqRatio_riboflavin_mg_tenregions.pdf,vits_reqRatio_thiamin_mg_tenregions.pdf,vits_reqRatio_vit_a_rae_µg_tenregions.pdf,vits_reqRatio_vit_b6_mg_tenregions.pdf,vits_reqRatio_vit_b12_µg_tenregions.pdf,vits_reqRatio_vit_c_mg_tenregions.pdf,vits_reqRatio_vit_d_µg_tenregions.pdf,vits_reqRatio_vit_e_mg_tenregions.pdf,vits_reqRatio_vit_k_µg_tenregions.pdf}
 \end{document}
 

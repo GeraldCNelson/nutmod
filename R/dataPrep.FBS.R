@@ -74,13 +74,13 @@ colnames(dt.FBS.rawData) <- c("FAOSTAT_country_code", "country_name", "item_code
 #this drops all the ...F columns which provide information for each year on the data in that year
 colKeepList <- c("FAOSTAT_country_code", "country_name", "item_code", "item",
                  "variable_code", "element","unit",
-                 "X1961","X1962","X1963","X1964","X1965",
-                 "X1966","X1967","X1968","X1969","X1970",
-                 "X1971","X1972","X1973","X1974","X1975",
-                 "X1976","X1977","X1978","X1979","X1980",
-                 "X1981","X1982","X1983","X1984","X1985",
-                 "X1986","X1987","X1988","X1989","X1990",
-                 "X1991","X1992","X1993","X1994","X1995",
+                 # "X1961","X1962","X1963","X1964","X1965",
+                 # "X1966","X1967","X1968","X1969","X1970",
+                 # "X1971","X1972","X1973","X1974","X1975",
+                 # "X1976","X1977","X1978","X1979","X1980",
+                 # "X1981","X1982","X1983","X1984","X1985",
+                 # "X1986","X1987","X1988","X1989","X1990",
+                 # "X1991","X1992","X1993","X1994","X1995",
                  "X1996","X1997","X1998","X1999","X2000",
                  "X2001","X2002","X2003","X2004","X2005",
                  "X2006","X2007","X2008","X2009","X2010",
@@ -167,7 +167,8 @@ dt.FBS <- dt.FBS.raw[dt.FBSNameLookup]
 # dt.FBS <- subset(dt.FBS,Country %in% regions.ISO$country_name)
 
 # Create separate data data without the commodities aggregations
-aggregates <- c("Animal fats + (Total)",
+aggregates <- c("Alcoholic Beverages", # added March 19, 2017
+                "Animal fats + (Total)",
                 "Cereals - Excluding Beer + (Total)",
                 "Meat + (Total)",
                 "Milk - Excluding Butter + (Total)",

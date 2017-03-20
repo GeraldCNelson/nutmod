@@ -4,9 +4,8 @@
 \begin{document}
 % macro nutrients adequacy ratio
 \includepdfmerge[nup=2x3]{
-fat_g_AMDR_lo_WB.pdf, fat_g_AMDR_hi_WB.pdf,
-carbohydrate_g_AMDR_lo_WB.pdf,carbohydrate_g_AMDR_hi_WB.pdf,
-protein_g_AMDR_lo_WB.pdf, protein_g_AMDR_hi_WB.pdf}
+AMDR_hi_carbohydrate_g_WB.pdf, AMDR_hi_protein_g_WB.pdf, AMDR_hi_fat_g_WB.pdf,
+AMDR_lo_carbohydrate_g_WB.pdf, AMDR_lo_protein_g_WB.pdf, AMDR_lo_fat_g_WB.pdf}
 
 \end{document}
 

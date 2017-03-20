@@ -28,32 +28,43 @@ copyFile <- function(fileName, sourceDir, destDir) {
   file.copy(from = paste(sourceDir, fileName, sep = "/"), to = destDir, overwrite = TRUE)
 }
 
-copyListFromMacro <- c("carbohydrate_g_macro_reqRatio", "protein_g_macro_reqRatio", "totalfiber_g_macro_reqRatio",
-                       "fat_g_AMDR_hi", "fat_g_AMDR_lo", "carbohydrate_g_AMDR_hi", "carbohydrate_g_AMDR_lo",
-                       "protein_g_AMDR_hi", "protein_g_AMDR_lo")
+macroList <- c("carbohydrate_g", "protein_g", "fat_g", "totalfiber_g")
+macroList.reqRatio <- macroList[!macroList %in% "fat_g"]
+copyListFromMacro <- paste("macro_reqRatio", macroList.reqRatio, sep = "_")
 copyListFromMacro.WB <- paste0(copyListFromMacro, "_WB.pdf")
 copyListFromMacro.tenregions <- paste0(copyListFromMacro, "_tenregions.pdf")
+copyListFromMacro.AggReg1 <- paste0(copyListFromMacro, "_AggReg1.pdf")
 
-copyListFromMinrls <- c("calcium_mg_minrls_reqRatio","folate_µg_vits_reqRatio",
-                        "iron_mg_minrls_reqRatio",
-                        "magnesium_mg_minrls_reqRatio", "phosphorus_mg_minrls_reqRatio",
-                        "potassium_g_minrls_reqRatio","zinc_mg_minrls_reqRatio")
+macroList.AMDR <- macroList[!macroList %in% "totalfiber_g"]
+AMDRHiList <- paste("AMDR_hi", macroList.AMDR, sep = "_")
+AMDRLoList <- paste("AMDR_lo", macroList.AMDR, sep = "_")
+
+copyListFromAMDRHi.WB <- paste0(AMDRHiList, "_WB.pdf")
+copyListFromAMDRHi.tenregions <- paste0(AMDRHiList, "_tenregions.pdf")
+copyListFromAMDRHi.AggReg1 <- paste0(AMDRHiList, "_AggReg1.pdf")
+copyListFromAMDRLo.WB <- paste0(AMDRLoList, "_WB.pdf")
+copyListFromAMDRLo.tenregions <- paste0(AMDRLoList, "_tenregions.pdf")
+copyListFromAMDRLo.AggReg1 <- paste0(AMDRLoList, "_AggReg1.pdf")
+
+minrlsList <- c("calcium_mg", "iron_mg", "magnesium_mg", "phosphorus_mg", "potassium_g", "zinc_mg")
+copyListFromMinrls <- paste("minrls_reqRatio", minrlsList, sep = "_")
 copyListFromMinrls.WB <- paste0(copyListFromMinrls, "_WB.pdf")
 copyListFromMinrls.tenregions <- paste0(copyListFromMinrls, "_tenregions.pdf")
+copyListFromMinrls.AggReg1 <- paste0(copyListFromMinrls, "_AggReg1.pdf")
 
-copyListFromVits <- c("niacin_mg_vits_reqRatio", "riboflavin_mg_vits_reqRatio",
-                      "thiamin_mg_vits_reqRatio", "vit_a_rae_µg_vits_reqRatio", "vit_b6_mg_vits_reqRatio",
-                      "vit_b12_µg_vits_reqRatio", "vit_c_mg_vits_reqRatio", "vit_d_µg_vits_reqRatio",
-                      "vit_e_mg_vits_reqRatio", "vit_k_µg_vits_reqRatio")
+vitsList <- c("folate_µg", "niacin_mg", "riboflavin_mg",
+              "thiamin_mg", "vit_a_rae_µg", "vit_b6_mg",
+              "vit_b12_µg", "vit_c_mg", "vit_d_µg",  "vit_e_mg", "vit_k_µg")
+copyListFromVits <- paste("vits_reqRatio", vitsList, sep = "_")
 copyListFromVits.WB         <- paste0(copyListFromVits, "_WB.pdf")
 copyListFromVits.tenregions <- paste0(copyListFromVits, "_tenregions.pdf")
+copyListFromVits.AggReg1 <- paste0(copyListFromVits, "_AggReg1.pdf")
 
-copyListFromAvailByFG <- c("alcohol_foodAvail_foodGroup", "beverages_foodAvail_foodGroup",
-                           "cereals_foodAvail_foodGroup", "dairy_foodAvail_foodGroup",
-                           "eggs_foodAvail_foodGroup", "fish_foodAvail_foodGroup", "fruits_foodAvail_foodGroup",
-                           "meats_foodAvail_foodGroup", "nutsNseeds_foodAvail_foodGroup", "oils_foodAvail_foodGroup",
-                           "pulses_foodAvail_foodGroup", "rootsNPlaintain_foodAvail_foodGroup",
-                           "sweeteners_foodAvail_foodGroup", "vegetables_foodAvail_foodGroup")
+foodGroups <- c(c("alcohol", "beverages", "cereals", "dairy",
+                  "eggs", "fish", "fruits", "meats", "nutsNseeds", "oils",
+                  "pulses", "rootsNPlaintain","sweeteners", "vegetables"))
+
+copyListFromAvailByFG <- paste("foodAvail_foodGroup", foodGroups, sep = "_")
 copyListFromAvailByFG.WB <- paste0(copyListFromAvailByFG, "_WB.pdf")
 copyListFromAvailByFG.tenregions <- paste0(copyListFromAvailByFG, "_tenregions.pdf")
 
@@ -61,11 +72,13 @@ copyListFromDiversity <- c("nonStapleShare", "RAOqe")
 copyListFromDiversity.WB <- paste0(copyListFromDiversity, "_WB.pdf")
 copyListFromDiversity.tenregions <- paste0(copyListFromDiversity, "_tenregions.pdf")
 
-copyListFromNBS  <- c("compQI", "compDI", "NutBalScore")
+#copyListFromNBS  <- c("compQI", "compDI", "NutBalScore")
+copyListFromNBS  <- c( "compDI", "NutBalScore")
 copyListFromNBS.WB <- paste0(copyListFromNBS, "_WB.pdf")
 copyListFromNBS.tenregions <- paste0(copyListFromNBS, "_tenregions.pdf")
 
-copyListFromOther <- c("caffeine_mg_nutrients.avail", "cholesterol_mg_nutrients.avail")
+otherList <- c("caffeine_mg", "cholesterol_mg")
+copyListFromOther <- paste("nutrients.avail", otherList, sep = "_")
 copyListFromOther.WB <- paste0(copyListFromOther, "_WB.pdf")
 copyListFromOther.tenregions <- paste0(copyListFromOther, "_tenregions.pdf")
 
@@ -75,7 +88,9 @@ copyList <- c(copyListFromMacro.WB, copyListFromMacro.tenregions,
               copyListFromAvailByFG.WB, copyListFromAvailByFG.tenregions,
               copyListFromDiversity.WB, copyListFromDiversity.tenregions,
               copyListFromNBS.WB, copyListFromNBS.tenregions,
-              copyListFromOther.WB, copyListFromOther.tenregions)
+              copyListFromOther.WB, copyListFromOther.tenregions,
+              copyListFromAMDRHi.WB, copyListFromAMDRHi.tenregions,
+              copyListFromAMDRLo.WB, copyListFromAMDRLo.tenregions)
 
 for (i in copyList) {
   print(sprintf("copying file %s from graphics directory to %s", i, destDir))

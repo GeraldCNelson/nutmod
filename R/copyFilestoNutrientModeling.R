@@ -44,7 +44,7 @@ copyListFromResults <- c("dt.energy_ratios", "dt.budgetShare",
                          "RDA.macro_FG_reqRatio","RDA.vits_FG_reqRatio", "RDA.minrls_FG_reqRatio",
 #                         "UL.vits.sum.req.ratio", "UL.minrls.sum.req.ratio",
 #                         "UL.minrls.FG.ratio", "UL.vits.FG.ratio",
-                         "dt.nonStapleKcalShare","dt.RAOqe", "dt.compQI", "dt.compDI", "dt.nutBalScore", "dt.metadata",
+                         "dt.KcalShare.nonstaple","dt.RAOqe", "dt.compDI", "dt.nutBalScore", "dt.metadata",
                          "dt.nutrients.sum.all",  "dt.nutrients.sum.staples")
 #, "dt.nutrients.sum.staples")
 

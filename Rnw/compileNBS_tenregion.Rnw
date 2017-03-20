@@ -4,7 +4,7 @@
 \begin{document}
 
 % mineral nutrients adequacy ratio
-\includepdfmerge[nup=2x2]{compQI_tenregions.pdf, compDI_tenregions.pdf, NutBalScore_tenregions.pdf}
+\includepdfmerge[nup=2x2]{compDI_tenregions.pdf, NutBalScore_tenregions.pdf}
 
 \end{document}
 

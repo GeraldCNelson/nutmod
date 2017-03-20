@@ -4,7 +4,7 @@
 \begin{document}
 
 % mineral nutrients adequacy ratio
-\includepdfmerge[nup=2x2]{compQI_WB.pdf, compDI_WB.pdf, NutBalScore_WB.pdf}
+\includepdfmerge[nup=2x2]{compDI_WB.pdf, NutBalScore_WB.pdf}
 
 \end{document}
 

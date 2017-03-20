@@ -371,6 +371,9 @@ generateResults.dataPrep <- function(req, dt.IMPACTfood, scenarioListIMPACT, dt.
     temp.foodgroup.sum[, c("IMPACT_code", "foodAvailpDay") := NULL]
     temp.foodgroup.sum <- unique(temp.foodgroup.sum)
     data.table::setnames(temp.foodgroup.sum, old = "foodavail.foodgroup.sum", new = "value")
+
+    # get rid of Somalia (SOM)
+    # temp.foodgroup.sum <- temp.foodgroup.sum[region_code.IMPACT159 %in% "SOM",]
     inDT <- temp.foodgroup.sum
     outName <- "dt.foodAvail.foodGroup"
     cleanup(inDT, outName, fileloc("resultsDir"), "csv")
@@ -404,7 +407,7 @@ generateResults.dataPrep <- function(req, dt.IMPACTfood, scenarioListIMPACT, dt.
   # set up AMDRs
   if (req %in% c("req.AMDR_hi_percap", "req.AMDR_lo_percap")) {
     dt.kcals.nutrient.ratio <- getNewestVersion("dt.kcals.nutrient.ratio", fileloc("mData"))
-    data.table::setnames(dt.kcals.nutrient.ratio, old = nutListReq, new = nutListReq.Q) # to work with code for other ratios
+    data.table::setnames(dt.kcals.nutrient.ratio, old = paste0(nutListReq, "_kcals"), new = nutListReq.Q) # to work with code for other ratios
     keepListCol <- c( "scenario", "region_code.IMPACT159", "year", "fat_g.Q", "protein_g.Q", "carbohydrate_g.Q" )
     dt.food.agg <- dt.kcals.nutrient.ratio[, (keepListCol), with = FALSE]
     }
