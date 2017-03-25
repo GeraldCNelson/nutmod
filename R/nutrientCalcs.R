@@ -458,6 +458,12 @@ generateResults.dataPrep <- function(req, dt.IMPACTfood, scenarioListIMPACT, dt.
   print(paste("finished with requirement ratio for the food group categories ", req, sep = ""))
   print(proc.time())
   }
+  # cap alcohol at 100 gm
+if ("ethanol_g" %in% names(dt.food.agg)) {
+  dt.food.agg[ethanol_g.sum.all > 100, ethanol_g.sum.all := 100]
+  dt.food.agg[ethanol_g.sum.staple > 100, ethanol_g.sum.staple := 100]
+  dt.food.agg[ethanol_g.sum.foodGroup > 100, ethanol_g.sum.foodGroup := 100]
+}
   inDT <- dt.food.agg
   temp <- gsub("req.","",req)
   reqShortName <- gsub(".percap","",temp)
@@ -532,12 +538,14 @@ generateSum <- function(dt.IMPACTfood, scenarioListIMPACT, dt.nutrients.adj) {
   # do staples next
   dt.food.agg.staples <- data.table::copy(dt.food.agg)
   data.table::setkeyv(dt.food.agg.staples, stapleKey)
-  dt.food.agg.staples <- dt.food.agg.staples[, (nutListReq.sum.staple) := lapply(.SD, sum), .SDcols = nutListReq.Q,
+dt.food.agg.staples[, (nutListReq.sum.staple) := lapply(.SD, sum), .SDcols = nutListReq.Q,
                                              by = eval(data.table::key(dt.food.agg.staples))][,(nutListReq.Q) := NULL]
-  print(proc.time())
+#  print(proc.time())
   deleteListCol <- c("IMPACT_code", "foodAvailpDay", "food_group_code")
   dt.food.agg.staples[,(deleteListCol) := NULL]
   dt.nut.sum.staple.wide <- unique(dt.food.agg.staples)
+
+  # next step gets rid of a lot of extraneous column info
   dt.nut.sum.staple.long <- data.table::melt(dt.nut.sum.staple.wide,
                                              id.vars = c("scenario","region_code.IMPACT159", "staple_code","year"),
                                              variable.name = "nutrient",

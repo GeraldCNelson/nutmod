@@ -331,7 +331,7 @@ print(j)
           drawOneLine = TRUE
         }
         if (multipleNutsFileList[k] %in% c("dt.MRVRatios"))  {
-          nutTitle <- paste("Ratio of nutrient to MRV for ", nutshortName, sep = "")
+          nutTitle <- paste("Ratio of ", nutshortName, " availability to MRV", sep = "")
 #          ylab = "(Maximal reference value)"
           ylab = ""
           drawOneLine = FALSE
@@ -446,7 +446,7 @@ for (i in aggChoiceListBarChart) {
 for (i in multipleNutsFileList) {
   print(paste("writing zip file for", i))
   inDT <- getNewestVersion(i, fileloc("resultsDir"))
-  write.csv(inDT, file = gzfile(paste("graphics/",i,".csv.zip", sep = "")))
+  write.csv(inDT, file = gzfile(paste("graphics/", gdxChoice, "/", i, ".csv.zip", sep = "")))
 }
 
 #create zip file of all the graphics outputs for a set of scenarios
@@ -549,7 +549,7 @@ rowCounter <- rowCounter + 1
     figInfo <- "2, Nutrient balance metrics, "
   }
 
-  fileIn <- data.table::fread(paste("graphics/", fileName, ".csv", sep = ""), select = 2:6)
+  fileIn <- data.table::fread(paste("graphics/", gdxChoice, "/", fileName, ".csv", sep = ""), select = 2:6)
   for (j in scen2050list) {
     for (k in 1:length(incCats)) {
       baseVal <- fileIn[scenario == "SSP2-NoCC", get(incCats[k])]

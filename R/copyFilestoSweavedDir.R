@@ -21,7 +21,7 @@
 }
 #for testing
 fileName <- "iron_mg_iron_bioavail_reqRatio_WB.pdf"
-sourceDir <- fileloc("gDir")
+sourceDir <- paste(fileloc("gDir"), "/", gdxChoice, "/", sep = "")
 destDir <- "Rnw"
 
 copyFile <- function(fileName, sourceDir, destDir) {

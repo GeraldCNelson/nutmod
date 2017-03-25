@@ -240,7 +240,9 @@ mrv.ft_acds_tot_sat <- .10 #share of dietary energy
 # mrv.cholesterol <- 300 #mg
 ethanolKcals <- 6.9
 kcalRef <- 2000
-mrv.ethanol <- 20 * ethanolKcals #20 is in gm; convert kcals. source is https://en.wikipedia.org/wiki/Recommended_maximum_intake_of_alcoholic_beverages#Daily_maximum_drinks_.28no_weekly_limits_recommended
+
+# as of March 24, 2017, the MRV for ethanol is now done as part of the nutrient requirements calculations.
+# mrv.ethanol <- 20 * ethanolKcals #20 is in gm; convert kcals. source is https://en.wikipedia.org/wiki/Recommended_maximum_intake_of_alcoholic_beverages#Daily_maximum_drinks_.28no_weekly_limits_recommended
 
 switch.useCookingRetnValues <- keyVariable("switch.useCookingRetnValues")
 switch.fixFish <- keyVariable("switch.fixFish") #get rid of nutrient info for shrimp, tuna, and salmon because they are not currently in the FBS data
@@ -259,6 +261,7 @@ Nd <- length(nutrients.disqual)
 # calculate qi for each food ---------------
 # ratio qualifying nutrient intake to requirement can't be greater than 1 for NBS. Keep only qualifying nutrients
 dt.ratio.adj <- dt.ratio[nutrient %in% nutrients.qual,]
+
 # qi.adj is for use in the NBS; capped at 1
 dt.ratio.adj[value > 1, qi.adj := 1][value <= 1, qi.adj := value]
 data.table::setnames(dt.ratio.adj, old = "value", new = "qi")
@@ -279,6 +282,7 @@ dt.nutrients.kcals[, `:=`(
   kcals.sugar = foodAvailpDay * kcals.sugar_g,
   kcals.ft_acds_tot_sat = foodAvailpDay * kcals.ft_acds_tot_sat_g
 )]
+
 deleteListCol <- c( "kcals.fat_g", "kcals.carbohydrate_g", "kcals.protein_g", "kcals.ethanol_g",
                     "kcals.sugar_g", "kcals.ft_acds_tot_sat_g")
 dt.nutrients.kcals[, (deleteListCol) := NULL]
@@ -295,6 +299,9 @@ dt.nutrients.kcals[, `:=`(
   )][,
      kcalsPerDay.other := kcalsPerDay.tot - (kcalsPerDay.carbohydrate + kcalsPerDay.fat + kcalsPerDay.protein)
      ]
+#cap the amount of ethanol to 100 gm per day. Converted to kcals.
+kcals.ethanol.cap <- 100 * ethanolKcals
+dt.nutrients.kcals[kcalsPerDay.ethanol > kcals.ethanol.cap, kcalsPerDay.ethanol := kcals.ethanol.cap]
 
 keepListCol <- c("IMPACT_code", "scenario", "region_code.IMPACT159",  "year", "kcalsPerCommod", "foodAvailpDay",
                  "kcalsPerDay.tot", "kcalsPerDay.carbohydrate", "kcalsPerDay.fat", "kcalsPerDay.protein", "kcalsPerDay.other", "kcalsPerDay.ethanol",
@@ -436,15 +443,19 @@ for (j in di) {
   set(dt.nutrients.kcals, i = NULL, j = j, value = dt.nutrients.kcals[[j]] * 100)
 }
 
-# do ethanol separately because it is about a specific numbers of kcals rather than share of total
-dt.nutrients.kcals[, di.ethanol := 100 * kcalsPerDay.ethanol/mrv.ethanol]
+# do ethanol separately because it is about a specific numbers of grams (20 per cay) rather than share of total
+# ethanol MRV ratio is now created earlier
+dt.mrv.ethanol <- getNewestVersion("MRVs_sum_reqRatio", fileloc("resultsDir"))
+dt.nutrients.kcals <- merge(dt.mrv.ethanol, dt.nutrients.kcals, by = c("scenario",  "region_code.IMPACT159", "year" ))
+dt.nutrients.kcals[, di.ethanol := value * 100]
+deleteListCol <- c("nutrient", "value")
+dt.nutrients.kcals[, (deleteListCol) := NULL ]
 
 # now add ethanol back to the di list
 di <- c(di, "di.ethanol")
 dt.nutrients.kcals <- unique(dt.nutrients.kcals)
 temp <- data.table::copy(dt.nutrients.kcals)
-keeplistCol <- c("scenario", "region_code.IMPACT159", "year", "di.sugar", "di.ft_acds_tot_sat",
-                 "di.ethanol")
+keeplistCol <- c("scenario", "region_code.IMPACT159", "year", di)
 temp <- temp[, (keeplistCol), with = FALSE]
 
 # use standard nutrient names

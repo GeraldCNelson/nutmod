@@ -241,7 +241,7 @@ cleanup <- function(inDT, outName, dir, writeFiles) {
 
     numStyle <- openxlsx::createStyle(numFmt = "0.000")
     openxlsx::addStyle(
-      wbGeneral, sheet = outName, style = numStyle, rows = 1:nrow(inDT), cols = 2:ncol(inDT),
+      wbGeneral, sheet = outName, style = numStyle, rows = 1:nrow(inDT) + 1, cols = 2:ncol(inDT), # +1 added Mar 24, 2017
       gridExpand = TRUE )
 
     xcelOutFileName = paste(dir, "/", outName, "_", Sys.Date(), ".xlsx", sep = "")
@@ -346,7 +346,8 @@ keyVariable <- function(variableName) {
       "req.UL.vits",
       "req.UL.minrls",
       "req.AMDR_hi",
-      "req.AMDR_lo"
+      "req.AMDR_lo",
+      "req.MRVs" # added March 24, 2017
 # commmented out because as of Dec 25, 2016, PR requirements for iron and zinc are now in req.RDA.minrls
             # ,
       # "req.PR.iron",

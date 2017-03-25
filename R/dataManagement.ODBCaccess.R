@@ -549,14 +549,18 @@ cleanup(inDT, outName, fileloc("mData"))
 # 1 kJ = 0.23900573614 thermochemical /food calorie (kCal)
 # 1 Kcal = 4.184 kJ
 # fat 37kJ/g - 8.8432122371 kCal/g; protein 17kJ/g - 4.0630975143 kCal/g; carbs 16kJ/g - 3.8240917782 kCal/g
-#  beer - 4% ethanol, wine - 12% ethanol, spirits - 47% ethanol
 kcals.fat_per_g <- 8.84
 kcals.protein_per_g <- 4.06
 kcals.carbs_per_g <- 3.82
 kcals.ethanol_per_g <- 6.9
-ethanol.share.beer <- .04
-ethanol.share.wine <- .12
-ethanol.share.spirits <- .47
+# ethanol content from FAO FBS Handbook. Orginal numbers in kcals; divide by kcals.ethanol_per_g
+# beer - 29 kcals per 100 gm
+# wine - 68 kcals per 100 gm
+# distilled alcohol 295 kcals per 100 gm.
+
+ethanol.share.beer <- (29 / kcals.ethanol_per_g)/100
+ethanol.share.wine <- (68 / kcals.ethanol_per_g)/100
+ethanol.share.spirits <- (295 / kcals.ethanol_per_g)/100
 
 dt.nutrients[, `:=`(
   kcals.fat_g = fat_g * kcals.fat_per_g,

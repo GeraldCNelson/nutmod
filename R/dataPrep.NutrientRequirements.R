@@ -126,6 +126,15 @@ keepListCol.reqs <- names(req.AMDR_lo)[!names(req.AMDR_lo) %in% c("status_group"
 req.AMDR_lo <- req.AMDR_lo[, (keepListCol.reqs), with = FALSE]
 reqsList <- c(reqsList,"req.AMDR_hi", "req.AMDR_lo")
 
+#' @param req.MRV.alcohol - maximum recommended consumption of alcohol
+req.MRVs <-
+  data.table::as.data.table(openxlsx::read.xlsx(reqsFile, startRow = 1,
+                                                colNames = TRUE,
+                                                sheet = "MRVs"))
+keepListCol.reqs <- names(req.MRVs)[!names(req.MRVs) %in% c("status_group", "age_group")]
+req.MRVs <- req.MRVs[, (keepListCol.reqs), with = FALSE]
+reqsList <- c(reqsList,"req.MRVs")
+
 # create lists of nutrients common to the food nutrient and  requirements lists ------
 # keep only the common nutrients in the req list---
 # i is the name of the requirement; j is a copy of the requirement data table
@@ -157,6 +166,7 @@ reqsList <- c(reqsList,"req.AMDR_hi", "req.AMDR_lo")
 dt.ageGroupLU <- data.table::as.data.table(openxlsx::read.xlsx(fileNameList("SSP_DRI_ageGroupLU")))
 
 # for loop to do recalculations -----
+# this loop assigns requirements by the age groups used in the SSP data
 for (i in reqsList) {
 commonListName <- paste("common", gsub("req.", "", i), sep = ".")
   temp <- intersect(sort(colnames(dt.nutrients)), sort(colnames(eval(parse(text = i)))))
@@ -168,7 +178,7 @@ commonListName <- paste("common", gsub("req.", "", i), sep = ".")
   # now do the adjustment for the differences in infant age groupd
   nutList <- names(j)[2:ncol(j)]
   req.transpose <- data.table::as.data.table(data.table::dcast(data.table::melt(j, id.vars = "ageGenderCode", measure.vars = nutList, variable.name = "nutrient"), nutrient ~ ageGenderCode))
-
+#create new groups to convert the requirements data so they align with the age and gender groups in the SSP data
   req.transpose[, Chil0_3 :=  1/6 * (Inf0_0.5 * 1 + Inf0.5_1 * 1 + Chil1_3 * 4)]
   req.transpose[, LactTot := (Lact14_18 + Lact19_30 + Lact31_50)/3]
   req.transpose[, PregTot := (Preg14_18 + Preg19_30 + Preg31_50)/3]

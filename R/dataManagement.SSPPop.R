@@ -10,6 +10,7 @@
 #'   req.RDA.macro.ssp - data/req.RDA.macro.percap.rds
 #'   req.UL.vits.ssp - data/req.UL.vits.percap.rds
 #'   req.UL.minrls.ssp - data/req.UL.minrls.percap.rds"
+#'   req.MRVs.ssp - data/req.MRVs.percap.rds" # added March 24, 2017
 
 #' @source \url{https://tntcat.ac.at/SspDb/download/common/SspDb_country_data_2013-06-12.csv.zip}
 #Copyright (C) 2015 Gerald C. Nelson, except where noted

@@ -92,6 +92,7 @@ f.ratios.all <- function(){
   nutListSum <- as.vector(paste(nutList,".sum.all", sep = ""))
   nutListReqRatio <- as.vector(paste(nutList,".reqRatio", sep = ""))
   nutListReq <- as.vector(paste(nutList,".req", sep = ""))
+  # note: an alternative to the Map code below is simply to sum (using ethanol as an example) ethanol_g.reqRatio.all by scenario year region
   # the R code is explained at http://stackoverflow.com/questions/37802687/r-data-table-divide-list-of-columns-by-a-second-list-of-columns
   dt.food_agg[, (nutListReqRatio) := Map(`/`, mget(nutListSum), mget(nutListReq))]
   keepListCol <- c(basicKey, nutListReqRatio)
@@ -313,11 +314,7 @@ print("------ working on kcals")
 # # 1 kJ = 0.23900573614 thermochemical /food calorie (kCal)
 # # 1 Kcal = 4.184 kJ
 # # alcoholic beverages need to have ethanol energy content included
-# # assumptions
-# #  beer - 4% ethanol
-# #  wine - 12% ethanol
-# # spirits - 47% ethanol
-# # ethanol contributes 6.9 kcal/g
+# # see below for assumptions
 
 # reminder dt.IMPACTfood has the annual consumption of a commodity. So long as used for ratios this is ok.
 # dt.IMPACTfood <- getNewestVersion("dt.IMPACTfood", fileloc("iData"))
@@ -330,9 +327,11 @@ print("------ working on kcals")
 # note: kcals calculations done in dataPrep.nutrientData.R so no need to do here
 # dt.nutrients calculates kcals.fat, kcals.protein, kcals.carbohydrate, kcals.sugar, kcals.ethanol
 # ethanolKcals <- 6.9
-# ethanol.beer <- .04
-# ethanol.wine <- .12
-# ethanol.spirits <- .47
+# ethanol content from FAO FBS Handbook. Orginal numbers in kcals; divide by kcals.ethanol_per_g
+# beer - 29 kcals per 100 gm
+# wine - 68 kcals per 100 gm
+# distilled alcohol 295 kcals per 100 gm.
+
 # formula.wide <- paste("scenario + region_code.IMPACT159 + year ~ IMPACT_code")
 # dt.alc.wide <- data.table::dcast(data = dt.alc,
 #                                  formula = formula.wide,
