@@ -19,7 +19,8 @@
 # file locations -2
 #   mData - data
 #   iData - data/IMPACTdata - directory with IMPACT data
-#   resultsDir - results
+#   resultsDir - results/gdxDhoice
+#   gdir = graphics/gdxChoice
 
 options(warn = 2) # converts all warnings to errors
 ptm <- proc.time()
@@ -59,7 +60,9 @@ source("R/nutrientCalcFunctions.R")
 
 gdxrrwExistenceCheck() #checks if the gdxrrw package is installed; if not, prints directions on how to install and stops.
 #choose between 1 of 2 possible gdx files. 1 -  Micronutrient-Inputs-07252016.gdx; 2 - Micronutrient-Inputs-USAID.gdx
-gdxFileName <- gdxFileNameChoice()
+gdxCombo <- gdxFileNameChoice()
+gdxFileName <- gdxCombo[1]
+gdxChoice <- gdxCombo[2]
 metadata() # - creates dt.metaData; holds some key file locations and variable names;
 # needs to come after identification of gdxFileName and before library location check
 gdxLibraryLocationCheck()

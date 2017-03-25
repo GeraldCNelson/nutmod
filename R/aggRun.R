@@ -10,6 +10,8 @@
   source("R/aggNorder.R")}
 library(data.table)
 # gdxChoice values are either SSPs or USAID
+dt.metadata <- getNewestVersion("dt.metadata", fileloc("resultsDir"))
+gdxChoice <- dt.metadata[file_description %in% "project source of gdx-based demand data",  file_name_location]
 # DTglobal choices are
 # with one output
 # - dt.budgetShare, dt.shannonDiversity
@@ -18,7 +20,6 @@ library(data.table)
 # - dt.nutrients.nonstapleShare, dt.foodGroupsInfo, dt.energy.ratios
 # aggChoices are I3regions, tenregions, AggReg1, AggReg2, twoEconGroup, WB
 dt.metadata <- getNewestVersion("dt.metadata", fileloc("resultsDir"))
-gdxFileName <- dt.metadata[file_description %in% "IMPACT demand data in gdx form", file_name_location]
 aggChoiceListBarChart <- c("tenregions", "WB", "AggReg1") # missing AggReg2 and  "2EconGroup
 multipleNutsFileList <- c("dt.nutrients.sum.all",
                           "RDA.macro_sum_reqRatio",
@@ -55,8 +56,7 @@ other <- c("sugar_g", "cholesterol_mg")
 
 # scenChoices for the USAID gdx are scenarioList.prodEnhance, scenarioList.waterMan, scenarioList.addEnhance, scenarioList.comp
 # scenChoice for SSPs is scenOrder.SSPs
-if (gdxFileName == "Micronutrient-Inputs-07252016.gdx") {
-  gdxChoice <- "SSPs"
+if (gdxChoice == "SSPs") {
   scenario.base <- "SSP2-NoCC-REF"
   #  scenOrder <- c("2010", "SSP2-NoCC-REF", "SSP1-NoCC-REF", "SSP3-NoCC-REF", "SSP2-GFDL-REF",
   #                 "SSP2-IPSL-REF", "SSP2-HGEM-REF")
@@ -65,8 +65,7 @@ if (gdxFileName == "Micronutrient-Inputs-07252016.gdx") {
   scenChoice.name <- "SSP"
 }
 
-if (gdxFileName == "Micronutrient-Inputs-USAID.gdx") {
-  gdxChoice <- "USAID"
+if (gdxChoice == "USAID") {
   scenario.base <- "SSP2-NoCC-NA"
   # USAID scenario combo choices
   prodEnhance <- c("MED", "HIGH", "HIGH_NARS", "HIGH_RE", "REGION")

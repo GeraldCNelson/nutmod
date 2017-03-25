@@ -24,6 +24,9 @@ library(gridExtra)
 library(gplots)
 library(ggplot2)
 
+# get gdxChoice
+gdxChoice <- getGdxChoice()
+
 # population for weighting -----
 dt.pop <- getNewestVersion("dt.PopX0", fileloc("iData"))
 

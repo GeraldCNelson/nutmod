@@ -42,12 +42,14 @@
 #'
 #' @export
 fileloc <- function(variableName) {
+  gdxChoice <- getGdxChoice()
   rawData <- "data-raw"
   mData <- "data"
   gDir <- "graphics"
   iData <- "data/IMPACTData"
   nutData <- "data-raw/NutrientData"
-  resultsDir <- "results"
+  resultsTop <- "results"
+  resultsDir <- paste("results/", gdxChoice, sep = "")
   resultsPaperDir <- "results/nutPaper"
   shinyApp <- "nutrientModeling"
   shinyAppData <- "nutrientModeling/data"
@@ -64,6 +66,7 @@ fileloc <- function(variableName) {
       "iData",
       "gDir",
       "resultsDir",
+      "resultsTop",
       "resultsPaperDir",
       "shinyApp",
       "shinyAppData",
@@ -412,6 +415,8 @@ metadata <- function() {
   metadata[(nrow(metadata) + 1), ] <-
     c(gdxFileName, "IMPACT demand data in gdx form")
   metadata[(nrow(metadata) + 1), ] <-
+    c(gdxChoice, "project source of gdx-based demand data")
+  metadata[(nrow(metadata) + 1), ] <-
     c(fileNameList("R_GAMS_SYSDIR"),
       "Location and name of GAMS program; needed for the gdx data import process"
     )
@@ -724,7 +729,7 @@ countryCodeLookup <- function(countryName, directory) {
 # test data for reqRatiodatasetup
 countryCode <- "AFG"; years <- c("X2010", "X2030", "X2050")
 reqTypeChoice <- "RDA.macro.all.reqRatio"
-dir <- fileloc("resultsDir"); scenarioName <- "SSP3-NoCC"
+#dir <- fileloc("resultsDir"); scenarioName <- "SSP3-NoCC"
 
 nutReqDataPrep <- function(reqTypeChoice, countryCode, scenarioName, years, dir) {
   resultFileLookup <- getNewestVersion("resultFileLookup", fileloc("mData"))
@@ -844,7 +849,7 @@ nutReqSpiderGraph <- function(reqTypeName, countryCode, scenarioName, years, dir
 # test data for nutSharedatasetup
 countryCode <- "AFG"; years <- c("X2010", "X2030", "X2050")
 reqFileName <- "RDA.minrls.FG.ratio"
-dir <- fileloc("resultsDir"); scenarioName <- "SSP2-NoCC"
+# dir <- fileloc("resultsDir"); scenarioName <- "SSP2-NoCC"
 nutshareSpiderGraph <- function(reqFileName, countryCode, scenario, years, dir) {
   #reqRatiodatasetup <- function(reqTypeName,country, scenarioName, years, dir) {
   resultFileLookup <- getNewestVersion("resultFileLookup")
@@ -1065,10 +1070,17 @@ gdxFileNameChoice <- function() {
   cat("Note: the relevant gdx file must be in the data-raw/IMPACTdata directory\n")
   choice <- readline(prompt = "Choose the number of the gdx file you want to use. \n")
   choice <- "1" # so there will be a definite value
-  if (choice == "1") gdxFileName <- "Micronutrient-Inputs-07252016.gdx" # - gdx with multiple SSP results
-  if (choice == "2") gdxFileName <- "Micronutrient-Inputs-USAID.gdx"  #-  gdx for the USAID results
+  if (choice == "1") {
+    gdxFileName <- "Micronutrient-Inputs-07252016.gdx" # - gdx with multiple SSP results
+    gdxChoice <- "SSPs"
+  }
+  if (choice == "2") {
+    gdxFileName <- "Micronutrient-Inputs-USAID.gdx"  #-  gdx for the USAID results
+    gdxChoice <- "SSPs"
+    }
   cat("Your gdx file name choice is ", gdxFileName)
-  return(gdxFileName)
+  gdxCombo <- c(gdxFileName, gdxChoice)
+  return(gdxCombo)
 }
 
 # Multiple plot function -----
@@ -1171,6 +1183,23 @@ generateWorldMaps <- function(spData, scenOrder, titleText, legendText, lowColor
     dev.off()
   }
 }
+
+getGdxChoice <- function() {
+  resultsDir <- paste0(getwd(), "/results/")
+  fileShortNameTest <- paste("metadata","_2", sep = "") # this should get rid of the multiple files problem
+  filesofFileType <- list.files(resultsDir)[grep("rds",list.files(resultsDir))]
+  fileLongName <- filesofFileType[grep(fileShortNameTest, filesofFileType, fixed = TRUE)]
+
+  if (length(fileLongName) == 0) {
+    stop(sprintf("There is no file  '%s' in directory %s", fileShortName, mData))
+  } else {
+    #   print(fileLongName)
+    dt.metadata = readRDS(paste(resultsDir, fileLongName, sep = ""))
+  gdxChoice <- dt.metadata[file_description %in% "project source of gdx-based demand data",  file_name_location]
+  return(gdxChoice)
+  }
+}
+
 # this commented out code is supposed to print the legend in a separate view port. It's not working yet.
 # library(gridExtra)
 # g_legend <- function(a.gplot){
