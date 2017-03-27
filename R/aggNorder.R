@@ -171,7 +171,7 @@ plotByRegionBar <- function(dt, fileName, plotTitle, yLab, yRange, aggChoice, sc
     geom_bar(stat = "identity", position = "dodge", color = "black") +
     theme(legend.position = "right") +
     theme(axis.text.x = element_text(angle = 45, hjust = 1)) +
-    scale_y_continuous(limits=yRange) +
+    scale_y_continuous(limits = yRange) +
     scale_fill_manual(values = colorList) +
     theme(plot.title = element_text(hjust = 0.5)) +
     ggtitle(plotTitle) +

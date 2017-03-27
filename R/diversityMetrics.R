@@ -40,7 +40,8 @@ data.table::setkey(dt.IMPACTfood)
 dt.IMPACTfood <- unique(dt.IMPACTfood)
 
 # convert food availability from per year to per day
-dt.IMPACTfood[, foodAvailpDay := FoodAvailability / keyVariable("DinY")][,FoodAvailability := NULL]
+#dt.IMPACTfood[, foodAvailpDay := FoodAvailability / keyVariable("DinY")]
+dt.IMPACTfood[,FoodAvailability := NULL]
 
 #nutrient categories
 macroNutrients <- c("protein_g", "fat_g", "carbohydrate_g",  "totalfiber_g")
@@ -233,12 +234,13 @@ nutrients.disqual <- c("sugar", "ft_acds_tot_sat", "ethanol")
 #from the Institute of Medicine, USA [23]). Alcohol (ethyl) was not included as a disqualifying nutrient
 
 # MRV values -----
-mrv.sugar <- .10 #share of dietary energy
-#mrv.fat.tot <- .35 #share of dietary energy
-mrv.ft_acds_tot_sat <- .10 #share of dietary energy
-# mrv.fat.trans <- .01 #share of dietary energy
-# mrv.cholesterol <- 300 #mg
-ethanolKcals <- 6.9
+mrv.sugar <- .10 # share of dietary energy
+#mrv.fat.tot <- .35 # share of dietary energy
+mrv.ft_acds_tot_sat <- .10 # share of dietary energy
+# mrv.fat.trans <- .01 # share of dietary energy
+# mrv.cholesterol <- 300 # mg
+
+ethanolKcals <- 6.9 # needed for ethanol kcals cap
 kcalRef <- 2000
 
 # as of March 24, 2017, the MRV for ethanol is now done as part of the nutrient requirements calculations.
@@ -250,7 +252,6 @@ switch.fixFish <- keyVariable("switch.fixFish") #get rid of nutrient info for sh
 dt.nutrients.adj <- cookingRetFishCorrect(switch.useCookingRetnValues, switch.fixFish) # used only for disqualifying nutrients
 
 #kcals calculation
-dt.kcal.lookup <- dt.nutrients.adj[, c("IMPACT_code", "energy_kcal")]
 keepListCol <- c("IMPACT_code", "energy_kcal", "kcals.fat_g","kcals.carbohydrate_g", "kcals.protein_g",
                  "kcals.ethanol_g", "kcals.sugar_g", "kcals.ft_acds_tot_sat_g")
 dt.nutrients.kcals <- dt.nutrients.adj[, (keepListCol), with = FALSE]
@@ -270,35 +271,36 @@ dt.ratio.sum.adj[value > 1, qi.adj := 1][value <= 1, qi.adj := value]
 data.table::setnames(dt.ratio.sum.adj, old = "value", new = "qi")
 
 # get the amount of kcals per day for each food, by scenario and country
-dt.nutrients.kcals <- merge(dt.IMPACTfood, dt.nutrients.kcals, by = "IMPACT_code")
-dt.nutrients.kcals[,kcalsPerCommod := foodAvailpDay * energy_kcal]
+dt.nutrients.kcals <- getNewestVersion("dt.nutrients.kcals", fileloc("resultsDir")) # replaces the commented out text below
+# dt.nutrients.kcals <- merge(dt.IMPACTfood, dt.nutrients.kcals, by = "IMPACT_code")
+# dt.nutrients.kcals[,kcalsPerCommod := foodAvailpDay * energy_kcal]
 
-# add the kcals per day from the sources of kcals
-dt.nutrients.kcals[, `:=`(
-  kcals.fat = foodAvailpDay * kcals.fat_g,
-  kcals.carbohydrate = foodAvailpDay * kcals.carbohydrate_g,
-  kcals.protein = foodAvailpDay * kcals.protein_g,
-  kcals.ethanol = foodAvailpDay * kcals.ethanol_g,
-  kcals.sugar = foodAvailpDay * kcals.sugar_g,
-  kcals.ft_acds_tot_sat = foodAvailpDay * kcals.ft_acds_tot_sat_g
-)]
+# # add the kcals per day from the sources of kcals
+# dt.nutrients.kcals[, `:=`(
+#   kcals.fat = foodAvailpDay * kcals.fat_g,
+#   kcals.carbohydrate = foodAvailpDay * kcals.carbohydrate_g,
+#   kcals.protein = foodAvailpDay * kcals.protein_g,
+#   kcals.ethanol = foodAvailpDay * kcals.ethanol_g,
+#   kcals.sugar = foodAvailpDay * kcals.sugar_g,
+#   kcals.ft_acds_tot_sat = foodAvailpDay * kcals.ft_acds_tot_sat_g
+# )]
 
-deleteListCol <- c( "kcals.fat_g", "kcals.carbohydrate_g", "kcals.protein_g", "kcals.ethanol_g",
-                    "kcals.sugar_g", "kcals.ft_acds_tot_sat_g")
-dt.nutrients.kcals[, (deleteListCol) := NULL]
-
-dt.nutrients.kcals[, `:=`(
-  kcalsPerDay.tot = sum(kcalsPerCommod),
-  kcalsPerDay.carbohydrate = sum(kcals.carbohydrate),
-  kcalsPerDay.fat = sum(kcals.fat),
-  kcalsPerDay.protein = sum(kcals.protein),
-  kcalsPerDay.ethanol = sum(kcals.ethanol),
-  kcalsPerDay.sugar = sum(kcals.sugar),
-  kcalsPerDay.ft_acds_tot_sat = sum(kcals.ft_acds_tot_sat)),
-  by = c("scenario",  "year", "region_code.IMPACT159"
-  )][,
-     kcalsPerDay.other := kcalsPerDay.tot - (kcalsPerDay.carbohydrate + kcalsPerDay.fat + kcalsPerDay.protein)
-     ]
+# deleteListCol <- c( "kcals.fat_g", "kcals.carbohydrate_g", "kcals.protein_g", "kcals.ethanol_g",
+#                     "kcals.sugar_g", "kcals.ft_acds_tot_sat_g")
+# dt.nutrients.kcals[, (deleteListCol) := NULL]
+#
+# dt.nutrients.kcals[, `:=`(
+#   kcalsPerDay.tot = sum(kcalsPerCommod),
+#   kcalsPerDay.carbohydrate = sum(kcals.carbohydrate),
+#   kcalsPerDay.fat = sum(kcals.fat),
+#   kcalsPerDay.protein = sum(kcals.protein),
+#   kcalsPerDay.ethanol = sum(kcals.ethanol),
+#   kcalsPerDay.sugar = sum(kcals.sugar),
+#   kcalsPerDay.ft_acds_tot_sat = sum(kcals.ft_acds_tot_sat)),
+#   by = c("scenario",  "year", "region_code.IMPACT159"
+#   )][,
+#      kcalsPerDay.other := kcalsPerDay.tot - (kcalsPerDay.carbohydrate + kcalsPerDay.fat + kcalsPerDay.protein)
+#      ]
 #cap the amount of ethanol to 100 gm per day. Converted to kcals.
 kcals.ethanol.cap <- 100 * ethanolKcals
 dt.nutrients.kcals[kcalsPerDay.ethanol > kcals.ethanol.cap, kcalsPerDay.ethanol := kcals.ethanol.cap]

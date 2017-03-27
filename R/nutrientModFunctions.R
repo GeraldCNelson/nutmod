@@ -44,9 +44,9 @@
 fileloc <- function(variableName) {
   gdxChoice <- getGdxChoice()
   rawData <- "data-raw"
-  mData <- "data"
+  mData <- paste("data/", gdxChoice, sep = "")
   gDir <- "graphics"
-  iData <- "data/IMPACTData"
+  iData <- paste(mData, "IMPACTData/", sep = "/")
   nutData <- "data-raw/NutrientData"
   resultsTop <- "results"
   resultsDir <- paste("results/", gdxChoice, sep = "")
@@ -56,7 +56,7 @@ fileloc <- function(variableName) {
   FBSData <- paste(rawData, "FBSData", sep = "/")
   SSPData <- paste(rawData, "SSPData", sep = "/")
   IMPACTRawData <- paste(rawData, "IMPACTData", sep = "/")
-  IMPACTCleanData <- paste(mData, "IMPACTData", sep = "/")
+  IMPACTCleanData <- paste(mData, "IMPACTData/", gdxChoice, sep = "/")
   NutrientData <- paste(rawData, "NutrientData", sep = "/")
   nutrientDataDetails <- paste(rawData, "NutrientData", "nutrientDetails", sep = "/")
   if (variableName == "list") {
@@ -1069,17 +1069,18 @@ gdxFileNameChoice <- function() {
   cat("2. for the USAID nutrient modeling paper\n")
   cat("Note: the relevant gdx file must be in the data-raw/IMPACTdata directory\n")
   choice <- readline(prompt = "Choose the number of the gdx file you want to use. \n")
-  choice <- "1" # so there will be a definite value
-  if (choice == "1") {
+#  choice <- "1" # so there will be a definite value
+  if (choice  %in% "1") {
     gdxFileName <- "Micronutrient-Inputs-07252016.gdx" # - gdx with multiple SSP results
     gdxChoice <- "SSPs"
   }
-  if (choice == "2") {
+  if (choice %in% "2") {
     gdxFileName <- "Micronutrient-Inputs-USAID.gdx"  #-  gdx for the USAID results
-    gdxChoice <- "SSPs"
+    gdxChoice <- "USAID"
     }
   cat("Your gdx file name choice is ", gdxFileName)
-  gdxCombo <- c(gdxFileName, gdxChoice)
+  gdxCombo <- cbind(gdxFileName, gdxChoice)
+  write.csv(gdxCombo, file = paste0(getwd(), "/results/gdxInfo.csv"), row.names = FALSE)
   return(gdxCombo)
 }
 
@@ -1185,19 +1186,9 @@ generateWorldMaps <- function(spData, scenOrder, titleText, legendText, lowColor
 }
 
 getGdxChoice <- function() {
-  resultsDir <- paste0(getwd(), "/results/")
-  fileShortNameTest <- paste("metadata","_2", sep = "") # this should get rid of the multiple files problem
-  filesofFileType <- list.files(resultsDir)[grep("rds",list.files(resultsDir))]
-  fileLongName <- filesofFileType[grep(fileShortNameTest, filesofFileType, fixed = TRUE)]
-
-  if (length(fileLongName) == 0) {
-    stop(sprintf("There is no file  '%s' in directory %s", fileShortName, mData))
-  } else {
-    #   print(fileLongName)
-    dt.metadata = readRDS(paste(resultsDir, fileLongName, sep = ""))
-  gdxChoice <- dt.metadata[file_description %in% "project source of gdx-based demand data",  file_name_location]
+  gdxCombo <- read.csv(file = paste0(getwd(), "/results/gdxInfo.csv"), header = TRUE, stringsAsFactors = FALSE)
+  gdxChoice <- gdxCombo[,2]
   return(gdxChoice)
-  }
 }
 
 # this commented out code is supposed to print the legend in a separate view port. It's not working yet.
