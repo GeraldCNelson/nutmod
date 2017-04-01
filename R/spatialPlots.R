@@ -45,10 +45,13 @@ world <- spTransform(world, CRS("+proj=longlat"))
 worldMap <- broom::tidy(world, region = "iso_a3")
 #worldMap.simp <- broom::tidy(world.simp, region = "iso_a3")
 
-variablesToPlot.single <- c("dt.budgetShare", "dt.RAOqe", "dt.nutBalScore","dt.compQI", "dt.compDI","dt.KcalShare.nonstaple")
-variablesToPlot.mult <- c("dt.KcalShare.foodgroup", "dt.foodAvail.foodGroup", "dt.nutrients.sum.all")
+#variablesToPlot.single <- c("dt.budgetShare", "dt.RAOqe", "dt.nutBalScore","dt.compQI", "dt.compDI","dt.KcalShare.nonstaple")
+# variablesToPlot.single <- c("dt.budgetShare", "dt.RAOqe", "dt.nutBalScore", "dt.compDI","dt.KcalShare.nonstaple")
+#variablesToPlot.mult <- c("dt.KcalShare.foodgroup", "dt.foodAvail.foodGroup", "dt.nutrients.sum.all")
+variablesToPlot.mult <- c("dt.KcalShare.foodgroup", "dt.foodAvail.foodGroup")
 
-for (i in c(variablesToPlot.single, variablesToPlot.mult)) {
+# for (i in c(variablesToPlot.single, variablesToPlot.mult)) {
+for (i in c(variablesToPlot.mult)) {
   print(paste0("working on ", i))
   dt.spatialPlotData <- getNewestVersion(i, fileloc("resultsDir"))
 
@@ -101,7 +104,7 @@ for (i in c(variablesToPlot.single, variablesToPlot.mult)) {
     fillLimits <- c(0, 40)
     fileName <- "budgetShare"
     spData <- dt.spatialPlotData
-    generateWorldMaps(spData, scenOrder, titleText, legendText, lowColor, highColor, fillLimits)
+    generateWorldMaps(spData, scenOrder, titleText, legendText, lowColor, highColor, fillLimits, fileName)
   }
   if (i %in% "dt.RAOqe") {
     titleText <- "Rao's Quadratic Entropy"
@@ -111,7 +114,7 @@ for (i in c(variablesToPlot.single, variablesToPlot.mult)) {
     fillLimits <- c(0, 90)
     fileName <- "RAOqe"
     spData <- dt.spatialPlotData
-    generateWorldMaps(spData, scenOrder, titleText, legendText, lowColor, highColor, fillLimits)
+    generateWorldMaps(spData, scenOrder, titleText, legendText, lowColor, highColor, fillLimits, fileName)
   }
   if (i %in% "dt.nutBalScore") {
     titleText <- "Nutrient Balance Score"
@@ -121,7 +124,7 @@ for (i in c(variablesToPlot.single, variablesToPlot.mult)) {
     fillLimits <- c(0, 90)
     fileName <- "NBS"
     spData <- dt.spatialPlotData
-    generateWorldMaps(spData, scenOrder, titleText, legendText, lowColor, highColor, fillLimits)
+    generateWorldMaps(spData, scenOrder, titleText, legendText, lowColor, highColor, fillLimits, fileName)
   }
   if (i %in% "dt.compQI") {
     titleText <- "Composite Qualifying Index"
@@ -131,7 +134,7 @@ for (i in c(variablesToPlot.single, variablesToPlot.mult)) {
     fillLimits <- c(0, 20)
     fileName <- "compQI"
     spData <- dt.spatialPlotData
-    generateWorldMaps(spData, scenOrder, titleText, legendText, lowColor, highColor, fillLimits)
+    generateWorldMaps(spData, scenOrder, titleText, legendText, lowColor, highColor, fillLimits, fileName)
   }
   if (i %in% "dt.compDI") {
     titleText <- "Composite Disqualifying Index"
@@ -141,7 +144,7 @@ for (i in c(variablesToPlot.single, variablesToPlot.mult)) {
     fillLimits <- c(0, 90)
     fileName <- "compDI"
     spData <- dt.spatialPlotData
-    generateWorldMaps(spData, scenOrder, titleText, legendText, lowColor, highColor, fillLimits)
+    generateWorldMaps(spData, scenOrder, titleText, legendText, lowColor, highColor, fillLimits, fileName)
   }
   if (i %in% "dt.KcalShare.nonstaple") {
     titleText <- "Non-staple Share of Kilocalories"
@@ -151,7 +154,7 @@ for (i in c(variablesToPlot.single, variablesToPlot.mult)) {
     fillLimits <- c(0, 90)
     fileName <- "KcalShare.nonstaple"
     spData <- dt.spatialPlotData
-    generateWorldMaps(spData, scenOrder, titleText, legendText, lowColor, highColor, fillLimits)
+    generateWorldMaps(spData, scenOrder, titleText, legendText, lowColor, highColor, fillLimits, fileName)
   }
   if (i %in% "dt.KcalShare.foodgroup") {
     titleText <- "Foodgroup Share of Kilocalories"
@@ -162,43 +165,45 @@ for (i in c(variablesToPlot.single, variablesToPlot.mult)) {
     for (l in unique(dt.spatialPlotData$food_group_code)) {
       fileName <- paste0("KcalShare.foodgroup.", l)
       spData <- dt.spatialPlotData[food_group_code %in% l,]
-      generateWorldMaps(spData, scenOrder, titleText, legendText, lowColor, highColor, fillLimits)
+      generateWorldMaps(spData, scenOrder, titleText, legendText, lowColor, highColor, fillLimits, fileName)
     }
   }
 
   if (i %in% "dt.foodAvail.foodGroup") {
-    titleText <- "Daily per capita food availability by food group"
     legendText <- "Grams"
     lowColor <- "white"
     highColor <- "dark red"
-    fillLimits <- c(0, 700)
+    fillLimits <- c(0, 1500)
+    scenToPlot <- "SSP2-NoCC-REF"
     for (l in unique(dt.spatialPlotData$food_group_code)) {
-      if (l %in% "rootsNPlaintain")  fillLimits <- c(0, 1700)
-      fillLimits[2] <- round(max(spData$value))
-      spData <- dt.spatialPlotData[food_group_code %in% l,]
+      titleText <- paste("Daily per capita availability in 2050 for food group", l, "for ", sep = " ")
+      spData <- dt.spatialPlotData[food_group_code %in% l & scenario %in% scenToPlot,]
+#      if (l %in% "rootsNPlaintain")  fillLimits <- c(0, 2000)
+#      fillLimits[2] <- round(max(spData$value))
       fileName <- paste0("foodAvail.foodgroup.", l)
+      generateWorldMaps(spData = spData, scenOrder = scenToPlot, titleText = titleText, legendText = legendText, lowColor = lowColor, highColor = highColor,
+                        fillLimits = fillLimits, fileName = fileName)
+    }
+  }
+  if (i %in% "dt.nutrients.sum.all") {
+    titleText <- "Daily per capita nutrient availability of"
+    legendText <- "Legend"
+    lowColor <- "white"
+    highColor <- "dark red"
+    fillLimits <- c(0, 700)
+    for (l in unique(dt.spatialPlotData$nutrient)) {
+      fileName <- paste0("nutrientAvail.", l)
+      spData <- dt.spatialPlotData[nutrient %in% l,]
+      fillLimits[2] <- round(max(spData$value))
+      nutlongName <- dt.nutrientNames_Units[1, (l)]
+      legendText <- dt.nutrientNames_Units[2, (l)]
+      titleText <- paste(titleText, nutlongName)
       generateWorldMaps(spData = spData, scenOrder = scenOrder, titleText = titleText, legendText = legendText, lowColor = lowColor, highColor = highColor,
                         fillLimits = fillLimits, fileName = fileName)
     }
-    if (i %in% "dt.nutrients.sum.all") {
-      titleText <- "Daily per capita nutrient availability of"
-      legendText <- "Legend"
-      lowColor <- "white"
-      highColor <- "dark red"
-      fillLimits <- c(0, 700)
-      for (l in unique(dt.spatialPlotData$nutrient)) {
-        fileName <- paste0("nutrientAvail.", l)
-        spData <- dt.spatialPlotData[nutrient %in% l,]
-        fillLimits[2] <- round(max(spData$value))
-        nutlongName <- dt.nutrientNames_Units[1, (l)]
-        legendText <- dt.nutrientNames_Units[2, (l)]
-        titleText <- paste(titleText, nutlongName)
-        generateWorldMaps(spData = spData, scenOrder = scenOrder, titleText = titleText, legendText = legendText, lowColor = lowColor, highColor = highColor,
-                          fillLimits = fillLimits, fileName = fileName)
-      }
-    }
   }
 }
+
 
 # old code -----
 #variablesToPlot <- c("dt.budgetShare", "dt.RAOqe", "dt.nutBalScore","dt.compQI", "dt.compDI","dt.KcalShare.nonstaple", "dt.KcalShare.foodgroup", "dt.foodAvail.foodGroup")

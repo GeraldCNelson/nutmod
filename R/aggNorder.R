@@ -164,7 +164,7 @@ plotByRegionBar <- function(dt, fileName, plotTitle, yLab, yRange, aggChoice, sc
   temp[, scenario := factor(scenario, levels = scenarioNameOrder)]
 
   # draw bars
-  pdf(paste("graphics/", gdxChoice, "/", fileName, "_", aggChoice, ".pdf", sep = ""), width = 7, height = 5.2, useDingbats = FALSE)
+  pdf(paste(fileloc("gDir"),"/", fileName, "_", aggChoice, ".pdf", sep = ""), width = 7, height = 5.2, useDingbats = FALSE)
   if (round(max(temp$value) - yRange[2]) == 0) yRange[2] <- max(temp$value) # will hopefully deal with rare situation
   # when all elements of value are the same as the max y range
   p <- ggplot(temp, aes(x = region_name, y = value, fill = scenario, order = c("region_name") )) +
@@ -198,7 +198,7 @@ plotByRegionBar <- function(dt, fileName, plotTitle, yLab, yRange, aggChoice, sc
   temp.wide[,(colsToRound) := round(.SD,2), .SDcols = colsToRound]
   data.table::setnames(temp.wide, old = names(temp.wide), new = c("scenario", regionCodes))
   #  textplot(temp.wide, cex = 0.6, valign = "top", show.rownames = FALSE, mai = c(.5, .5, .5, .5))
-  write.csv(temp.wide, file = paste("graphics/", gdxChoice, "/", fileName, "_", aggChoice, ".csv", sep = ""))
+  write.csv(temp.wide, file = paste(fileloc("gDir"),"/", fileName, "_", aggChoice, ".csv", sep = ""))
   # #draw lines
   # temp2 <- temp[scenario %in% c("2010", "SSP2-NoCC") & region_code %in% "lowInc",]
   # ggplot(temp2, aes(x = region_name, y = value, fill = scenario, order = c("region_name") )) +
@@ -233,7 +233,7 @@ plotByRegionBar <- function(dt, fileName, plotTitle, yLab, yRange, aggChoice, sc
   # temp <- data.matrix(temp)
   # # print(temp.wide)
   # #  par(mai=c(2,0.82,0.82,0.42))
-  # # pdf(paste("graphics/", gdxChoice, "/", fileName,"_", aggChoice, ".pdf", sep = ""), width = 7, height = 5.2)
+  # # pdf(paste(fileloc("gDir"),"/", fileName,"_", aggChoice, ".pdf", sep = ""), width = 7, height = 5.2)
   # # #layout(matrix(c(1,2)), c(1,1), c(1,3))
   # # #par(mfrow = c(2,1), mai = c(1,1,1,1))
   # # #  mat = matrix(c(1,2))
@@ -254,7 +254,7 @@ plotByRegionBar <- function(dt, fileName, plotTitle, yLab, yRange, aggChoice, sc
   # data.table::setnames(temp.wide, old = names(temp.wide), new = c("scenario", regionCodes))
   # #  textplot(temp.wide, cex = 0.6, valign = "top", show.rownames = FALSE, mai = c(.5, .5, .5, .5))
   # dev.off()
-  # write.csv(temp.wide, file = paste("graphics/", gdxChoice, "/", fileName, "_", aggChoice, ".csv", sep = ""))
+  # write.csv(temp.wide, file = paste(fileloc("gDir"),"/", fileName, "_", aggChoice, ".csv", sep = ""))
   # print(paste("Done plotting bars by region ", aggChoice, "for ", plotTitle))
   #cat("\n\n")
 
@@ -278,7 +278,7 @@ plotByRegionStackedBar <- function(dt, fileName, plotTitle, yLab, yRange, aggCho
   temp[, scenario := factor(scenario, levels = scenarioNameOrder)]
 
   # draw bars
-  pdf(paste("graphics/", gdxChoice, "/", fileName, "_", aggChoice, ".pdf", sep = ""), width = 7, height = 5.2, useDingbats = FALSE)
+  pdf(paste(fileloc("gDir"),"/", fileName, "_", aggChoice, ".pdf", sep = ""), width = 7, height = 5.2, useDingbats = FALSE)
   # I think the next line was meant to deal with a situation when yRange[2] (which should be the max) is smaller than
   # max(temp$value). I don't understand what 10^ceiling(log10(x)) is supposed to accomplish
   #  if (max(temp$value) - yRange[2] > 0) yRange[2] <- 10^ceiling(log10(x)) # will hopefully deal with rare situation
@@ -317,7 +317,7 @@ plotByRegionStackedBar <- function(dt, fileName, plotTitle, yLab, yRange, aggCho
   temp.wide[,(colsToRound) := round(.SD,2), .SDcols = colsToRound]
   data.table::setnames(temp.wide, old = names(temp.wide), new = c("scenario", "nutrient", regionCodes))
   #  textplot(temp.wide, cex = 0.6, valign = "top", show.rownames = FALSE, mai = c(.5, .5, .5, .5))
-  write.csv(temp.wide, file = paste("graphics/", gdxChoice, "/", fileName, "_", aggChoice, ".csv", sep = ""))
+  write.csv(temp.wide, file = paste(fileloc("gDir"),"/", fileName, "_", aggChoice, ".csv", sep = ""))
 }
 
 plotByBoxPlot2050 <- function(dt, fileName, plotTitle, yLab, yRange, aggChoice ){
@@ -336,7 +336,7 @@ plotByBoxPlot2050 <- function(dt, fileName, plotTitle, yLab, yRange, aggChoice )
   temp[, region_name := factor(region_name, levels =  regionNameOrder)]
 
   # draw boxplot
-  pdf(paste("graphics/", gdxChoice, "/", fileName,"_", aggChoice, ".pdf", sep = ""), width = 7, height = 5.2, useDingbats = FALSE)
+  pdf(paste(fileloc("gDir"),"/", fileName,"_", aggChoice, ".pdf", sep = ""), width = 7, height = 5.2, useDingbats = FALSE)
   p <- ggplot(temp, aes(x = region_name, y = incSharePCX0)) +
     geom_boxplot(stat = "boxplot", position = "dodge", color = "black", outlier.shape = NA) + # outlier.shape = NA, gets rid of outlier dots
     theme(legend.position = "right") +
@@ -357,7 +357,7 @@ plotByRegionLine <- function(dt, fileName, plotTitle, yRange, regionCodes, color
   temp <- merge(temp, dt.pcGDPX0.2010.ref, by = "region_code.IMPACT159")
   temp <- temp[region_code.IMPACT159 %in% regionAgg("I3regions")]
   scenarios <- unique(temp$scenario)
-  pdf(paste("graphics/", gdxChoice, "/", fileName, ".pdf", sep = ""))
+  pdf(paste(fileloc("gDir"),"/", fileName, ".pdf", sep = ""))
   par(mfrow = c(1,1))
   legendText <- NULL
   for (i in 1:length(scenarios)) {
@@ -465,7 +465,7 @@ plotByRegionErrorBars <- function(dt, fileName, plotTitle, yLab, yRange, aggChoi
 #
 #   #create the pdf of the graph
 #   browser()
-#   pdf(paste("graphics/", gdxChoice, "/", fileName, ".", aggChoice, ".pdf", sep = ""))
+#   pdf(paste(fileloc("gDir"),"/", fileName, ".", aggChoice, ".pdf", sep = ""))
 #   #Create barplots with the barplot(height) function, where height is a vector or matrix.
 #   #If height is a vector, the values determine the heights of the bars in the plot.
 #   #If height is a matrix and the option beside=FALSE then each bar of the plot corresponds to a column of height,
@@ -487,7 +487,7 @@ plotByRegionErrorBars <- function(dt, fileName, plotTitle, yLab, yRange, aggChoi
 #   data.table::setnames(temp.wide, old = names(temp.wide), new = c("scenario", regionCodes))
 #   textplot(temp.wide, cex = 0.6, valign = "top", show.rownames = FALSE, mai = c(.5, .5, .5, .5))
 #   dev.off()
-#   write.csv(temp.wide, file = paste("graphics/", gdxChoice, "/", fileName, ".", aggChoice, ".csv", sep = ""))
+#   write.csv(temp.wide, file = paste(fileloc("gDir"),"/", fileName, ".", aggChoice, ".csv", sep = ""))
 #   print(paste("Done plotting bars by region", aggChoice, "for", title))
 #   print(" ")
 #

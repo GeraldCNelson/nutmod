@@ -4,8 +4,9 @@
 \begin{document}
 % macro nutrients adequacy ratio
 \includepdfmerge[nup=2x3]{
-AMDR_hi_carbohydrate_g_tenregions.pdf, AMDR_hi_protein_g_tenregions.pdf, AMDR_hi_fat_g_tenregions.pdf,
-AMDR_lo_carbohydrate_g_tenregions.pdf, AMDR_lo_protein_g_tenregions.pdf, AMDR_lo_fat_g_tenregions.pdf}
+AMDR_lo_carbohydrate_g_tenregions.pdf, AMDR_hi_carbohydrate_g_tenregions.pdf,
+AMDR_lo_protein_g_tenregions.pdf, AMDR_hi_protein_g_tenregions.pdf,
+AMDR_lo_fat_g_tenregions.pdf, AMDR_hi_fat_g_tenregions.pdf}
 
 \end{document}
 

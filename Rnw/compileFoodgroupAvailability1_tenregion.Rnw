@@ -5,10 +5,10 @@
 
 % foodgroup availability ratio
 \includepdfmerge[nup=2x3]{
-foodAvail_foodGroup_alcohol_WB.pdf,
-foodAvail_foodGroup_beverages_WB.pdf, foodAvail_foodGroup_cereals_WB.pdf,
-foodAvail_foodGroup_dairy_WB.pdf, foodAvail_foodGroup_eggs_WB.pdf,
-foodAvail_foodGroup_fish_WB.pdf
+foodAvail_foodGroup_alcohol_tenregions.pdf,
+foodAvail_foodGroup_beverages_tenregions.pdf, foodAvail_foodGroup_cereals_tenregions.pdf,
+foodAvail_foodGroup_dairy_tenregions.pdf, foodAvail_foodGroup_eggs_tenregions.pdf,
+foodAvail_foodGroup_fish_tenregions.pdf
 }
 \end{document}
 

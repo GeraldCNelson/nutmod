@@ -33,7 +33,7 @@ keepYearList <- keyVariable("keepYearList")
 
 # Read IMPACT food data ------------------------------
 dt.IMPACTfood <- getNewestVersionIMPACT("dt.IMPACTfood")
-keepListCol <- c("scenario", "region_code.IMPACT159", "year", "IMPACT_code", "FoodAvailability")
+keepListCol <- c("scenario", "region_code.IMPACT159", "year", "IMPACT_code", "FoodAvailability", "foodAvailpDay")
 dt.IMPACTfood <- dt.IMPACTfood[year %in% keepYearList, ]
 dt.IMPACTfood <- dt.IMPACTfood[, (keepListCol), with = FALSE]
 data.table::setkey(dt.IMPACTfood)
@@ -77,6 +77,7 @@ cookingretention <- c( "thiamin_mg_cr" , "vit_b12_µg_cr", "riboflavin_mg_cr", "
 dt.SDfood <- data.table::copy(dt.IMPACTfood)
 dt.SDfood[,foodQ.sum := sum(foodAvailpDay), by = c("scenario","region_code.IMPACT159", "year")]
 dt.SDfood[,foodQ.ratio := foodAvailpDay/foodQ.sum]
+
 # ratio of quantity of individual food item to total quantity of food available
 dt.foodQratio <- data.table::copy(dt.SDfood)
 dt.foodQratio[,c("foodAvailpDay","foodQ.sum") := NULL]
@@ -176,12 +177,13 @@ dt.adequateRatio.nuts.sum[is.na(dt.adequateRatio.nuts.sum)] <- 0
 #         by = c("scenario", "year")]
 
 #RAOqe calcs -----
-# get rid of SOM data which is all NaNs
-# dt.foodQratio <- dt.foodQratio[!region_code.IMPACT159 %in% "SOM"]
+# dt.foodQratio - ratio of individual food item weight to total weight of daily availability
+# dt.adequateRatio.nuts - ratio of nutrient availability in a food to the nutrient requirement
 dt.RAOqe <- merge(dt.adequateRatio.nuts, dt.foodQratio,
                   by = c("scenario", "year", "region_code.IMPACT159", "IMPACT_code"))
 
 # See http://stackoverflow.com/questions/41112062/calculate-raos-quadratic-entropy for an explanation
+# and also the crossProdExperiments.R code
 dt.RAOqe[, RAOqe := c(crossprod(foodQ.ratio, as.matrix(dist(.SD)) %*% foodQ.ratio)) / 2,
          by = c("scenario", "year", "region_code.IMPACT159"), .SDcols = nutList]
 
@@ -189,9 +191,11 @@ keepListCol.RAOqe <- c("scenario", "region_code.IMPACT159", "year", "RAOqe" )
 dt.RAOqe <- unique(dt.RAOqe[, (keepListCol.RAOqe), with = FALSE])
 data.table::setnames(dt.RAOqe, old = "RAOqe", new = "value")
 
-# scale RAOqe to 0 to 100 range
-dt.RAOqe[, value := 100 * (value - min(value)) / (max(value) - min(value)),
-         by = c("scenario", "year")]
+# scale RAOqe to 0 to 100 range for each scenario and year
+median.2010 <- median(dt.RAOqe[year %in% "X2010", value])
+dt.RAOqe[, value := 100 - (100 * exp((value/median.2010) * log(0.5)))]
+
+#dt.RAOqe[, value := 100 * (value - min(value)) / (max(value) - min(value))]
 
 # # for testing
 # temp <- dt.RAOqe[scenario %in% "SSP1-NoCC-REF" & region_code.IMPACT159 %in% "USA" & year %in% "X2010",]

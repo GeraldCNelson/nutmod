@@ -2,8 +2,10 @@
 \documentclass{article}
 \usepackage{pdfpages}
 \begin{document}
-% macro nutrients adequacy ratio
-\includepdfmerge[nup=2x2]{macro_reqRatio_carbohydrate_g_WB.pdf, macro_reqRatio_protein_g_WB.pdf, macro_reqRatio_totalfiber_g_WB.pdf}
+
+% foodgroup availability ratio
+\includepdfmerge[nup=2x1]{
+compDI_WB.pdf, NutBalScore_WB.pdf}
 
 \end{document}
 

@@ -45,7 +45,7 @@ fileloc <- function(variableName) {
   gdxChoice <- getGdxChoice()
   rawData <- "data-raw"
   mData <- paste("data/", gdxChoice, sep = "")
-  gDir <- "graphics"
+  gDir <- paste("graphics", gdxChoice, sep = "/")
   iData <- paste(mData, "IMPACTData/", sep = "/")
   nutData <- "data-raw/NutrientData"
   resultsTop <- "results"
@@ -1136,17 +1136,18 @@ plots <- plotlist
 generateWorldMaps <- function(spData, scenOrder, titleText, legendText, lowColor, highColor, fillLimits, fileName){
   scenGraphs <- list()
   for (j in 1:length(scenOrder)) {
-    k <- scenOrder[j]
-    temp.sp <- spData[scenario %in% k,]
+#    titletext <- paste0(titleText, scenOrder[j])
+    titletext <- NULL
+    temp.sp <- spData[scenario %in% scenOrder[j],]
 #    temp.sp[,scenario := NULL]
     temp.sp <- as.data.frame(temp.sp)
     summary(temp.sp)
-    plotName.new <- paste0("plot.", gsub("-", "_",k))
+    plotName.new <- paste0("plot.", gsub("-", "_", scenOrder[j]))
     print(plotName.new)
     gg <- ggplot(temp.sp, aes(map_id = id))
     gg <- gg + geom_map(aes(fill = temp.sp$value), map = worldMap, color = "white")
     gg <- gg + expand_limits(x = worldMap$long, y = worldMap$lat)
-    gg <- gg + labs(title =  k, hjust = 0.5, x = NULL, y = NULL) +
+    gg <- gg + labs(title =  titletext, hjust = 0.5, x = NULL, y = NULL) +
       theme(plot.title = element_text(size = 10, hjust = 0.5)) +
       scale_fill_gradient(low = lowColor, high = highColor, guide = "legend", name = legendText, limits = fillLimits) +
       labs(lText = legendText) +
@@ -1168,7 +1169,7 @@ generateWorldMaps <- function(spData, scenOrder, titleText, legendText, lowColor
   grid.newpage()
   # +1 is for the title
   rows <- nrow(layout) + 1
-  gridHeight <- unit(rep_len(1, nrow), "null")
+  gridHeight <- unit(rep_len(1, rows), "null")
   pushViewport(viewport(layout = grid.layout(rows, ncol(layout), widths = unit(rep_len(1, cols), "null"), heights = unit(c(1, 5,5,5), "null"))))
   # title goes in the first row and across all columns
   grid.text(titleText, vp = viewport(layout.pos.row = 1, layout.pos.col = 1:cols))
@@ -1177,7 +1178,7 @@ generateWorldMaps <- function(spData, scenOrder, titleText, legendText, lowColor
   for (i in 1:numPlots) {
     # Get the i,j matrix positions of the regions that contain this subplot
     matchidx <- as.data.frame(which(layout == i, arr.ind = TRUE))
-    pdf(paste("graphics/worldMap", fileName, "_", , ".pdf", sep = ""), width = 7, height = 5.2, useDingbats = FALSE)
+    pdf(paste(fileloc("gDir"), "/worldMap", fileName, "_", ".pdf", sep = ""), width = 7, height = 5.2, useDingbats = FALSE)
 
     print(scenGraphs[[i]], vp = viewport(layout.pos.row = matchidx$row + 1,
                                          layout.pos.col = matchidx$col))

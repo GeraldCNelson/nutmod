@@ -43,7 +43,7 @@ dt.nutrients.adj <- cookingRetFishCorrect(switch.useCookingRetnValues, switch.fi
 # calculate the share of per capita income spent on IMPACT commodities
 budgetShareNpriceGrowth(dt.IMPACTfood)
 
-keepListCol <- c("scenario", "IMPACT_code", "region_code.IMPACT159", "FoodAvailability", "year")
+keepListCol <- c("scenario", "IMPACT_code", "region_code.IMPACT159", "FoodAvailability", "foodAvailpDay", "year")
 dt.IMPACTfood <- dt.IMPACTfood[, keepListCol, with = FALSE]
 
 # get rid of duplicate rows, caused by getting rid of GDP column
@@ -326,7 +326,7 @@ generateResults.dataPrep <- function(req, dt.IMPACTfood, scenarioListIMPACT, dt.
     gyear <- "X2010"
     mainTitle <- paste("Dietary zinc vs dietary phytate;\n ", "scenario - ", scenChoice, ", year - ", gyear, sep = "")
     temp.all <- merge( dt.bioavail_zinc, dt.regions, by = "region_code.IMPACT159")
-    pdf(paste("graphics/phytatePlot",gyear,".pdf", sep = ""))
+    pdf(paste(fileloc("gDir"), "/phytatePlot",gyear,".pdf", sep = ""))
     par(mai = c(.8,1,0.8,.5),oma = c(1,1,2,1), mfrow = c(2,2))
     for (i in unique(temp.all$region_code)) {
       gTitle <- paste("Income group - ", i, sep = "")
@@ -451,24 +451,24 @@ generateResults.dataPrep <- function(req, dt.IMPACTfood, scenarioListIMPACT, dt.
     keepListCol <- c("scenario", "region_code.IMPACT159", "year", "kcalsPerDay.fat", "kcalsPerDay.protein", "kcalsPerDay.carbohydrate", "kcalsPerDay.tot")
     dt.food.agg <- unique(dt.food.agg[, (keepListCol), with = FALSE])
     dt.food.agg[, `:=`(
-      fat_g = 100 * kcalsPerDay.fat / kcalsPerDay.tot,
-      protein_g = 100 * kcalsPerDay.protein / kcalsPerDay.tot,
-      carbohydrate_g = 100 * kcalsPerDay.carbohydrate / kcalsPerDay.tot
+      fat_g.Q = 100 * kcalsPerDay.fat / kcalsPerDay.tot,
+      protein_g.Q = 100 * kcalsPerDay.protein / kcalsPerDay.tot,
+      carbohydrate_g.Q = 100 * kcalsPerDay.carbohydrate / kcalsPerDay.tot
     )
     ]
     dt.food.agg[, c("kcalsPerDay.fat", "kcalsPerDay.protein", "kcalsPerDay.carbohydrate", "kcalsPerDay.tot") := NULL]
   }
   # now do ratios with nutrient requirements
   print(paste("calculating nutrient requirement ratios for ", req, sep = ""))
-  print(proc.time())
+  #print(proc.time())
 
   # change nutrient names in dt.nutsReqPerCap so they differ from those in nutListReq
   nutListReq.Req <- paste(nutListReq,"req", sep = ".")
   data.table::setnames(dt.nutsReqPerCap, old = nutListReq, new = nutListReq.Req)
-  data.table::setkeyv(dt.food.agg,allKey)
-  data.table::setkeyv(dt.nutsReqPerCap,allKey)
+  data.table::setkeyv(dt.food.agg, allKey)
+  data.table::setkeyv(dt.nutsReqPerCap, allKey)
   # temp <- merge(dt.food.agg,dt.nutsReqPerCap, by = c(allKey,nutListReq), all.x = TRUE)
-  dt.food.agg <- merge(dt.food.agg,dt.nutsReqPerCap, by = c(allKey), all.x = TRUE)
+  dt.food.agg <- merge(dt.food.agg, dt.nutsReqPerCap, by = c(allKey), all.x = TRUE)
   leadingCols <- c("scenario", "region_code.IMPACT159",
                    "year", "IMPACT_code", "foodAvailpDay", "food_group_code", "staple_code")
   if (req %in% c("req.AMDR_hi_percap", "req.AMDR_lo_percap")) {

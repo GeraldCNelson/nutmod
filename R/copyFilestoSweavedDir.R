@@ -21,7 +21,7 @@
 }
 #for testing
 fileName <- "iron_mg_iron_bioavail_reqRatio_WB.pdf"
-sourceDir <- paste(fileloc("gDir"), "/", gdxChoice, "/", sep = "")
+sourceDir <- paste(fileloc("gDir"), "/", sep = "")
 destDir <- "Rnw"
 
 copyFile <- function(fileName, sourceDir, destDir) {
@@ -82,6 +82,13 @@ copyListFromOther <- paste("nutrients.avail", otherList, sep = "_")
 copyListFromOther.WB <- paste0(copyListFromOther, "_WB.pdf")
 copyListFromOther.tenregions <- paste0(copyListFromOther, "_tenregions.pdf")
 
+copyListBudget <- c("budgetShare_WB.pdf", "budgetShareBoxPlot_2050_WB.pdf",
+                    "budgetShare_tenregions.pdf", "budgetShareBoxPlot_2050_tenregions.pdf")
+
+copyListDiversity <- c("nutrients.nonstaples.share_energy_kcal_tenregions.pdf", "RAOqe_tenregions.pdf",
+                       "nutrients.nonstaples.share_energy_kcal_WB.pdf", "RAOqe_WB.pdf")
+copyListEnergy <- c("nutrients.avail_energy_kcal_WB.pdf", "nutrients.avail_energy_kcal_tenregions.pdf")
+
 copyList <- c(copyListFromMacro.WB, copyListFromMacro.tenregions,
               copyListFromMinrls.WB, copyListFromMinrls.tenregions,
               copyListFromVits.WB, copyListFromVits.tenregions,
@@ -90,7 +97,8 @@ copyList <- c(copyListFromMacro.WB, copyListFromMacro.tenregions,
               copyListFromNBS.WB, copyListFromNBS.tenregions,
               copyListFromOther.WB, copyListFromOther.tenregions,
               copyListFromAMDRHi.WB, copyListFromAMDRHi.tenregions,
-              copyListFromAMDRLo.WB, copyListFromAMDRLo.tenregions)
+              copyListFromAMDRLo.WB, copyListFromAMDRLo.tenregions,
+              copyListBudget, copyListDiversity)
 
 for (i in copyList) {
   print(sprintf("copying file %s from graphics directory to %s", i, destDir))

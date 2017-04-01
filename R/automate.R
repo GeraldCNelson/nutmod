@@ -20,7 +20,7 @@
 #   mData - data
 #   iData - data/IMPACTdata - directory with IMPACT data
 #   resultsDir - results/gdxDhoice
-#   gdir = graphics/gdxChoice
+#   gDir = graphics/gdxChoice
 
 options(warn = 2) # converts all warnings to errors
 ptm <- proc.time()
@@ -186,45 +186,46 @@ library(cacheSweave )
 origWD <- getwd()
 RnwWD <- paste0(origWD,"/Rnw")
 setwd(paste0(origWD,"/Rnw"))
-Sweave( "compileVitsAdequacy_WB.Rnw", driver = cacheSweaveDriver, encoding = "utf-8")
-Sweave( "compileMinrlsAdequacy_WB.Rnw", driver = cacheSweaveDriver, encoding = "utf-8")
-Sweave( "compileMacroAdequacy_WB.Rnw", driver = cacheSweaveDriver, encoding = "utf-8")
-Sweave( "compileMacroAMDR_WB.Rnw", driver = cacheSweaveDriver, encoding = "utf-8")
-Sweave( "compileFoodgroupAvailability1_WB.Rnw", driver = cacheSweaveDriver, encoding = "utf-8")
-Sweave( "compileFoodgroupAvailability2_WB.Rnw", driver = cacheSweaveDriver, encoding = "utf-8")
-Sweave( "compileFoodgroupAvailability3_WB.Rnw", driver = cacheSweaveDriver, encoding = "utf-8")
-Sweave( "compileDiversity_WB.Rnw", driver = cacheSweaveDriver, encoding = "utf-8")
-Sweave( "compileNBS_WB.Rnw", driver = cacheSweaveDriver, encoding = "utf-8")
+filesToProcess <- c("compileFig1", "compileVitsAdequacy", "compileMinrlsAdequacy",
+"compileMacroAdequacy", "compileMacroAMDR", "compileFoodgroupAvailability1",
+"compileFoodgroupAvailability2", "compileFoodgroupAvailability3",
+"compileDiversity", "compileNBS", "compileFig8", "compileFig9")
 
-tools::texi2pdf("compileVitsAdequacy_WB.tex", clean = FALSE, quiet = TRUE)
-tools::texi2pdf("compileMinrlsAdequacy_WB.tex", clean = FALSE, quiet = TRUE)
-tools::texi2pdf("compileMacroAdequacy_WB.tex", clean = FALSE, quiet = TRUE)
-tools::texi2pdf("compileMacroAMDR_WB.tex", clean = FALSE, quiet = TRUE)
-tools::texi2pdf("compileFoodgroupAvailability1_WB.tex", clean = FALSE, quiet = TRUE)
-tools::texi2pdf("compileFoodgroupAvailability2_WB.tex", clean = FALSE, quiet = TRUE)
-tools::texi2pdf("compileFoodgroupAvailability3_WB.tex", clean = FALSE, quiet = TRUE)
-tools::texi2pdf("compileDiversity_WB.tex", clean = FALSE, quiet = TRUE)
-tools::texi2pdf("compileNBS_WB.tex", clean = FALSE, quiet = TRUE)
+aggChoice <- c("WB", "tenregion")
+# compile the files
+for (i in filesToProcess) {
+  print(paste("processing ", j))
+  for (j in aggChoice) {
+    fileName.compile <- paste(i, "_", j, ".Rnw", sep = "")
+    temp.compile <- paste("Sweave(", '"',fileName.compile, '"', ', driver = cacheSweaveDriver, encoding = "utf-8"', ")", sep = "")
+    fileName <- paste(i, "_", j, ".Rnw", sep = "")
+    eval(parse(text = temp.compile))
+    fileName.tex2pdf <- paste(i, "_", j, ".tex", sep = "")
+    temp.tex2pdf <- paste("tools::texi2pdf(", '"',fileName.tex2pdf, '"', ', clean = FALSE, quiet = TRUE', ")", sep = "")
+    eval(parse(text = temp.tex2pdf))
+  }
+}
 
-Sweave( "compileVitsAdequacy_tenregion.Rnw", driver = cacheSweaveDriver, encoding = "utf-8")
-Sweave( "compileMinrlsAdequacy_tenregion.Rnw", driver = cacheSweaveDriver, encoding = "utf-8")
-Sweave( "compileMacroAdequacy_tenregion.Rnw", driver = cacheSweaveDriver, encoding = "utf-8")
-Sweave( "compileMacroAMDR_tenregion.Rnw", driver = cacheSweaveDriver, encoding = "utf-8")
-Sweave( "compileFoodgroupAvailability1_tenregion.Rnw", driver = cacheSweaveDriver, encoding = "utf-8")
-Sweave( "compileFoodgroupAvailability2_tenregion.Rnw", driver = cacheSweaveDriver, encoding = "utf-8")
-Sweave( "compileFoodgroupAvailability3_tenregion.Rnw", driver = cacheSweaveDriver, encoding = "utf-8")
-Sweave( "compileDiversity_tenregion.Rnw", driver = cacheSweaveDriver, encoding = "utf-8")
-Sweave( "compileNBS_tenregion.Rnw", driver = cacheSweaveDriver, encoding = "utf-8")
+#move all the tenregion pdf files to the tenregion directory
+# first delete old fiels in tenregion directory
+if (length(list.files("tenregion/")) > 0) file.remove(paste("tenregion/", list.files("tenregion/"), sep = ""))
+files.tenregion <- list.files()[grep("tenregion.pdf", list.files())]
+file.copy(from = files.tenregion, to = paste("tenregion/", files.tenregion, sep = ""))
+file.remove(files.tenregion)
 
-tools::texi2pdf("compileVitsAdequacy_tenregion.tex", clean = FALSE, quiet = TRUE)
-tools::texi2pdf("compileMinrlsAdequacy_tenregion.tex", clean = FALSE, quiet = TRUE)
-tools::texi2pdf("compileMacroAdequacy_tenregion.tex", clean = FALSE, quiet = TRUE)
-tools::texi2pdf("compileMacroAMDR_tenregion.tex", clean = FALSE, quiet = TRUE)
-tools::texi2pdf("compileFoodgroupAvailability1_tenregion.tex", clean = FALSE, quiet = TRUE)
-tools::texi2pdf("compileFoodgroupAvailability2_tenregion.tex", clean = FALSE, quiet = TRUE)
-tools::texi2pdf("compileFoodgroupAvailability3_tenregion.tex", clean = FALSE, quiet = TRUE)
-tools::texi2pdf("compileDiversity_tenregion.tex", clean = FALSE, quiet = TRUE)
-tools::texi2pdf("compileNBS_tenregion.tex", clean = FALSE, quiet = TRUE)
+#deal with tenregion files that use tenregions
+files.tenregions <- list.files()[grep("tenregions.pdf", list.files())]
+file.copy(from = files.tenregions, to = paste("tenregion/", files.tenregions, sep = ""))
+file.remove(files.tenregions)
+
+# delete extraneous files from the Rnw directory
+fileNameList <- list.files(path = "Rnw", full.names = TRUE)
+filePDFList <- fileNameList[grep(".pdf", fileNameList)]
+fileAuxList <- fileNameList[grep(".aux", fileNameList)]
+fileLogList <- fileNameList[grep(".log", fileNameList)]
+fileTexList <- fileNameList[grep(".tex", fileNameList)]
+fileDeleteList <- c(fileAuxList, fileLogList, fileTexList)
+invisible(file.remove(fileDeleteList)) # using invisible gets rid of some TRUE outputs.
 
 setwd(origWD)
 options(warn = 1)

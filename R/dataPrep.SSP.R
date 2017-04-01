@@ -62,8 +62,9 @@ data.table::setnames(dt.SSP, oldNameList, newNameList)
 # for the years 2010 to 2050.
 
 # the lists of pop and GDP models are defined in nutrientModFunctions.R
-
 # Note: the different models don't have results for the same set of countries
+# The OECD Env-GrowthP population data set is only total but does include 2005.
+# The IIASA-WiC POP data set includes age and gender distributions but doesn't includr 2005.
 
 # create cleaned up GDP SSP data ---
 #' @param dt.SSP.GDP - data table with the SSP results from the model identified in modelListGDP
@@ -90,6 +91,7 @@ cleanup(inDT,outName,fileloc("mData"))
 # create cleaned up population SSP data ---
 #' @param dt.SSP.pop - data table with the SSP results from the model identified in modelListPop
 dt.SSP.pop <- dt.SSP[model == modelListPop,]
+
 # Create population age and gender data set by removing rows with education breakdown -----
 #' #' @param popList - variable name for population
 #' popList <- "Population"
@@ -107,15 +109,20 @@ dt.SSP.pop <- dt.SSP[model == modelListPop,]
 #'  c("No Education", "Primary Education", "Secondary Education","Tertiary Education")
 #' genderList <- c("Male", "Female")
 
-#keep full population count around for bug checking later
-# get rid of year 0.
-keepYearList.temp <- keyVariable("keepYearList")
+#keep full population count around. Keep 2005 for the gdppercap operations
 dt.SSP.pop.tot <-
- dt.SSP.pop[variable == "Population", c("scenario", "ISO_code", "unit", keepYearList.temp), with = FALSE]
-deleteListCol <- c("units","X2005")
-
+ dt.SSP.pop[variable == "Population", c("scenario", "ISO_code",  keepYearList), with = FALSE]
+data.table::setcolorder(dt.SSP.pop.tot, c("scenario", "ISO_code", "X2005", "X2010", "X2015", "X2020", "X2025",
+                                          "X2030", "X2035", "X2040", "X2045", "X2050"))
+# deal with missing 2005 pop data in the IIASA data set by getting 2005 from the OECD data set
+dt.SSP.pop.tot[, X2005 := NULL]
+keepListCol <- c("scenario", "ISO_code", "X2005")
+dt.SSP.pop.2005 <- dt.SSP[model == "OECD Env-Growth" & variable %in% "Population", (keepListCol), with = FALSE]
+dt.SSP.pop.2005[, scenario := substr(scenario, 1, 4)]
+dt.SSP.pop.tot[, scenario := substr(scenario, 1, 4)]
+dt.SSP.pop.tot <- merge(dt.SSP.pop.tot, dt.SSP.pop.2005, by = c("scenario", "ISO_code"))
 idVars <- c("scenario", "ISO_code")
-measure.vars = keepYearList.temp
+measure.vars = keepYearList
 dt.SSP.pop.tot.melt <- data.table::melt(
  dt.SSP.pop.tot,
  id.vars = idVars,

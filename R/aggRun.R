@@ -128,7 +128,7 @@ for (l in scenChoiceList) {
     # RAOqe -----
     print(paste("Working on bar chart for Rao's QE for", i))
     DT <- aggNorder(gdxChoice, DTglobal = "dt.RAOqe", aggChoice = i, scenChoice = get(l), mergedVals =  c("scenario", "region_code", "year"))
-    DTglobalylab <- ""
+    ylab <- ""
     if (ylab %in%  "(percent)") {yRangeMinMax <- c(0,100)} else {yRangeMinMax <- c(0, max(DT$value) )}
     plotByRegionBar(dt = DT, fileName = "RAOqe", plotTitle = "Rao's quadratic entropy",
                     yLab = ylab, yRange = yRangeMinMax, aggChoice = i,  scenOrder, oneLine = FALSE, colorList)
@@ -382,7 +382,7 @@ for (i in aggChoiceListBarChart) {
 
   #  DTalt <- aggNorder(gdxChoice, DTglobal = "dt.budgetShare", aggChoice = i, scenChoice = get(l))
 
-  plotByBoxPlot2050(dt = DT, fileName = paste(filename,i, sep = "_"), plotTitle = plottitle, yLab = ylab, yRange = c(0,50), aggChoice = i )
+  plotByBoxPlot2050(dt = DT, fileName = filename, plotTitle = plottitle, yLab = ylab, yRange = c(0,50), aggChoice = i )
 }
 # the method commented out below to get the box plots stats doesn't work with geom_boxplot. The following link has a
 # way to do this but I'm not going to implement right now.
@@ -445,14 +445,14 @@ for (i in aggChoiceListBarChart) {
 for (i in multipleNutsFileList) {
   print(paste("writing zip file for", i))
   inDT <- getNewestVersion(i, fileloc("resultsDir"))
-  write.csv(inDT, file = gzfile(paste("graphics/", gdxChoice, "/", i, ".csv.zip", sep = "")))
+  write.csv(inDT, file = gzfile(paste(fileloc("gDir"), "/", i, ".csv.zip", sep = "")))
 }
 
 #create zip file of all the graphics outputs for a set of scenarios
-graphs.fileNames <- list.files(path = "graphics")
+graphs.fileNames <- list.files(path = fileloc("gDir"))
 # the extras options gets rid of all the messages and replaces them with a dot every 10 MB
-zip(zipfile = paste(fileloc("gDir"),"/", scenChoice.name,".zip", sep = ""),
-                     files = paste(fileloc("gDir"),"/", graphs.fileNames, sep = ""), extras = "-qdgds 10m")
+zip(zipfile = paste(fileloc("gDir"), "/", scenChoice.name,".zip", sep = ""),
+                     files = paste(fileloc("gDir"), "/", graphs.fileNames, sep = ""), extras = "-qdgds 10m")
 
 # csv to table code  -----
 # list of potential nutrients to add to the table
@@ -548,7 +548,7 @@ rowCounter <- rowCounter + 1
     figInfo <- "2, Nutrient balance metrics, "
   }
 
-  fileIn <- data.table::fread(paste("graphics/", gdxChoice, "/", fileName, ".csv", sep = ""), select = 2:6)
+  fileIn <- data.table::fread(paste(fileloc("gDir"), "/", fileName, ".csv", sep = ""), select = 2:6)
   for (j in scen2050list) {
     for (k in 1:length(incCats)) {
       baseVal <- fileIn[scenario == "SSP2-NoCC", get(incCats[k])]
@@ -587,8 +587,8 @@ openxlsx::addStyle(
   gridExpand = TRUE
 )
 
-openxlsx::saveWorkbook(wb = figsData, file = paste("graphics/reqTable.xlsx", sep = ""),
+openxlsx::saveWorkbook(wb = figsData, file = paste(fileloc("gDir"), "/", "reqTable.xlsx", sep = ""),
                        overwrite = TRUE)
-data.table::fwrite(csvHolder, file = paste("graphics/reqTable.csv", sep = ""), na = "")
+data.table::fwrite(csvHolder, file = paste(fileloc("gDir"), "/reqTable.csv", sep = ""), na = "")
 
 # source("R/aggregateResults.R") # is this still necessary?
