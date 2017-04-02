@@ -111,7 +111,7 @@ for (l in scenChoiceList) {
     filename <- "budgetShare"
     if (ylab %in%  "(percent)") {yRangeMinMax <- c(0,100)} else {yRangeMinMax <- c(0, max(DT$value) )}
     if (filename %in% "budgetShare") yRangeMinMax <- c(0,60) #custom
-    plotByRegionBar(dt = DT, fileName = filename, plotTitle = "IMPACT food budget share of per capita income",
+    plotByRegionBar(dt = DT, fileName = filename, plotTitle = "Expenditures for IMPACT food items as share of per capita income",
                     yLab = ylab, yRange = yRangeMinMax, aggChoice = i,  scenOrder, oneLine = FALSE, colorList)
     #  yLab = "(percent)", yRange = c(0, 50), aggChoice = i, oneLine = FALSE)
 
@@ -215,6 +215,7 @@ for (l in scenChoiceList) {
       #      merged <- merged[, value := weighted.mean(value, PopX0), by = c("scenario", "region_code")]
       keepListCol <- c("scenario", "region_code", "region_name", "value")
       DT <- unique(merged[, (keepListCol), with = FALSE])
+      DT <- DT[, region_name := gsub(" plus", "", region_name)]
       if (gdxChoice == "USAID") DT <- renameUSAIDscenarios(DT)
 
       DT <- DT[scenario %in% get(l), ]
@@ -288,6 +289,7 @@ print(j)
         merged <- merged[, value := weighted.mean(value, PopX0), by = c("scenario", "region_code", "year")]
         keepListCol <- c("scenario", "region_code", "region_name", "value")
         DT <- unique(merged[, (keepListCol), with = FALSE])
+        DT <- DT[, region_name := gsub(" plus", "", region_name)]
         if (gdxChoice == "USAID") DT <- renameUSAIDscenarios(DT)
 
         DT <- DT[scenario %in% get(l), ]
@@ -463,17 +465,19 @@ vitamins <- c( "folate_µg", "thiamin_mg", "niacin_mg", "riboflavin_mg",
 minerals <- c("calcium_mg",  "iron_mg", "magnesium_mg", "phosphorus_mg",
               "potassium_g", "zinc_mg")
 kcals <- c("kcals.fat", "kcals.protein", "kcals.sugar", "kcals.ethanol")
+energy <- c("energy_kcal")
 addedSugar <- c("sugar_g")
 fattyAcids <- c("ft_acds_tot_sat_g", "ft_acds_mono_unsat_g", "ft_acds_plyunst_g",
                 "ft_acds_tot_trans_g")
 
 nutlistmacro <- c("carbohydrate_g", "protein_g",  "totalfiber_g") # fat is excluded here
+nutlistmacroAMDR <- c("carbohydrate_g", "protein_g",  "fat_g")
 # nutlistminrls <- c("calcium_mg", "magnesium_mg", "potassium_g", "phosphorus_mg")
 # nutlistvits <- c("folate_µg", "riboflavin_mg", "vit_a_rae_µg","vit_b12_µg", "vit_c_mg", "vit_e_mg",  "vit_d_µg",
 #                  "vit_k_µg", "thiamin_mg")
-diversity.1 <- c("nonStapleShare", "RAOqe")
+diversity <- c("nonStapleShare", "RAOqe")
 #diversity.2 <- c("NutBalScore", "compDI", "compQI")
-diversity.2 <- c("NutBalScore", "compDI")
+nutBal <- c("compDI", "NutBalScore")
 budgetShare <- "budgetShare"
 nonStapleShareKcals <- "nonStapleShare"
 #boxStats <- "boxstats"
@@ -482,22 +486,23 @@ dailyAvail.foodgroup <- foodGroupList
 csvHolder <- data.table::data.table(scenario = character(0),
                                     # "Low Income" = numeric(0), "Low middle income" = numeric(0),
                                     # "Upper middle income" = numeric(0), "High income" = numeric(0),
-                                    # "2050 climate change effect, low income" = numeric(0),
-                                    # "2050 climate change effect, low middle income" = numeric(0),
-                                    # "2050 climate change effect, upper middle income" = numeric(0),
-                                    # "2050 climate change effect, high income" = numeric(0))
+                                    # "2050 CC effect, low income" = numeric(0),
+                                    # "2050 CC effect, low middle income" = numeric(0),
+                                    # "2050 CC effect, upper middle income" = numeric(0),
+                                    # "2050 CC effect, high income" = numeric(0))
                                     lowInc = numeric(0), lowMidInc = numeric(0), upMidInc = numeric(0), highInc = numeric(0),
                                     DlowInc = numeric(0), DlowMidInc = numeric(0), DupMidInc = numeric(0), DhighInc = numeric(0))
 
 incCats <- c("lowInc", "lowMidInc", "upMidInc", "highInc")
 DincCats <- c("DlowInc", "DlowMidInc", "DupMidInc", "DhighInc")
 scen2050list <- c("SSP2-GFDL", "SSP2-IPSL", "SSP2-HGEM")
+
 #create  xlsx file with the data used to create the figures -----
 figsData <- openxlsx::createWorkbook()
 openxlsx::addWorksheet(wb = figsData, sheetName = "FigureData")
-colHeaders <- c("Low Income", "Low middle income", "Upper middle income", "High income",
-                "2050 climate change effect, low income", "2050 climate change effect, low middle income",
-                "2050 climate change effect, upper middle income", "2050 climate change effect, high income")
+colHeaders <- c("Scenario","Low Income", "Low middle income", "Upper middle income", "High income",
+                "2050 CC effect, low income", "2050 CC effect, low middle income",
+                "2050 CC effect, upper middle income", "2050 CC effect, high income")
 rowCounter <- 1
 
 #write column names to the spreadsheet
@@ -508,8 +513,8 @@ openxlsx::writeData(
 )
 rowCounter <- rowCounter + 1
 #boxstats removed for now
-#for (i in c(budgetShare, boxStats, nutlistmacro, vitamins, minerals, diversity.1, diversity.2, dailyAvail.foodgroup)) {
-  for (i in c(budgetShare, nutlistmacro, vitamins, minerals, diversity.1, diversity.2, dailyAvail.foodgroup)) {
+#for (i in c(budgetShare, boxStats, nutlistmacro, vitamins, minerals, diversity., diversity.2, dailyAvail.foodgroup)) {
+  for (i in c(budgetShare, dailyAvail.foodgroup, energy, nutlistmacro, nutlistmacroAMDR, vitamins, minerals, diversity, nutBal)) {
  #   if (i %in% c(budgetShare, boxStats)) {
       if (i %in% c(budgetShare)) {
         fileName <- paste(i, "WB", sep = "_")
@@ -519,34 +524,44 @@ rowCounter <- rowCounter + 1
     fileName <- paste( "foodAvail_foodGroup", i, "WB", sep = "_")
     figInfo <- "2, food group availability, "
   }
+    if (i %in% energy) {
+      fileName <- paste("nutrients.avail_energy_kcal", "WB", sep = "_")
+      figInfo <- "4, average daily availability dietary energy, "
+    }
   if (i %in% nutlistmacro) {
     fileName <- paste("macro_reqRatio", i, "WB", sep = "_")
-    figInfo <- "3, adequacy, macro nutrients, "
+    figInfo <- "5, adequacy, macro nutrients, "
   }
-  if (i %in% vitamins) {
-    fileName <- paste("vits_reqRatio", i, "WB", sep = "_")
-    figInfo <- "4, adequacy, vitamins, "
-  }
+    if (i %in% nutlistmacroAMDR) {
+      fileName <- paste("AMDR_lo", i, "WB", sep = "_")
+      figInfo <- "6, AMDR low, macro nutrients, "
+    }
+    if (i %in% nutlistmacroAMDR) {
+      fileName <- paste("AMDR_hi", i, "WB", sep = "_")
+      figInfo <- "6, AMDR high, macro nutrients, "
+    }
+
   if (i %in% minerals) {
     fileName <- paste("minrls_reqRatio", i, "WB", sep = "_")
-    figInfo <- "4, adequacy, minerals, "
+    figInfo <- "7, adequacy, minerals, "
   }
-  # if (i %in% nutlistbioavail) {
-  #   fileName <- paste(i, "bioavail_reqRatio", i, "WB", sep = "_")
-  #   figInfo <- "4, adequacy, minerals, "
-  # }
-  if (i %in% nonStapleShareKcals) {
+    if (i %in% vitamins) {
+      fileName <- paste("vits_reqRatio", i, "WB", sep = "_")
+      figInfo <- "7, adequacy, vitamins, "
+    }
+    if (i %in% nutBal) {
+      fileName <- paste(i, "WB", sep = "_")
+      figInfo <- "8, Nutrient balance metrics, "
+    }
+    if (i %in% nonStapleShareKcals) {
     fileName <- paste(i, "WB", sep = "_")
-    figInfo <- "5, diversity metrics, "
+    figInfo <- "9, diversity metrics, "
   }
-  if (i %in% diversity.1) {
+  if (i %in% diversity) {
     fileName <- paste(i, "WB", sep = "_")
-    figInfo <- "5, diversity metrics, "
+    figInfo <- "9, diversity metrics, "
   }
-  if (i %in% diversity.2) {
-    fileName <- paste(i, "WB", sep = "_")
-    figInfo <- "2, Nutrient balance metrics, "
-  }
+
 
   fileIn <- data.table::fread(paste(fileloc("gDir"), "/", fileName, ".csv", sep = ""), select = 2:6)
   for (j in scen2050list) {
@@ -579,7 +594,7 @@ rowCounter <- rowCounter + 1
 }
 
 data.table::setnames(csvHolder,
-                     old = c("lowInc", "lowMidInc", "upMidInc", "highInc", "DlowInc", "DlowMidInc", "DupMidInc", "DhighInc"),
+                     old = names(csvHolder),
                      new = colHeaders)
 
 openxlsx::addStyle(
@@ -589,6 +604,6 @@ openxlsx::addStyle(
 
 openxlsx::saveWorkbook(wb = figsData, file = paste(fileloc("gDir"), "/", "reqTable.xlsx", sep = ""),
                        overwrite = TRUE)
-data.table::fwrite(csvHolder, file = paste(fileloc("gDir"), "/reqTable.csv", sep = ""), na = "")
+data.table::fwrite(csvHolder, file = paste(fileloc("gDir"), "/reqTable.csv", sep = ""), na = "", row.names = FALSE)
 
 # source("R/aggregateResults.R") # is this still necessary?

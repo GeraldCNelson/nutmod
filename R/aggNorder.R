@@ -188,7 +188,7 @@ plotByRegionBar <- function(dt, fileName, plotTitle, yLab, yRange, aggChoice, sc
     data = temp,
     formula = formula.wide,
     value.var = "value")
-  temp.wide[, scenarioOrder := match(scenario, scenarios)]
+  temp.wide[, scenarioOrder := match(scenario, gsub("-REF","",scenarios))]
   data.table::setorder(temp.wide, scenarioOrder)
   temp.wide[, scenarioOrder := NULL]
   #temp.out <- data.table::copy(temp.wide)

@@ -226,7 +226,7 @@ cleanup <- function(inDT, outName, dir, writeFiles) {
   }
   if ("csv"  %in% writeFiles) {
     #    print(paste("writing the csv for ", outName, " to ",dir, sep = ""))
-    write.csv(inDT,file = paste(dir, "/", outName, "_", Sys.Date(), ".csv", sep = ""))
+    write.csv(inDT,file = paste(dir, "/", outName, "_", Sys.Date(), ".csv", sep = ""), row.names = FALSE)
   }
   if ("xlsx"  %in% writeFiles) {
     #    print(paste("writing the xlsx for ", outName, " to ", dir, sep = ""))
@@ -272,14 +272,14 @@ cleanupNutrientNames <- function(nutList) {
   nutList <- gsub("_g","",nutList)
   nutList <- gsub("totalfiber","total fiber",nutList)
   nutList <- gsub(".ratio.foodGroup","",nutList)
-#  nutList <- gsub("_","",nutList)
   nutList <- gsub("share","",nutList)
   nutList <- gsub(".sum.all","",nutList)
   nutList <- gsub("rootsNPlaintain","roots and plantain",nutList)
   nutList <- gsub("nutsNseeds","nuts and seeds",nutList)
-  nutList <- gsub("beverages","Nonalcoholic beverages",nutList)
-  nutList <- gsub("alcohol","Alcoholic beverages",nutList)
-
+  nutList <- gsub("alcohol","alcoholic beverages",nutList)
+  nutList <- gsub("beverages","nonalcoholic beverages",nutList)
+  nutList <- gsub("alcoholic nonalcoholic beverages","alcoholic beverages",nutList)
+  nutList <- gsub("ft_acds_tot_sat", "saturated fat", nutList)
   return(nutList)
 }
 
