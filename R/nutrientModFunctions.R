@@ -280,6 +280,7 @@ cleanupNutrientNames <- function(nutList) {
   nutList <- gsub("beverages","nonalcoholic beverages",nutList)
   nutList <- gsub("alcoholic nonalcoholic beverages","alcoholic beverages",nutList)
   nutList <- gsub("ft_acds_tot_sat", "saturated fat", nutList)
+  nutList <- gsub("_g_AMDR", "", nutList)
   return(nutList)
 }
 

@@ -157,16 +157,16 @@ for (l in scenChoiceList) {
     if (ylab %in%  "(percent)") {yRangeMinMax <- c(0,100)} else {yRangeMinMax <- c(0, max(DT$value) )}
     plotByRegionBar(dt = DT, fileName = "NutBalScore", plotTitle = "Nutrient balance score",
                     yLab = ylab, yRange = yRangeMinMax, aggChoice = i,  scenOrder, oneLine = FALSE, colorList)
- #   yLab = NULL, yRange = c(0, 100), aggChoice = i, oneLine = FALSE)
+    #   yLab = NULL, yRange = c(0, 100), aggChoice = i, oneLine = FALSE)
 
-  #   # composite QI score -----
-  #   print(paste("Working on bar chart for the QI composite for", i))
-  #   DT <- aggNorder(gdxChoice, DTglobal = "dt.compQI", aggChoice = i, scenChoice = get(l), mergedVals =  c("scenario", "region_code", "year"))
-  #   ylab <- ""
-  #   if (ylab %in%  "(percent)") {yRangeMinMax <- c(0,100)} else {yRangeMinMax <- c(0, max(DT$value) )}
-  #   plotByRegionBar(dt = DT, fileName = "compQI", plotTitle = "Composite qualifying index",
-  #                   yLab = ylab, yRange = yRangeMinMax, aggChoice = i,  scenOrder, oneLine = FALSE, colorList)
-  # #  yLab = NULL, yRange = c(0, 100), aggChoice = i, oneLine = FALSE)
+    #   # composite QI score -----
+    #   print(paste("Working on bar chart for the QI composite for", i))
+    #   DT <- aggNorder(gdxChoice, DTglobal = "dt.compQI", aggChoice = i, scenChoice = get(l), mergedVals =  c("scenario", "region_code", "year"))
+    #   ylab <- ""
+    #   if (ylab %in%  "(percent)") {yRangeMinMax <- c(0,100)} else {yRangeMinMax <- c(0, max(DT$value) )}
+    #   plotByRegionBar(dt = DT, fileName = "compQI", plotTitle = "Composite qualifying index",
+    #                   yLab = ylab, yRange = yRangeMinMax, aggChoice = i,  scenOrder, oneLine = FALSE, colorList)
+    # #  yLab = NULL, yRange = c(0, 100), aggChoice = i, oneLine = FALSE)
 
     # composite DI score -----
     print(paste("Working on bar chart for disqualifying nutrients for", i))
@@ -175,7 +175,7 @@ for (l in scenChoiceList) {
     if (ylab %in%  "(percent)") {yRangeMinMax <- c(0,100)} else {yRangeMinMax <- c(0, max(DT$value) )}
     plotByRegionBar(dt = DT, fileName = "compDI", plotTitle = "Composite disqualifying index",
                     yLab = ylab, yRange = yRangeMinMax, aggChoice = i,  scenOrder, oneLine = FALSE, colorList)
-#    yLab = NULL, yRange = c(0, 100), aggChoice = i, oneLine = FALSE)
+    #    yLab = NULL, yRange = c(0, 100), aggChoice = i, oneLine = FALSE)
 
     # stacked kcal bar chart ----
     print(paste("Working on stacked kcal bar chart for ", i))
@@ -185,7 +185,7 @@ for (l in scenChoiceList) {
     ylab <- "(Kcals)"
     if (ylab %in%  "(percent)") {yRangeMinMax <- c(0,100)} else {yRangeMinMax <- c(0, round(max(DT$value)) )}
     plotByRegionStackedBar(dt = DT, fileName = "kcals.values", plotTitle = "Average daily dietary energy by source",
-                    yLab = ylab, yRange = yRangeMinMax, aggChoice = i,  scenOrder, oneLine = FALSE, colorList)
+                           yLab = ylab, yRange = yRangeMinMax, aggChoice = i,  scenOrder, oneLine = FALSE, colorList)
 
   }
 
@@ -250,8 +250,8 @@ for (l in scenChoiceList) {
       if (ylab %in%  "(percent)") {yRangeMinMax <- c(0,100)} else {yRangeMinMax <- c(0, max(DT$value) )}
       plotByRegionBar(dt = DT, fileName = paste("foodAvail_foodGroup", j,  sep = "_"), plotTitle = nutTitle,
                       yLab = ylab, yRange = yRangeMinMax, aggChoice = i,  scenOrder, oneLine = FALSE, colorList)
-#      yRange = c(0, 80), aggChoice = i, oneLine = FALSE)
-print(j)
+      #      yRange = c(0, 80), aggChoice = i, oneLine = FALSE)
+      print(j)
     }
   }
   cat(paste("Done with food groups\n\n"))
@@ -259,7 +259,7 @@ print(j)
   # several nutrients -----
   for (k in 1:length(multipleNutsFileList)) {
 
-#    if (multipleNutsFileList[k] %in% "dt.MRVRatios") browser()
+    #    if (multipleNutsFileList[k] %in% "dt.MRVRatios") browser()
 
     print(paste("Working on multiple nut file", multipleNutsFileList[k]))
     temp.in <- getNewestVersion(multipleNutsFileList[k], fileloc("resultsDir"))
@@ -333,23 +333,23 @@ print(j)
         }
         if (multipleNutsFileList[k] %in% c("dt.MRVRatios"))  {
           nutTitle <- paste("Ratio of ", nutshortName, " availability to MRV", sep = "")
-#          ylab = "(Maximal reference value)"
+          #          ylab = "(Maximal reference value)"
           ylab = ""
           drawOneLine = FALSE
         }
 
-         if (multipleNutsFileList[k] %in% "AMDR_hi_sum_reqRatio")  {
-           nutTitle <- paste("AMDR high, ", nutshortName, sep = "")
-           ylab = "(AMDR, high)"
-           drawOneLine = TRUE
-         }
-         if (multipleNutsFileList[k] %in% "AMDR_lo_sum_reqRatio")  {
-           nutTitle <- paste("AMDR low, ", nutshortName, sep = "")
-           ylab = "(AMDR, low)"
-           drawOneLine = TRUE
-         }
+        if (multipleNutsFileList[k] %in% "AMDR_hi_sum_reqRatio")  {
+          nutTitle <- paste("AMDR high, ", nutshortName, sep = "")
+          ylab = "(AMDR, high)"
+          drawOneLine = TRUE
+        }
+        if (multipleNutsFileList[k] %in% "AMDR_lo_sum_reqRatio")  {
+          nutTitle <- paste("AMDR low, ", nutshortName, sep = "")
+          ylab = "(AMDR, low)"
+          drawOneLine = TRUE
+        }
         if (multipleNutsFileList[k] == "dt.nutrients.nonstapleShare")  {
-                    nutTitle <- paste("Non-staple share of ", nutshortName, " availability", sep = "")
+          nutTitle <- paste("Non-staple share of ", nutshortName, " availability", sep = "")
           ylab = "(percent)"
           drawOneLine = FALSE
         }
@@ -360,7 +360,7 @@ print(j)
       }
     }
     print(paste("Done with ", multipleNutsFileList[k]))
-#    cat("\n\n")
+    #    cat("\n\n")
   }
 } # end of scenChoiceList loop
 
@@ -454,7 +454,7 @@ for (i in multipleNutsFileList) {
 graphs.fileNames <- list.files(path = fileloc("gDir"))
 # the extras options gets rid of all the messages and replaces them with a dot every 10 MB
 zip(zipfile = paste(fileloc("gDir"), "/", scenChoice.name,".zip", sep = ""),
-                     files = paste(fileloc("gDir"), "/", graphs.fileNames, sep = ""), extras = "-qdgds 10m")
+    files = paste(fileloc("gDir"), "/", graphs.fileNames, sep = ""), extras = "-qdgds 10m")
 
 # csv to table code  -----
 # list of potential nutrients to add to the table
@@ -471,7 +471,8 @@ fattyAcids <- c("ft_acds_tot_sat_g", "ft_acds_mono_unsat_g", "ft_acds_plyunst_g"
                 "ft_acds_tot_trans_g")
 
 nutlistmacro <- c("carbohydrate_g", "protein_g",  "totalfiber_g") # fat is excluded here
-nutlistmacroAMDR <- c("carbohydrate_g", "protein_g",  "fat_g")
+nutlistmacroAMDRlo <- c("carbohydrate_g_AMDRlo", "protein_g_AMDRlo",  "fat_g_AMDRlo")
+nutlistmacroAMDRhi <- c("carbohydrate_g_AMDRhi", "protein_g_AMDRhi",  "fat_g_AMDRhi")
 # nutlistminrls <- c("calcium_mg", "magnesium_mg", "potassium_g", "phosphorus_mg")
 # nutlistvits <- c("folate_µg", "riboflavin_mg", "vit_a_rae_µg","vit_b12_µg", "vit_c_mg", "vit_e_mg",  "vit_d_µg",
 #                  "vit_k_µg", "thiamin_mg")
@@ -513,47 +514,48 @@ openxlsx::writeData(
 )
 rowCounter <- rowCounter + 1
 #boxstats removed for now
-#for (i in c(budgetShare, boxStats, nutlistmacro, vitamins, minerals, diversity., diversity.2, dailyAvail.foodgroup)) {
-  for (i in c(budgetShare, dailyAvail.foodgroup, energy, nutlistmacro, nutlistmacroAMDR, vitamins, minerals, diversity, nutBal)) {
- #   if (i %in% c(budgetShare, boxStats)) {
-      if (i %in% c(budgetShare)) {
-        fileName <- paste(i, "WB", sep = "_")
+for (i in c(budgetShare, dailyAvail.foodgroup, energy, nutlistmacro, nutlistmacroAMDRlo, nutlistmacroAMDRhi,
+            vitamins, minerals, nutBal, diversity)) {
+  #   if (i %in% c(budgetShare, boxStats)) {
+  if (i %in% c(budgetShare)) {
+    fileName <- paste(i, "WB", sep = "_")
     figInfo <- "1, affordability,"
   }
   if (i %in% dailyAvail.foodgroup) {
     fileName <- paste( "foodAvail_foodGroup", i, "WB", sep = "_")
-    figInfo <- "2, food group availability, "
+    figInfo <- "2, food group daily availability (g), "
   }
-    if (i %in% energy) {
-      fileName <- paste("nutrients.avail_energy_kcal", "WB", sep = "_")
-      figInfo <- "4, average daily availability dietary energy, "
-    }
+  if (i %in% energy) {
+    fileName <- paste("nutrients.avail_energy_kcal", "WB", sep = "_")
+    figInfo <- "4, average daily availability dietary energy (kcals), "
+  }
   if (i %in% nutlistmacro) {
     fileName <- paste("macro_reqRatio", i, "WB", sep = "_")
     figInfo <- "5, adequacy, macro nutrients, "
   }
-    if (i %in% nutlistmacroAMDR) {
-      fileName <- paste("AMDR_lo", i, "WB", sep = "_")
-      figInfo <- "6, AMDR low, macro nutrients, "
-    }
-    if (i %in% nutlistmacroAMDR) {
-      fileName <- paste("AMDR_hi", i, "WB", sep = "_")
-      figInfo <- "6, AMDR high, macro nutrients, "
-    }
-
+  if (i %in% nutlistmacroAMDRlo) {
+    fileName <- paste("AMDR_lo", i, "WB", sep = "_")
+    fileName <- gsub("_AMDRlo_", "_", fileName) # a kludge to deal with the fact that these are macronutrients
+    figInfo <- "6, AMDR low, macro nutrients, "
+  }
+  if (i %in% nutlistmacroAMDRhi) {
+    fileName <- paste("AMDR_hi", i, "WB", sep = "_")
+    fileName <- gsub("_AMDRhi_", "_", fileName) # a kludge to deal with the fact that these are macronutrients
+    figInfo <- "6, AMDR high, macro nutrients, "
+  }
   if (i %in% minerals) {
     fileName <- paste("minrls_reqRatio", i, "WB", sep = "_")
     figInfo <- "7, adequacy, minerals, "
   }
-    if (i %in% vitamins) {
-      fileName <- paste("vits_reqRatio", i, "WB", sep = "_")
-      figInfo <- "7, adequacy, vitamins, "
-    }
-    if (i %in% nutBal) {
-      fileName <- paste(i, "WB", sep = "_")
-      figInfo <- "8, Nutrient balance metrics, "
-    }
-    if (i %in% nonStapleShareKcals) {
+  if (i %in% vitamins) {
+    fileName <- paste("vits_reqRatio", i, "WB", sep = "_")
+    figInfo <- "7, adequacy, vitamins, "
+  }
+  if (i %in% nutBal) {
+    fileName <- paste(i, "WB", sep = "_")
+    figInfo <- "8, Nutrient balance metrics, "
+  }
+  if (i %in% nonStapleShareKcals) {
     fileName <- paste(i, "WB", sep = "_")
     figInfo <- "9, diversity metrics, "
   }
@@ -561,7 +563,6 @@ rowCounter <- rowCounter + 1
     fileName <- paste(i, "WB", sep = "_")
     figInfo <- "9, diversity metrics, "
   }
-
 
   fileIn <- data.table::fread(paste(fileloc("gDir"), "/", fileName, ".csv", sep = ""), select = 2:6)
   for (j in scen2050list) {
