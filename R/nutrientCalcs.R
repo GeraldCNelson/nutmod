@@ -376,7 +376,7 @@ generateResults.dataPrep <- function(req, dt.IMPACTfood, scenarioListIMPACT, dt.
   stapleKey <- c("scenario", "region_code.IMPACT159", "year", "staple_code")
   foodGroupKey <- c("scenario", "region_code.IMPACT159", "year", "food_group_code")
 
-  # AMDR are lo and hi ranges for fat, carbohydrate and protein as percent of total kcals; if statement exclused AMDR calcs
+  # AMDR are lo and hi ranges for fat, carbohydrate and protein as percent of total kcals; if statement excludes AMDR calcs
   if (!req %in% c("req.AMDR_hi_percap", "req.AMDR_lo_percap")) {
     # # first sum
     # ## individual nutrients from all commodities

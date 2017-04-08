@@ -6,26 +6,32 @@ source("R/nutrientModFunctions.R")
 #gdxFileName <- fileNameList("IMPACTgdxfileName")
 #gamsSetup() # to load GAMs stuff and create the initial list of IMPACT scenarios
 gamsSetup <- function(gdxFileName) {
+
+  # some of this code duplicates code in dataPrep.IMPACT.R. Not good.
 #  gdxrrw::igdx(gamsSysDir = fileNameList("R_GAMS_SYSDIR"), silent = TRUE)
   gdxFileLoc <- paste(fileloc("IMPACTRawData"),gdxFileName, sep = "/")
   dt.ptemp <- data.table::as.data.table(gdxrrw::rgdx.param(gdxFileLoc, "PWX0",ts = TRUE,
                                                            names = c("scenario", "IMPACT_code", "year", "value")))
+  dt.ptemp <- data.table::as.data.table(rapply(dt.ptemp, as.character, classes = "factor", how = "replace"))
+  dt.ptemp[scenario %in% c("SSP1-NoCC", "SSP2-GFDL", "SSP2-HGEM","SSP2-HGEM2", "SSP2-IPSL", "SSP2-IPSL2",
+                           "SSP2-MIROC", "SSP2-NoCC", "SSP3-NoCC"),
+           scenario := paste(scenario, "-REF", sep = "")]
   keeplistCol <- "scenario"
   dt.scenarioListIMPACT <- unique(dt.ptemp[, keeplistCol, with = FALSE])
 
   #cleanup scenario names
-  dt.scenarioListIMPACT <- cleanupScenarioNames(dt.scenarioListIMPACT)
-  scenarioComponents <- c("SSP", "climate_model", "experiment")
-  suppressWarnings(
-    dt.scenarioListIMPACT[, (scenarioComponents) := data.table::tstrsplit(scenario, "-", fixed = TRUE)]
-  )
-  # the code above recyles so you end up with the SSP value in experiment if this is a REF scenario
-  # the code below detects this and replaces the SSP value with REF
-  dt.scenarioListIMPACT[(SSP == experiment), experiment := "REF"]
-  dt.scenarioListIMPACT[, scenario := paste(SSP, climate_model, experiment, sep = "-")]
-  #  dt.ptemp <- merge(dt.ptemp, dt.scenarioListIMPACT, by = "scenario")
-  deleteListCol <- c("SSP", "climate_model", "experiment")
-  dt.scenarioListIMPACT[, (deleteListCol) := NULL]
+  dt.scenarioListIMPACT <- cleanupScenarioNames(dt.scenarioListIMPACT) # replaces - with _ and removes 2 on a couple of USAID scenarios
+#  scenarioComponents <- c("SSP", "climate_model", "experiment")
+# #  suppressWarnings(
+#     dt.scenarioListIMPACT[, (scenarioComponents) := data.table::tstrsplit(scenario, "-", fixed = TRUE)]
+# #  )
+#   # the code above recyles so you end up with the SSP value in experiment if this is a REF scenario
+#   # the code below detects this and replaces the SSP value with REF
+#   dt.scenarioListIMPACT[(SSP == experiment), experiment := "REF"]
+#   dt.scenarioListIMPACT[, scenario := paste(SSP, climate_model, experiment, sep = "-")]
+#   #  dt.ptemp <- merge(dt.ptemp, dt.scenarioListIMPACT, by = "scenario")
+#   deleteListCol <- c("SSP", "climate_model", "experiment")
+#   dt.scenarioListIMPACT[, (deleteListCol) := NULL]
   inDT <- dt.scenarioListIMPACT
   outName <- "dt.scenarioListIMPACT"
   cleanup(inDT, outName, fileloc("mData"), "csv")

@@ -255,6 +255,7 @@ cleanup <- function(inDT, outName, dir, writeFiles) {
 }
 
 cleanupScenarioNames <- function(dt.ptemp) {
+  # replaces - with _ and removes 2 from a couple of USAID scenario
   dt.ptemp[, scenario := gsub("IRREXP-WUE2", "IRREXP_WUE2", scenario)]
   dt.ptemp[, scenario := gsub("PHL-DEV2", "PHL_DEV2", scenario)]
   dt.ptemp[, scenario := gsub("HGEM2", "HGEM", scenario)]

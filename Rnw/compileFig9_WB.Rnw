@@ -5,7 +5,8 @@
 
 % foodgroup availability ratio
 \includepdfmerge[nup=2x1]{
-nutrients_nonstaples_share_energy_kcal_WB.pdf, RAOqe_WB.pdf}
+nonStapleShare_WB.pdf, RAOqe_WB.pdf
+}
 
 \end{document}
 

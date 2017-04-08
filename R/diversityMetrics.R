@@ -13,7 +13,7 @@
 #     or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
 #     for more details at http://www.gnu.org/licenses/.
 
-#' @description To be added
+#' @description Calculated diversity and nutrient benefit metrics.
 #'
 library(data.table)
 # library(maps)

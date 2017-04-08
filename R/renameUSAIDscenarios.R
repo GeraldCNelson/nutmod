@@ -1,8 +1,8 @@
 #rename USAID scenarios
 renameUSAIDscenarios <- function(DT) {
-DT[scenario == "SSP2-NoCC-NA", scenario := "REF_NoCC"]
-DT[scenario == "SSP2-HGEM2", scenario := "REF_HGEM"]
-DT[scenario == "SSP2-IPSL2", scenario := "REF_IPSL"]
+DT[scenario == "SSP2-NoCC-REF", scenario := "REF_NoCC"]
+DT[scenario == "SSP2-HGEM2-REF", scenario := "REF_HGEM"]
+DT[scenario == "SSP2-IPSL2-REF", scenario := "REF_IPSL"]
 DT[scenario == "SSP2-HGEM-LoYld2", scenario := "MED"]
 DT[scenario == "SSP2-HGEM-RegYld2", scenario := "REGION"]
 DT[scenario == "SSP2-HGEM-HiYld2", scenario := "HIGH"]

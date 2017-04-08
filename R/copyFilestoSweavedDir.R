@@ -19,12 +19,13 @@
   source("R/workbookFunctions.R")
   source("R/nutrientCalcFunctions.R")
 }
+gdxChoice <- getGdxChoice()
 #for testing
-fileName <- "iron_mg_iron_bioavail_reqRatio_WB.pdf"
-sourceDir <- paste(fileloc("gDir"), "/", sep = "")
+sourceDir <- paste(fileloc("gDir"), sep = "")
 destDir <- "Rnw"
 
 copyFile <- function(fileName, sourceDir, destDir) {
+  fileName <- paste(gdxChoice, fileName, sep = "_")
   file.copy(from = paste(sourceDir, fileName, sep = "/"), to = destDir, overwrite = TRUE)
 }
 
@@ -85,8 +86,9 @@ copyListFromOther.tenregions <- paste0(copyListFromOther, "_tenregions.pdf")
 copyListBudget <- c("budgetShare_WB.pdf", "budgetShareBoxPlot_2050_WB.pdf",
                     "budgetShare_tenregions.pdf", "budgetShareBoxPlot_2050_tenregions.pdf")
 
-copyListDiversity <- c("nutrients.nonstaples.share_energy_kcal_tenregions.pdf", "RAOqe_tenregions.pdf",
-                       "nutrients.nonstaples.share_energy_kcal_WB.pdf", "RAOqe_WB.pdf")
+copyListDiversity <- c("nutrients.nonstaples.share_energy_kcal_tenregions.pdf",
+                       "nutrients.nonstaples.share_energy_kcal_WB.pdf")
+
 copyListEnergy <- c("nutrients.avail_energy_kcal_WB.pdf", "nutrients.avail_energy_kcal_tenregions.pdf")
 
 copyList <- c(copyListFromMacro.WB, copyListFromMacro.tenregions,
@@ -98,42 +100,24 @@ copyList <- c(copyListFromMacro.WB, copyListFromMacro.tenregions,
               copyListFromOther.WB, copyListFromOther.tenregions,
               copyListFromAMDRHi.WB, copyListFromAMDRHi.tenregions,
               copyListFromAMDRLo.WB, copyListFromAMDRLo.tenregions,
-              copyListBudget, copyListDiversity)
+              copyListBudget)
 
 for (i in copyList) {
-  print(sprintf("copying file %s from graphics directory to %s", i, destDir))
+  fileName <- paste(gdxChoice, i, sep = "_")
+  print(sprintf("copying file %s from %s directory to %s", fileName, sourceDir, destDir))
+  file.copy(from = paste(sourceDir, fileName, sep = "/"), to = destDir, overwrite = TRUE)
   copyFile(i, sourceDir, destDir)
 }
-# for (i in copyListFromMinrls) {
-#   print(sprintf("copying file %s from graphics directory to %s", i, destDir))
-#   copyFile(i, sourceDir, destDir)
-# }
-# for (i in copyListFromVits) {
-#   print(sprintf("copying file %s from graphics directory to %s", i, destDir))
-#   copyFile(i, sourceDir, destDir)
-# }
-#
-# for (i in copyListFromAvailByFG) {
-#   print(sprintf("copying file %s from graphics directory to %s", i, destDir))
-#   copyFile(i, sourceDir, destDir)
-# }
-# for (i in copyListFromDiversity) {
-#   print(sprintf("copying file %s from graphics directory to %s", i, destDir))
-#   copyFile(i, sourceDir, destDir)
-# }
-# for (i in copyListFromNBS) {
-#   print(sprintf("copying file %s from graphics directory to %s", i, destDir))
-#   copyFile(i, sourceDir, destDir)
-# }
 
 #rename files in Snw
 copyListNew <- gsub(".","_",copyList, fixed = TRUE) # get rid of all periods
 copyListNew <- gsub("_pdf",".pdf",copyListNew, fixed = TRUE) # add one back for the file type
+copyList <- paste(gdxChoice,copyList, sep = "_")
 copyList <- paste(destDir, copyList, sep = "/")
 copyListNew <- paste(destDir, copyListNew, sep = "/")
 
 for (i in 1:length(copyList)) {
-  file.rename(from = copyList[i],to = copyListNew[i])
+  file.rename(from = copyList[i], to = copyListNew[i])
 }
 
 

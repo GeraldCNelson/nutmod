@@ -5,7 +5,8 @@
 
 % foodgroup availability ratio
 \includepdfmerge[nup=2x1]{
-budgetShare_WB.pdf, budgetShareBoxPlot_2050_WB.pdf}
+budgetShare_WB.pdf, budgetShareBoxPlot_2050_WB.pdf
+}
 
 \end{document}
 

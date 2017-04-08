@@ -16,18 +16,18 @@
 #' @description A script to recreate all data. Each R script is sourced in the order needed. gdxFileNameChoice lets the user chose which gdx to get IMPACT data from.
 # Where files are created
 # Note: All files have a date suffix to the file name.
-# file locations -2
+# file locations -
 #   mData - data
 #   iData - data/IMPACTdata - directory with IMPACT data
 #   resultsDir - results/gdxDhoice
 #   gDir = graphics/gdxChoice
-
+# The metadata file in the results directory provides details on files and file locations used in the analysis
 options(warn = 2) # converts all warnings to errors
 ptm <- proc.time()
 
 #install needed packages
-list.of.packages <- c("data.table", "openxlsx", "dplyr", "utils", "ggplot2", "stringi", "tidyr", "splitstackshape",
-                      "gridExtra","gplots")
+list.of.packages <- c("data.table", "openxlsx", "dplyr", "dtplyr", "utils", "ggplot2", "stringi", "tidyr", "splitstackshape",
+                      "gridExtra","gplots", "cacheSweave", "RColorBrewer")
 new.packages <- list.of.packages[!(list.of.packages %in% installed.packages()[,"Package"])]
 if (length(new.packages)) install.packages(new.packages)
 
@@ -176,7 +176,7 @@ fileAuxList <- fileNameList[grep(".aux", fileNameList)]
 fileLogList <- fileNameList[grep(".log", fileNameList)]
 fileTexList <- fileNameList[grep("_WB.tex", fileNameList)]
 fileDeleteList <- c(filePDFList, fileAuxList, fileLogList, fileTexList)
-file.remove(fileDeleteList)
+invisible(file.remove(fileDeleteList))
 
 print("Copying files to Rnw directory for Sweave")
 source("R/copyFilestoSweavedDir.R")
@@ -207,7 +207,7 @@ for (i in filesToProcess) {
 }
 
 #move all the tenregion pdf files to the tenregion directory
-# first delete old fiels in tenregion directory
+# first delete old files in tenregion directory
 if (length(list.files("tenregion/")) > 0) file.remove(paste("tenregion/", list.files("tenregion/"), sep = ""))
 files.tenregion <- list.files()[grep("tenregion.pdf", list.files())]
 file.copy(from = files.tenregion, to = paste("tenregion/", files.tenregion, sep = ""))

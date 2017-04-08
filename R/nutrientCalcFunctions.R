@@ -1,77 +1,20 @@
+#' @author Gerald C. Nelson, \email{nelson.gerald.c@@gmail.com}
+#' @keywords utilities, nutrient data, IMPACT food commodities nutrient lookup
+# Intro ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+#Copyright (C) 2015 Gerald C. Nelson, except where noted
 
-#' #' Title genFoodGroupResults
-#' #'
-#' #' @param dt.foodnNuts the data table with per cap daily consumption and nutrient content for each commodity
-#' #' @param region the region grouping
-#' #' @param nutList.Q nutList.sum the list of nutrients with content of each food item
-#' #' @return null. Writes out files with statistics by food groups
-#' #' @export
-#' genFoodGroupResults <- function(dt.foodnNuts,region,nutList.Q,dt.nutsReqPerCap) {
+#     This program is free software: you can redistribute it and/or modify it
+#     under the terms of the GNU General Public License as published by the Free
+#     Software Foundation, either version 3 of the License, or (at your option)
+#     any later version.
+#
+#     This program is distributed in the hope that it will be useful, but
+#     WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
+#     or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
+#     for more details at http://www.gnu.org/licenses/.
+
+#' @description Has functions for cooking retention and budget share calculations
 #'
-#'   #  sum nutrient intake by food group -----
-#'   foodGroupkey <- c("scenario", region, "food_group_code", "year")
-#'   data.table::setkeyv(dt.foodnNuts, foodGroupkey)
-#'   dt.foodGroup.sum <- dt.foodnNuts[, lapply(.SD, sum, na.rm=TRUE),
-#'                                    by = eval(data.table::key(dt.foodnNuts)) , .SDcols = nutList.Q]
-#'
-#'   dt.foodGroup.sum <-
-#'     unique(dt.foodGroup.sum[, c(foodGroupkey,nutList.Q), with = FALSE])
-#'   # get output into year columns
-#'   dt.foodGroup.melt <- data.table::melt(
-#'     dt.foodGroup.sum,
-#'     id.vars = foodGroupkey,
-#'     measure.vars = c(nutList.Q),
-#'     variable.name = "nutrient",
-#'     value.name = "nut_req",
-#'     variable.factor = FALSE
-#'   )
-#'   dt.temp<- data.table::dcast.data.table(dt.foodGroup.melt,
-#'                                          scenario + get(region) + food_group_code + nutrient ~ year,
-#'                                          value.var = "nut_req")
-#'   data.table::setnames(dt.temp,old = names(dt.temp), gsub(".Q.sum","",names(dt.temp)))
-#'   inDT <- dt.temp
-#'   outName <- "food.group"
-#'   cleanup(inDT,outName,fileloc("resultsDir"))
-#' }
-#'
-#' #' Title genStapleResults
-#' #'
-#' #' @param dt.foodnNuts the data table with per cap daily consumption and nutrient content for each commodity
-#' #' @param region the region grouping
-#' #' @param nutList.Q.sum the list of nutrients that have sums
-#' #' @return null. Writes out files with statistics by staples
-#' #' @export
-#' genStapleResults <- function(dt.foodnNuts,region,nutList.Q, dt.nutsReqPerCap) {
-#'   # sum nutrient intake by staple -----
-#'     stapleKey <-    c("scenario", region, "staple_code", "year")
-#'     data.table::setkeyv(dt.foodnNuts,stapleKey)
-#'   dt.staples.sum <- dt.foodnNuts[, lapply(.SD, sum, na.rm=TRUE),
-#'                                  by = eval(data.table::key(dt.foodnNuts)), .SDcols = nutList.sum]
-#'   dt.staples.sum <-
-#'     unique(dt.staples.sum[, c(stapleKey,nutList.sum), with = FALSE])
-#'   # get output into year columns
-#'   dt.staples.melt <- data.table::melt(
-#'     dt.staples.sum,
-#'     id.vars = c("scenario", region, "staple_code", "year"),
-#'     measure.vars = c(nutList.sum),
-#'     variable.name = "nutrient",
-#'     value.name = "nut_req",
-#'     variable.factor = FALSE
-#'   )
-#'   dt.temp<- data.table::dcast.data.table(dt.staples.melt,
-#'                                          scenario + get(region) + staple_code + nutrient ~ year,
-#'                                          value.var = "nut_req")
-#'  # data.table::setnames(dt.temp,old = names(dt.temp), new = gsub(".Q","",names(dt.temp)))
-#'
-#'   inDT <- dt.temp
-#'   outName <- "staples"
-#'   cleanup(inDT,outName,fileloc("resultsDir"))
-#'
-#'   # now do share of requirements
-#'   data.table::setkeyv(dt.staples.sum,c("staple_code","scenario", region,"year"))
-#'   data.table::setkeyv(dt.nutsReqPerCap,c("scenario", region, "year"))
-#'   dt.temp <- dt.staples.sum[dt.nutsReqPerCap]
-#' }
 
 cookingRetFishCorrect <- function(switch.useCookingRetnValues, switch.fixFish) {
   dt.nutrients <- getNewestVersion("dt.nutrients", fileloc("mData"))
@@ -145,12 +88,26 @@ budgetShareNpriceGrowth <- function(dt.IMPACTfood) {
   # pcGDP is in 1000 2005 dollars
   # 'FoodAvailability' variable is in kgs/person/year. DinY is days in year
   dt.temp <- data.table::copy(dt.IMPACTfood)
-  data.table::setkeyv(dt.temp, c("scenario", "region_code.IMPACT159", "year"))
+  # data.table::setkeyv(dt.temp, c("scenario", "region_code.IMPACT159", "year"))
   # budget is in 1000 2005 dollars
-  dt.temp[, budget.PWX0 := (sum(FoodAvailability * PWX0 / 1000 )) / 1000, by = eval(data.table::key(dt.temp))]
-  dt.temp[, budget.PCX0 := (sum(FoodAvailability * PCX0 / 1000 )) / 1000, by = eval(data.table::key(dt.temp))]
-  data.table::setkey(dt.temp, budget.PWX0)
-  dt.budget <- dt.temp[!duplicated(budget.PCX0),]
+  # dt.temp[, budget.PWX0 := (sum(FoodAvailability * PWX0 / 1000 )) / 1000, by = eval(data.table::key(dt.temp))]
+  # dt.temp[, budget.PCX0 := (sum(FoodAvailability * PCX0 / 1000 )) / 1000, by = eval(data.table::key(dt.temp))]
+  dt.temp[, budget.PWX0 := (sum(FoodAvailability * PWX0 / 1000 )) / 1000, by = c("scenario", "region_code.IMPACT159", "year")]
+  dt.temp[, budget.PCX0 := (sum(FoodAvailability * PCX0 / 1000 )) / 1000, by = c("scenario", "region_code.IMPACT159", "year")]
+  # data.table::setkey(dt.temp, budget.PWX0) is this necessary?
+  # dt.budget <- dt.temp[!duplicated(budget.PCX0),]
+  dt.budget <- data.table::copy(dt.temp)
+  deleteListCol <- c("IMPACT_code", "FoodAvailability", "foodAvailpDay","PCX0","PWX0")
+  dt.budget[,(deleteListCol) := NULL]
+  dt.budget <- unique(dt.budget)
+  # at world prices -----
+  dt.budget[, incSharePWX0 := 100 * budget.PWX0 / pcGDPX0 ]
+  # at domestic prices -----
+  dt.budget[, incSharePCX0 := 100 * budget.PCX0 / pcGDPX0 ]
+  data.table::setkeyv(dt.budget, c("scenario", "region_code.IMPACT159", "year"))
+  inDT <- dt.budget
+  outName <- "dt.budgetShare"
+  cleanup(inDT,outName,fileloc("resultsDir"))
 
   # get world price change from 2010 to 2050 by food groups
   dt.foodGroupsInfo <- getNewestVersion("dt.foodGroupsInfo", fileloc("mData"))
@@ -220,16 +177,4 @@ budgetShareNpriceGrowth <- function(dt.IMPACTfood) {
   inDT <- dt.temp.FG.wide.scen
 outName <- "dt.priceGrowth.FG.wide"
 cleanup(inDT, outName, fileloc("resultsDir"), "xlsx")
-
-  #  deleteListCol <- c("IMPACT_code", "FoodAvailability","PCX0","PWX0","CSE")
-  deleteListCol <- c("IMPACT_code", "FoodAvailability","PCX0","PWX0")
-  dt.budget[,(deleteListCol) := NULL]
-  # at world prices -----
-  dt.budget[, incSharePWX0 := 100 * budget.PWX0 / pcGDPX0 ]
-  # at domestic prices -----
-  dt.budget[, incSharePCX0 := 100 * budget.PCX0 / pcGDPX0 ]
-  data.table::setkeyv(dt.budget, c("scenario", "region_code.IMPACT159", "year"))
-  inDT <- dt.budget
-  outName <- "dt.budgetShare"
-  cleanup(inDT,outName,fileloc("resultsDir"))
 }
