@@ -30,6 +30,14 @@ gdxChoice <- getGdxChoice()
 # population for weighting -----
 dt.pop <- getNewestVersion("dt.PopX0", fileloc("iData"))
 
+# use this function to get a legend grob. Which can then be placed in a grob a printed. Don't know how yet.
+g_legend <- function(a.gplot) {
+  tmp <- ggplot_gtable(ggplot_build(a.gplot))
+  leg <- which(sapply(tmp$grobs, function(x) x$name) == "guide-box")
+  legend <- tmp$grobs[[leg]]
+  legend
+}
+
 orderRegions <- function(DT, aggChoice) {
   # order by regions
   if (aggChoice == "WB") {
@@ -110,7 +118,7 @@ aggNorder <- function(gdxChoice, DTglobal, aggChoice, scenChoice, mergedVals) {
 
   # order of scenario and regions
   if (gdxChoice == "USAID") {
- #    DT <- renameUSAIDscenarios(DT)
+    #    DT <- renameUSAIDscenarios(DT)
     #
     # # this needs to be changed at some point. Operate on scenChoice
     # scenarioList.prodEnhance <- c("REF_NoCC", "MED", "HIGH", "HIGH_NARS", "HIGH_RE", "REGION")
@@ -148,7 +156,8 @@ aggNorder <- function(gdxChoice, DTglobal, aggChoice, scenChoice, mergedVals) {
   return(DT)
 }
 
-plotByRegionBar <- function(dt, fileName, plotTitle, yLab, yRange, aggChoice, scenOrder, oneLine, colorList) {
+plotByRegionBar <- function(dt, fileName, plotTitle, yLab, yRange, aggChoice, scenOrder, oneLine, colorList, AMDR_hi = NULL) {
+
   print(paste("plotting bars by region", aggChoice, "for", plotTitle))
   temp <- copy(dt)
   regionCodes <- unique(temp$region_code)
@@ -178,7 +187,7 @@ plotByRegionBar <- function(dt, fileName, plotTitle, yLab, yRange, aggChoice, sc
   # when all elements of value are the same as the max y range
   p <- ggplot(temp, aes(x = region_name, y = value, fill = scenario, order = c("region_name") )) +
     geom_bar(stat = "identity", position = "dodge", color = "black") +
- #   theme(legend.position = "right") +
+    #    theme(legend.position = "right") +
     theme(legend.position = "none") +
     theme(axis.text.x = element_text(angle = 45, hjust = 1)) +
     scale_y_continuous(limits = yRange) +
@@ -188,8 +197,21 @@ plotByRegionBar <- function(dt, fileName, plotTitle, yLab, yRange, aggChoice, sc
     #   ylim(yRange) +
     labs(y = yLab, x = NULL)
 
-  if (oneLine == TRUE) p + geom_abline(intercept = 1, slope = 0)
+  if (oneLine == FALSE) {} else {
+    p + geom_hline(aes(yintercept = oneLine - 2,  color = "green")) +
+      geom_text( aes(.75, oneLine, label = "AMDR low"))
+  }
+
+  if (!is.null(AMDR_hi)) {
+    p + geom_hline(aes(yintercept = oneLine - 2,  color = "green")) +
+      geom_text( aes(.75, oneLine, label = "AMDR low"))+
+      geom_hline(aes(yintercept = AMDR_hi - 2,  color = "red")) +
+      geom_text( aes(.75, AMDR_hi, label = "AMDR high"))
+  }
+
+
   print(p)
+  # legend <- g_legend(p)
   # geom_errorbar(aes(ymin = value.min.econ, ymax = value.max.econ), color = "red", size = 2, position = position_dodge(0.9), width = 0.5) +
   # geom_errorbar(aes(ymin = value.min.clim, ymax = value.max.clim), color = "green", size = 2, position = position_dodge(0.2), width = 0.5)
   dev.off()
@@ -267,7 +289,6 @@ plotByRegionBar <- function(dt, fileName, plotTitle, yLab, yRange, aggChoice, sc
   # write.csv(temp.wide, file = paste(fileloc("gDir"),"/", fileName, "_", aggChoice, ".csv", sep = ""))
   # print(paste("Done plotting bars by region ", aggChoice, "for ", plotTitle))
   #cat("\n\n")
-
 }
 
 plotByRegionStackedBar <- function(dt, fileName, plotTitle, yLab, yRange, aggChoice, scenOrder, oneLine, colorList) {
@@ -299,7 +320,7 @@ plotByRegionStackedBar <- function(dt, fileName, plotTitle, yLab, yRange, aggCho
   p <- ggplot(temp, aes(x = scenario, y = value, fill = nutrient, order = c("region_name") )) +
     geom_bar(stat = "identity", position = "stack", color = "black") +
     facet_wrap(~ region_name) +
-#    theme(legend.position = "right") +
+    #    theme(legend.position = "right") +
     theme(legend.position = "none") +
     theme(axis.text.x = element_text(angle = 70, hjust = 1)) +
     # scale_y_continuous(limits = yRange) +
@@ -309,7 +330,7 @@ plotByRegionStackedBar <- function(dt, fileName, plotTitle, yLab, yRange, aggCho
     #   ylim(yRange) +
     labs(y = yLab, x = NULL)
 
-  if (oneLine == TRUE) p + geom_abline(intercept = 1, slope = 0)
+  if (oneLine == FALSE) {} else {p + geom_abline(intercept = oneLine, slope = 0)}
   print(p)
   # geom_errorbar(aes(ymin = value.min.econ, ymax = value.max.econ), color = "red", size = 2, position = position_dodge(0.9), width = 0.5) +
   # geom_errorbar(aes(ymin = value.min.clim, ymax = value.max.clim), color = "green", size = 2, position = position_dodge(0.2), width = 0.5)
@@ -352,7 +373,7 @@ plotByBoxPlot2050 <- function(dt, fileName, plotTitle, yLab, yRange, aggChoice )
   pdf(paste(fileloc("gDir"),"/", fileName, ".pdf", sep = ""), width = 7, height = 5.2, useDingbats = FALSE)
   p <- ggplot(temp, aes(x = region_name, y = incSharePCX0)) +
     geom_boxplot(stat = "boxplot", position = "dodge", color = "black", outlier.shape = NA) + # outlier.shape = NA, gets rid of outlier dots
-#    theme(legend.position = "right") +
+    #    theme(legend.position = "right") +
     theme(axis.text.x = element_text(angle = 45, hjust = 1)) +
     scale_fill_manual(values = colorList) +
     theme(plot.title = element_text(hjust = 0.5)) +
@@ -445,88 +466,63 @@ plotByRegionErrorBars <- function(dt, fileName, plotTitle, yLab, yRange, aggChoi
                   size = 2, width = 0.2)
 }
 
-# nutStackedBarGraph
-# plotByRegionBar <- function(dt, fileName, title, yLab, yRange, aggChoice) {
-#   print(paste("plotting bars by region", aggChoice, "for", title))
-#   temp <- copy(dt)
-#   regionCodes <- unique(temp$region_code)
-#   regionNames <- unique(temp$region_name)
-#   scenarios <- unique(temp$scenario)
-#   if (gdxChoice == "SSPs") colList <- c("black", "red", "red2", "red4", "green", "green2", "green4")
-#   if (gdxChoice == "USAID") colList <- c("black", rainbow(10)[1:length(scenarios) - 1])
-#   legendText <- unique(gsub("-REF", "", scenarios))
-#   #the use of factor and levels keeps the order of the regions in region_code
-#   formula.wide <- "scenario ~ factor(region_code, levels=unique(region_code))"
-#   temp.wide <- data.table::dcast(
-#     data = temp,
-#     formula = formula.wide,
-#     value.var = "value")
-#
-#   # order the scenarios
-#   temp.wide[, scenarioOrder := match(scenario, scenarios)]
-#   data.table::setorder(temp.wide, scenarioOrder)
-#   temp.wide[, scenarioOrder := NULL]
-#   data.table::setnames(temp.wide, old = regionCodes, new = regionNames)
-#
-#   # remove "-REF" from the base scenarios
-#   temp.wide[, scenario := gsub("-REF", "", scenario)]
-#
-#   #convert to data frame to make the matrix setup easier
-#   temp <- as.data.frame(temp.wide)
-#
-#   # use first column for row names and delete it
-#   rownames(temp) <- temp[,1]
-#   temp[1] = NULL
-#   temp <- data.matrix(temp)
-#
-#   #create the pdf of the graph
-#   browser()
-#   pdf(paste(fileloc("gDir"),"/", fileName, ".", aggChoice, ".pdf", sep = ""))
-#   #Create barplots with the barplot(height) function, where height is a vector or matrix.
-#   #If height is a vector, the values determine the heights of the bars in the plot.
-#   #If height is a matrix and the option beside=FALSE then each bar of the plot corresponds to a column of height,
-#   # with the values in the column giving the heights of stacked “sub-bars”.
-#   #If height is a matrix and beside=TRUE, then the values in each column are juxtaposed rather than stacked.
-#   # Include option names.arg=(character vector) to label the bars. The option horiz=TRUE to create a
-#   # horizontal barplot.
-#
-#   # mat = matrix(c(1,2))
-#   # layout(mat, heights = c(6,3))
-#   # barplot(nuts.matrix.transpose, main = barTitleMain, xlab = "Years", names.arg = gsub("X", "",years),
-#   #         col = colList, border = NA)
-#
-#   barplot(temp,  col = colList, ylim = yRange, xpd = FALSE,
-#           legend.text = rownames(temp), args.legend = list(cex = .5, x = "topright"),
-#           beside = TRUE, ylab = yLab,  cex.names = .7, las = 2,  main = title)
-#   colsToRound <- names(temp.wide)[2:length(temp.wide)]
-#   temp.wide[,(colsToRound) := round(.SD,2), .SDcols = colsToRound]
-#   data.table::setnames(temp.wide, old = names(temp.wide), new = c("scenario", regionCodes))
-#   textplot(temp.wide, cex = 0.6, valign = "top", show.rownames = FALSE, mai = c(.5, .5, .5, .5))
-#   dev.off()
-#   write.csv(temp.wide, file = paste(fileloc("gDir"),"/", fileName, ".", aggChoice, ".csv", sep = ""))
-#   print(paste("Done plotting bars by region", aggChoice, "for", title))
-#   print(" ")
-#
-# # reqType <- "kcal_ratios"
-# # temp <- nutReqDataPrep(reqType, countryCode, scenarioName, years)
-# #
-# # nutListShort <- temp[[2]]
-# # inputData <- temp[[1]]
-# # nuts.matrix <- as.matrix(inputData[year %in% (years), 2:ncol(inputData), with = FALSE])
-# # nuts.matrix.transpose <- t(nuts.matrix)
-# # colList <- c("grey","green","red", "blue")
-# # barTitleMain <- sprintf("Ratio of macronutrients in energy intake for %s \n SSP scenario: %s, climate model: %s, experiment %s",
-# #                         countryNameLookup(countryCode), SSP, climModel, experiment)
-# # # mainTitle = "Share of macronutrients in total energy consumption"
-# # # subTitle <- paste("Country:" , country,
-# # #                   ", Climate model:", climModel,
-# # #                   "\nSocioeconomic scenario:", SSP,
-# # #                   ", Experiment:", experiment, sep = " ")
-# # barplot(nuts.matrix.transpose, main = barTitleMain, xlab = "Years", names.arg = gsub("X", "",years),
-# #         col = colList, border = NA)
-# # legendText <- gsub("_g", "", nutListShort)
-# # legend("bottomright", legend = legendText, text.col = "black", cex = .6, pt.cex = .6,
-# #        pt.lwd = 1, pch = 20,
-# #        col = colList)
-#
-# }
+
+plotByRegionBarAMDR <- function(dt, fileName, plotTitle, yLab, yRange, aggChoice, scenOrder, colorList, AMDR_lo, AMDR_hi) {
+  print(paste("plotting AMDR bars by region for", aggChoice, "for", plotTitle))
+  temp <- copy(dt)
+  regionCodes <- unique(temp$region_code)
+  regionNames <- unique(temp$region_name)
+  scenarios <- unique(temp$scenario)
+
+  temp[, scenario := gsub("-REF", "", scenario)]
+  scenOrder <- gsub("-REF", "", scenOrder)
+  # temp <- temp[order(region_code)]
+  if (aggChoice %in% "WB") regionNameOrder <- c("Low income", "Lower middle income", "Upper middle income", "High income")
+  if (aggChoice %in% "AggReg1") regionNameOrder <- regionNames
+  if (aggChoice %in% "tenregions") regionNameOrder <- regionNames
+  scenarioNameOrder <- scenOrder
+
+  temp[, region_name := factor(region_name, levels =  regionNameOrder)]
+  temp[, scenario := factor(scenario, levels = scenarioNameOrder)]
+  if (gdxChoice %in% "USAID")  temp <- renameUSAIDscenarios(temp)
+
+  # draw bars
+  pdf(paste(fileloc("gDir"),"/", fileName, ".pdf", sep = ""), width = 7, height = 5.2, useDingbats = FALSE)
+  if (round(max(temp$value) - yRange[2]) == 0) yRange[2] <- max(temp$value) # will hopefully deal with rare situation
+  # when all elements of value are the same as the max y range
+  p <- ggplot(temp, aes(x = region_name, y = value, fill = scenario, order = c("region_name") )) +
+    geom_bar(stat = "identity", position = "dodge", color = "black") +
+    #    theme(legend.position = "right") +
+    theme(legend.position = "none") +
+    theme(axis.text.x = element_text(angle = 45, hjust = 1)) +
+    scale_y_continuous(limits = yRange) +
+    scale_fill_manual(values = colorList) +
+    theme(plot.title = element_text(hjust = 0.5)) +
+    ggtitle(plotTitle) +
+    #   ylim(yRange) +
+    labs(y = yLab, x = NULL) +
+    geom_hline(aes(yintercept = AMDR_lo,  color = "green")) +
+    geom_text( aes(.75, AMDR_lo + 2, label = "AMDR low")) +
+    geom_hline(aes(yintercept = AMDR_hi,  color = "red")) +
+    geom_text( aes(.75, AMDR_hi + 2, label = "AMDR high"))
+  print(p)
+  # legend <- g_legend(p)
+  dev.off()
+
+  # save data
+  formula.wide <- "scenario ~ factor(region_code, levels = unique(region_code))"
+  temp.wide <- data.table::dcast(
+    data = temp,
+    formula = formula.wide,
+    value.var = "value")
+  temp.wide[, scenarioOrder := match(scenario, gsub("-REF","",scenarios))]
+  data.table::setorder(temp.wide, scenarioOrder)
+  temp.wide[, scenarioOrder := NULL]
+  data.table::setnames(temp.wide, old = regionCodes, new = regionNames)
+
+  colsToRound <- names(temp.wide)[2:length(temp.wide)]
+  temp.wide[,(colsToRound) := round(.SD,2), .SDcols = colsToRound]
+  data.table::setnames(temp.wide, old = names(temp.wide), new = c("scenario", regionCodes))
+  #  textplot(temp.wide, cex = 0.6, valign = "top", show.rownames = FALSE, mai = c(.5, .5, .5, .5))
+  write.csv(temp.wide, file = paste(fileloc("gDir"),"/", fileName, ".csv", sep = ""))
+}

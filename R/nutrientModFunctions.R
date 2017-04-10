@@ -189,7 +189,7 @@ removeOldVersions <- function(fileShortName,dir) {
 #' @param inDT - name of the data table or frame to be written out
 #' @param outName - short name of the file to be written out
 #' @param dir - directory where the cleanup takes place
-cleanup <- function(inDT, outName, dir, writeFiles) {
+cleanup <- function(inDT, outName, destDir, writeFiles) {
 
   sprintf("start cleanup for %s", outName)
 #convert to a standard order
@@ -201,12 +201,12 @@ cleanup <- function(inDT, outName, dir, writeFiles) {
     data.table::setorderv(inDT,c(startOrder,remainder))
   }
 
-  removeOldVersions(outName,dir)
-  sprintf("writing the rds for %s to %s ", outName, dir)
+  removeOldVersions(outName, destDir)
+  sprintf("writing the rds for %s to %s ", outName, destDir)
   # print(proc.time())
   # next line removes any key left in the inDT data table; this may be an issue if a df is used
   data.table::setkey(inDT, NULL)
-  outFile <- paste(dir, "/", outName, "_", Sys.Date(), ".rds", sep = "")
+  outFile <- paste(destDir, "/", outName, "_", Sys.Date(), ".rds", sep = "")
   saveRDS(inDT, file = outFile)
 
   # # update files documentation -----
@@ -222,11 +222,11 @@ cleanup <- function(inDT, outName, dir, writeFiles) {
   if (missing(writeFiles)) {writeFiles = "xlsx"}
   if (nrow(inDT) > 50000) {
     sprintf("number of rows in the data, %s, greater than 50,000. Not writing xlsx or csv", nrow(inDT))
-    writeFiles <- writeFiles[!writeFiles %in% c("xlsx", "csv")]
+    writeFiles <- writeFiles[!writeFiles %in% c("xlsx")]
   }
   if ("csv"  %in% writeFiles) {
-    #    print(paste("writing the csv for ", outName, " to ",dir, sep = ""))
-    write.csv(inDT,file = paste(dir, "/", outName, "_", Sys.Date(), ".csv", sep = ""), row.names = FALSE)
+        print(paste("writing the csv for ", outName, " to ", destDir, sep = ""))
+    write.csv(inDT,file = paste(destDir, "/", outName, "_", Sys.Date(), ".csv", sep = ""), row.names = FALSE)
   }
   if ("xlsx"  %in% writeFiles) {
     #    print(paste("writing the xlsx for ", outName, " to ", dir, sep = ""))
@@ -247,7 +247,7 @@ cleanup <- function(inDT, outName, dir, writeFiles) {
       wbGeneral, sheet = outName, style = numStyle, rows = 1:nrow(inDT) + 1, cols = 2:ncol(inDT), # +1 added Mar 24, 2017
       gridExpand = TRUE )
 
-    xcelOutFileName = paste(dir, "/", outName, "_", Sys.Date(), ".xlsx", sep = "")
+    xcelOutFileName = paste(destDir, "/", outName, "_", Sys.Date(), ".xlsx", sep = "")
     openxlsx::saveWorkbook(wbGeneral, xcelOutFileName, overwrite = TRUE)
     #   print(paste("done writing the xlsx for ", outName, sep = ""))
     #  print(proc.time())
@@ -264,6 +264,9 @@ cleanupScenarioNames <- function(dt.ptemp) {
 }
 
 cleanupNutrientNames <- function(nutList) {
+  nutList <- gsub("fat_g.Q", "fat", nutList)
+  nutList <- gsub("protein_g.Q", "protein", nutList)
+  nutList <- gsub("carbohydrate_g.Q", "carbohydrate", nutList)
   nutList <- gsub("_g.reqRatio","",nutList)
   nutList <- gsub("reqRatio","",nutList)
   nutList <- gsub("vit_","vitamin ",nutList)

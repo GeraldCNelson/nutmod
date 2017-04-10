@@ -391,7 +391,7 @@ generateResults.dataPrep <- function(req, dt.IMPACTfood, scenarioListIMPACT, dt.
     dt.food.agg <- dt.food.agg[, (nutListReq.sum.staples) := lapply(.SD, sum), .SDcols = nutListReq.Q,
                                by = eval(data.table::key(dt.food.agg))]
 
-    print(paste("summing by food group ", req, sep = ""))
+    print(paste("summing by staples ", req, sep = ""))
     print(proc.time())
 
     ## individual nutrients by food group -----
@@ -450,6 +450,8 @@ generateResults.dataPrep <- function(req, dt.IMPACTfood, scenarioListIMPACT, dt.
     dt.food.agg <- data.table::copy(dt.nutrients.kcals)
     keepListCol <- c("scenario", "region_code.IMPACT159", "year", "kcalsPerDay.fat", "kcalsPerDay.protein", "kcalsPerDay.carbohydrate", "kcalsPerDay.tot")
     dt.food.agg <- unique(dt.food.agg[, (keepListCol), with = FALSE])
+
+    # the .Q variables are the percent of the macronutrient kcals in total kcals
     dt.food.agg[, `:=`(
       fat_g.Q = 100 * kcalsPerDay.fat / kcalsPerDay.tot,
       protein_g.Q = 100 * kcalsPerDay.protein / kcalsPerDay.tot,

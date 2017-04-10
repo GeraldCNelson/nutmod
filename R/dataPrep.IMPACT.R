@@ -37,7 +37,6 @@ if (!exists("getNewestVersion", mode = "function"))
 #' @return dt.temp
 #' @export
 
-
 # one approach to ask the user what it is. The other is to read from the metadata output.
 # if (!exists("gdxFileName")) source("R/gdxrrwSetup.R")
 if (!exists("gdxFileName")) {
