@@ -455,7 +455,7 @@ for (l in scenChoiceList) {
     for (j in aggChoiceListBarChart) {
       DT <- temp.in[year == "X2010" & scenario == scenario.base |
                       year == "X2050",][year == "X2010", scenario := "2010"]
-      print(paste(l, i, j, sep = ", "))
+    #  print(paste(l, i, j, sep = ", "))
 
       units <- "percent"
       dt.regions <- regionAgg(j)
@@ -465,7 +465,6 @@ for (l in scenChoiceList) {
       keepListCol <- c("scenario", "region_code", "region_name", "value")
       DT <- unique(merged[, (keepListCol), with = FALSE])
       DT <- DT[, region_name := gsub(" plus", "", region_name)]
-      #        if (gdxChoice == "USAID") DT <- renameUSAIDscenarios(DT)
 
       DT <- DT[scenario %in% get(l), ]
       # if (gdxChoice == "USAID")  {
@@ -495,7 +494,7 @@ for (l in scenChoiceList) {
 
       yRangeMinMax <- c(0,70)
 
-      filename = paste(gdxChoice, l, "AMDRShare", nutshortName, j, sep = "_")
+      filename = paste(gdxChoice, "AMDRShare", nutshortName, j, sep = "_")
       plotByRegionBarAMDR(dt = DT, fileName = filename,
                           plotTitle = nutTitle, yLab = ylab, yRange = yRangeMinMax, aggChoice = j,
                           scenOrder = get(l), colorList, AMDR_lo, AMDR_hi)
@@ -673,8 +672,8 @@ for (fname in filesToAgg) {
   # aggregate to and retain only the relevant regions; region code is the code for the region
   merged <- merge(DT, dt.regions, by = "region_code.IMPACT159")
 
-  merged <- merged[, value := weighted.mean(value, PopX0), by = c("scenario", "region_code", "year")]
-  keepListCol <- c("scenario", "region_code", "region_name", "year", "value")
+  merged <- merged[, value := weighted.mean(value, PopX0), by = c("scenario", "region_code", "year", "nutrient")]
+  keepListCol <- c("scenario", "region_code", "region_name", "year", "nutrient", "value")
   merged <- merged[, (keepListCol), with = FALSE]
   merged <- unique(merged)
   inDT <- merged

@@ -39,6 +39,7 @@ copyListFromMacro.AggReg1 <- paste0(copyListFromMacro, "_AggReg1.pdf")
 macroList.AMDR <- macroList[!macroList %in% "totalfiber_g"]
 AMDRHiList <- paste("AMDR_hi", macroList.AMDR, sep = "_")
 AMDRLoList <- paste("AMDR_lo", macroList.AMDR, sep = "_")
+AMDRShareList <- paste("AMDRShare", macroList.AMDR, sep = "_")
 
 copyListFromAMDRHi.WB <- paste0(AMDRHiList, "_WB.pdf")
 copyListFromAMDRHi.tenregions <- paste0(AMDRHiList, "_tenregions.pdf")
@@ -46,6 +47,9 @@ copyListFromAMDRHi.AggReg1 <- paste0(AMDRHiList, "_AggReg1.pdf")
 copyListFromAMDRLo.WB <- paste0(AMDRLoList, "_WB.pdf")
 copyListFromAMDRLo.tenregions <- paste0(AMDRLoList, "_tenregions.pdf")
 copyListFromAMDRLo.AggReg1 <- paste0(AMDRLoList, "_AggReg1.pdf")
+copyListFromAMDRShare.WB <- paste0(AMDRLoList, "_WB.pdf")
+copyListFromAMDRShare.tenregions <- paste0(AMDRLoList, "_tenregions.pdf")
+copyListFromAMDRShare.AggReg1 <- paste0(AMDRLoList, "_AggReg1.pdf")
 
 minrlsList <- c("calcium_mg", "iron_mg", "magnesium_mg", "phosphorus_mg", "potassium_g", "zinc_mg")
 copyListFromMinrls <- paste("minrls_reqRatio", minrlsList, sep = "_")
@@ -100,6 +104,7 @@ copyList <- c(copyListFromMacro.WB, copyListFromMacro.tenregions,
               copyListFromOther.WB, copyListFromOther.tenregions,
               copyListFromAMDRHi.WB, copyListFromAMDRHi.tenregions,
               copyListFromAMDRLo.WB, copyListFromAMDRLo.tenregions,
+              copyListFromAMDRShare.WB, copyListFromAMDRShare.tenregions,
               copyListBudget)
 
 for (i in copyList) {

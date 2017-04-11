@@ -495,16 +495,16 @@ plotByRegionBarAMDR <- function(dt, fileName, plotTitle, yLab, yRange, aggChoice
     #    theme(legend.position = "right") +
     theme(legend.position = "none") +
     theme(axis.text.x = element_text(angle = 45, hjust = 1)) +
-    scale_y_continuous(limits = yRange) +
+    # scale_y_continuous(limits = yRange) +
     scale_fill_manual(values = colorList) +
     theme(plot.title = element_text(hjust = 0.5)) +
     ggtitle(plotTitle) +
     #   ylim(yRange) +
     labs(y = yLab, x = NULL) +
     geom_hline(aes(yintercept = AMDR_lo,  color = "green")) +
-    geom_text( aes(.75, AMDR_lo + 2, label = "AMDR low")) +
-    geom_hline(aes(yintercept = AMDR_hi,  color = "red")) +
-    geom_text( aes(.75, AMDR_hi + 2, label = "AMDR high"))
+    geom_text( aes(.75, AMDR_lo + 2, label = "Low", color = "green")) +
+    geom_hline(aes(yintercept = AMDR_hi,  color = "dark red")) +
+    geom_text( aes(.75, AMDR_hi + 2, label = "High", color = "green"))
   print(p)
   # legend <- g_legend(p)
   dev.off()
