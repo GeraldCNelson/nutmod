@@ -3,14 +3,13 @@
 \usepackage{pdfpages}
 \begin{document}
 % macro nutrients adequacy ratio
-\includepdfmerge[nup=2x3]{
+\includepdfmerge[nup=2x2]{
 % AMDR_lo_carbohydrate_g_WB.pdf, AMDR_hi_carbohydrate_g_WB.pdf,
 % AMDR_lo_protein_g_WB.pdf, AMDR_hi_protein_g_WB.pdf,
 % AMDR_lo_fat_g_WB.pdf, AMDR_hi_fat_g_WB.pdf}
-
 AMDRShare_carbohydrate_g_WB.pdf,
-AMDRShare_protein_g_WB.pdf, 
-AMDRShare_fat_g_WB.pdf}
-
+AMDRShare_protein_g_WB.pdf,
+AMDRShare_fat_g_WB.pdf
+}
 \end{document}
 

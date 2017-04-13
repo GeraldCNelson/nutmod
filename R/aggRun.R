@@ -243,7 +243,7 @@ for (l in scenChoiceList) {
     DT <- DT[nutrient %in% c("kcalsPerDay.carbohydrate", "kcalsPerDay.fat", "kcalsPerDay.other", "kcalsPerDay.protein"), ]
     ylab <- "(Kcals)"
     if (ylab %in%  "(percent)") {yRangeMinMax <- c(0,100)} else {yRangeMinMax <- c(0, round(max(DT$value)) )}
-    filename = paste(gdxChoice, l, i, "kcals.values", sep = "_")
+    filename = paste(gdxChoice, l, "kcals.values", sep = "_")
     plotByRegionStackedBar(dt = DT, fileName = filename, plotTitle = "Average daily dietary energy by source",
                            yLab = ylab, yRange = yRangeMinMax, aggChoice = i,  scenOrder = get(l), oneLine = FALSE, colorList)
   }
@@ -437,7 +437,7 @@ for (l in scenChoiceList) {
   for (l in scenChoiceList) {
     temp <- filenames.csv[grep(l, filenames.csv)]
     print(paste("writing .zip file of csv files for", l))
-    zip(zipfile = paste(fileloc("gDir"), "/", gdxChoice, l, "_csvfiles.zip", sep = ""),
+    zip(zipfile = paste(fileloc("gDir"), "/", gdxChoice, "_", l, "_csvfiles.zip", sep = ""),
         files = paste(fileloc("gDir"), "/", temp, sep = ""), extras = "-qdgds 10m", flags = "-j")
   }
 
@@ -451,7 +451,10 @@ for (l in scenChoiceList) {
     temp.in <- merge(temp.in, dt.pop, by = c("scenario","region_code.IMPACT159", "year"))
 
     #keep just the scenario.base scenario for 2010 and rename the scenario to 2010
-    nutshortName <- cleanupNutrientNames(i)
+    if (i %in%  "fat_g.Q") nutName <- "fat_g"
+    if (i %in%  "protein_g.Q") nutName <- "protein_g"
+    if (i %in%  "carbohydrate_g.Q") nutName <- "carbohydrate_g"
+
     for (j in aggChoiceListBarChart) {
       DT <- temp.in[year == "X2010" & scenario == scenario.base |
                       year == "X2050",][year == "X2010", scenario := "2010"]
@@ -479,22 +482,23 @@ for (l in scenChoiceList) {
       data.table::setorder(DT, scenarioOrder)
       DT[, scenarioOrder := NULL]
       DT <- orderRegions(DT, i)
+      nutshortName <- cleanupNutrientNames(nutName)
       nutTitle <- paste("Share of kilocalories from ", tolower(nutshortName), sep = "")
       ylab = paste("(",units,")",sep = "")
 
       #AMDR lo values
-      if (nutshortName %in% "fat") AMDR_lo = 20
-      if (nutshortName %in% "carbohydrate") AMDR_lo = 45
-      if (nutshortName %in% "protein") AMDR_lo = 10
+      if (nutName %in% "fat_g") AMDR_lo = 20
+      if (nutName %in% "carbohydrate_g") AMDR_lo = 45
+      if (nutName %in% "protein_g") AMDR_lo = 10
 
       #AMDR hi values
-      if (nutshortName %in% "fat") AMDR_hi = 35
-      if (nutshortName %in% "carbohydrate") AMDR_hi = 65
-      if (nutshortName %in% "protein") AMDR_hi = 35
+      if (nutName %in% "fat_g") AMDR_hi = 35
+      if (nutName %in% "carbohydrate_g") AMDR_hi = 65
+      if (nutName %in% "protein_g") AMDR_hi = 35
 
       yRangeMinMax <- c(0,70)
 
-      filename = paste(gdxChoice, "AMDRShare", nutshortName, j, sep = "_")
+      filename = paste(gdxChoice, l, "AMDRShare", nutName, j, sep = "_")
       plotByRegionBarAMDR(dt = DT, fileName = filename,
                           plotTitle = nutTitle, yLab = ylab, yRange = yRangeMinMax, aggChoice = j,
                           scenOrder = get(l), colorList, AMDR_lo, AMDR_hi)

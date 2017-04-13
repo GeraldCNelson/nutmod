@@ -195,6 +195,7 @@ combineIMPACTData <- function() {
   data.table::setkeyv(dt.IMPACTfood, c("scenario",  "region_code.IMPACT159", "IMPACT_code"))
   dt.IMPACTfood <- dt.IMPACTfood[!region_code.IMPACT159 %in% keyVariable("dropListCty")]
   dt.IMPACTfood[, foodAvailpDay := FoodAvailability / keyVariable("DinY")]
+  dt.IMPACTfood <- unique(dt.IMPACTfood)
   inDT <- dt.IMPACTfood
   outName <- "dt.IMPACTfood"
   cleanup(inDT, outName, fileloc("iData"))

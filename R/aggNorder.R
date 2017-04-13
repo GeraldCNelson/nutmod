@@ -31,11 +31,11 @@ gdxChoice <- getGdxChoice()
 dt.pop <- getNewestVersion("dt.PopX0", fileloc("iData"))
 
 # use this function to get a legend grob. Which can then be placed in a grob a printed. Don't know how yet.
-g_legend <- function(a.gplot) {
-  tmp <- ggplot_gtable(ggplot_build(a.gplot))
+g_legend <- function(plot.in) {
+  tmp <- ggplot_gtable(ggplot_build(plot.in))
   leg <- which(sapply(tmp$grobs, function(x) x$name) == "guide-box")
   legend <- tmp$grobs[[leg]]
-  legend
+  return(legend)
 }
 
 orderRegions <- function(DT, aggChoice) {
@@ -187,8 +187,8 @@ plotByRegionBar <- function(dt, fileName, plotTitle, yLab, yRange, aggChoice, sc
   # when all elements of value are the same as the max y range
   p <- ggplot(temp, aes(x = region_name, y = value, fill = scenario, order = c("region_name") )) +
     geom_bar(stat = "identity", position = "dodge", color = "black") +
-    #    theme(legend.position = "right") +
-    theme(legend.position = "none") +
+        theme(legend.position = "bottom") +
+#    theme(legend.position = "none") +
     theme(axis.text.x = element_text(angle = 45, hjust = 1)) +
     scale_y_continuous(limits = yRange) +
     scale_fill_manual(values = colorList) +
@@ -198,17 +198,19 @@ plotByRegionBar <- function(dt, fileName, plotTitle, yLab, yRange, aggChoice, sc
     labs(y = yLab, x = NULL)
 
   if (oneLine == FALSE) {} else {
-    p + geom_hline(aes(yintercept = oneLine - 2,  color = "green")) +
-      geom_text( aes(.75, oneLine, label = "AMDR low"))
+    p <- p + geom_hline(aes(yintercept = oneLine,  color = "black"))
   }
 
-  if (!is.null(AMDR_hi)) {
-    p + geom_hline(aes(yintercept = oneLine - 2,  color = "green")) +
-      geom_text( aes(.75, oneLine, label = "AMDR low"))+
-      geom_hline(aes(yintercept = AMDR_hi - 2,  color = "red")) +
-      geom_text( aes(.75, AMDR_hi, label = "AMDR high"))
-  }
+  # for this to work, you need to have theme(legend.position = "right") or something similar in ggplot
+  #theme(legend.position = "none") removes the legend but also means this won't work
 
+  # save the legend grob
+  # legend.grob <- g_legend(plot.in = p)
+  # #remove the legend from p
+  # p <- p + theme(legend.position = "none")
+  # grid.arrange(
+  #   p, legend.grob,
+  #   ncol = 1)
 
   print(p)
   # legend <- g_legend(p)

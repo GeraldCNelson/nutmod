@@ -20,12 +20,14 @@
   source("R/nutrientCalcFunctions.R")
 }
 gdxChoice <- getGdxChoice()
+if (gdxChoice %in% "SSPs") scenChoiceList <- "scenOrderSSP"
+if (gdxChoice %in% "USAID") scenChoiceList <- c("prodEnhance", "waterMan", "addEnhance", "comp")
 #for testing
 sourceDir <- paste(fileloc("gDir"), sep = "")
 destDir <- "Rnw"
 
 copyFile <- function(fileName, sourceDir, destDir) {
-  fileName <- paste(gdxChoice, fileName, sep = "_")
+  fileName <- paste(gdxChoice, l, fileName, sep = "_")
   file.copy(from = paste(sourceDir, fileName, sep = "/"), to = destDir, overwrite = TRUE)
 }
 
@@ -47,9 +49,9 @@ copyListFromAMDRHi.AggReg1 <- paste0(AMDRHiList, "_AggReg1.pdf")
 copyListFromAMDRLo.WB <- paste0(AMDRLoList, "_WB.pdf")
 copyListFromAMDRLo.tenregions <- paste0(AMDRLoList, "_tenregions.pdf")
 copyListFromAMDRLo.AggReg1 <- paste0(AMDRLoList, "_AggReg1.pdf")
-copyListFromAMDRShare.WB <- paste0(AMDRLoList, "_WB.pdf")
-copyListFromAMDRShare.tenregions <- paste0(AMDRLoList, "_tenregions.pdf")
-copyListFromAMDRShare.AggReg1 <- paste0(AMDRLoList, "_AggReg1.pdf")
+copyListFromAMDRShare.WB <- paste0(AMDRShareList, "_WB.pdf")
+copyListFromAMDRShare.tenregions <- paste0(AMDRShareList, "_tenregions.pdf")
+copyListFromAMDRShare.AggReg1 <- paste0(AMDRShareList, "_AggReg1.pdf")
 
 minrlsList <- c("calcium_mg", "iron_mg", "magnesium_mg", "phosphorus_mg", "potassium_g", "zinc_mg")
 copyListFromMinrls <- paste("minrls_reqRatio", minrlsList, sep = "_")
@@ -106,18 +108,22 @@ copyList <- c(copyListFromMacro.WB, copyListFromMacro.tenregions,
               copyListFromAMDRLo.WB, copyListFromAMDRLo.tenregions,
               copyListFromAMDRShare.WB, copyListFromAMDRShare.tenregions,
               copyListBudget)
-
-for (i in copyList) {
-  fileName <- paste(gdxChoice, i, sep = "_")
-  print(sprintf("copying file %s from %s directory to %s", fileName, sourceDir, destDir))
-  file.copy(from = paste(sourceDir, fileName, sep = "/"), to = destDir, overwrite = TRUE)
-  copyFile(i, sourceDir, destDir)
+for (l in scenChoiceList) {
+  for (i in copyList) {
+    fileName <- paste(gdxChoice, l, i, sep = "_")
+    print(sprintf("copying file %s from %s directory to %s", fileName, sourceDir, destDir))
+    file.copy(from = paste(sourceDir, fileName, sep = "/"), to = destDir, overwrite = TRUE)
+    copyFile(i, sourceDir, destDir)
+  }
 }
 
 #rename files in Snw
 copyListNew <- gsub(".","_",copyList, fixed = TRUE) # get rid of all periods
 copyListNew <- gsub("_pdf",".pdf",copyListNew, fixed = TRUE) # add one back for the file type
-copyList <- paste(gdxChoice,copyList, sep = "_")
+
+for (l in scenChoiceList) {
+  copyList <- paste(gdxChoice, l, copyList, sep = "_")
+}
 copyList <- paste(destDir, copyList, sep = "/")
 copyListNew <- paste(destDir, copyListNew, sep = "/")
 
