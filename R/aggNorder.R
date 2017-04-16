@@ -27,16 +27,40 @@ library(ggplot2)
 # get gdxChoice
 gdxChoice <- getGdxChoice()
 
+# create legend grobs for use in multiple graph files -----
+updateLegendGrobs <- function(l, i, legendLoc, mergedVals) {
+  # use an arbitrary file to construct the grob. This code modified from aggRun.R
+  DT <- aggNorder(gdxChoice, DTglobal = "dt.budgetShare", aggChoice = i, scenChoice = get(l), mergedVals)
+  ylab <- "(percent)"
+  print(paste("creating legend grob for ", i, ",", l, "and", legendLoc))
+  regionCodes <- unique(DT$region_code)
+  regionNames <- unique(DT$region_name)
+  scenarios <- unique(DT$scenario)
+
+  DT[, scenario := gsub("-REF", "", scenario)]
+  scenOrder <- gsub("-REF", "", scenOrder)
+  # temp <- temp[order(region_code)]
+  if (i %in% "WB") regionNameOrder <- c("Low income", "Lower middle income", "Upper middle income", "High income")
+  if (i %in% "AggReg1") regionNameOrder <- regionNames
+  if (i %in% "tenregions") regionNameOrder <- regionNames
+  scenarioNameOrder <- scenOrder
+  DT[, region_name := factor(region_name, levels =  regionNameOrder)]
+  DT[, scenario := factor(scenario, levels = scenarioNameOrder)]
+  if (gdxChoice %in% "USAID")  DT <- renameUSAIDscenarios(DT)
+
+  # draw bars to get the legend
+  p <- ggplot(DT, aes(x = region_name, y = value, fill = scenario, order = c("region_name") )) +
+    geom_bar(stat = "identity", position = "dodge", color = "black") +
+    theme(legend.position = legendLoc) +
+    theme(legend.text = element_text(size = 8)) +
+    theme(legend.title = element_blank()) +
+    scale_fill_manual(values = colorList)
+  return(g_legend(p))
+}
+
+
 # population for weighting -----
 dt.pop <- getNewestVersion("dt.PopX0", fileloc("iData"))
-
-# use this function to get a legend grob. Which can then be placed in a grob a printed. Don't know how yet.
-g_legend <- function(plot.in) {
-  tmp <- ggplot_gtable(ggplot_build(plot.in))
-  leg <- which(sapply(tmp$grobs, function(x) x$name) == "guide-box")
-  legend <- tmp$grobs[[leg]]
-  return(legend)
-}
 
 orderRegions <- function(DT, aggChoice) {
   # order by regions
@@ -187,12 +211,12 @@ plotByRegionBar <- function(dt, fileName, plotTitle, yLab, yRange, aggChoice, sc
   # when all elements of value are the same as the max y range
   p <- ggplot(temp, aes(x = region_name, y = value, fill = scenario, order = c("region_name") )) +
     geom_bar(stat = "identity", position = "dodge", color = "black") +
-        theme(legend.position = "bottom") +
-#    theme(legend.position = "none") +
+ #   theme(legend.position = "bottom") +
+        theme(legend.position = "none") +
     theme(axis.text.x = element_text(angle = 45, hjust = 1)) +
     scale_y_continuous(limits = yRange) +
     scale_fill_manual(values = colorList) +
-    theme(plot.title = element_text(hjust = 0.5)) +
+    theme(plot.title = element_text(hjust = 0.5, size = 11)) +
     ggtitle(plotTitle) +
     #   ylim(yRange) +
     labs(y = yLab, x = NULL)
@@ -201,16 +225,9 @@ plotByRegionBar <- function(dt, fileName, plotTitle, yLab, yRange, aggChoice, sc
     p <- p + geom_hline(aes(yintercept = oneLine,  color = "black"))
   }
 
-  # for this to work, you need to have theme(legend.position = "right") or something similar in ggplot
-  #theme(legend.position = "none") removes the legend but also means this won't work
-
-  # save the legend grob
-  # legend.grob <- g_legend(plot.in = p)
-  # #remove the legend from p
-  # p <- p + theme(legend.position = "none")
-  # grid.arrange(
-  #   p, legend.grob,
-  #   ncol = 1)
+  # code to save the plot for future use
+  graphsListHolder[[filename]] <- p
+  assign("graphsListHolder", graphsListHolder, envir = .GlobalEnv)
 
   print(p)
   # legend <- g_legend(p)
@@ -239,7 +256,7 @@ plotByRegionBar <- function(dt, fileName, plotTitle, yLab, yRange, aggChoice, sc
   #   theme(axis.text.x = element_text(angle = 45, hjust = 1)) +
   #   geom_line(aes(group = 1)) +
   #   geom_point(size = 2) +
-  #   theme(plot.title = element_text(hjust = 0.5)) +
+  #   theme(plot.title = element_text(hjust = 0.5, size = 11)) +
   #   ggtitle(plotTitle) +
   #   ylim(yRange) +
   #   labs(y = yLab, x = NULL) +
@@ -313,12 +330,7 @@ plotByRegionStackedBar <- function(dt, fileName, plotTitle, yLab, yRange, aggCho
 
   # draw bars
   pdf(paste(fileloc("gDir"),"/", fileName, "_", aggChoice, ".pdf", sep = ""), width = 7, height = 5.2, useDingbats = FALSE)
-  # I think the next line was meant to deal with a situation when yRange[2] (which should be the max) is smaller than
-  # max(temp$value). I don't understand what 10^ceiling(log10(x)) is supposed to accomplish
-  #  if (max(temp$value) - yRange[2] > 0) yRange[2] <- 10^ceiling(log10(x)) # will hopefully deal with rare situation
-  # when all elements of value are the same as the max y range
-  #Here's an alternative
-  if (max(temp$value) - yRange[2] > 0) yRange[2] <- max(temp$value)
+   if (max(temp$value) - yRange[2] > 0) yRange[2] <- max(temp$value)
   p <- ggplot(temp, aes(x = scenario, y = value, fill = nutrient, order = c("region_name") )) +
     geom_bar(stat = "identity", position = "stack", color = "black") +
     facet_wrap(~ region_name) +
@@ -327,12 +339,17 @@ plotByRegionStackedBar <- function(dt, fileName, plotTitle, yLab, yRange, aggCho
     theme(axis.text.x = element_text(angle = 70, hjust = 1)) +
     # scale_y_continuous(limits = yRange) +
     # scale_fill_manual(values = colorList) +
-    theme(plot.title = element_text(hjust = 0.5)) +
+    theme(plot.title = element_text(hjust = 0.5, size = 11)) +
     ggtitle(plotTitle) +
     #   ylim(yRange) +
     labs(y = yLab, x = NULL)
 
   if (oneLine == FALSE) {} else {p + geom_abline(intercept = oneLine, slope = 0)}
+
+  # code to save the plot for future use
+  graphsListHolder[[filename]] <- p
+  assign("graphsListHolder", graphsListHolder, envir = .GlobalEnv)
+
   print(p)
   # geom_errorbar(aes(ymin = value.min.econ, ymax = value.max.econ), color = "red", size = 2, position = position_dodge(0.9), width = 0.5) +
   # geom_errorbar(aes(ymin = value.min.clim, ymax = value.max.clim), color = "green", size = 2, position = position_dodge(0.2), width = 0.5)
@@ -361,7 +378,6 @@ plotByBoxPlot2050 <- function(dt, fileName, plotTitle, yLab, yRange, aggChoice )
   regionCodes <- unique(temp$region_code)
   regionNames <- unique(temp$region_name)
 
-  # initial attempts to use ggplot
   temp[, scenario := gsub("-REF", "", scenario)]
   scenOrder <- gsub("-REF", "", scenOrder)
   # temp <- temp[order(region_code)]
@@ -378,10 +394,15 @@ plotByBoxPlot2050 <- function(dt, fileName, plotTitle, yLab, yRange, aggChoice )
     #    theme(legend.position = "right") +
     theme(axis.text.x = element_text(angle = 45, hjust = 1)) +
     scale_fill_manual(values = colorList) +
-    theme(plot.title = element_text(hjust = 0.5)) +
+    theme(plot.title = element_text(hjust = 0.5, size = 11)) +
     ggtitle(plotTitle) +
     ylim(yRange) +
     labs(y = yLab, x = NULL)
+
+  # code to save the plot for future use
+  graphsListHolder[[filename]] <- p
+  assign("graphsListHolder", graphsListHolder, envir = .GlobalEnv)
+
   print(p)
   dev.off()
 }
@@ -435,7 +456,6 @@ plotByRegionErrorBars <- function(dt, fileName, plotTitle, yLab, yRange, aggChoi
   if (gdxChoice == "USAID") colorList <- c("black", rainbow(10)[1:length(scenarios) - 1])
   legendText <- unique(gsub("-REF", "", scenarios))
 
-  # initial attempts to use ggplot
   temp[, scenario := gsub("-REF", "", scenario)]
   # temp <- temp[order(region_code)]
   regionNameOrder <- c("Low income", "Lower middle income", "Upper middle income", "High income")
@@ -460,16 +480,20 @@ plotByRegionErrorBars <- function(dt, fileName, plotTitle, yLab, yRange, aggChoi
     theme(axis.text.x = element_text(angle = 45, hjust = 1)) +
     geom_line(aes(group = 1)) +
     geom_point(size = 2) +
-    theme(plot.title = element_text(hjust = 0.5)) +
+    theme(plot.title = element_text(hjust = 0.5, size = 11)) +
     ggtitle(plotTitle) +
     ylim(yRange) +
     labs(y = yLab, x = NULL) +
     geom_errorbar(aes(ymin = value.min.econ, ymax = value.max.econ),color = "green",
                   size = 2, width = 0.2)
+
+  # code to save the plot for future use
+  graphsListHolder[[filename]] <- p
+  assign("graphsListHolder", graphsListHolder, envir = .GlobalEnv)
 }
 
 
-plotByRegionBarAMDR <- function(dt, fileName, plotTitle, yLab, yRange, aggChoice, scenOrder, colorList, AMDR_lo, AMDR_hi) {
+plotByRegionBarAMDR <- function(dt, fileName, plotTitle, yLab, yRange, aggChoice, scenOrder, colorList, AMDR_lo, AMDR_hi, graphsListHolder) {
   print(paste("plotting AMDR bars by region for", aggChoice, "for", plotTitle))
   temp <- copy(dt)
   regionCodes <- unique(temp$region_code)
@@ -499,7 +523,7 @@ plotByRegionBarAMDR <- function(dt, fileName, plotTitle, yLab, yRange, aggChoice
     theme(axis.text.x = element_text(angle = 45, hjust = 1)) +
     # scale_y_continuous(limits = yRange) +
     scale_fill_manual(values = colorList) +
-    theme(plot.title = element_text(hjust = 0.5)) +
+    theme(plot.title = element_text(hjust = 0.5, size = 11)) +
     ggtitle(plotTitle) +
     #   ylim(yRange) +
     labs(y = yLab, x = NULL) +
@@ -507,6 +531,12 @@ plotByRegionBarAMDR <- function(dt, fileName, plotTitle, yLab, yRange, aggChoice
     geom_text( aes(.75, AMDR_lo + 2, label = "Low", color = "green")) +
     geom_hline(aes(yintercept = AMDR_hi,  color = "dark red")) +
     geom_text( aes(.75, AMDR_hi + 2, label = "High", color = "green"))
+  # code to save the plot for future use
+  # code to save the plot for future use
+  graphsListHolder[[filename]] <- p
+  assign("graphsListHolder", graphsListHolder, envir = .GlobalEnv)
+
+
   print(p)
   # legend <- g_legend(p)
   dev.off()

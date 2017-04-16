@@ -3,7 +3,7 @@
 \usepackage{pdfpages}
 \begin{document}
 
-% foodgroup availability ratio
+% foodgroup availability ratio, part 3
 \includepdfmerge[nup=2x3]{
 foodAvail_foodGroup_sweeteners_WB.pdf, foodAvail_foodGroup_vegetables_WB.pdf
 }

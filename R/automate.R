@@ -59,7 +59,9 @@ print("Running nutrientCalcFunctions.R")
 source("R/nutrientCalcFunctions.R")
 
 gdxrrwExistenceCheck() #checks if the gdxrrw package is installed; if not, prints directions on how to install and stops.
-#choose between 1 of 2 possible gdx files. 1 -  Micronutrient-Inputs-07252016.gdx; 2 - Micronutrient-Inputs-USAID.gdx
+#choose between 1 of 2 possible gdx files.
+# 1 -  Micronutrient-Inputs-07252016.gdx;
+#2 - Micronutrient-Inputs-USAID.gdx
 gdxCombo <- gdxFileNameChoice()
 gdxFileName <- gdxCombo[1]
 gdxChoice <- gdxCombo[2]

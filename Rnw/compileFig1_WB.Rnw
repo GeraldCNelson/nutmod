@@ -3,7 +3,7 @@
 \usepackage{pdfpages}
 \begin{document}
 
-% foodgroup availability ratio
+% fig 1 budget
 \includepdfmerge[nup=2x1]{
 budgetShare_WB.pdf, budgetShareBoxPlot_2050_WB.pdf
 }

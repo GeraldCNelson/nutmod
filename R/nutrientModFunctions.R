@@ -118,7 +118,7 @@ getNewestVersion <- function(fileShortName, directory, fileType) {
   #  if (length(newestFile) == 0) {
   # check to see if the short file name is in the list from the relevant directory
   # print(paste("fileShortName is ", fileShortName))
- #  print(fileLongName)
+  #  print(fileLongName)
   if (length(fileLongName) == 0) {
     stop(sprintf("There is no file  '%s' in directory %s", fileShortName, mData))
   } else {
@@ -190,9 +190,8 @@ removeOldVersions <- function(fileShortName,dir) {
 #' @param outName - short name of the file to be written out
 #' @param dir - directory where the cleanup takes place
 cleanup <- function(inDT, outName, destDir, writeFiles) {
-
   sprintf("start cleanup for %s", outName)
-#convert to a standard order
+  #convert to a standard order
   oldOrder <- names(inDT)
   startOrder <- c("scenario",keyVariable("region"),"year")
   if (all(startOrder %in% oldOrder)) {
@@ -211,7 +210,7 @@ cleanup <- function(inDT, outName, destDir, writeFiles) {
 
   # # update files documentation -----
   # Note: fileDocumentation.csv is currently not being used.
- # fileDoc <- data.table::as.data.table(read.csv(paste(fileloc("rawData"), "fileDocumentation.csv", sep = "/"),
+  # fileDoc <- data.table::as.data.table(read.csv(paste(fileloc("rawData"), "fileDocumentation.csv", sep = "/"),
   #     header = TRUE, colClasses = c("character","character","character")))
   # fileDoc <- fileDoc[!fileShortName == outName]
   # fileDocUpdate <- as.list(c(outName, outFile, paste0(names(inDT), collapse = ", ")))
@@ -225,7 +224,7 @@ cleanup <- function(inDT, outName, destDir, writeFiles) {
     writeFiles <- writeFiles[!writeFiles %in% c("xlsx")]
   }
   if ("csv"  %in% writeFiles) {
-        print(paste("writing the csv for ", outName, " to ", destDir, sep = ""))
+    print(paste("writing the csv for ", outName, " to ", destDir, sep = ""))
     write.csv(inDT,file = paste(destDir, "/", outName, "_", Sys.Date(), ".csv", sep = ""), row.names = FALSE)
   }
   if ("xlsx"  %in% writeFiles) {
@@ -253,6 +252,29 @@ cleanup <- function(inDT, outName, destDir, writeFiles) {
     #  print(proc.time())
   }
 }
+
+cleanupGraphFiles <- function(inGraphFile, outName, destDir) {
+  sprintf("start cleanup for %s", outName)
+  removeOldVersions(outName, destDir)
+  sprintf("writing the rds for %s to %s ", outName, destDir)
+  # print(proc.time())
+  # next line removes any key left in the inDT data table; this may be an issue if a df is used
+  data.table::setkey(inDT, NULL)
+  outFile <- paste(destDir, "/", outName, "_", Sys.Date(), ".rds", sep = "")
+  saveRDS(inGraphFile, file = outFile)
+
+  # # update files documentation -----
+  # Note: fileDocumentation.csv is currently not being used.
+  # fileDoc <- data.table::as.data.table(read.csv(paste(fileloc("rawData"), "fileDocumentation.csv", sep = "/"),
+  #     header = TRUE, colClasses = c("character","character","character")))
+  # fileDoc <- fileDoc[!fileShortName == outName]
+  # fileDocUpdate <- as.list(c(outName, outFile, paste0(names(inDT), collapse = ", ")))
+  # fileDoc <- rbind(fileDoc, fileDocUpdate)
+  # write.csv(fileDoc, paste(fileloc("mData"), "fileDocumentation.csv", sep = "/"), row.names = FALSE)
+  #
+  # #print(proc.time())
+}
+
 
 cleanupScenarioNames <- function(dt.ptemp) {
   # replaces - with _ and removes 2 from a couple of USAID scenario
@@ -353,8 +375,8 @@ keyVariable <- function(variableName) {
       "req.AMDR_hi",
       "req.AMDR_lo",
       "req.MRVs" # added March 24, 2017
-# commmented out because as of Dec 25, 2016, PR requirements for iron and zinc are now in req.RDA.minrls
-            # ,
+      # commmented out because as of Dec 25, 2016, PR requirements for iron and zinc are now in req.RDA.minrls
+      # ,
       # "req.PR.iron",
       # "req.PR.zinc"
     )
@@ -744,7 +766,7 @@ nutReqDataPrep <- function(reqTypeChoice, countryCode, scenarioName, years, dir)
   fileName <- resultFileLookup[reqTypeName == reqTypeChoice, fileName]
   if (length(fileName) == "0") print(paste(reqTypeChoice, "is not a valid choice", sep = " "))
   reqRatios.long <- getNewestVersion(reqTypeChoice, dir)
- # reqRatios.long <- reqRatios.long[scenario %in% scenarioName, ]
+  # reqRatios.long <- reqRatios.long[scenario %in% scenarioName, ]
   reqRatios.long <- reqRatios.long[scenario %in% scenarioName &
                                      region_code.IMPACT159 %in% countryCode &
                                      year %in% years, ]
@@ -761,7 +783,7 @@ nutReqDataPrep <- function(reqTypeChoice, countryCode, scenarioName, years, dir)
   #   data = reqRatios, id.vars = idVars, measure.vars = measureVars, variable.name = "year",
   #   value.name = "value", variable.factor = FALSE)
 
-#  formula.ratios <- paste("scenario + SSP + climate_model + experiment + region_code.IMPACT159 + year ~ nutrient")
+  #  formula.ratios <- paste("scenario + SSP + climate_model + experiment + region_code.IMPACT159 + year ~ nutrient")
   formula.ratios <- paste("scenario + region_code.IMPACT159 + year ~ nutrient")
   reqRatios.wide <- data.table::dcast(
     reqRatios.long,
@@ -1071,7 +1093,7 @@ gdxFileNameChoice <- function() {
   cat("2. for the USAID nutrient modeling paper\n")
   cat("Note: the relevant gdx file must be in the data-raw/IMPACTdata directory\n")
   choice <- readline(prompt = "Choose the number of the gdx file you want to use. \n")
-#  choice <- "1" # so there will be a definite value
+  #  choice <- "1" # so there will be a definite value
   if (choice  %in% "1") {
     gdxFileName <- "Micronutrient-Inputs-07252016.gdx" # - gdx with multiple SSP results
     gdxChoice <- "SSPs"
@@ -1079,7 +1101,7 @@ gdxFileNameChoice <- function() {
   if (choice %in% "2") {
     gdxFileName <- "Micronutrient-Inputs-USAID.gdx"  #-  gdx for the USAID results
     gdxChoice <- "USAID"
-    }
+  }
   cat("Your gdx file name choice is ", gdxFileName)
   gdxCombo <- cbind(gdxFileName, gdxChoice)
   write.csv(gdxCombo, file = paste0(getwd(), "/results/gdxInfo.csv"), row.names = FALSE)
@@ -1102,7 +1124,7 @@ multiplot <- function(plotlist=NULL, file, cols=1, layout=NULL) {
 
   # Make a list from the ... arguments and plotlist
   # plots <- c(list(...), plotlist)
-plots <- plotlist
+  plots <- plotlist
   numPlots = length(plots)
 
   # If layout is NULL, then use 'cols' to determine layout
@@ -1138,10 +1160,10 @@ plots <- plotlist
 generateWorldMaps <- function(spData, scenOrder, titleText, legendText, lowColor, highColor, fillLimits, fileName){
   scenGraphs <- list()
   for (j in 1:length(scenOrder)) {
-#    titletext <- paste0(titleText, scenOrder[j])
+    #    titletext <- paste0(titleText, scenOrder[j])
     titletext <- NULL
     temp.sp <- spData[scenario %in% scenOrder[j],]
-#    temp.sp[,scenario := NULL]
+    #    temp.sp[,scenario := NULL]
     temp.sp <- as.data.frame(temp.sp)
     summary(temp.sp)
     plotName.new <- paste0("plot.", gsub("-", "_", scenOrder[j]))
@@ -1194,16 +1216,10 @@ getGdxChoice <- function() {
   return(gdxChoice)
 }
 
-# this commented out code is supposed to print the legend in a separate view port. It's not working yet.
-# library(gridExtra)
-# g_legend <- function(a.gplot){
-#   tmp <- ggplot_gtable(ggplot_build(a.gplot))
-#   leg <- which(sapply(tmp$grobs, function(x) x$name) == "guide-box")
-#   legend <- tmp$grobs[[leg]]
-#   legend
-# }
-# # get the legend from the first graph
-# legend <- g_legend(scenGraphs[[1]])
-#
-# grid.arrange(legend, scenGraphs[[1]] + theme(legend.position = 'none'),
-#              ncol = 2, nrow = rows, widths = c(1/6,5/6))
+# # use this function to get a tablegrob. Which can then be placed in a plot. This is done in aggNorder.R
+g_legend <- function(plot.in) {
+  tmp <- ggplot2::ggplot_gtable(ggplot_build(plot.in))
+  leg <- which(sapply(tmp$grobs, function(x) x$name) == "guide-box")
+  legend <- tmp$grobs[[leg]]
+  return(legend)
+}

@@ -3,7 +3,7 @@
 \usepackage{pdfpages}
 \begin{document}
 
-% mineral nutrients adequacy ratio
+% diversity metrics
 \includepdfmerge[nup=2x2]{nonStapleShare_WB.pdf, RAOqe_WB.pdf}
 
 \end{document}

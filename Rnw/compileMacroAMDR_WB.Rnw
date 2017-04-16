@@ -2,7 +2,7 @@
 \documentclass{article}
 \usepackage{pdfpages}
 \begin{document}
-% macro nutrients adequacy ratio
+% macro AMDR
 \includepdfmerge[nup=2x2]{
 % AMDR_lo_carbohydrate_g_WB.pdf, AMDR_hi_carbohydrate_g_WB.pdf,
 % AMDR_lo_protein_g_WB.pdf, AMDR_hi_protein_g_WB.pdf,

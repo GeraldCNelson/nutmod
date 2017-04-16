@@ -3,8 +3,8 @@
 \usepackage{pdfpages}
 \begin{document}
 
-% mineral nutrients adequacy ratio
-\includepdfmerge[nup=2x2]{compDI_WB.pdf, NutBalScore_WB.pdf}
-
+% nutrient balance
+\includepdfmerge[nup=2x2]{compDI_WB.pdf, NutBalScore_WB.pdf
+}
 \end{document}
 
