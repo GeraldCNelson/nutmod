@@ -171,63 +171,67 @@ source("R/copyFilestoNutrientModeling.R") # move results needed for the shiny ap
 library(dtplyr)# generate graphs
 source("R/aggRun.R")
 
+source("R/finalGraphCreation.R")
+
+# the code below here was for creating final graphs from the pdfs created in aggRun. This has been superceded by the
+#finalGraphCreation.R script. Preserving this for a while.
 # delete old files from the Rnw directory
-fileNameList <- list.files(path = "Rnw", full.names = TRUE)
-filePDFList <- fileNameList[grep(".pdf", fileNameList)]
-fileAuxList <- fileNameList[grep(".aux", fileNameList)]
-fileLogList <- fileNameList[grep(".log", fileNameList)]
-fileTexList <- fileNameList[grep("_WB.tex", fileNameList)]
-fileDeleteList <- c(filePDFList, fileAuxList, fileLogList, fileTexList)
-invisible(file.remove(fileDeleteList))
+# fileNameList <- list.files(path = "Rnw", full.names = TRUE)
+# filePDFList <- fileNameList[grep(".pdf", fileNameList)]
+# fileAuxList <- fileNameList[grep(".aux", fileNameList)]
+# fileLogList <- fileNameList[grep(".log", fileNameList)]
+# fileTexList <- fileNameList[grep("_WB.tex", fileNameList)]
+# fileDeleteList <- c(filePDFList, fileAuxList, fileLogList, fileTexList)
+# invisible(file.remove(fileDeleteList))
 
-print("Copying files to Rnw directory for Sweave")
-source("R/copyFilestoSweavedDir.R")
-
-# create pdfs of graphics to be pasted into the word doc. They are located in the Rnw directory
-library(cacheSweave )
-origWD <- getwd()
-RnwWD <- paste0(origWD,"/Rnw")
-setwd(paste0(origWD,"/Rnw"))
-filesToProcess <- c("compileFig1", "compileVitsAdequacy", "compileMinrlsAdequacy",
-"compileMacroAdequacy", "compileMacroAMDR", "compileFoodgroupAvailability1",
-"compileFoodgroupAvailability2", "compileFoodgroupAvailability3",
-"compileDiversity", "compileNBS", "compileFig8", "compileFig9")
-
-aggChoice <- c("WB", "tenregion")
-# compile the files
-for (i in filesToProcess) {
-  print(paste("processing ", j))
-  for (j in aggChoice) {
-    fileName.compile <- paste(i, "_", j, ".Rnw", sep = "")
-    temp.compile <- paste("Sweave(", '"',fileName.compile, '"', ', driver = cacheSweaveDriver, encoding = "utf-8"', ")", sep = "")
-    fileName <- paste(i, "_", j, ".Rnw", sep = "")
-    eval(parse(text = temp.compile))
-    fileName.tex2pdf <- paste(i, "_", j, ".tex", sep = "")
-    temp.tex2pdf <- paste("tools::texi2pdf(", '"',fileName.tex2pdf, '"', ', clean = FALSE, quiet = TRUE', ")", sep = "")
-    eval(parse(text = temp.tex2pdf))
-  }
-}
-
-#move all the tenregion pdf files to the tenregion directory
-# first delete old files in tenregion directory
-if (length(list.files("tenregion/")) > 0) file.remove(paste("tenregion/", list.files("tenregion/"), sep = ""))
-files.tenregion <- list.files()[grep("tenregion.pdf", list.files())]
-file.copy(from = files.tenregion, to = paste("tenregion/", files.tenregion, sep = ""))
-file.remove(files.tenregion)
-
-#deal with tenregion files that use tenregions
-files.tenregions <- list.files()[grep("tenregions.pdf", list.files())]
-file.copy(from = files.tenregions, to = paste("tenregion/", files.tenregions, sep = ""))
-file.remove(files.tenregions)
-
-# delete extraneous files from the Rnw directory
-fileNameList <- list.files(path = "Rnw", full.names = TRUE)
-filePDFList <- fileNameList[grep(".pdf", fileNameList)]
-fileAuxList <- fileNameList[grep(".aux", fileNameList)]
-fileLogList <- fileNameList[grep(".log", fileNameList)]
-fileTexList <- fileNameList[grep(".tex", fileNameList)]
-fileDeleteList <- c(fileAuxList, fileLogList, fileTexList)
-invisible(file.remove(fileDeleteList)) # using invisible gets rid of some TRUE outputs.
-
-setwd(origWD)
+# print("Copying files to Rnw directory for Sweave")
+# source("R/copyFilestoSweavedDir.R")
+#
+# # create pdfs of graphics to be pasted into the word doc. They are located in the Rnw directory
+# library(cacheSweave )
+# origWD <- getwd()
+# RnwWD <- paste0(origWD,"/Rnw")
+# setwd(paste0(origWD,"/Rnw"))
+# filesToProcess <- c("compileFig1", "compileVitsAdequacy", "compileMinrlsAdequacy",
+# "compileMacroAdequacy", "compileMacroAMDR", "compileFoodgroupAvailability1",
+# "compileFoodgroupAvailability2", "compileFoodgroupAvailability3",
+# "compileDiversity", "compileNBS", "compileFig8", "compileFig9")
+#
+# aggChoice <- c("WB", "tenregion")
+# # compile the files
+# for (i in filesToProcess) {
+#   print(paste("processing ", j))
+#   for (j in aggChoice) {
+#     fileName.compile <- paste(i, "_", j, ".Rnw", sep = "")
+#     temp.compile <- paste("Sweave(", '"',fileName.compile, '"', ', driver = cacheSweaveDriver, encoding = "utf-8"', ")", sep = "")
+#     fileName <- paste(i, "_", j, ".Rnw", sep = "")
+#     eval(parse(text = temp.compile))
+#     fileName.tex2pdf <- paste(i, "_", j, ".tex", sep = "")
+#     temp.tex2pdf <- paste("tools::texi2pdf(", '"',fileName.tex2pdf, '"', ', clean = FALSE, quiet = TRUE', ")", sep = "")
+#     eval(parse(text = temp.tex2pdf))
+#   }
+# }
+#
+# #move all the tenregion pdf files to the tenregion directory
+# # first delete old files in tenregion directory
+# if (length(list.files("tenregion/")) > 0) file.remove(paste("tenregion/", list.files("tenregion/"), sep = ""))
+# files.tenregion <- list.files()[grep("tenregion.pdf", list.files())]
+# file.copy(from = files.tenregion, to = paste("tenregion/", files.tenregion, sep = ""))
+# file.remove(files.tenregion)
+#
+# #deal with tenregion files that use tenregions
+# files.tenregions <- list.files()[grep("tenregions.pdf", list.files())]
+# file.copy(from = files.tenregions, to = paste("tenregion/", files.tenregions, sep = ""))
+# file.remove(files.tenregions)
+#
+# # delete extraneous files from the Rnw directory
+# fileNameList <- list.files(path = "Rnw", full.names = TRUE)
+# filePDFList <- fileNameList[grep(".pdf", fileNameList)]
+# fileAuxList <- fileNameList[grep(".aux", fileNameList)]
+# fileLogList <- fileNameList[grep(".log", fileNameList)]
+# fileTexList <- fileNameList[grep(".tex", fileNameList)]
+# fileDeleteList <- c(fileAuxList, fileLogList, fileTexList)
+# invisible(file.remove(fileDeleteList)) # using invisible gets rid of some TRUE outputs.
+#
+# setwd(origWD)
 options(warn = 1)

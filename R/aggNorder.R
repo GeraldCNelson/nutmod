@@ -221,7 +221,9 @@ plotByRegionBar <- function(dt, fileName, plotTitle, yLab, yRange, aggChoice, sc
     #   ylim(yRange) +
     labs(y = yLab, x = NULL)
 
-  if (oneLine == FALSE) {} else {
+
+# the 'or' part of the if statement means don't draw the line if it's greater than ymax
+  if (oneLine == FALSE | oneLine > yRange[2]) {} else {
     p <- p + geom_hline(aes(yintercept = oneLine,  color = "black"))
   }
 

@@ -10,6 +10,11 @@
   source("R/aggNorder.R")}
 library(data.table)
 library(RColorBrewer)
+# next 3 libraries needed for world maps
+library(sp)
+library(broom)
+library(rgdal)
+
 # gdxChoice values are either SSPs or USAID
 dt.metadata <- getNewestVersion("dt.metadata", fileloc("resultsDir"))
 gdxChoice <- getGdxChoice()
@@ -25,7 +30,7 @@ gdxChoice <- getGdxChoice()
 # if (exists(paste(getwd(), fileloc("gDir"), "graphsListHolder", sep = "/"))) {
 #   graphsListHolder <- getNewestVersion("graphsListHolder", fileloc("gDir"))
 # }else{
-  graphsListHolder <- list()
+graphsListHolder <- list()
 #}
 
 # delete all old files, pdf, csv, gz, and zip
@@ -303,7 +308,7 @@ for (l in scenChoiceList) {
       DT[, scenarioOrder := NULL]
 
       DT <- orderRegions(DT, i)
-#      nutTitle <- paste("Average daily availability of ", tolower(FG.longName), sep = "")
+      #      nutTitle <- paste("Average daily availability of ", tolower(FG.longName), sep = "")
       nutTitle <- paste(tolower(FG.longName), sep = "")
       ylab = paste("(",units,")",sep = "")
       if (ylab %in%  "(percent)") {yRangeMinMax <- c(0,100)} else {yRangeMinMax <- c(0, max(DT$value) )}
@@ -332,6 +337,7 @@ for (l in scenChoiceList) {
       for (j in unique(temp.in$nutrient)) {
         #     for (j in c(macroNutrients, vitamins, minerals)) {
         nutshortName <- cleanupNutrientNames(j)
+        nutshortName <- capwords(nutshortName)
         # if (j %in% c("kcals.ethanol", "kcals.fat", "kcals.carbohydrate","kcals.protein", "kcals.sugar")) {
         #     nutlongName <- "energy"
         #     units <- "kilocalories"
@@ -368,7 +374,7 @@ for (l in scenChoiceList) {
         DT <- orderRegions(DT, i)
         reqRatioFiles <- c( "RDA.macro_sum_reqRatio", "RDA.minrls_sum_reqRatio", "RDA.vits_sum_reqRatio", "dt.badRatios" )
         if (multipleNutsFileList[k] == "dt.nutrients.sum.all")  {
- #         nutTitle <- paste("Average daily availability of ", tolower(nutlongName), sep = "")
+          #         nutTitle <- paste("Average daily availability of ", tolower(nutlongName), sep = "")
           nutTitle <- paste(tolower(nutlongName), sep = "")
           ylab = paste("(",units,")",sep = "")
           drawOneLine = FALSE
@@ -379,7 +385,8 @@ for (l in scenChoiceList) {
           drawOneLine = 1
         }
         if (multipleNutsFileList[k] %in% c("dt.MRVRatios"))  {
-          nutTitle <- paste("Ratio of ", nutshortName, " availability to MRV", sep = "")
+          #        nutTitle <- paste("Ratio of ", nutshortName, " availability to MRV", sep = "")
+          nutTitle <- nutshortName
           #          ylab = "(Maximal reference value)"
           ylab = ""
           drawOneLine = FALSE
@@ -396,7 +403,7 @@ for (l in scenChoiceList) {
           drawOneLine = 1
         }
         if (multipleNutsFileList[k] == "dt.nutrients.nonstapleShare")  {
-  #        nutTitle <- paste("Non-staple share of ", nutshortName, " availability", sep = "")
+          #        nutTitle <- paste("Non-staple share of ", nutshortName, " availability", sep = "")
           nutTitle <- paste(nutshortName, sep = "")
           ylab = "(percent)"
           drawOneLine = FALSE
@@ -421,7 +428,7 @@ for (l in scenChoiceList) {
 
   ylab <- "(percent)"
 
- # plottitle = "IMPACT food budget share of 2050 per capita income"
+  # plottitle = "IMPACT food budget share of 2050 per capita income"
   plottitle = "Food budget share of 2050 per capita income"
   for (i in aggChoiceListBarChart) {
     # aggregate to and retain only the relevant regions
@@ -499,7 +506,9 @@ for (l in scenChoiceList) {
       DT[, scenarioOrder := NULL]
       DT <- orderRegions(DT, i)
       nutshortName <- cleanupNutrientNames(nutName)
-      nutTitle <- paste("Share of kilocalories from ", tolower(nutshortName), sep = "")
+      nutshortName <- capwords(nutshortName)
+      #     nutTitle <- paste("Share of kilocalories from ", capwords(nutshortName), sep = "")
+      nutTitle <- paste("", capwords(nutshortName), sep = "")
       ylab = paste("(",units,")",sep = "")
 
       #AMDR lo values
@@ -520,7 +529,86 @@ for (l in scenChoiceList) {
                           scenOrder = get(l), colorList, AMDR_lo, AMDR_hi, graphsListHolder)
     }
   }
+
+  # world maps -----
+  worldMap <- getNewestVersion("worldMap", fileloc("mData"))
+
+  # food availability maps -----
+  DT <- getNewestVersion("dt.foodAvail.foodGroup", fileloc("resultsDir"))
+  deleteFoodGroups <- c("alcohol", "beverages")
+  DT <- DT[!food_group_code %in% deleteFoodGroups,]
+  scenToPlot <- "SSP2-NoCC-REF"
+  DT <- DT[year %in% "X2050" & scenario %in% scenToPlot,]
+  DT <- countryCodeCleanup(DT) # converts IMPACT region codes to ISO3 codes for largest country in the region
+  data.table::setnames(DT, old = "region_code.IMPACT159", new = "id")
+
+  legendText <- "Grams per day, 2050, \nno climate change"
+  fillLimits <- c(0, 500)
+  myPalette <- colorRampPalette(rev(brewer.pal(11, "Spectral")))
+  palette <- myPalette(4)
+  facetColName <- "food_group_code"
+  facetMaps(DT, legendText, fillLimits, palette, facetColName)
+
+  # climate change effects maps -----
+  DT <- getNewestVersion("dt.foodAvail.foodGroup", fileloc("resultsDir"))
+  deleteFoodGroups <- c("alcohol", "beverages")
+  DT <- DT[!food_group_code %in% deleteFoodGroups,]
+  DT[, scenario := gsub("-", "_", scenario)] # needed to have valid column names
+  DT <- DT[year %in% "X2050", ][, year := NULL]
+
+  # convert to wide to do operations aross scenarios
+  formula.wide <- "region_code.IMPACT159 + food_group_code ~ scenario"
+  DT.wide <- data.table::dcast(
+    data = DT,
+    formula = formula.wide,
+    value.var = "value")
+
+  DT.wide[, delta.cc := 100 * (SSP2_HGEM_REF - SSP2_NoCC_REF) / SSP2_NoCC_REF]
+
+  data.table::setnames(DT.wide, old = c("region_code.IMPACT159", "delta.cc"), new = c("id", "value"))
+
+  legendText <- "Climate Change Effect, 2050, \n(percent)"
+  fillLimits <- c(-14, 1)
+  myPalette <- colorRampPalette(rev(brewer.pal(9, "Reds")))
+  palette <- myPalette(4)
+  facetColName <- "food_group_code"
+  DT.wide[food_group_code %in% "nutsNseeds", food_group_code := "nuts and seeds"]
+  DT.wide[food_group_code %in% "rootsNPlaintain", food_group_code := "roots and plantain"]
+  DT.wide[food_group_code %in% "rootsNPlantain", food_group_code := "roots and plantain"]
+
+  facetMaps(DT.wide, legendText, fillLimits, palette, facetColName)
+
+  # % increase in availability do to income growth
+  DT <- getNewestVersion("dt.foodAvail.foodGroup", fileloc("resultsDir"))
+  deleteFoodGroups <- c("alcohol", "beverages")
+  DT <- DT[!food_group_code %in% deleteFoodGroups,]
+  DT[, scenario := gsub("-", "_", scenario)] # needed to have valid column names
+  DT <- DT[year == "X2010" & scenario == gsub("-", "_", scenario.base) |
+             year == "X2050",]
+  DT[year == "X2010", scenario := "X2010"]
+
+  # convert to wide to do operations aross scenarios
+  formula.wide <- "region_code.IMPACT159 + food_group_code ~ scenario"
+  DT.wide <- data.table::dcast(
+    data = DT,
+    formula = formula.wide,
+    value.var = "value")
+
+  DT.wide[, delta.inc := 100 * (SSP2_NoCC_REF - X2010) / X2010]
+  data.table::setnames(DT.wide, old = c("region_code.IMPACT159", "delta.inc"), new = c("id", "value"))
+
+  legendText <- "Income Growth Effect, \n2010-2050, (percent)"
+  fillLimits <- c(-30, 100)
+  myPalette <- colorRampPalette(rev(brewer.pal(11, "Spectral")))
+  palette <- myPalette(4)
+  facetColName <- "food_group_code"
+  DT.wide[food_group_code %in% "nutsNseeds", food_group_code := "nuts and seeds"]
+  DT.wide[food_group_code %in% "rootsNPlaintain", food_group_code := "roots and plantain"]
+  DT.wide[food_group_code %in% "rootsNPlantain", food_group_code := "roots and plantain"]
+
+  facetMaps(DT.wide, legendText, fillLimits, palette, facetColName)
 }
+
 #create zip file of all the graphics outputs for a set of scenarios
 filenames.pdf <- list.files(path = paste(fileloc("gDir"), sep = "/"), pattern = ".pdf")
 for (l in scenChoiceList) {
@@ -703,9 +791,6 @@ for (fname in filesToAgg) {
 }
 
 # save graph and legend files for future use
-inGraphFile <- legendsListHolder
-outName <- "legendsListHolder"
-cleanupGraphFiles(inGraphFile, outName, fileloc("gDir"))
 inGraphFile <- graphsListHolder
 outName <- "graphsListHolder"
 cleanupGraphFiles(inGraphFile, outName, fileloc("gDir"))

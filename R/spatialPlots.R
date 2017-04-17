@@ -1,8 +1,36 @@
+#' @author Gerald C. Nelson, \email{nelson.gerald.c@@gmail.com}
+#' @keywords utilities, nutrient data, IMPACT food commodities nutrient lookup
+# Intro ---------------------------------------------------------------
+#Copyright (C) 2016 Gerald C. Nelson, except where noted
+
+# This program is free software: you can redistribute it and/or modify it
+# under the terms of the GNU General Public License as published by the Free
+# Software Foundation, either version 3 of the License, or (at your option)
+# any later version.
+#
+# This program is distributed in the hope that it will be useful, but
+# WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
+# or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License
+# for more details at http://www.gnu.org/licenses/.
+#' @description A script to hold functions used for graphing in aggRun.R.
+
+{source("R/nutrientModFunctions.R")
+  source("R/workbookFunctions.R")
+  source("R/nutrientCalcFunctions.R")
+  source("R/renameUSAIDscenarios.R")}
+# GDP setup -----
+library(data.table)
+library(gridExtra)
+library(gplots)
+library(ggplot2)
+
+# get gdxChoice
+gdxChoice <- getGdxChoice()
+
 library(sp)
 #library(rworldmap)
 library(maps)
 library(mapdata)
-library(ggplot2)
 library(maptools)
 library(mapproj)
 library(rgeos)
@@ -11,14 +39,9 @@ library(rgdal)
 # library(RCurl)
 # library(gpclib)
 library(broom)
-library(data.table)
 library(grid)
 library(gridExtra)
 #library(ggthemes)
-
-{source("R/nutrientModFunctions.R")
-  source("R/workbookFunctions.R")
-  source("R/nutrientCalcFunctions.R")}
 
 # needed for maps of nutrient availability
 dt.nutrientNames_Units <- getNewestVersion("dt.nutrientNames_Units", fileloc("mData"))
@@ -26,7 +49,7 @@ dt.nutrientNames_Units <- getNewestVersion("dt.nutrientNames_Units", fileloc("mD
 # naturalearth world map geojson
 #world <- readOGR(dsn="https://raw.githubusercontent.com/nvkelso/natural-earth-vector/master/geojson/ne_50m_admin_0_countries.geojson", layer="OGRGeoJSON")
 #world <- readOGR(dsn = "data-raw/spatialData/ne_50m_admin_0_countries.geojson", layer = "OGRGeoJSON")
-world <- readOGR(dsn = "data-raw/spatialData/ne_110m_admin_0_countries.geojson", layer = "OGRGeoJSON")
+world <- rgdal::readOGR(dsn = "data-raw/spatialData/ne_110m_admin_0_countries.geojson", layer = "OGRGeoJSON")
 
 # remove antarctica and some other small countries
 world <- world[!world$iso_a3 %in% c("ATA"),]
@@ -34,7 +57,7 @@ othersToRemove <- c("ABW", "AIA", "ALA", "AND", "ASM", "AFT")
 world <- world[!world$iso_a3 %in% othersToRemove,]
 world <- world[!world$type %in% "Dependency",]
 
-world <- spTransform(world, CRS("+proj=longlat"))
+world <-sp::spTransform(world, CRS("+proj=longlat"))
 
 #world.simp <- gSimplify(world, tol = .1, topologyPreserve = TRUE)
 #wintri
@@ -55,7 +78,6 @@ for (i in c(variablesToPlot.mult)) {
   print(paste0("working on ", i))
   dt.spatialPlotData <- getNewestVersion(i, fileloc("resultsDir"))
 
-  scenlist <- unique(dt.spatialPlotData$scenario)
   dt.spatialPlotData <- dt.spatialPlotData[year %in% c("X2010", "X2050"),]
   #note the use of scenario in i is because there are slight differences in the 2010 values for some variables in some scenarios. This code means only of them is chosen
   dt.spatialPlotData <- dt.spatialPlotData[year == "X2010" & scenario %in% "SSP2-NoCC-REF", `:=`(
@@ -67,7 +89,7 @@ for (i in c(variablesToPlot.mult)) {
 
   # order by scenarios
   if ("SSP3-NoCC-REF" %in% scenlist) {
-    # do manipulations on the gdx data that has 3 SSP scenarios and 3 climate change scenarios, but just use 1 climate scenario.
+    # do manipulations on the micronutrient modeling gdx data that has 3 SSP scenarios and 3 climate change scenarios, but just use 1 climate scenario.
     #    scenOrder.SSPs <- c("2010", "SSP2-NoCC-REF", "SSP1-NoCC-REF", "SSP3-NoCC-REF", "SSP2-GFDL-REF", "SSP2-IPSL-REF", "SSP2-HGEM-REF")
     scenOrder <- c("2010", "SSP2-NoCC-REF", "SSP2-HGEM-REF", "SSP1-NoCC-REF", "SSP3-NoCC-REF")
     dt.spatialPlotData[, scenarioOrder := match(scenario, scenOrder)]

@@ -30,7 +30,6 @@ macroList.AMDR <- macroList[!macroList %in% "totalfiber_g"]
 
 graphsListHolder <- getNewestVersion("graphsListHolder", fileloc("gDir"))
 graphNames <- names(graphsListHolder)
-legendsListHolder <- getNewestVersion("legendsListHolder", fileloc("gDir"))
 
 # fig 1 budget -----
 # [nup=2x1]
@@ -63,6 +62,8 @@ legendsListHolder <- getNewestVersion("legendsListHolder", fileloc("gDir"))
 # Fig 3 map of staple food groups -----
 
 # Fig 4 kcal availability -----
+# [nup=1x1]
+fig4 <- c("nutrients.avail_energy_kcal")
 
 # Fig 5 macro nutrients adequacy ratio
 # [nup=2x2]
@@ -108,47 +109,128 @@ fig8 <- c("compDI", "NutBalScore")
 # [nup=2x1]
 fig9 <- c("nonStapleShare", "RAOqe")
 
+# figs1 zinc bioavailability  ------
+# includes WB on left and tenregion on right
+#[nup=2x1]
+figs1 <- c("nutrients.avail_zinc_mg")
+
+# figs2. Ratio of disqualifying nutrient to its MRV
+#[nup=2x2]
+figs2 <- c("badRatios_ethanol_g", "badRatios_ft_acds_tot_sat_g", "badRatios_sugar_g")
 
 colNum <- 2
 colWidths <- c(2.7, 2.7)
-layoutMatrix4 <- rbind(c(1, 2), c(3, 4), c(5, 6), c(7))
+layoutMatrix6 <- rbind(c(1, 2), c(3, 4), c(5, 6), c(7))
+layoutMatrix5 <- rbind(c(1, 2), c(3, 4), c(5, 6))
+layoutMatrix4 <- rbind(c(1, 2), c(3, 4), c(5))
 layoutMatrix3 <- rbind(c(1, 2), c(3, 4))
 layoutMatrix2 <- rbind(c(1, 2), c(3))
-heights4 <- c(2.5, 2.5, 2.5, 0.5)
+layoutMatrix1 <- rbind(c(1,2))
+heights6 <- c(2.5, 2.5, 2.5, 0.5)
+heights5 <- c(2.5, 2.5, 2.5)
+heights4 <- c(2.5, 2.5, 0.5)
 heights3 <- c(2.5, 2.5)
 heights2 <- c(2.5, 0.5)
-layoutBottom <- 9 # number of the horizontal layout
+heights1 <- c(3)
 
-# plotList <- paste("graphsListHolder[[", plotNumberList,"]]" , sep = "", collapse = ", ")
-# plotList <- c(plotList)
-# plotList <- paste("graphsListHolder$", plotNameList , sep = "")
+legendHorizontal <- 9 # number of the horizontal layout
+legendVertical <- 10 # number of the vertical layout
 
-legendHorizontal <- 9
-legendVertical <- 10
-legendChoice <- paste("legendsListHolder[[legend_", legendOrient, "_", prefix, "_", aggChoice, "]]", sep = "")
-test <- paste("grobs = list(", plotList, legendChoice)
-
+for (aggChoice in c("WB", "tenregions")) {
 # figs with 6 plots -----
 for (figchoice in c("fig2.1", "fig2.2", "fig7.1", "fig7.3" )) {
   rowNum <- 4
   plotNameList <- paste(prefix, "_", get(figchoice), "_", aggChoice,  sep = "")
   plotNumberList <- which(graphNames %in% plotNameList)
-  plotNumberList <- c(plotNumberList, layoutBottom) # add bottom legend onto end
+  plotNumberList <- c(plotNumberList, legendHorizontal) # add bottom legend onto end
   g.out <- grid.arrange(
     grobs = graphsListHolder[plotNumberList],
     ncol = colNum, nrow = rowNum,
-    layout_matrix = layoutMatrix4,
-    colWidths = colWidths, heights = heights4
-)
+    layout_matrix = layoutMatrix6,
+    colWidths = colWidths, heights = heights6
+  )
   ggsave(file = paste(fileloc("gDir"),"/final/", figchoice, "_", aggChoice, ".pdf", sep = ""),
          plot = g.out,
          width = 7, height = 8)
   # dev.off
 }
-# figs with 2 plots -----
-for (figchoice in c("fig1", "fig2.3", "fig8", "fig9")) {
+
+  # figs with 5 plots -----
+  for (figchoice in c("fig7.2")) {
+    rowNum <- 3
+    plotNameList <- paste(prefix, "_", get(figchoice), "_", aggChoice,  sep = "")
+    plotNumberList <- which(graphNames %in% plotNameList)
+    plotNumberList <- c(plotNumberList, legendVertical) # add bottom legend onto end
+    g.out <- grid.arrange(
+      grobs = graphsListHolder[plotNumberList],
+      ncol = colNum, nrow = rowNum,
+      layout_matrix = layoutMatrix5,
+      colWidths = colWidths, heights = heights5
+    )
+    ggsave(file = paste(fileloc("gDir"),"/final/", figchoice, "_", aggChoice, ".pdf", sep = ""),
+           plot = g.out,
+           width = 7, height = 8)
+    # dev.off
+  }
+
+  # figs with 1 plot
+  for (figchoice in c("fig4")) {
+    rowNum <- 1
+    plotNameList <- paste(prefix, "_", get(figchoice), "_", aggChoice,  sep = "")
+    plotNumberList <- which(graphNames %in% plotNameList)
+    plotNumberList <- c(plotNumberList, legendVertical) # add vertical legend
+    g.out <- grid.arrange(
+      grobs = graphsListHolder[plotNumberList],
+      ncol = colNum, nrow = rowNum,
+      layout_matrix = layoutMatrix1,
+      widths = c(5,1), heights = heights1
+    )
+    ggsave(file = paste(fileloc("gDir"),"/final/", figchoice, "_", aggChoice, ".pdf", sep = ""),
+           plot = g.out,
+           width = 7, height = 4)
+  }
+
+  # figs with 2 plots -----
+  for (figchoice in c("fig1", "fig2.3", "fig8", "fig9")) {
+    rowNum <- 2
+    plotNameList <- paste(prefix, "_", get(figchoice), "_", aggChoice,  sep = "")
+    plotNumberList <- which(graphNames %in% plotNameList)
+    plotNumberList <- c(plotNumberList, legendHorizontal) # add bottom legend onto end
+    g.out <- grid.arrange(
+      grobs = graphsListHolder[plotNumberList],
+      ncol = colNum, nrow = rowNum,
+      layout_matrix = layoutMatrix2,
+      widths = colWidths, heights = heights2
+    )
+    ggsave(file = paste(fileloc("gDir"),"/final/", figchoice, "_", aggChoice, ".pdf", sep = ""),
+           plot = g.out,
+           width = 7, height = 3)
+    # dev.off
+  }
+
+  # figs with 3 plots -----
+  for (figchoice in c("fig5", "fig6", "figs2")) {
+    rowNum <- 2
+    plotNameList <- paste(prefix, "_", get(figchoice), "_", aggChoice,  sep = "")
+    plotNumberList <- which(graphNames %in% plotNameList)
+    plotNumberList <- c(plotNumberList, legendVertical) # add bottom legend onto end
+    g.out <- grid.arrange(
+      grobs = graphsListHolder[plotNumberList],
+      ncol = colNum, nrow = rowNum,
+      layout_matrix = layoutMatrix3,
+      widths = colWidths, heights = heights3
+    )
+    ggsave(file = paste(fileloc("gDir"),"/final/", figchoice, "_", aggChoice, ".pdf", sep = ""),
+           plot = g.out,
+           width = 7, height = 6)
+  }
+}
+# figs with that combine a single from two regions - WB and tenregions -----
+for (figchoice in c("figs1")) {
   rowNum <- 2
-  plotNameList <- paste(prefix, "_", get(figchoice), "_", aggChoice,  sep = "")
+  plotNameList <- paste(prefix, "_", get(figchoice), "_", "WB",  sep = "")
+  plotNameList <- c(plotNameList, paste(prefix, "_", get(figchoice), "_", "tenregions",  sep = ""))
+
   plotNumberList <- which(graphNames %in% plotNameList)
   plotNumberList <- c(plotNumberList, legendHorizontal) # add bottom legend onto end
   g.out <- grid.arrange(
@@ -160,25 +242,6 @@ for (figchoice in c("fig1", "fig2.3", "fig8", "fig9")) {
   ggsave(file = paste(fileloc("gDir"),"/final/", figchoice, "_", aggChoice, ".pdf", sep = ""),
          plot = g.out,
          width = 7, height = 3)
-  # dev.off
-}
-
-# figs with 3 plots -----
-for (figchoice in c("fig5", "fig6")) {
-  rowNum <- 2
-  plotNameList <- paste(prefix, "_", get(figchoice), "_", aggChoice,  sep = "")
-  plotNumberList <- which(graphNames %in% plotNameList)
-  plotNumberList <- c(plotNumberList, legendVertical) # add bottom legend onto end
-  g.out <- grid.arrange(
-    grobs = graphsListHolder[plotNumberList],
-    ncol = colNum, nrow = rowNum,
-    layout_matrix = layoutMatrix3,
-    widths = colWidths, heights = heights3
-  )
-  ggsave(file = paste(fileloc("gDir"),"/final/", figchoice, "_", aggChoice, ".pdf", sep = ""),
-         plot = g.out,
-         width = 7, height = 6)
-  # dev.off
 }
 
 # how to get rid of x axis labels for the first graph in listHolder

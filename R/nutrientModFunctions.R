@@ -275,6 +275,13 @@ cleanupGraphFiles <- function(inGraphFile, outName, destDir) {
   # #print(proc.time())
 }
 
+#capitalize words
+capwords <- function(s, strict = FALSE) {
+  cap <- function(s) paste(toupper(substring(s, 1, 1)),
+                           {s <- substring(s, 2); if (strict) tolower(s) else s},
+                           sep = "", collapse = " " )
+  sapply(strsplit(s, split = " "), cap, USE.NAMES = !is.null(names(s)))
+}
 
 cleanupScenarioNames <- function(dt.ptemp) {
   # replaces - with _ and removes 2 from a couple of USAID scenario
@@ -288,7 +295,7 @@ cleanupScenarioNames <- function(dt.ptemp) {
 cleanupNutrientNames <- function(nutList) {
   nutList <- gsub("_g.reqRatio","",nutList)
   nutList <- gsub("reqRatio","",nutList)
-  nutList <- gsub("vit_","vitamin ",nutList)
+  nutList <- gsub("vit_","Vitamin ",nutList)
   nutList <- gsub("_µg","",nutList)
   nutList <- gsub("_mg","",nutList)
   nutList <- gsub("_rae"," rae",nutList)
@@ -750,6 +757,23 @@ countryCodeLookup <- function(countryName, directory) {
   }
 }
 
+countryCodeCleanup <- function(DT) {
+  #converts IMPACT code to ISO3 code for largest country in the region.
+  DT <- DT[region_code.IMPACT159 %in% "FRP", region_code.IMPACT159 := "FRA"]
+  DT <- DT[region_code.IMPACT159 %in% "CHM", region_code.IMPACT159 := "CHN"]
+  DT <- DT[region_code.IMPACT159 %in% "CHP", region_code.IMPACT159 := "CHE"]
+  DT <- DT[region_code.IMPACT159 %in% "DNP", region_code.IMPACT159 := "DNK"]
+  DT <- DT[region_code.IMPACT159 %in% "FNP", region_code.IMPACT159 := "FIN"]
+  DT <- DT[region_code.IMPACT159 %in% "ITP", region_code.IMPACT159 := "ITA"]
+  DT <- DT[region_code.IMPACT159 %in% "MOR", region_code.IMPACT159 := "MAR"]
+  DT <- DT[region_code.IMPACT159 %in% "SPP", region_code.IMPACT159 := "ESP"]
+  DT <- DT[region_code.IMPACT159 %in% "UKP", region_code.IMPACT159 := "GBR"]
+  DT <- DT[region_code.IMPACT159 %in% "BLX", region_code.IMPACT159 := "BEL"]
+  DT <- DT[region_code.IMPACT159 %in% "SDP", region_code.IMPACT159 := "SDN"]
+  DT <- DT[region_code.IMPACT159 %in% "RAP", region_code.IMPACT159 := "ARE"]
+return(DT)
+}
+
 # test data for reqRatiodatasetup
 countryCode <- "AFG"; years <- c("X2010", "X2030", "X2050")
 reqTypeChoice <- "RDA.macro.all.reqRatio"
@@ -1202,7 +1226,7 @@ generateWorldMaps <- function(spData, scenOrder, titleText, legendText, lowColor
   for (i in 1:numPlots) {
     # Get the i,j matrix positions of the regions that contain this subplot
     matchidx <- as.data.frame(which(layout == i, arr.ind = TRUE))
-    pdf(paste(fileloc("gDir"), "/worldMap", fileName, "_", ".pdf", sep = ""), width = 7, height = 5.2, useDingbats = FALSE)
+    pdf(paste(fileloc("gDir"), "/worldMaps", fileName, ".pdf", sep = ""), width = 7, height = 5.2, useDingbats = FALSE)
 
     print(scenGraphs[[i]], vp = viewport(layout.pos.row = matchidx$row + 1,
                                          layout.pos.col = matchidx$col))
@@ -1210,6 +1234,43 @@ generateWorldMaps <- function(spData, scenOrder, titleText, legendText, lowColor
   }
 }
 
+# store world map dataframe -----
+worldMap <- function(){
+# naturalearth world map geojson
+#world <- readOGR(dsn="https://raw.githubusercontent.com/nvkelso/natural-earth-vector/master/geojson/ne_50m_admin_0_countries.geojson", layer="OGRGeoJSON")
+#world <- readOGR(dsn = "data-raw/spatialData/ne_50m_admin_0_countries.geojson", layer = "OGRGeoJSON")
+world <- rgdal::readOGR(dsn = "data-raw/spatialData/ne_110m_admin_0_countries.geojson", layer = "OGRGeoJSON")
+
+# remove antarctica and some other small countries
+world <- world[!world$iso_a3 %in% c("ATA"),]
+othersToRemove <- c("ABW", "AIA", "ALA", "AND", "ASM", "AFT")
+world <- world[!world$iso_a3 %in% othersToRemove,]
+world <- world[!world$type %in% "Dependency",]
+world <- sp::spTransform(world, CRS("+proj=longlat"))
+
+#world.simp <- gSimplify(world, tol = .1, topologyPreserve = TRUE)
+# alternative would be CRS("+proj=longlat")) for WGS 84
+# dat_url <- getURL("https://gist.githubusercontent.com/hrbrmstr/7a0ddc5c0bb986314af3/raw/6a07913aded24c611a468d951af3ab3488c5b702/pop.csv")
+# pop <- read.csv(text=dat_url, stringsAsFactors=FALSE, header=TRUE)
+worldMap <- broom::tidy(world, region = "iso_a3")
+inDT <- worldMap
+outName <- "worldMap"
+cleanup(inDT, outName, fileloc("mData"))
+#saveRDS(worldMap, file = paste(fileloc("mData"),"worldMap.RDS", sep = "/"))
+}
+
+facetMaps <- function(DT, legendText, fillLimits, palette, facetColName) {
+gg <- ggplot(data = DT, aes(map_id = id))
+gg <- gg + geom_map(aes(fill = value), map = worldMap)
+gg <- gg + expand_limits(x = worldMap$long, y = worldMap$lat)
+gg <- gg + facet_wrap(facets = facetColName)
+gg <- gg + theme(legend.position = "bottom")
+gg <- gg +  theme(axis.ticks = element_blank(),axis.title = element_blank(), axis.text.x = element_blank(),axis.text.y = element_blank())
+gg <- gg + scale_fill_gradientn(colors = palette, limits = fillLimits, name = legendText)
+gg <- gg + scale_colour_gradientn(colors = palette, values = NULL,
+                                  na.value = "grey50", guide = "legend")
+gg
+}
 getGdxChoice <- function() {
   gdxCombo <- read.csv(file = paste0(getwd(), "/results/gdxInfo.csv"), header = TRUE, stringsAsFactors = FALSE)
   gdxChoice <- gdxCombo[,2]
