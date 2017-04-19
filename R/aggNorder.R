@@ -248,7 +248,7 @@ plotByRegionBar <- function(dt, fileName, plotTitle, yLab, yRange, aggChoice, sc
     }
 
   # code to save the plot for future use
-  graphsListHolder[[filename]] <- p
+  graphsListHolder[[fileName]] <- p
   assign("graphsListHolder", graphsListHolder, envir = .GlobalEnv)
 
   print(p)
@@ -369,7 +369,7 @@ plotByRegionStackedBar <- function(dt, fileName, plotTitle, yLab, yRange, aggCho
   if (oneLine == FALSE) {} else {p + geom_abline(intercept = oneLine, slope = 0)}
 
   # code to save the plot for future use
-  graphsListHolder[[filename]] <- p
+  graphsListHolder[[fileName]] <- p
   assign("graphsListHolder", graphsListHolder, envir = .GlobalEnv)
 
   print(p)
@@ -422,7 +422,7 @@ plotByBoxPlot2050 <- function(dt, fileName, plotTitle, yLab, yRange, aggChoice )
     labs(y = yLab, x = NULL)
 
   # code to save the plot for future use
-  graphsListHolder[[filename]] <- p
+  graphsListHolder[[fileName]] <- p
   assign("graphsListHolder", graphsListHolder, envir = .GlobalEnv)
 
   print(p)
@@ -510,7 +510,7 @@ plotByRegionErrorBars <- function(dt, fileName, plotTitle, yLab, yRange, aggChoi
                   size = 2, width = 0.2)
 
   # code to save the plot for future use
-  graphsListHolder[[filename]] <- p
+  graphsListHolder[[fileName]] <- p
   assign("graphsListHolder", graphsListHolder, envir = .GlobalEnv)
 }
 
@@ -557,7 +557,7 @@ plotByRegionBarAMDR <- function(dt, fileName, plotTitle, yLab, yRange, aggChoice
     geom_text( aes(.75, AMDR_hi + 2, label = "High", color = "green"))
   # code to save the plot for future use
   # code to save the plot for future use
-  graphsListHolder[[filename]] <- p
+  graphsListHolder[[fileName]] <- p
   assign("graphsListHolder", graphsListHolder, envir = .GlobalEnv)
 
 
