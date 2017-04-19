@@ -30,7 +30,8 @@ gdxChoice <- getGdxChoice()
 # create legend grobs for use in multiple graph files -----
 updateLegendGrobs <- function(l, i, legendLoc, mergedVals) {
   # use an arbitrary file to construct the grob. This code modified from aggRun.R
-  DT <- aggNorder(gdxChoice, DTglobal = "dt.budgetShare", aggChoice = i, scenChoice = get(l), mergedVals)
+  DTglobal <- getNewestVersion("dt.budgetShare", fileloc("resultsDir"))
+  DT <- aggNorder(gdxChoice, DTglobal, aggChoice = i, scenChoice = get(l), mergedVals)
   ylab <- "(percent)"
   print(paste("creating legend grob for ", i, ",", l, "and", legendLoc))
   regionCodes <- unique(DT$region_code)
@@ -94,11 +95,10 @@ orderRegions <- function(DT, aggChoice) {
 
 aggNorder <- function(gdxChoice, DTglobal, aggChoice, scenChoice, mergedVals) {
   # print(paste("running aggNorder for ", gdxChoice, " and ", i))
-  DT <- getNewestVersion(DTglobal, fileloc("resultsDir"))
-  setkey(DT, NULL)
+  setkey(DTglobal, NULL)
   dt.regions <- regionAgg(aggChoice)
   # aggregate to and retain only the relevant regions
-  temp <- merge(DT, dt.regions, by = "region_code.IMPACT159")
+  temp <- merge(DTglobal, dt.regions, by = "region_code.IMPACT159")
   merged <- merge(temp, dt.pop, by = c("scenario","region_code.IMPACT159","year"))
   # merged <- merged[region_code.IMPACT159 %in% region_code, ]
   # deal with the budget data
@@ -125,11 +125,21 @@ aggNorder <- function(gdxChoice, DTglobal, aggChoice, scenChoice, mergedVals) {
   # aggregation takes place in the next line of code.
   # It says create the variable value from the old variable value, averaged by the region
   # code and year (and other variables, in particular nutrient in some cases) using the popX) value as weights
+  merged <- merged[, min.region := min(value), by = mergedVals]
+  merged <- merged[, max.region := max(value), by = mergedVals]
+  merged <- merged[, sd.region := sd(value), by = mergedVals]
   merged <- merged[, value := weighted.mean(value, PopX0), by = mergedVals]
-  keepListCol <- c(mergedVals, "region_name", "value")
+
+  # other potential stats to add
+  # lower=quantile(value, .25, na.rm=TRUE),
+  # middle=quantile(value, .50, na.rm=TRUE),
+  # upper=quantile(value, .75, na.rm=TRUE),
+
+
+  keepListCol <- c(mergedVals, "region_name", "value", "min.region", "max.region", "sd.region")
   if ("nutrient" %in% names(merged))  {
     # set kcalsPerDay.other to zero if it is less than zero.
-    DT[nutrient %in% "kcalsPerDay.other" & value < 0, value := 0]
+    merged[nutrient %in% "kcalsPerDay.other" & value < 0, value := 0]
     nutOrder <- c("kcalsPerDay.carbohydrate", "kcalsPerDay.fat", "kcalsPerDay.protein", "kcalsPerDay.other")
     keepListCol <- c(mergedVals, "region_name", "value")
   }
@@ -180,9 +190,9 @@ aggNorder <- function(gdxChoice, DTglobal, aggChoice, scenChoice, mergedVals) {
   return(DT)
 }
 
-plotByRegionBar <- function(dt, fileName, plotTitle, yLab, yRange, aggChoice, scenOrder, oneLine, colorList, AMDR_hi = NULL) {
+plotByRegionBar <- function(dt, fileName, plotTitle, yLab, yRange, aggChoice, scenOrder, oneLine, colorList, AMDR_hi = NULL, plotErrorBars) {
 
-  print(paste("plotting bars by region", aggChoice, "for", plotTitle))
+  cat(paste("\nplotting bars by region", aggChoice, "for", plotTitle))
   temp <- copy(dt)
   regionCodes <- unique(temp$region_code)
   regionNames <- unique(temp$region_name)
@@ -208,8 +218,12 @@ plotByRegionBar <- function(dt, fileName, plotTitle, yLab, yRange, aggChoice, sc
   # draw bars
   pdf(paste(fileloc("gDir"),"/", fileName, ".pdf", sep = ""), width = 7, height = 5.2, useDingbats = FALSE)
   if (round(max(temp$value) - yRange[2]) == 0) yRange[2] <- max(temp$value) # will hopefully deal with rare situation
+# use the standard deviation value to define ymax
+  if (plotErrorBars == TRUE) {
+    yRange[2] <- max(temp$sd.region + temp$value)
+  }
   # when all elements of value are the same as the max y range
-  p <- ggplot(temp, aes(x = region_name, y = value, fill = scenario, order = c("region_name") )) +
+  p <- ggplot(temp, aes(x = factor(region_name), y = value, fill = scenario, order = c("region_name") )) +
     geom_bar(stat = "identity", position = "dodge", color = "black") +
  #   theme(legend.position = "bottom") +
         theme(legend.position = "none") +
@@ -221,11 +235,17 @@ plotByRegionBar <- function(dt, fileName, plotTitle, yLab, yRange, aggChoice, sc
     #   ylim(yRange) +
     labs(y = yLab, x = NULL)
 
-
 # the 'or' part of the if statement means don't draw the line if it's greater than ymax
   if (oneLine == FALSE | oneLine > yRange[2]) {} else {
-    p <- p + geom_hline(aes(yintercept = oneLine,  color = "black"))
-  }
+    p <- p + geom_hline(aes(yintercept = oneLine, color = "black"))
+}
+  if (plotErrorBars == TRUE) {
+    temp[, yminValue := ifelse(value - sd.region < 0, 0, value - sd.region)]
+    p <- p + geom_errorbar(aes(ymin = yminValue, ymax = value + sd.region), width = .2,
+                           position = position_dodge(.9), color = "grey")
+#      geom_line(position = position_dodge(.9)) +
+ #     geom_point(position = position_dodge(.9), size=2)
+    }
 
   # code to save the plot for future use
   graphsListHolder[[filename]] <- p
@@ -313,7 +333,7 @@ plotByRegionBar <- function(dt, fileName, plotTitle, yLab, yRange, aggChoice, sc
 }
 
 plotByRegionStackedBar <- function(dt, fileName, plotTitle, yLab, yRange, aggChoice, scenOrder, oneLine, colorList) {
-  print(paste("plotting stacked bars by region", aggChoice, "for", plotTitle))
+  cat(paste("plotting stacked bars by region", aggChoice, "for", plotTitle))
   temp <- copy(dt)
   regionCodes <- unique(temp$region_code)
   regionNames <- unique(temp$region_name)
@@ -495,8 +515,10 @@ plotByRegionErrorBars <- function(dt, fileName, plotTitle, yLab, yRange, aggChoi
 }
 
 
-plotByRegionBarAMDR <- function(dt, fileName, plotTitle, yLab, yRange, aggChoice, scenOrder, colorList, AMDR_lo, AMDR_hi, graphsListHolder) {
-  print(paste("plotting AMDR bars by region for", aggChoice, "for", plotTitle))
+plotByRegionBarAMDR <- function(dt, fileName, plotTitle, yLab, yRange, aggChoice, scenOrder, colorList, AMDR_lo, AMDR_hi,
+                                graphsListHolder, plotErrorBars) {
+
+  print(paste("plotting AMDR bars by region ", aggChoice, "for", plotTitle))
   temp <- copy(dt)
   regionCodes <- unique(temp$region_code)
   regionNames <- unique(temp$region_name)
