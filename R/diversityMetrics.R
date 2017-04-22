@@ -443,17 +443,19 @@ for (l in seq_along(di)) {
         get(nutrients.disqual.MRV[l]))
 }
 
-# times 100 to put it on 0 to 100 scale
+# times 100 to put it on 0 to 100 scale; April 29, 2017, remove the * 100
 
 for (j in di) {
-  set(dt.nutrients.kcals, i = NULL, j = j, value = dt.nutrients.kcals[[j]] * 100)
+#  set(dt.nutrients.kcals, i = NULL, j = j, value = dt.nutrients.kcals[[j]] * 100)
+  set(dt.nutrients.kcals, i = NULL, j = j, value = dt.nutrients.kcals[[j]])
 }
 
 # do ethanol separately because it is about a specific numbers of grams (20 per cay) rather than share of total
 # ethanol MRV ratio is now created earlier
 dt.mrv.ethanol <- getNewestVersion("MRVs_sum_reqRatio", fileloc("resultsDir"))
 dt.nutrients.kcals <- merge(dt.mrv.ethanol, dt.nutrients.kcals, by = c("scenario",  "region_code.IMPACT159", "year" ))
-dt.nutrients.kcals[, di.ethanol := value * 100]
+# dt.nutrients.kcals[, di.ethanol := value * 100] #April 29, 2017, remove the * 100
+dt.nutrients.kcals[, di.ethanol := value ]
 deleteListCol <- c("nutrient", "value")
 dt.nutrients.kcals[, (deleteListCol) := NULL ]
 

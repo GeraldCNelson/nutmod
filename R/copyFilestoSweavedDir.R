@@ -69,7 +69,7 @@ copyListFromVits.AggReg1 <- paste0(copyListFromVits, "_AggReg1.pdf")
 
 foodGroups <- c(c("alcohol", "beverages", "cereals", "dairy",
                   "eggs", "fish", "fruits", "meats", "nutsNseeds", "oils",
-                  "pulses", "rootsNPlaintain","sweeteners", "vegetables"))
+                  "pulses", "rootsNPlantain","sweeteners", "vegetables"))
 
 copyListFromAvailByFG <- paste("foodAvail_foodGroup", foodGroups, sep = "_")
 copyListFromAvailByFG.WB <- paste0(copyListFromAvailByFG, "_WB.pdf")

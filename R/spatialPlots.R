@@ -200,7 +200,7 @@ for (i in c(variablesToPlot.mult)) {
     for (l in unique(dt.spatialPlotData$food_group_code)) {
       titleText <- paste("Daily per capita availability in 2050 for food group", l, "for ", sep = " ")
       spData <- dt.spatialPlotData[food_group_code %in% l & scenario %in% scenToPlot,]
-#      if (l %in% "rootsNPlaintain")  fillLimits <- c(0, 2000)
+#      if (l %in% "rootsNPlantain")  fillLimits <- c(0, 2000)
 #      fillLimits[2] <- round(max(spData$value))
       fileName <- paste0("foodAvail.foodgroup.", l)
       generateWorldMaps(spData = spData, scenOrder = scenToPlot, titleText = titleText, legendText = legendText, lowColor = lowColor, highColor = highColor,

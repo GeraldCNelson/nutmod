@@ -43,7 +43,7 @@ NUTR_DEF <- as.data.table(sqlFetch(con, "NUTR_DEF", as.is = TRUE)) #nutrient def
 deleteListCol <- c("Tagname", "Num_Dec",  "SR_Order")
 NUTR_DEF[,(deleteListCol) := NULL]
 
-SRC_CD <- as.data.table(sqlFetch(con, "SRC_CD")) # source of data
+invisible(SRC_CD <- as.data.table(sqlFetch(con, "SRC_CD"))) # source of data
 odbcClose(con)
 inDT <- FOOD_DES
 outName <- "FOOD_DES"

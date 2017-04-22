@@ -41,10 +41,12 @@ updateLegendGrobs <- function(l, i, legendLoc, mergedVals) {
   DT[, scenario := gsub("-REF", "", scenario)]
   scenOrder <- gsub("-REF", "", scenOrder)
   # temp <- temp[order(region_code)]
-  if (i %in% "WB") regionNameOrder <- c("Low income", "Lower middle income", "Upper middle income", "High income")
+#  if (i %in% "WB") regionNameOrder <- c("Low income", "Lower middle income", "Upper middle income", "High income")
+  if (aggChoice %in% "WB") regionNameOrder <- c("Low", "Lower middle", "Upper middle", "High")
   if (i %in% "AggReg1") regionNameOrder <- regionNames
   if (i %in% "tenregions") regionNameOrder <- regionNames
   scenarioNameOrder <- scenOrder
+  DT[, region_name := gsub(" income", "", region_name)]
   DT[, region_name := factor(region_name, levels =  regionNameOrder)]
   DT[, scenario := factor(scenario, levels = scenarioNameOrder)]
   if (gdxChoice %in% "USAID")  DT <- renameUSAIDscenarios(DT)
@@ -191,8 +193,8 @@ aggNorder <- function(gdxChoice, DTglobal, aggChoice, scenChoice, mergedVals) {
 }
 
 plotByRegionBar <- function(dt, fileName, plotTitle, yLab, yRange, aggChoice, scenOrder, oneLine, colorList, AMDR_hi = NULL, plotErrorBars) {
-
   cat(paste("\nplotting bars by region", aggChoice, "for", plotTitle))
+  plotTitle <- capwords(plotTitle)
   temp <- copy(dt)
   regionCodes <- unique(temp$region_code)
   regionNames <- unique(temp$region_name)
@@ -201,16 +203,13 @@ plotByRegionBar <- function(dt, fileName, plotTitle, yLab, yRange, aggChoice, sc
   temp[, scenario := gsub("-REF", "", scenario)]
   scenOrder <- gsub("-REF", "", scenOrder)
   # temp <- temp[order(region_code)]
-  if (aggChoice %in% "WB") regionNameOrder <- c("Low income", "Lower middle income", "Upper middle income", "High income")
+#  if (aggChoice %in% "WB") regionNameOrder <- c("Low income", "Lower middle income", "Upper middle income", "High income")
+  if (aggChoice %in% "WB") regionNameOrder <- c("Low", "Lower middle", "Upper middle", "High")
   if (aggChoice %in% "AggReg1") regionNameOrder <- regionNames
   if (aggChoice %in% "tenregions") regionNameOrder <- regionNames
   scenarioNameOrder <- scenOrder
-  # print(plotTitle)
-  # print(paste("i, ", i))
-  #
-  # print(temp)
-  # print(paste("regionNameOrder, ", regionNameOrder))
-  # print(paste("scenarioNameOrder, ", scenarioNameOrder))
+
+  temp[, region_name := gsub(" income", "", region_name)]
   temp[, region_name := factor(region_name, levels =  regionNameOrder)]
   temp[, scenario := factor(scenario, levels = scenarioNameOrder)]
   if (gdxChoice %in% "USAID")  temp <- renameUSAIDscenarios(temp)
@@ -218,7 +217,7 @@ plotByRegionBar <- function(dt, fileName, plotTitle, yLab, yRange, aggChoice, sc
   # draw bars
   pdf(paste(fileloc("gDir"),"/", fileName, ".pdf", sep = ""), width = 7, height = 5.2, useDingbats = FALSE)
   if (round(max(temp$value) - yRange[2]) == 0) yRange[2] <- max(temp$value) # will hopefully deal with rare situation
-# use the standard deviation value to define ymax
+#' use the standard deviation value to define ymax
   if (plotErrorBars == TRUE) {
     yRange[2] <- max(temp$sd.region + temp$value)
   }
@@ -228,7 +227,7 @@ plotByRegionBar <- function(dt, fileName, plotTitle, yLab, yRange, aggChoice, sc
  #   theme(legend.position = "bottom") +
         theme(legend.position = "none") +
     theme(axis.text.x = element_text(angle = 45, hjust = 1)) +
-    scale_y_continuous(limits = yRange) +
+    scale_y_continuous(limits = yRange, labels = fmt_dcimals(0)) + # fmt_dcimals sets number of digits to right of decimal
     scale_fill_manual(values = colorList) +
     theme(plot.title = element_text(hjust = 0.5, size = 11)) +
     ggtitle(plotTitle) +
@@ -333,7 +332,8 @@ plotByRegionBar <- function(dt, fileName, plotTitle, yLab, yRange, aggChoice, sc
 }
 
 plotByRegionStackedBar <- function(dt, fileName, plotTitle, yLab, yRange, aggChoice, scenOrder, oneLine, colorList) {
-  cat(paste("plotting stacked bars by region", aggChoice, "for", plotTitle))
+  cat(paste("\nPlotting stacked bars by region", aggChoice, "for", plotTitle))
+  plotTitle <- capwords(plotTitle)
   temp <- copy(dt)
   regionCodes <- unique(temp$region_code)
   regionNames <- unique(temp$region_name)
@@ -342,12 +342,16 @@ plotByRegionStackedBar <- function(dt, fileName, plotTitle, yLab, yRange, aggCho
   temp[, scenario := gsub("-REF", "", scenario)]
   scenOrder <- gsub("-REF", "", scenOrder)
   # temp <- temp[order(region_code)]
-  if (aggChoice %in% "WB") regionNameOrder <- c("Low income", "Lower middle income", "Upper middle income", "High income")
+#  if (aggChoice %in% "WB") regionNameOrder <- c("Low income", "Lower middle income", "Upper middle income", "High income")
+  if (aggChoice %in% "WB") regionNameOrder <- c("Low", "Lower middle", "Upper middle", "High")
   if (aggChoice %in% "AggReg1") regionNameOrder <- regionNames
   if (aggChoice %in% "tenregions") regionNameOrder <- regionNames
   scenarioNameOrder <- scenOrder
+  temp[, region_name := gsub(" income", "", region_name)]
   temp[, region_name := factor(region_name, levels =  regionNameOrder)]
   temp[, scenario := factor(scenario, levels = scenarioNameOrder)]
+  temp[, region_name := gsub(" income", "", region_name)]
+
   if (gdxChoice %in% "USAID")  temp <- renameUSAIDscenarios(temp)
 
   # draw bars
@@ -396,6 +400,7 @@ plotByRegionStackedBar <- function(dt, fileName, plotTitle, yLab, yRange, aggCho
 
 plotByBoxPlot2050 <- function(dt, fileName, plotTitle, yLab, yRange, aggChoice ){
   print(paste("plotting boxplot for 2050 by region", aggChoice))
+  plotTitle <- capwords(plotTitle)
   temp <- copy(dt)
   regionCodes <- unique(temp$region_code)
   regionNames <- unique(temp$region_name)
@@ -403,15 +408,21 @@ plotByBoxPlot2050 <- function(dt, fileName, plotTitle, yLab, yRange, aggChoice )
   temp[, scenario := gsub("-REF", "", scenario)]
   scenOrder <- gsub("-REF", "", scenOrder)
   # temp <- temp[order(region_code)]
-  if (aggChoice %in% "WB") regionNameOrder <- c("Low income", "Lower middle income", "Upper middle income", "High income")
+#  if (aggChoice %in% "WB") regionNameOrder <- c("Low income", "Lower middle income", "Upper middle income", "High income")
+  if (aggChoice %in% "WB") regionNameOrder <- c("Low", "Lower middle", "Upper middle", "High")
   if (aggChoice %in% "AggReg1") regionNameOrder <- regionNames
   if (aggChoice %in% "tenregions") regionNameOrder <- regionNames
+
+
+  scenarioNameOrder <- scenOrder
+  temp[, region_name := gsub(" income", "", region_name)]
   temp[, region_name := factor(region_name, levels =  regionNameOrder)]
+  temp[, scenario := factor(scenario, levels = scenarioNameOrder)]
   if (gdxChoice %in% "USAID")  temp <- renameUSAIDscenarios(temp)
 
   # draw boxplot
   pdf(paste(fileloc("gDir"),"/", fileName, ".pdf", sep = ""), width = 7, height = 5.2, useDingbats = FALSE)
-  p <- ggplot(temp, aes(x = region_name, y = incSharePCX0)) +
+  p <- ggplot(temp, aes(x = region_name, y = value)) +
     geom_boxplot(stat = "boxplot", position = "dodge", color = "black", outlier.shape = NA) + # outlier.shape = NA, gets rid of outlier dots
     #    theme(legend.position = "right") +
     theme(axis.text.x = element_text(angle = 45, hjust = 1)) +
@@ -430,6 +441,7 @@ plotByBoxPlot2050 <- function(dt, fileName, plotTitle, yLab, yRange, aggChoice )
 }
 
 plotByRegionLine <- function(dt, fileName, plotTitle, yRange, regionCodes, colorList) {
+  plotTitle <- capwords(plotTitle)
   dt.pcGDPX0 <- getNewestVersionIMPACT("dt.pcGDPX0")
   dt.pcGDPX0.2010.ref <- dt.pcGDPX0[year ==  "X2010" & scenario == scenario.base,][,c("scenario","year") :=  NULL]
   temp <- getNewestVersion(dt, fileloc("resultsDir"))
@@ -470,6 +482,7 @@ plotByRegionLine <- function(dt, fileName, plotTitle, yRange, regionCodes, color
 # error bars-----
 plotByRegionErrorBars <- function(dt, fileName, plotTitle, yLab, yRange, aggChoice, oneLine) {
   print(paste("plotting lines with error bars by region ", aggChoice, "for ", plotTitle))
+  plotTitle <- capwords(plotTitle)
   temp <- copy(dt)
   regionCodes <- unique(temp$region_code)
   regionNames <- unique(temp$region_name)
@@ -480,10 +493,13 @@ plotByRegionErrorBars <- function(dt, fileName, plotTitle, yLab, yRange, aggChoi
 
   temp[, scenario := gsub("-REF", "", scenario)]
   # temp <- temp[order(region_code)]
-  regionNameOrder <- c("Low income", "Lower middle income", "Upper middle income", "High income")
+#  regionNameOrder <- c("Low income", "Lower middle income", "Upper middle income", "High income")
+  regionNameOrder <- c("Low", "Lower middle", "Upper middle", "High")
   scenarioNameOrder <- c("2010", "SSP2-NoCC", "SSP1-NoCC", "SSP3-NoCC", "SSP2-GFDL", "SSP2-IPSL", "SSP2-HGEM")
+  temp[, region_name := gsub(" income", "", region_name)]
   temp[, region_name := factor(region_name, levels =  regionNameOrder)]
   temp[, scenario := factor(scenario, levels = scenarioNameOrder)]
+  temp[, region_name := gsub(" income", "", region_name)]
   scenario.econ <- c("SSP2-NoCC", "SSP1-NoCC", "SSP3-NoCC")
   scenario.clim <- c("SSP2-GFDL", "SSP2-IPSL", "SSP2-HGEM")
   min.econ <- temp[scenario %in% scenario.econ,  min(value), by = c("region_code")]
@@ -514,11 +530,10 @@ plotByRegionErrorBars <- function(dt, fileName, plotTitle, yLab, yRange, aggChoi
   assign("graphsListHolder", graphsListHolder, envir = .GlobalEnv)
 }
 
-
 plotByRegionBarAMDR <- function(dt, fileName, plotTitle, yLab, yRange, aggChoice, scenOrder, colorList, AMDR_lo, AMDR_hi,
                                 graphsListHolder, plotErrorBars) {
-
-  print(paste("plotting AMDR bars by region ", aggChoice, "for", plotTitle))
+  print(paste("plotting AMDR bars for region ", aggChoice, "for", plotTitle))
+  plotTitle <- capwords(plotTitle)
   temp <- copy(dt)
   regionCodes <- unique(temp$region_code)
   regionNames <- unique(temp$region_name)
@@ -527,11 +542,12 @@ plotByRegionBarAMDR <- function(dt, fileName, plotTitle, yLab, yRange, aggChoice
   temp[, scenario := gsub("-REF", "", scenario)]
   scenOrder <- gsub("-REF", "", scenOrder)
   # temp <- temp[order(region_code)]
-  if (aggChoice %in% "WB") regionNameOrder <- c("Low income", "Lower middle income", "Upper middle income", "High income")
+#  if (aggChoice %in% "WB") regionNameOrder <- c("Low income", "Lower middle income", "Upper middle income", "High income")
+  if (aggChoice %in% "WB") regionNameOrder <- c("Low", "Lower middle", "Upper middle", "High")
   if (aggChoice %in% "AggReg1") regionNameOrder <- regionNames
   if (aggChoice %in% "tenregions") regionNameOrder <- regionNames
   scenarioNameOrder <- scenOrder
-
+  temp[, region_name := gsub(" income", "", region_name)]
   temp[, region_name := factor(region_name, levels =  regionNameOrder)]
   temp[, scenario := factor(scenario, levels = scenarioNameOrder)]
   if (gdxChoice %in% "USAID")  temp <- renameUSAIDscenarios(temp)
