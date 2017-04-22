@@ -304,7 +304,7 @@ cleanupNutrientNames <- function(nutList) {
   nutList <- gsub(".ratio.foodGroup","",nutList)
   nutList <- gsub("share","",nutList)
   nutList <- gsub(".sum.all","",nutList)
-  nutList <- gsub("rootsNPlaintain","roots and plantain",nutList)
+  nutList <- gsub("rootsNPlantain","roots and plantain",nutList)
   nutList <- gsub("nutsNseeds","nuts and seeds",nutList)
   nutList <- gsub("alcohol","alcoholic beverages",nutList)
   nutList <- gsub("beverages","nonalcoholic beverages",nutList)
@@ -1268,27 +1268,28 @@ storeWorldMapDF <- function(){
 }
 
 facetMaps <- function(worldMap, DT, fileName, legendText, fillLimits, palette, facetColName, graphsListHolder, breakValues) {
-  gg <- ggplot(data = DT, aes(map_id = id))
+  b <- breakValues
+  f <- fillLimits
+  p <- palette
+  n <- facetColName
+  d <- DT
+  gg <- ggplot(data = d, aes(map_id = id))
   gg <- gg + geom_map(aes(fill = value), map = worldMap)
   gg <- gg + expand_limits(x = worldMap$long, y = worldMap$lat)
-  gg <- gg + facet_wrap(facets = facetColName)
+  gg <- gg + facet_wrap(facets = n)
   gg <- gg + theme(legend.position = "bottom")
-  gg <- gg +  theme(axis.ticks = element_blank(),axis.title = element_blank(), axis.text.x = element_blank(),axis.text.y = element_blank())
-  # gg <- gg + scale_fill_gradientn(colors = palette, limits = fillLimits, name = legendText,
-  #                                 na.value = "grey50", values = c(, 1))
-  # # gg <- gg + scale_colour_gradientn(colors = palette, values = NULL,
-  #                                   na.value = "grey50", guide = "legend")
-
-  gg <- gg + scale_fill_gradientn(colors = palette, name = legendText,
-                                  na.value = "grey50", values = breakValues,
-  guide = "colorbar", limits = fillLimits)
+  gg <- gg +  theme(axis.ticks = element_blank(),axis.title = element_blank(), axis.text.x = element_blank(),
+                    axis.text.y = element_blank())
+  gg <- gg + scale_fill_gradientn(colors = p, name = legendText,
+                                  na.value = "grey50", values = b,
+  guide = "colorbar", limits = f)
   gg
-
-
-
 
   graphsListHolder[[fileName]] <- gg
   assign("graphsListHolder", graphsListHolder, envir = .GlobalEnv)
+  ggsave(file = paste0(fileloc("gDir"),"/",fileName,".pdf"), plot = gg,
+         width = 7, height = 6)
+
 }
 getGdxChoice <- function() {
   gdxCombo <- read.csv(file = paste0(getwd(), "/results/gdxInfo.csv"), header = TRUE, stringsAsFactors = FALSE)
@@ -1302,4 +1303,8 @@ g_legend <- function(plot.in) {
   leg <- which(sapply(tmp$grobs, function(x) x$name) == "guide-box")
   legend <- tmp$grobs[[leg]]
   return(legend)
+}
+
+fmt_dcimals <- function(decimals=0){
+  function(x) format(x,nsmall = decimals,scientific = FALSE)
 }
