@@ -803,20 +803,6 @@ nutReqDataPrep <- function(reqTypeChoice, countryCode, scenarioName, years, dir)
   reqRatios.long <- reqRatios.long[scenario %in% scenarioName &
                                      region_code.IMPACT159 %in% countryCode &
                                      year %in% years, ]
-  #  print(head(reqRatios))
-  # keepListCol <- c("scenario", "SSP", "climate_model", "experiment", "RCP", "region_code.IMPACT159",
-  #                  "nutrient",  "year", "value")
-  # idVars <- c("scenario", "SSP", "climate_model", "experiment", "region_code.IMPACT159", "nutrient")
-  #
-  # reqRatios <- reqRatios[, keepListCol, with = FALSE]
-  # description <- resultFileLookup[reqTypeName == reqTypeChoice, description]
-  #
-  # measureVars <- years
-  # reqRatios.long <- data.table::melt(
-  #   data = reqRatios, id.vars = idVars, measure.vars = measureVars, variable.name = "year",
-  #   value.name = "value", variable.factor = FALSE)
-
-  #  formula.ratios <- paste("scenario + SSP + climate_model + experiment + region_code.IMPACT159 + year ~ nutrient")
   formula.ratios <- paste("scenario + region_code.IMPACT159 + year ~ nutrient")
   reqRatios.wide <- data.table::dcast(
     reqRatios.long,
@@ -1267,19 +1253,20 @@ storeWorldMapDF <- function(){
   cleanup(inDT, outName, fileloc("mData"))
 }
 
-facetMaps <- function(worldMap, DT, fileName, legendText, fillLimits, palette, facetColName, graphsListHolder, breakValues) {
+facetMaps <- function(worldMap, DT, fileName, legendText, fillLimits, palette, facetColName, graphsListHolder, breakValues, displayOrder) {
   b <- breakValues
   f <- fillLimits
   p <- palette
   n <- facetColName
-  d <- DT
+  d <- data.table::copy(DT)
+  d[, (n) := factor(get(n), levels = displayOrder)]
   gg <- ggplot(data = d, aes(map_id = id))
   gg <- gg + geom_map(aes(fill = value), map = worldMap)
   gg <- gg + expand_limits(x = worldMap$long, y = worldMap$lat)
   gg <- gg + facet_wrap(facets = n)
   gg <- gg + theme(legend.position = "bottom")
   gg <- gg +  theme(axis.ticks = element_blank(),axis.title = element_blank(), axis.text.x = element_blank(),
-                    axis.text.y = element_blank())
+                    axis.text.y = element_blank(), strip.text = element_text(family = "Times", face = "plain"))
   gg <- gg + scale_fill_gradientn(colors = p, name = legendText,
                                   na.value = "grey50", values = b,
   guide = "colorbar", limits = f)

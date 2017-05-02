@@ -1,6 +1,24 @@
 # copy files from the dir directory (typically results) to the nutrientModeling directory.
+#' files to copy are
+#' dt.regions.all
+#' dt.scenarioListIMPACT
+#' dt.foodAvail.foodGroup
+#' dt.nutrients.sum.staples
+#' dt.shannonDiversity
+#' resultFileLookup
+#' dt.energy_ratios
+#' dt.budgetShare
+#' dt.metadata
+#' dt.IMPACTgdxParams
+#' dt.foodGroupsInfo
+#' RDA.macro_sum_reqRatio
+#' RDA.vits_sum_reqRatio
+#' RDA.minrls_sum_reqRatio
+#'
+#' gdxinfo.csv
 
-#Copyright (C) 2016 Gerald C. Nelson, except where noted
+
+#Copyright (C) 2016, 2017 Gerald C. Nelson, except where noted
 
 #   This program is free software: you can redistribute it and/or modify it
 #   under the terms of the GNU General Public License as published by the Free
@@ -20,9 +38,9 @@
   source("R/nutrientCalcFunctions.R")
 }
 #for testing
-fileShortName <- "RDA.macro.sum.req.ratio"
+fileShortName <- "RDA.macro_sum_reqRatio"
 sourceDir <- fileloc("resultsDir")
-destDir <- "nutrientModeling/data"
+destDir <- paste("nutrientModeling/data", getGdxChoice(), sep = "/")
 fileType <- "rds"
 
 copyFile <- function(fileShortName, sourceDir, destDir, fileType) {
@@ -40,28 +58,33 @@ copyFile <- function(fileShortName, sourceDir, destDir, fileType) {
 
 copyListFromResults <- c("dt.energy_ratios", "dt.budgetShare",
                          "RDA.macro_sum_reqRatio", "RDA.vits_sum_reqRatio", "RDA.minrls_sum_reqRatio",
-                         "RDA.macro_staples_ratio","RDA.vits_staples_ratio", "RDA.minrls_staples_ratio",
-                         "RDA.macro_FG_reqRatio","RDA.vits_FG_reqRatio", "RDA.minrls_FG_reqRatio",
-#                         "UL.vits.sum.req.ratio", "UL.minrls.sum.req.ratio",
-#                         "UL.minrls.FG.ratio", "UL.vits.FG.ratio",
+                         #   "RDA.macro_staples_ratio","RDA.vits_staples_ratio", "RDA.minrls_staples_ratio",
+                         #   "RDA.macro_FG_reqRatio","RDA.vits_FG_reqRatio", "RDA.minrls_FG_reqRatio",
+                         #   "UL.vits.sum.req.ratio", "UL.minrls.sum.req.ratio",
+                         #   "UL.minrls.FG.ratio", "UL.vits.FG.ratio",
                          "dt.KcalShare.nonstaple","dt.RAOqe", "dt.compDI", "dt.nutBalScore", "dt.metadata",
-                         "dt.nutrients.sum.all",  "dt.nutrients.sum.staples")
-#, "dt.nutrients.sum.staples")
+                         "dt.nutrients.sum.all",  "dt.nutrients.sum.staples", "dt.foodAvail.foodGroup",
+                         "dt.shannonDiversity")
+#dt.nutrients.sum.all, "dt.nutrients.sum.staples")
 
 copyListFromData <- c("dt.regions.all", "dt.foodGroupsInfo", "resultFileLookup", "dt.scenarioListIMPACT")
 copyListFromiData <- c("dt.IMPACTgdxParams")
 #copyCsvFromData <- c("fileDocumentation.csv")
 
+# special copy for the gdxInfo file which is just below results
+invisible(file.copy("results/gdxInfo.csv", "nutrientModeling/data"))
+
+# copy from results/gdxname
 for (i in copyListFromResults) {
-  print(sprintf("copying file %s from results to nutrientModeling/data", i))
-  copyFile(i, fileloc("resultsDir"), "nutrientModeling/data", "rds")
+  print(sprintf("copying file %s from results to $s", i, destDir))
+  copyFile(i, fileloc("resultsDir"), destDir, "rds")
 }
 for (i in copyListFromData) {
   print(sprintf("copying file %s from %s to nutrientModeling/data", i, fileloc("mData")))
-  copyFile(i, fileloc("mData"),"nutrientModeling/data", "rds")
+  copyFile(i, fileloc("mData"), destDir, "rds")
 }
 for (i in copyListFromiData) {
-  copyFile(i, fileloc("iData"),"nutrientModeling/data", "rds")
+  copyFile(i, fileloc("iData"), destDir, "rds")
 }
 # for (i in copyCsvFromData) {
 #   copyFile(i, fileloc("mData"),"nutrientModeling/data", "csv")

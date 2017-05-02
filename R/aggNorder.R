@@ -41,7 +41,7 @@ updateLegendGrobs <- function(l, i, legendLoc, mergedVals) {
   DT[, scenario := gsub("-REF", "", scenario)]
   scenOrder <- gsub("-REF", "", scenOrder)
   # temp <- temp[order(region_code)]
-#  if (i %in% "WB") regionNameOrder <- c("Low income", "Lower middle income", "Upper middle income", "High income")
+  #  if (i %in% "WB") regionNameOrder <- c("Low income", "Lower middle income", "Upper middle income", "High income")
   if (aggChoice %in% "WB") regionNameOrder <- c("Low", "Lower middle", "Upper middle", "High")
   if (i %in% "AggReg1") regionNameOrder <- regionNames
   if (i %in% "tenregions") regionNameOrder <- regionNames
@@ -55,7 +55,7 @@ updateLegendGrobs <- function(l, i, legendLoc, mergedVals) {
   p <- ggplot(DT, aes(x = region_name, y = value, fill = scenario, order = c("region_name") )) +
     geom_bar(stat = "identity", position = "dodge", color = "black") +
     theme(legend.position = legendLoc) +
-    theme(legend.text = element_text(size = 8)) +
+    theme(legend.text = element_text(size = 8, family = "Times", face = "plain")) +
     theme(legend.title = element_blank()) +
     scale_fill_manual(values = colorList)
   return(g_legend(p))
@@ -203,7 +203,7 @@ plotByRegionBar <- function(dt, fileName, plotTitle, yLab, yRange, aggChoice, sc
   temp[, scenario := gsub("-REF", "", scenario)]
   scenOrder <- gsub("-REF", "", scenOrder)
   # temp <- temp[order(region_code)]
-#  if (aggChoice %in% "WB") regionNameOrder <- c("Low income", "Lower middle income", "Upper middle income", "High income")
+  #  if (aggChoice %in% "WB") regionNameOrder <- c("Low income", "Lower middle income", "Upper middle income", "High income")
   if (aggChoice %in% "WB") regionNameOrder <- c("Low", "Lower middle", "Upper middle", "High")
   if (aggChoice %in% "AggReg1") regionNameOrder <- regionNames
   if (aggChoice %in% "tenregions") regionNameOrder <- regionNames
@@ -216,35 +216,36 @@ plotByRegionBar <- function(dt, fileName, plotTitle, yLab, yRange, aggChoice, sc
 
   # draw bars
   pdf(paste(fileloc("gDir"),"/", fileName, ".pdf", sep = ""), width = 7, height = 5.2, useDingbats = FALSE)
-  if (round(max(temp$value) - yRange[2]) == 0) yRange[2] <- max(temp$value) # will hopefully deal with rare situation
-#' use the standard deviation value to define ymax
+  if (round(max(temp$value)) - max(temp$value) > 0.08) yRange[2] <- round(max(temp$value) + 1, digits = 1) # will hopefully deal with rare situation
+  #' use the standard deviation value to define ymax
   if (plotErrorBars == TRUE) {
-    yRange[2] <- max(temp$sd.region + temp$value)
+    yRange[2] <- round(max(temp$sd.region + temp$value), digits = 1)
   }
   # when all elements of value are the same as the max y range
   p <- ggplot(temp, aes(x = factor(region_name), y = value, fill = scenario, order = c("region_name") )) +
     geom_bar(stat = "identity", position = "dodge", color = "black") +
- #   theme(legend.position = "bottom") +
-        theme(legend.position = "none") +
-    theme(axis.text.x = element_text(angle = 45, hjust = 1)) +
-    scale_y_continuous(limits = yRange, labels = fmt_dcimals(0)) + # fmt_dcimals sets number of digits to right of decimal
+   #   theme(legend.position = "bottom") +
+    theme(legend.position = "none") +
+    labs(x = NULL) +
+    theme(axis.text.x = element_text(angle = 45, hjust = 1, family = "Times", face = "plain")) +
+    theme(axis.title.y = element_text(family = "Times", face = "plain")) +
+    scale_y_continuous(name = yLab, limits = yRange, labels = fmt_dcimals(0)) + # fmt_dcimals sets number of digits to right of decimal
     scale_fill_manual(values = colorList) +
-    theme(plot.title = element_text(hjust = 0.5, size = 11)) +
-    ggtitle(plotTitle) +
-    #   ylim(yRange) +
-    labs(y = yLab, x = NULL)
+    theme(plot.title = element_text(hjust = 0.5, size = 11, family = "Times", face = "plain")) +
+    ggtitle(plotTitle)
 
-# the 'or' part of the if statement means don't draw the line if it's greater than ymax
-  if (oneLine == FALSE | oneLine > yRange[2]) {} else {
-    p <- p + geom_hline(aes(yintercept = oneLine, color = "black"))
-}
+    # the 'or' part of the if statement means don't draw the line if it's greater than ymax
+    if (oneLine == FALSE | oneLine > yRange[2]) {} else {
+      p <- p + geom_hline(aes(yintercept = oneLine, color = "black"))
+    }
   if (plotErrorBars == TRUE) {
     temp[, yminValue := ifelse(value - sd.region < 0, 0, value - sd.region)]
-    p <- p + geom_errorbar(aes(ymin = yminValue, ymax = value + sd.region), width = .2,
+    temp[, ymaxValue := ifelse(value + sd.region > yRange[2],  yRange[2], value + sd.region)]
+    p <- p + geom_errorbar(aes(ymin = yminValue, ymax = ymaxValue), width = .2,
                            position = position_dodge(.9), color = "grey")
-#      geom_line(position = position_dodge(.9)) +
- #     geom_point(position = position_dodge(.9), size=2)
-    }
+    #      geom_line(position = position_dodge(.9)) +
+    #     geom_point(position = position_dodge(.9), size=2)
+  }
 
   # code to save the plot for future use
   graphsListHolder[[fileName]] <- p
@@ -274,10 +275,10 @@ plotByRegionBar <- function(dt, fileName, plotTitle, yLab, yRange, aggChoice, sc
   # #draw lines
   # temp2 <- temp[scenario %in% c("2010", "SSP2-NoCC") & region_code %in% "lowInc",]
   # ggplot(temp2, aes(x = region_name, y = value, fill = scenario, order = c("region_name") )) +
-  #   theme(axis.text.x = element_text(angle = 45, hjust = 1)) +
+  #   theme(axis.text.x = element_text(angle = 45, hjust = 1, family = "Times", face = "plain")) +
   #   geom_line(aes(group = 1)) +
   #   geom_point(size = 2) +
-  #   theme(plot.title = element_text(hjust = 0.5, size = 11)) +
+  #   theme(plot.title = element_text(hjust = 0.5, size = 11, family = "Times", face = "plain")) +
   #   ggtitle(plotTitle) +
   #   ylim(yRange) +
   #   labs(y = yLab, x = NULL) +
@@ -342,7 +343,7 @@ plotByRegionStackedBar <- function(dt, fileName, plotTitle, yLab, yRange, aggCho
   temp[, scenario := gsub("-REF", "", scenario)]
   scenOrder <- gsub("-REF", "", scenOrder)
   # temp <- temp[order(region_code)]
-#  if (aggChoice %in% "WB") regionNameOrder <- c("Low income", "Lower middle income", "Upper middle income", "High income")
+  #  if (aggChoice %in% "WB") regionNameOrder <- c("Low income", "Lower middle income", "Upper middle income", "High income")
   if (aggChoice %in% "WB") regionNameOrder <- c("Low", "Lower middle", "Upper middle", "High")
   if (aggChoice %in% "AggReg1") regionNameOrder <- regionNames
   if (aggChoice %in% "tenregions") regionNameOrder <- regionNames
@@ -356,16 +357,17 @@ plotByRegionStackedBar <- function(dt, fileName, plotTitle, yLab, yRange, aggCho
 
   # draw bars
   pdf(paste(fileloc("gDir"),"/", fileName, "_", aggChoice, ".pdf", sep = ""), width = 7, height = 5.2, useDingbats = FALSE)
-   if (max(temp$value) - yRange[2] > 0) yRange[2] <- max(temp$value)
+  if (max(temp$value) - yRange[2] > 0) yRange[2] <- max(temp$value)
   p <- ggplot(temp, aes(x = scenario, y = value, fill = nutrient, order = c("region_name") )) +
     geom_bar(stat = "identity", position = "stack", color = "black") +
     facet_wrap(~ region_name) +
     #    theme(legend.position = "right") +
     theme(legend.position = "none") +
-    theme(axis.text.x = element_text(angle = 70, hjust = 1)) +
+    theme(axis.text.x = element_text(angle = 70, hjust = 1, family = "Times", face = "plain")) +
+    theme(axis.title.y = element_text(family = "Times", face = "plain")) +
     # scale_y_continuous(limits = yRange) +
     # scale_fill_manual(values = colorList) +
-    theme(plot.title = element_text(hjust = 0.5, size = 11)) +
+    theme(plot.title = element_text(hjust = 0.5, size = 11, family = "Times", face = "plain")) +
     ggtitle(plotTitle) +
     #   ylim(yRange) +
     labs(y = yLab, x = NULL)
@@ -408,7 +410,7 @@ plotByBoxPlot2050 <- function(dt, fileName, plotTitle, yLab, yRange, aggChoice )
   temp[, scenario := gsub("-REF", "", scenario)]
   scenOrder <- gsub("-REF", "", scenOrder)
   # temp <- temp[order(region_code)]
-#  if (aggChoice %in% "WB") regionNameOrder <- c("Low income", "Lower middle income", "Upper middle income", "High income")
+  #  if (aggChoice %in% "WB") regionNameOrder <- c("Low income", "Lower middle income", "Upper middle income", "High income")
   if (aggChoice %in% "WB") regionNameOrder <- c("Low", "Lower middle", "Upper middle", "High")
   if (aggChoice %in% "AggReg1") regionNameOrder <- regionNames
   if (aggChoice %in% "tenregions") regionNameOrder <- regionNames
@@ -425,9 +427,10 @@ plotByBoxPlot2050 <- function(dt, fileName, plotTitle, yLab, yRange, aggChoice )
   p <- ggplot(temp, aes(x = region_name, y = value)) +
     geom_boxplot(stat = "boxplot", position = "dodge", color = "black", outlier.shape = NA) + # outlier.shape = NA, gets rid of outlier dots
     #    theme(legend.position = "right") +
-    theme(axis.text.x = element_text(angle = 45, hjust = 1)) +
+    theme(axis.text.x = element_text(angle = 45, hjust = 1, family = "Times", face = "plain")) +
+    theme(axis.title.y = element_text(family = "Times", face = "plain")) +
     scale_fill_manual(values = colorList) +
-    theme(plot.title = element_text(hjust = 0.5, size = 11)) +
+    theme(plot.title = element_text(hjust = 0.5, size = 11, family = "Times", face = "plain")) +
     ggtitle(plotTitle) +
     ylim(yRange) +
     labs(y = yLab, x = NULL)
@@ -493,7 +496,7 @@ plotByRegionErrorBars <- function(dt, fileName, plotTitle, yLab, yRange, aggChoi
 
   temp[, scenario := gsub("-REF", "", scenario)]
   # temp <- temp[order(region_code)]
-#  regionNameOrder <- c("Low income", "Lower middle income", "Upper middle income", "High income")
+  #  regionNameOrder <- c("Low income", "Lower middle income", "Upper middle income", "High income")
   regionNameOrder <- c("Low", "Lower middle", "Upper middle", "High")
   scenarioNameOrder <- c("2010", "SSP2-NoCC", "SSP1-NoCC", "SSP3-NoCC", "SSP2-GFDL", "SSP2-IPSL", "SSP2-HGEM")
   temp[, region_name := gsub(" income", "", region_name)]
@@ -515,10 +518,11 @@ plotByRegionErrorBars <- function(dt, fileName, plotTitle, yLab, yRange, aggChoi
   #draw lines
   temp2 <- temp[scenario %in% c("2010", "SSP2-NoCC") & region_code %in% "lowInc",]
   ggplot(temp2, aes(x = region_name, y = value, fill = scenario, order = c("region_name") )) +
-    theme(axis.text.x = element_text(angle = 45, hjust = 1)) +
+    theme(axis.text.x = element_text(angle = 45, hjust = 1, family = "Times", face = "plain")) +
+    theme(axis.title.y = element_text(family = "Times", face = "plain")) +
     geom_line(aes(group = 1)) +
     geom_point(size = 2) +
-    theme(plot.title = element_text(hjust = 0.5, size = 11)) +
+    theme(plot.title = element_text(hjust = 0.5, size = 11, family = "Times", face = "plain")) +
     ggtitle(plotTitle) +
     ylim(yRange) +
     labs(y = yLab, x = NULL) +
@@ -542,7 +546,7 @@ plotByRegionBarAMDR <- function(dt, fileName, plotTitle, yLab, yRange, aggChoice
   temp[, scenario := gsub("-REF", "", scenario)]
   scenOrder <- gsub("-REF", "", scenOrder)
   # temp <- temp[order(region_code)]
-#  if (aggChoice %in% "WB") regionNameOrder <- c("Low income", "Lower middle income", "Upper middle income", "High income")
+  #  if (aggChoice %in% "WB") regionNameOrder <- c("Low income", "Lower middle income", "Upper middle income", "High income")
   if (aggChoice %in% "WB") regionNameOrder <- c("Low", "Lower middle", "Upper middle", "High")
   if (aggChoice %in% "AggReg1") regionNameOrder <- regionNames
   if (aggChoice %in% "tenregions") regionNameOrder <- regionNames
@@ -560,10 +564,11 @@ plotByRegionBarAMDR <- function(dt, fileName, plotTitle, yLab, yRange, aggChoice
     geom_bar(stat = "identity", position = "dodge", color = "black") +
     #    theme(legend.position = "right") +
     theme(legend.position = "none") +
-    theme(axis.text.x = element_text(angle = 45, hjust = 1)) +
+    theme(axis.text.x = element_text(angle = 45, hjust = 1, family = "Times", face = "plain")) +
+    theme(axis.title.y = element_text(family = "Times", face = "plain")) +
     # scale_y_continuous(limits = yRange) +
     scale_fill_manual(values = colorList) +
-    theme(plot.title = element_text(hjust = 0.5, size = 11)) +
+    theme(plot.title = element_text(hjust = 0.5, size = 11, family = "Times", face = "plain")) +
     ggtitle(plotTitle) +
     #   ylim(yRange) +
     labs(y = yLab, x = NULL) +
@@ -571,7 +576,6 @@ plotByRegionBarAMDR <- function(dt, fileName, plotTitle, yLab, yRange, aggChoice
     geom_text( aes(.75, AMDR_lo + 2, label = "Low", color = "green")) +
     geom_hline(aes(yintercept = AMDR_hi,  color = "dark red")) +
     geom_text( aes(.75, AMDR_hi + 2, label = "High", color = "green"))
-  # code to save the plot for future use
   # code to save the plot for future use
   graphsListHolder[[fileName]] <- p
   assign("graphsListHolder", graphsListHolder, envir = .GlobalEnv)

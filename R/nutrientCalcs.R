@@ -403,7 +403,7 @@ generateResults.dataPrep <- function(req, dt.IMPACTfood, scenarioListIMPACT, dt.
 
     # sum foodavail by food group -----
     temp <- dt.food.agg[, c("scenario", "region_code.IMPACT159", "year", "IMPACT_code", "foodAvailpDay","food_group_code") , with = FALSE]
-    temp <- temp[year %in% c("X2010", "X2050")]
+#    temp <- temp[year %in% c("X2010", "X2050")]
 
     #sum and convert to grams
     temp.foodgroup.sum <- temp[, foodavail.foodgroup.sum := sum(foodAvailpDay) * 1000,

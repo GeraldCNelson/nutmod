@@ -81,16 +81,18 @@ dt.SDfood[,foodQ.ratio := foodAvailpDay/foodQ.sum]
 # ratio of quantity of individual food item to total quantity of food available
 dt.foodQratio <- data.table::copy(dt.SDfood)
 dt.foodQratio[,c("foodAvailpDay","foodQ.sum") := NULL]
-# dt.SDfood[,lnfoodQ.ratio := foodQ.ratio * log(foodQ.ratio)]
-# dt.SDfood[is.nan(lnfoodQ.ratio),lnfoodQ.ratio := 0]
-# dt.SDfood[,SD := -sum(lnfoodQ.ratio), by = c("scenario","region_code.IMPACT159", "year")]
-# keepListCol <- c("scenario","region_code.IMPACT159", "year", "SD")
-# dt.SDfood <- unique(dt.SDfood[, keepListCol, with = FALSE])
-# foodList <- unique(dt.IMPACTfood$IMPACT_code)
-# dt.SDfood[, SDnorm := SD * 100/log(length(foodList))]
-# inDT <- dt.SDfood
-# outName <- "dt.shannonDiversity"
-# cleanup(inDT, outName, fileloc("resultsDir"), "csv")s
+
+#Shannon diversity calcs
+dt.SDfood[,lnfoodQ.ratio := foodQ.ratio * log(foodQ.ratio)]
+dt.SDfood[is.nan(lnfoodQ.ratio),lnfoodQ.ratio := 0]
+dt.SDfood[,SD := -sum(lnfoodQ.ratio), by = c("scenario","region_code.IMPACT159", "year")]
+keepListCol <- c("scenario","region_code.IMPACT159", "year", "SD")
+dt.SDfood <- unique(dt.SDfood[, keepListCol, with = FALSE])
+foodList <- unique(dt.IMPACTfood$IMPACT_code)
+dt.SDfood[, SDnorm := SD * 100/log(length(foodList))]
+inDT <- dt.SDfood
+outName <- "dt.shannonDiversity"
+cleanup(inDT, outName, fileloc("resultsDir"), "csv")
 
 # MFAD calculations ---------------
 #mfad = ((sum over i from 1 to n)((sum over j from 1 to n) of d_ij/n)
@@ -517,6 +519,10 @@ keepListCol.DIcomp <- c( "scenario", "region_code.IMPACT159", "year", "DI.comp")
 dt.nutrients.kcals <- dt.nutrients.kcals[, (keepListCol.DIcomp), with = FALSE]
 dt.nutrients.kcals <- unique(dt.nutrients.kcals)
 data.table::setnames(dt.nutrients.kcals, old = "DI.comp", new = "value")
+
+# scale compDI to 0 to 100 range for each scenario and year
+median.2010 <- median(dt.nutrients.kcals[year %in% "X2010", value])
+dt.nutrients.kcals[, value := 100 - (100 * exp((value/median.2010) * log(0.5)))]
 inDT <-  dt.nutrients.kcals
 outName <- "dt.compDI"
 cleanup(inDT, outName, fileloc("resultsDir"), "csv")
