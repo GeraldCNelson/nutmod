@@ -130,6 +130,11 @@ cat("Running dataManagement.SSPPop.R\n\n")
 source("R/dataManagement.SSPPop.R")
 #paste(gsub(".ssp","",nutReqName),"percap",sep = "."), mData - Nutrient requirements adjusted for population distribution, example is req.EAR.percap.2016-06-24.rds
 
+cat("Running dataManagement.foodNnuts.R\n\n")
+source("R/dataManagement.foodNnuts.R")
+#resultsD - creates dt.foodNnuts, dt.nutrients.kcals, dt.nutrients.sum.all, dt.nutrients.sum.staples,
+# dt.nutrients.nonstapleShare, dt.foodAvail.foodGroup
+
 cat("Running nutrientCalcs.R\n\n")
 source("R/nutrientCalcs.R")
 #writes

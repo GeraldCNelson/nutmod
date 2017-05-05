@@ -3,7 +3,6 @@
 #' @title Draw spider diagrams
 #' @name xxx
 #' @include nutrientModFunctions.R
-if (!exists("getNewestVersion", mode = "function"))
 {source("R/nutrientModFunctions.R")
   source("R/workbookFunctions.R")
   source("R/nutrientCalcFunctions.R")}
@@ -12,7 +11,7 @@ library(fmsb)
 library(radarchart)
 region <- keyVariable("region")
 
-datasetup <- function(reqType,country, SSP, climModel, experiment, years) {
+datasetup <- function(reqType, country, SSP, climModel, experiment, years) {
 
   scenarioName <- paste(SSP, climModel, experiment, sep = "-")
   scenarioListIMPACT <- keyVariable("scenarioListIMPACT")

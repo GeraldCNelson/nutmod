@@ -14,6 +14,9 @@
 #' RDA.macro_sum_reqRatio
 #' RDA.vits_sum_reqRatio
 #' RDA.minrls_sum_reqRatio
+#' RDA.macro_FG_reqRatio
+#' RDA.vits_FG_reqRatio
+#' RDA.minrls_FG_reqRatio
 #'
 #' gdxinfo.csv
 
@@ -59,7 +62,8 @@ copyFile <- function(fileShortName, sourceDir, destDir, fileType) {
 copyListFromResults <- c("dt.energy_ratios", "dt.budgetShare",
                          "RDA.macro_sum_reqRatio", "RDA.vits_sum_reqRatio", "RDA.minrls_sum_reqRatio",
                          #   "RDA.macro_staples_ratio","RDA.vits_staples_ratio", "RDA.minrls_staples_ratio",
-                         #   "RDA.macro_FG_reqRatio","RDA.vits_FG_reqRatio", "RDA.minrls_FG_reqRatio",
+                         "dt.nutrients.sum.all",
+                          #  "RDA.macro_FG_reqRatio","RDA.vits_FG_reqRatio", "RDA.minrls_FG_reqRatio",
                          #   "UL.vits.sum.req.ratio", "UL.minrls.sum.req.ratio",
                          #   "UL.minrls.FG.ratio", "UL.vits.FG.ratio",
                          "dt.KcalShare.nonstaple","dt.RAOqe", "dt.compDI", "dt.nutBalScore", "dt.metadata",
