@@ -104,12 +104,12 @@ aggNorder <- function(gdxChoice, DTglobal, aggChoice, scenChoice, mergedVals) {
   merged <- merge(temp, dt.pop, by = c("scenario","region_code.IMPACT159","year"))
   # merged <- merged[region_code.IMPACT159 %in% region_code, ]
   # deal with the budget data
-  if ("incSharePCX0" %in% names(merged)) {
-    keepListCol.incShare <- c("scenario","year", "region_code.IMPACT159", "region_code", "region_name", "incSharePCX0", "PopX0")
+  if ("incShare.PCX0" %in% names(merged)) {
+    keepListCol.incShare <- c("scenario","year", "region_code.IMPACT159", "region_code", "region_name", "incShare.PCX0", "PopX0")
     keepListCol.pcGDP <- c("scenario","year", "region_code.IMPACT159", "region_code", "region_name", "pcGDPX0", "PopX0")
     dt.incShare <- merged[, (keepListCol.incShare), with = FALSE]
     dt.pcGDP <- merged[, (keepListCol.pcGDP), with = FALSE]
-    data.table::setnames(dt.incShare, old = "incSharePCX0", new = "value")
+    data.table::setnames(dt.incShare, old = "incShare.PCX0", new = "value")
     data.table::setnames(dt.pcGDP, old = "pcGDPX0", new = "value")
     merged <- dt.incShare
   }

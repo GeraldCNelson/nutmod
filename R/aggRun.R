@@ -139,7 +139,7 @@ for (l in scenChoiceList) {
   #put colorlist here so its easy to see alignment of colors and bars
   scenOrder <- get(scenChoiceList)
   paletteChoice <- "OrRd" #choices are described in the help for RcolorBrewer
-
+  library(RcolorBrewer)
   if (l %in% "scenOrderSSP") {
     #put here so its easy to see alignment of colors and bars
     #    colorList <- c("black", "red", "green4", "red3", "red4")
@@ -264,6 +264,8 @@ for (l in scenChoiceList) {
 
     # stacked kcal bar chart ----
     cat(paste("\n\nWorking on stacked kcal bar chart for ", aggChoice))
+    xxxx update with new structure for dt.nutrients.kcals
+
     DTglobal <- getNewestVersion("dt.kcals.values", fileloc("resultsDir"))
     DT <- aggNorder(gdxChoice, DTglobal, aggChoice, scenChoice = get(l),
                     mergedVals =  c("scenario", "region_code", "year", "nutrient"))
@@ -393,7 +395,7 @@ for (aggChoice in aggChoiceListBarChart[!aggChoiceListBarChart %in% "tenregions"
   fileName <- paste(gdxChoice, l, "budgetShareBoxPlot_2050", aggChoice, sep = "_")
   # dt.regions <- regionAgg(aggChoice)
   # DT <- merge(dt.budgetShare, dt.regions, by = "region_code.IMPACT159")
-  # keepListCol.incShare <- c("scenario" ,"year", "region_code.IMPACT159", "region_code", "region_name", "incSharePCX0")
+  # keepListCol.incShare <- c("scenario" ,"year", "region_code.IMPACT159", "region_code", "region_name", "incShare.PCX0")
   # DT <- DT[, (keepListCol.incShare), with = FALSE]
   # scenario.base <- "SSP2-NoCC-REF"
   # DT <- DT[year == "X2050" & scenario == scenario.base]
@@ -419,7 +421,7 @@ for (l in scenChoiceList) {
       files = paste(fileloc("gDir"), "/", temp, sep = ""), extras = "-qdgds 10m", flags = "-j")
 }
 
-# construct graphs for AMDR ratios ------
+# construct graphs fo ratios ------
 DT.master <- getNewestVersion("food_agg_AMDR_hi", fileloc("resultsDir")) # both hi and lo have the same values
 for (macroNut in c("fat_g.Q", "protein_g.Q", "carbohydrate_g.Q")) {
   cat(paste("\nWorking on AMDR for", macroNut))

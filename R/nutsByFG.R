@@ -1,25 +1,27 @@
-
-dt.food_agg.minrls <- getNewestVersion("food_agg_RDA.minrls", fileloc("resultsDir"))
-keepListNuts <- c("vit_e_mg", "folate_µg", "iron_mg", "zinc_mg", "potassium_g", "riboflavin_mg", "vit_a_rae_µg", "vit_k_µg")
-keepListNuts.minrls <- c( "iron_mg", "zinc_mg", "potassium_g", "calcium_mg")
-keepListNuts.fg <- paste(keepListNuts.minrls, "sum.foodGroup", sep = ".")
-#keepListNames <- names(dt.food_agg.minrls)[grep("sum.foodGroup",names(dt.food_agg.minrls))]
+nutChoice <- c("minrls", "vits", "macro")
+# fileList <- paste("dt.food_agg", nutChoice, sep = ".")
+minrlsList <- c("calcium_mg", "iron_mg", "magnesium_mg", "phosphorus_mg", "potassium_g", "zinc_mg")
+vitsList <- c("folate_µg", "niacin_mg", "riboflavin_mg",
+              "thiamin_mg", "vit_a_rae_µg", "vit_b6_mg",
+              "vit_b12_µg", "vit_c_mg", "vit_d_µg",  "vit_e_mg", "vit_k_µg")
+macroList <- c("carbohydrate_g", "protein_g",  "totalfiber_g")
+fatList <- "fat_g"
 prefix <- c("scenario", "region_code.IMPACT159", "year", "food_group_code" )
-keepListCol <- c(prefix,keepListNuts.fg)
-DT <- dt.food_agg.minrls[, (keepListCol), with = FALSE]
-DT <- unique(DT)
-DT <- DT[year %in% c("X2010", "X2050")]
 
-write.csv(DT, "minrls.csv")
+for (i in nutChoice) {
+  fileName <- paste("food_agg_RDA", i, sep = ".")
+  dt <- getNewestVersion(fileName, fileloc("resultsDir"))
+  nutList <- get(paste(i, "List", sep = ""))
+  # if (i %in% "dt.food_agg.minrls") nutList <- minrlsList
+  # if (i %in% "dt.food_agg.vits") nutList <- vitsList
+  # if (i %in% "dt.food_agg.macro") nutList <- macroList
 
-dt.food_agg.vits <- getNewestVersion("food_agg_RDA.vits", fileloc("resultsDir"))
-keepListNuts.vits <- c( "vit_e_mg", "folate_µg", "riboflavin_mg", "vit_a_rae_µg", "vit_k_µg")
-keepListNuts.fg <- paste(keepListNuts.vits, "sum.foodGroup", sep = ".")
-#keepListNames <- names(dt.food_agg.minrls)[grep("sum.foodGroup",names(dt.food_agg.minrls))]
-prefix <- c("scenario", "region_code.IMPACT159", "year", "food_group_code" )
-keepListCol <- c(prefix,keepListNuts.fg)
-DT <- dt.food_agg.vits[, (keepListCol), with = FALSE]
-DT <- unique(DT)
-DT <- DT[year %in% c("X2010", "X2050")]
 
-write.csv(DT, "vits.csv")
+  keepListNuts.fg <- paste(nutList, "sum.foodGroup", sep = ".")
+  keepListCol <- c(prefix,keepListNuts.fg)
+  dt <- dt[, (keepListCol), with = FALSE]
+  dt <- unique(dt)
+  inDT <- dt
+  outName <- paste("nutAgg_FG_", i, sep = "")
+}
+

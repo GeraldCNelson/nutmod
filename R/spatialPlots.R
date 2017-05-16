@@ -116,8 +116,8 @@ for (i in c(variablesToPlot.mult)) {
   data.table::setnames(dt.spatialPlotData, old = "region_code.IMPACT159", new = "id")
 
   if (i %in% "dt.budgetShare") {
-    dt.spatialPlotData[, c("pcGDPX0", "budget.PWX0", "budget.PCX0", "incSharePWX0") := NULL]
-    setnames(dt.spatialPlotData, old = "incSharePCX0", new = "value")
+    dt.spatialPlotData[, c("pcGDPX0", "budget.PWX0", "budget.PCX0", "incShare.PWX0") := NULL]
+    setnames(dt.spatialPlotData, old = "incShare.PCX0", new = "value")
     dt.spatialPlotData <- unique(dt.spatialPlotData)
     titleText <- "IMPACT food budget share of per capita income"
     legendText <- "Percent"
@@ -235,7 +235,7 @@ for (i in c(variablesToPlot.mult)) {
 #   print(paste("working on ", i))
 #   dt.spatialPlotData <- getNewestVersion(i, fileloc("resultsDir"))
 #   scenlist <- unique(dt.spatialPlotData$scenario)
-#   if (i %in% "dt.budgetShare") {setnames(dt.spatialPlotData, old = "incSharePCX0", new = "value");
+#   if (i %in% "dt.budgetShare") {setnames(dt.spatialPlotData, old = "incShare.PCX0", new = "value");
 #     mainTitle <- "Budget share (percent)"
 #     # get rid of Somalia because it's budget share is 500 * per cap income
 #     dt.spatialPlotData <- dt.spatialPlotData[!region_code.IMPACT159 == "SOM",]

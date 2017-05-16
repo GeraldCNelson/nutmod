@@ -43,7 +43,7 @@ for (i in AMDRs) {
   variable.name = "nutrient",
   value.name = "value", variable.factor = FALSE)
   DT.long[, nutrient := gsub(".reqRatio.all", "",nutrient)]
-  inDT <- DT.long
+  inDT <- unique(DT.long)
   outName <- paste(reqShortName, "sum_reqRatio", sep = "_")
   cleanup(inDT, outName, fileloc("resultsDir"), "csv")
 }
@@ -131,27 +131,29 @@ f.ratios.all <- function(){
 
   reqShortName <- gsub("req.", "", req)
 
-  inDT <- dt.all.sum.long
+  inDT <- unique(dt.all.sum.long)
   outName <- paste(reqShortName, "all_sum", sep = "_")
   cleanup(inDT, outName, fileloc("resultsDir"), "csv")
 
   inDT <- dt.sum_reqRatio_long
   inDT[, nutrient := gsub("_reqRatio", "", nutrient)]
+  inDT <- unique(inDT)
   print(paste0("dt.sum_reqRatio_long"))
   #  print(unique(inDT$nutrient))
   outName <- paste(reqShortName, "sum_reqRatio", sep = "_")
   cleanup(inDT, outName, fileloc("resultsDir"), "csv")
 
-  inDT <- dt.all.ratio.long
-  print(paste0("dt.all.ratio.long"))
-  print(unique(inDT$nutrient))
+  inDT <- unique(dt.all.ratio.long)
+  # print(paste0("dt.all.ratio.long"))
+  # print(unique(inDT$nutrient))
   outName <- paste(reqShortName, "all_ratio", sep = "_")
   cleanup(inDT, outName, fileloc("resultsDir"), "csv")
 
   inDT <- dt.all_reqRatio_long
   inDT[, nutrient := gsub("_reqRatio_all", "", nutrient)]
-  print(paste0("dt.all_reqRatio_long"))
-  print(unique(inDT$nutrient))
+  inDT <- unique(inDT)
+  # print(paste0("dt.all_reqRatio_long"))
+  # print(unique(inDT$nutrient))
   outName <- paste(reqShortName, "all_reqRatio", sep = "_")
   cleanup(inDT, outName, fileloc("resultsDir"), "csv")
 }
@@ -192,11 +194,11 @@ f.ratios.FG <- function(){
 
   reqShortName <- gsub("req.", "", req)
 
-  inDT <- dt.foodGroup.ratio.long
+  inDT <- unique(dt.foodGroup.ratio.long)
   outName <- paste(reqShortName, "FGratio", sep = "_")
   cleanup(inDT, outName, fileloc("resultsDir"), "csv")
 
-  inDT <- dt.foodGroup_reqRatio_long
+  inDT <- unique(dt.foodGroup_reqRatio_long)
   outName <- paste(reqShortName, "FG_reqRatio", sep = "_")
   cleanup(inDT, outName, fileloc("resultsDir"), "csv")
 }
@@ -255,17 +257,16 @@ f.ratios.staples <- function(){
   )
 
   reqShortName <- gsub("req.", "", req)
-  inDT <- dt.staples.sum.long
+  inDT <- unique(dt.staples.sum.long)
   outName <- paste(reqShortName, "staples_sum", sep = "_")
   cleanup(inDT, outName, fileloc("resultsDir"), "csv")
 
-  #  inDT <- dt.staples.ratio.wide
-  inDT <- dt.staples.ratio.long
+  inDT <- unique(dt.staples.ratio.long)
   outName <- paste(reqShortName, "staples_ratio", sep = "_")
   cleanup(inDT, outName, fileloc("resultsDir"), "csv")
 
   #  inDT <- dt.staples_reqRatio_wide
-  inDT <- dt.staples_reqRatio_long
+  inDT <- unique(dt.staples_reqRatio_long)
   outName <- paste(reqShortName, "staples_reqRatio", sep = "_")
   cleanup(inDT, outName, fileloc("resultsDir"), "csv")
 }
@@ -344,36 +345,34 @@ print("------ working on kcals")
 
 # now get the nutrient values
 # dt.nutrients <- getNewestVersion("dt.nutrients")
-dt.nutSum <- getNewestVersion("dt.nutrients.sum.all", fileloc("resultsDir"))
-
-formula.nut <- paste("scenario + region_code.IMPACT159 + year ~ nutrient")
-
-dt.nutSum.wide <- data.table::dcast(
-  data = dt.nutSum,
-  formula = formula.nut,
-  value.var = "value",
-  variable.factor = FALSE)
-
-# Note. sum.kcals differs from energy_kcal because alcohol is not included in carbohydrates. Maybe other reasons too
-dt.nutSum.wide[, sum_kcals := kcals.protein_g + kcals.fat_g + kcals.carbohydrate_g + kcals.ethanol_g]
-dt.nutSum.wide[, diff_kcals := energy_kcal - sum_kcals]
-nutList.kcals <- c("energy_kcal", "kcals.protein_g", "kcals.carbohydrate_g", "kcals.sugar_g", "kcals.fat_g", "kcals.ethanol_g")
-# #nutList.kcals <- paste(macroKcals,".sum.all", sep = "")
-nutList.ratio <- paste(nutList.kcals,"_share", sep = "")
-basicKey <- c("scenario",  "region_code.IMPACT159", "year")
-
-dt.nutSum.wide[, (nutList.ratio) := lapply(.SD, "/", energy_kcal), .SDcols = (nutList.kcals)]
-keepListCol <- c(basicKey, nutList.ratio)
-dt.nutSum.wide <- dt.nutSum.wide[, keepListCol, with = FALSE]
-
-dt.nutSum.long <- data.table::melt(
-  dt.nutSum.wide, id.vars = basicKey,
-  measure.vars = nutList.ratio,
-  variable.name = "nutrient",
-  value.name = "value",
-  variable.factor = FALSE)
-
-inDT <- dt.nutSum.long
-inDT[, nutrient := cleanupNutrientNames(nutrient)]
-outName <- "dt.energy_ratios"
-cleanup(inDT, outName, fileloc("resultsDir"), "csv")
+# dt.nutSum <- getNewestVersion("dt.nutrients.sum.all", fileloc("resultsDir"))
+#
+# formula.nut <- paste("scenario + region_code.IMPACT159 + year ~ nutrient")
+# dt.nutSum.wide <- data.table::dcast(
+#   data = dt.nutSum,
+#   formula = formula.nut,
+#   value.var = "value",
+#   variable.factor = FALSE)
+#
+# # Note. sum.kcals differs from energy_kcal because alcohol is not included in carbohydrates. Maybe other reasons too
+# dt.nutSum.wide[, sum_kcals := kcals.protein_g + kcals.fat_g + kcals.carbohydrate_g + kcals.ethanol_g]
+# dt.nutSum.wide[, diff_kcals := energy_kcal - sum_kcals]
+# nutList.kcals <- c("energy_kcal", "kcals.protein_g", "kcals.carbohydrate_g", "kcals.sugar_g", "kcals.fat_g", "kcals.ethanol_g")
+# # #nutList.kcals <- paste(macroKcals,".sum.all", sep = "")
+# nutList.ratio <- paste(nutList.kcals,"_share", sep = "")
+# basicKey <- c("scenario",  "region_code.IMPACT159", "year")
+# dt.nutSum.wide[, (nutList.ratio) := lapply(.SD, "/", energy_kcal), .SDcols = (nutList.kcals)]
+# keepListCol <- c(basicKey, nutList.ratio)
+# dt.nutSum.wide <- dt.nutSum.wide[, keepListCol, with = FALSE]
+#
+# dt.nutSum.long <- data.table::melt(
+#   dt.nutSum.wide, id.vars = basicKey,
+#   measure.vars = nutList.ratio,
+#   variable.name = "nutrient",
+#   value.name = "value",
+#   variable.factor = FALSE)
+#
+# inDT <- dt.nutSum.long
+# inDT[, nutrient := gsub("_share", "", nutrient)]
+# outName <- "dt.energy_ratios"
+# cleanup(inDT, outName, fileloc("resultsDir"), "csv")

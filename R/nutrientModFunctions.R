@@ -302,7 +302,7 @@ cleanupNutrientNames <- function(nutList) {
   nutList <- gsub("_g","",nutList)
   nutList <- gsub("totalfiber","total fiber",nutList)
   nutList <- gsub(".ratio.foodGroup","",nutList)
-  nutList <- gsub("share","",nutList)
+ # nutList <- gsub("_share","",nutList)
   nutList <- gsub(".sum.all","",nutList)
   nutList <- gsub("rootsNPlantain","roots and plantain",nutList)
   nutList <- gsub("nutsNseeds","nuts and seeds",nutList)

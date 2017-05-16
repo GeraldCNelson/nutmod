@@ -33,7 +33,7 @@ dt.IMPACTfood <- dt.IMPACTfood[region_code.IMPACT159 %in% ctyList & scenario %in
 dt.shannonDiversity <- dt.shannonDiversity[region_code.IMPACT159 %in% ctyList & scenario %in% scenarioList &
                                              year %in% yearList,]
 
-keepListCol <-  c("scenario", "region_code.IMPACT159", "year", "pcGDPX0", "budget.PCX0", "incSharePCX0")
+keepListCol <-  c("scenario", "region_code.IMPACT159", "year", "pcGDPX0", "budget.PCX0", "incShare.PCX0")
 dt.budgetShare <- dt.budgetShare[region_code.IMPACT159 %in% ctyList & scenario %in% scenarioList &
                                    year %in% yearList,keepListCol, with = FALSE]
 
