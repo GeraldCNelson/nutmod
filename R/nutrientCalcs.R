@@ -54,37 +54,6 @@ dt.IMPACTfood <- unique(dt.IMPACTfood)
 # dt.IMPACTfood[, foodAvailpDay := FoodAvailability / keyVariable("DinY")]
 dt.IMPACTfood[,FoodAvailability := NULL]
 
-# #calculate kcal values -----
-# keepListCol <- c("IMPACT_code", "energy_kcal", "kcals.fat_g","kcals.carbohydrate_g", "kcals.protein_g",
-#                  "kcals.ethanol_g", "kcals.sugar_g", "kcals.ft_acds_tot_sat_g")
-# dt.nutrients.kcals <- dt.nutrients.adj[, (keepListCol), with = FALSE]
-# dt.nutrients.kcals <- merge(dt.IMPACTfood, dt.nutrients.kcals, by = "IMPACT_code")
-# dt.nutrients.kcals[,kcalsPerCommod := foodAvailpDay * energy_kcal]
-# # add the kcals per day from the sources of kcals
-# dt.nutrients.kcals[, `:=`(
-#   kcals.fat = foodAvailpDay * kcals.fat_g,
-#   kcals.carbohydrate = foodAvailpDay * kcals.carbohydrate_g,
-#   kcals.protein = foodAvailpDay * kcals.protein_g,
-#   kcals.ethanol = foodAvailpDay * kcals.ethanol_g,
-#   kcals.sugar = foodAvailpDay * kcals.sugar_g,
-#   kcals.ft_acds_tot_sat = foodAvailpDay * kcals.ft_acds_tot_sat_g
-# )]
-# dt.nutrients.kcals[, `:=`(
-#   kcalsPerDay.tot = sum(kcalsPerCommod),
-#   kcalsPerDay.carbohydrate = sum(kcals.carbohydrate),
-#   kcalsPerDay.fat = sum(kcals.fat),
-#   kcalsPerDay.protein = sum(kcals.protein),
-#   kcalsPerDay.ethanol = sum(kcals.ethanol),
-#   kcalsPerDay.sugar = sum(kcals.sugar),
-#   kcalsPerDay.ft_acds_tot_sat = sum(kcals.ft_acds_tot_sat)),
-#   by = c("scenario",  "year", "region_code.IMPACT159"
-#   )][,
-#      kcalsPerDay.other := kcalsPerDay.tot - (kcalsPerDay.carbohydrate + kcalsPerDay.fat + kcalsPerDay.protein)
-#      ]
-# DT <- dt.nutrients.kcals
-# outName <- "dt.nutrients.kcals"
-# cleanup(DT, outName, fileloc("resultsDir"))
-
 # reqsListPercap is a list of the requirements types. Each has a different set of nutrients. These are a subset
 # of what are in the nutrients requirements tables from IOM. They are the nutrients common to
 # both the IOM and nutrient content lookup spreadsheet. Some are in physical units (eg. gms; others, especially AMDR are in percent of total energy)

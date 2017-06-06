@@ -298,7 +298,7 @@ cleanupNutrientNames <- function(nutList) {
   nutList <- gsub("vit_","Vitamin ",nutList)
   nutList <- gsub("_µg","",nutList)
   nutList <- gsub("_mg","",nutList)
-  nutList <- gsub("_rae"," rae",nutList)
+  nutList <- gsub("_rae"," (RAE)",nutList)
   nutList <- gsub("_g","",nutList)
   nutList <- gsub("totalfiber","total fiber",nutList)
   nutList <- gsub(".ratio.foodGroup","",nutList)

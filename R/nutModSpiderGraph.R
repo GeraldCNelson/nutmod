@@ -8,7 +8,7 @@ if (!exists("getNewestVersion", mode = "function"))
   source("R/workbookFunctions.R")
   source("R/nutrientCalcFunctions.R")}
 
-library(fmsb)
+#library(fmsb)
 # region <- keyVariable("region")
 
 #reqType choices are RDA_macro, RDA_vits, RDA_minrls, EAR, UL _vits, UL_minrls, kcal_ratios

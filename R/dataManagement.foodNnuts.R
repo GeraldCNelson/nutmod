@@ -122,7 +122,7 @@ dt.nutrients.kcals <- data.table::melt(
   variable.name = "nutrient",
   value.name = "value",
   variable.factor = FALSE)
-inDT <- dt.nutrients.kcals
+inDT <- unique(dt.nutrients.kcals)
 outName <- "dt.nutrients.kcals"
 cleanup(inDT, outName, fileloc("resultsDir"))
 
