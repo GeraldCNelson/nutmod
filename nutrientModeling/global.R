@@ -182,28 +182,31 @@ cleanupNutrientNames <- function(nutList) {
   nutList <- gsub("NonAlcoholic Beveragesic Beverages","Alcoholic beverages",nutList)
   nutList <- gsub("ft_acds_tot_sat", "Saturated fat", nutList)
   nutList <- gsub("_g_AMDR", "", nutList)
+  nutList <- gsub("foodroup_code", "Food group", nutList)
   return(nutList)
 }
 
 cleanupNutrientNamesFacetGraph <- function(nutList) {
+  nutList <- capwords(nutList)
   nutList <- gsub("_g.reqRatio","",nutList)
   nutList <- gsub("reqRatio","",nutList)
-  nutList <- gsub("vit_","Vitamin ",nutList)
+  nutList <- gsub("Vit_","Vitamin ",nutList)
   nutList <- gsub("_µg"," (µg)",nutList)
   nutList <- gsub("_mg"," (mg)",nutList)
-  nutList <- gsub("_rae"," rae",nutList)
+  nutList <- gsub("_rae"," RAE",nutList)
   nutList <- gsub("_g"," (g)",nutList)
   nutList <- gsub("totalfiber","total fiber",nutList)
   nutList <- gsub(".ratio.foodGroup","",nutList)
   # nutList <- gsub("_share","",nutList)
   nutList <- gsub(".sum.all","",nutList)
-  nutList <- gsub("rootsNPlantain","Roots\nand plantain",nutList)
-  nutList <- gsub("nutsNseeds","Nuts\nand seeds",nutList)
-  nutList <- gsub("beverages","Beverages,\nother",nutList)
-  nutList <- gsub("alcohol","Beverages,\nalcoholic",nutList)
+  nutList <- gsub("RootsNPlantain","Roots and plantain",nutList)
+  nutList <- gsub("NutsNseeds","Nuts and seeds",nutList)
+  nutList <- gsub("Beverages","Beverages, other",nutList)
+  nutList <- gsub("Alcohol","Beverages, alcoholic",nutList)
   nutList <- gsub("alcoholic nonalcoholic beverages","alcoholic beverages",nutList)
-  nutList <- gsub("ft_acds_tot_sat", "saturated fat", nutList)
+  nutList <- gsub("Ft_acds_tot_sat", "saturated fat", nutList)
   nutList <- gsub("_g_AMDR", "", nutList)
+
   return(nutList)
 }
 
@@ -316,30 +319,30 @@ countryCodeLookup <- function(countryName, directory) {
   }
 }
 
-countryCodeCleanup <- function(DT) {
+countryCodeCleanup <- function(dt) {
   #converts IMPACT code to ISO3 code for largest country in the region.
-  DT <- DT[region_code.IMPACT159 %in% "FRP", region_code.IMPACT159 := "FRA"]
-  DT <- DT[region_code.IMPACT159 %in% "CHM", region_code.IMPACT159 := "CHN"]
-  DT <- DT[region_code.IMPACT159 %in% "CHP", region_code.IMPACT159 := "CHE"]
-  DT <- DT[region_code.IMPACT159 %in% "DNP", region_code.IMPACT159 := "DNK"]
-  DT <- DT[region_code.IMPACT159 %in% "FNP", region_code.IMPACT159 := "FIN"]
-  DT <- DT[region_code.IMPACT159 %in% "ITP", region_code.IMPACT159 := "ITA"]
-  DT <- DT[region_code.IMPACT159 %in% "MOR", region_code.IMPACT159 := "MAR"]
-  DT <- DT[region_code.IMPACT159 %in% "SPP", region_code.IMPACT159 := "ESP"]
-  DT <- DT[region_code.IMPACT159 %in% "UKP", region_code.IMPACT159 := "GBR"]
-  DT <- DT[region_code.IMPACT159 %in% "BLX", region_code.IMPACT159 := "BEL"]
-  DT <- DT[region_code.IMPACT159 %in% "SDP", region_code.IMPACT159 := "SDN"]
-  DT <- DT[region_code.IMPACT159 %in% "RAP", region_code.IMPACT159 := "ARE"]
+  dt <- dt[region_code.IMPACT159 %in% "FRP", region_code.IMPACT159 := "FRA"]
+  dt <- dt[region_code.IMPACT159 %in% "CHM", region_code.IMPACT159 := "CHN"]
+  dt <- dt[region_code.IMPACT159 %in% "CHP", region_code.IMPACT159 := "CHE"]
+  dt <- dt[region_code.IMPACT159 %in% "DNP", region_code.IMPACT159 := "DNK"]
+  dt <- dt[region_code.IMPACT159 %in% "FNP", region_code.IMPACT159 := "FIN"]
+  dt <- dt[region_code.IMPACT159 %in% "ITP", region_code.IMPACT159 := "ITA"]
+  dt <- dt[region_code.IMPACT159 %in% "MOR", region_code.IMPACT159 := "MAR"]
+  dt <- dt[region_code.IMPACT159 %in% "SPP", region_code.IMPACT159 := "ESP"]
+  dt <- dt[region_code.IMPACT159 %in% "UKP", region_code.IMPACT159 := "GBR"]
+  dt <- dt[region_code.IMPACT159 %in% "BLX", region_code.IMPACT159 := "BEL"]
+  dt <- dt[region_code.IMPACT159 %in% "SDP", region_code.IMPACT159 := "SDN"]
+  dt <- dt[region_code.IMPACT159 %in% "RAP", region_code.IMPACT159 := "ARE"]
 
-  DT <- DT[region_code.IMPACT159 %in% "GSA", region_code.IMPACT159 := "SUR"]
-  DT <- DT[region_code.IMPACT159 %in% "CRB", region_code.IMPACT159 := "TTO"]
-  DT <- DT[region_code.IMPACT159 %in% "OSA", region_code.IMPACT159 := "SIN"]
-  DT <- DT[region_code.IMPACT159 %in% "BLT", region_code.IMPACT159 := "LTU"]
-  DT <- DT[region_code.IMPACT159 %in% "OBN", region_code.IMPACT159 := "SRB"]
-  DT <- DT[region_code.IMPACT159 %in% "OAO", region_code.IMPACT159 := "CPV"]
-  DT <- DT[region_code.IMPACT159 %in% "OIO", region_code.IMPACT159 := "MDV"]
-  DT <- DT[region_code.IMPACT159 %in% "OPO", region_code.IMPACT159 := "WSM"]
-  return(DT)
+  dt <- dt[region_code.IMPACT159 %in% "GSA", region_code.IMPACT159 := "SUR"]
+  dt <- dt[region_code.IMPACT159 %in% "CRB", region_code.IMPACT159 := "TTO"]
+  dt <- dt[region_code.IMPACT159 %in% "OSA", region_code.IMPACT159 := "SIN"]
+  dt <- dt[region_code.IMPACT159 %in% "BLT", region_code.IMPACT159 := "LTU"]
+  dt <- dt[region_code.IMPACT159 %in% "OBN", region_code.IMPACT159 := "SRB"]
+  dt <- dt[region_code.IMPACT159 %in% "OAO", region_code.IMPACT159 := "CPV"]
+  dt <- dt[region_code.IMPACT159 %in% "OIO", region_code.IMPACT159 := "MDV"]
+  dt <- dt[region_code.IMPACT159 %in% "OPO", region_code.IMPACT159 := "WSM"]
+  return(dt)
 }
 #
 # nutReqDataPrep <- function(reqTypeChoice, countryCode, scenarioName, years, dir) {
@@ -642,17 +645,17 @@ storeWorldMapDF <- function(){
   # dat_url <- getURL("https://gist.githubusercontent.com/hrbrmstr/7a0ddc5c0bb986314af3/raw/6a07913aded24c611a468d951af3ab3488c5b702/pop.csv")
   # pop <- read.csv(text=dat_url, stringsAsFactors=FALSE, header=TRUE)
   worldMap <- broom::tidy(world, region = "iso_a3")
-  inDT <- worldMap
+  indt <- worldMap
   outName <- "worldMap"
-  cleanup(inDT, outName, fileloc("mData"))
+  cleanup(indt, outName, fileloc("mData"))
 }
 
-facetMaps <- function(worldMap, DT, fileName, legendText, fillLimits, palette, facetColName, graphsListHolder, breakValues, displayOrder) {
+facetMaps <- function(worldMap, dt, fileName, legendText, fillLimits, palette, facetColName, graphsListHolder, breakValues, displayOrder) {
   b <- breakValues
   f <- fillLimits
   p <- palette
   n <- facetColName
-  d <- data.table::copy(DT)
+  d <- data.table::copy(dt)
   d[, (n) := factor(get(n), levels = displayOrder)]
   gg <- ggplot(data = d, aes(map_id = id))
   gg <- gg + geom_map(aes(fill = value), map = worldMap)
@@ -710,32 +713,31 @@ initialCountryCode <- countryCodeLookup(initialCountryName, fileloc("mData"))
 #                           secret = 'hk4UOGDwRKr5Pkw2hKMzSxcRqL0GRsoU67shiwR/')
 # rsconnect::deployApp(appDir = paste(getwd(),"nutrientModeling", sep = "/"))
 
-spiderGraphData <- function(countryName, scenarioName, DT, displayColumnName) {
+spiderGraphData <- function(countryName, scenarioName, dt, displayColumnName) {
   if (missing(displayColumnName)) displayColumnName <- "nutrient"
   countryCode <- countryCodeLookup(countryName, fileloc("mData"))
-  DT <- DT[region_code.IMPACT159 %in% countryCode & scenario %in% scenarioName,]
-  DT[, year := gsub("X", "", year)]
-  if (displayColumnName %in% "nutrient") DT[, nutrient := cleanupNutrientNames(nutrient)]
-  if (displayColumnName %in% "food_group_code") DT[, food_group_code := cleanupNutrientNames(food_group_code)]
+  dt <- dt[region_code.IMPACT159 %in% countryCode & scenario %in% scenarioName,]
+  dt[, year := gsub("X", "", year)]
+  if (displayColumnName %in% "nutrient") dt[, nutrient := cleanupNutrientNames(nutrient)]
+  if (displayColumnName %in% "food_group_code") dt[, food_group_code := cleanupNutrientNames(food_group_code)]
   formula.wide <- sprintf("scenario + region_code.IMPACT159 + year ~ %s", displayColumnName)
-  DT <- dcast(data = DT, formula = formula.wide, value.var = "value")
-  return(DT)
+  dt <- dcast(data = dt, formula = formula.wide, value.var = "value")
+  return(dt)
 }
 
-graphData <- function(countryName, scenarioName, DT, displayColumnName) {
+graphData <- function(countryName, scenarioName, dt, displayColumnName) {
   if (missing(displayColumnName)) displayColumnName <- "nutrient"
   countryCode <- countryCodeLookup(countryName, fileloc("mData"))
-  DT[, year := gsub("X", "", year)]
-  DT <- DT[region_code.IMPACT159 %in% countryCode & scenario %in% scenarioName,]
-  if (displayColumnName %in% "nutrient") DT[, nutrient := cleanupNutrientNames(nutrient)]
-  if (displayColumnName %in% "food_group_code") DT[, food_group_code := cleanupNutrientNames(food_group_code)]
-  print(unique(DT$food_group_code))
-  return(DT)
+  dt[, year := gsub("X", "", year)]
+  dt <- dt[region_code.IMPACT159 %in% countryCode & scenario %in% scenarioName,]
+  if (displayColumnName %in% "nutrient") dt[, nutrient := cleanupNutrientNames(nutrient)]
+  if (displayColumnName %in% "food_group_code") dt[, food_group_code := cleanupNutrientNames(food_group_code)]
+  return(dt)
 }
 
 spiderGraphOutput <- function(spiderData, scenarioName) {
   titleText <- paste("Scenario: ", scenarioName)
-  p <- ggRadar(data = spiderData, mapping = aes(colour = year),
+  p <- ggRadar(data = spiderData, mapping = aes(colour = Year),
                rescale = FALSE, interactive = FALSE, size = 2,
                legend.position = "right")
   p <- p + theme(plot.title = element_text(hjust = 0.5, size = 12, family = fontFamily,
@@ -745,7 +747,7 @@ spiderGraphOutput <- function(spiderData, scenarioName) {
   return(p)
 }
 
-load_data <- function() {
+load_data <- function(dataSetsToLoad) {
   #load data that are not year or scenario specific; these are handled in the observe code in the server
   #' development files
   "dt.metadata" <- getNewestVersion("dt.metadata", fileloc("mData"))
@@ -759,31 +761,7 @@ load_data <- function() {
     assign(dt, temp, envir = .GlobalEnv) # this puts the data sets into the global environment
     return(dt)
   }
-  dataSetsToLoad <- c(
-    #' affordability data
-    "dt.budgetShare",
 
-    #' availability data
-    "dt.foodAvail.foodGroup",
-    #    "dt.nutrients.sum.all",
-
-    #' adequacy data
-    "dt.nutrients.kcals",
-    "food_agg_AMDR_hi",
-    "RDA.macro_sum_reqRatio",
-    "RDA.vits_sum_reqRatio",
-    "RDA.minrls_sum_reqRatio",
-    "dt.nutBalScore",
-    "dt.MRVRatios",
-    #     "dt.nutrients.sum.FG", # move to special
-    # "RDA.vits_FG_reqRatio",
-    # "RDA.minrls_FG_reqRatio",
-
-    #' diversity data
-    "dt.shannonDiversity",
-    "dt.KcalShare.nonstaple",
-    "dt.RAOqe"
-  )
   withProgress(message = 'Loading data', value = 0, {
     # Number of times we'll go through the loop
     n <- length(dataSetsToLoad)
@@ -797,8 +775,8 @@ load_data <- function() {
     }
   })
 
-  hide("loading_page")
-  shinyjs::show("mainTabsetPanel")
+  shinyjs::hide("loading_page", anim = FALSE, animType = "fade", time = 0.5)
+  shinyjs::show("mainTabsetPanel", anim = TRUE, animType = "fade", time = 0.5)
 }
 
 plotByRegionBarAMDR <- function(dt, fileName, plotTitle, yLab, yRange, aggChoice, scenOrder, colorList, AMDR_lo, AMDR_hi,
@@ -879,5 +857,147 @@ load_data_special <- function(data_name) {
       return(data_name)
     }
     incProgress(1)})
+}
+
+
+pivotWideToWideYear <- function(inData) {
+  dt <- data.table::copy(inData)
+  namelist <- names(dt)
+  idVars <- c("scenario", "region_code.IMPACT159", "year")
+  measureVars <- namelist[!namelist %in% idVars]
+  dt.long  <- data.table::melt(
+    data = dt,
+    id.vars = idVars,
+    measure.vars = measureVars,
+    variable.name = "nutrient_foodGroup",
+    value.name = "value",
+    variable.factor = FALSE
+  )
+  formula.wide <- paste("scenario + region_code.IMPACT159 + nutrient_foodGroup  ~ year")
+  dt.wide <- data.table::dcast(
+    data = dt.long,
+    formula = formula.wide,
+    value.var = "value")
+  return(dt.wide)
+}
+
+facetGraphData <- function(countryName, scenarioName, inData, facetColumnName, displayColumnName) {
+  if (missing(displayColumnName)) displayColumnName <- "food_group_code"
+  if (missing(facetColumnName)) facetColumnName <- "nutrient"
+  countryCode <- countryCodeLookup(countryName, fileloc("mData"))
+  dt <- data.table::copy(inData)
+  dt <- dt[region_code.IMPACT159 %in% countryCode & scenario %in% scenarioName,]
+  newOrder <- c(names(dt)[!names(dt) %in% facetColumnName], facetColumnName)
+  data.table::setcolorder(dt,neworder = newOrder)
+  return(dt)
+}
+
+facetGraphOutput <- function(inData, facetColumnName, displayColumnName, foodGroupNames, foodGroupNamesNoWrap) {
+  dt <- data.table::copy(inData)
+  scenarioName <- unique(dt$scenario)
+  countryCode <- unique(dt$region_code.IMPACT159)
+  countryName <- countryNameLookup(countryCode)
+#   dt <- dt[scenario %in% scenarioName & region_code.IMPACT159 %in% countryCode]
+  # inData[, scenario := gsub("-REF", "", scenario)]
+  dt[,c("scenario", "region_code.IMPACT159") := NULL]
+  #  names.new <- cleanupNutrientNamesFacetGraph(names(inData))
+  #  data.table::setnames(inData, old = names(inData), new = capwords(names.new))
+  if (facetColumnName %in% "nutrient") dt[, nutrient := capwords(cleanupNutrientNamesFacetGraph(nutrient))]
+  if (displayColumnName %in% "food_group_code") {
+ #   dt[, food_group_code := cleanupNutrientNames(food_group_code)]
+
+    for (i in 1:length(foodGroupNames)) {
+      dt[food_group_code == foodGroupNames[i], food_group_code := foodGroupNamesNoWrap[i]]
+    }
+  }
+
+  titleText <- paste("Country: ", countryName, "Scenario: ", scenarioName)
+  facetColumnName <- capwords(facetColumnName)
+  p <- ggplot(data = dt, mapping = aes(fill = factor(year), x = food_group_code, y = value)) +
+    scale_fill_discrete(name = "Year") +
+    geom_col(position = "dodge") + facet_wrap(~nutrient, scales = "free_x", ncol = 3) +
+    coord_flip() # + theme(plot.margin = unit(c(1, 1, 1, 1), "null"))
+
+  # p <- ggRadar(data = spiderData, mapping = aes_string(colour = colourName, facet = facetColumnName),
+  #              rescale = FALSE, interactive = FALSE, size = 2, scales = "fixed",
+  #              legend.position = "right")
+  p <- p + theme(plot.title = element_text(hjust = 0.5, size = 12, family = fontFamily,
+                                           face = "plain")) + ggtitle(titleText)
+  p <- p + theme(axis.text.x = element_text(size = 12, family = fontFamily, face = "plain"))
+  p <- p + theme(axis.text.y = element_text(size = 12, family = fontFamily, face = "plain"))
+  p <- p + theme(axis.title.y = element_text(size = 12, family = fontFamily, face = "plain"))
+  p <- p + theme(legend.text = element_text(size = 12, family = fontFamily, face = "plain"))
+  p <- p + theme(legend.title = element_text(size = 12, family = fontFamily, face = "plain"))
+  p <- p + theme(strip.text.x = element_text(size = 12, family = fontFamily, face = "plain"))
+  p <- p +  xlab("food group") + ylab(NULL)
+  return(p)
+}
+
+barGraphData <- function(countryName, inData) {
+  countryCode <- countryCodeLookup(countryName, fileloc("mData"))
+  dt <- data.table::copy(inData)
+  dt <- dt[region_code.IMPACT159 %in% countryCode,]
+  AMDRNuts <- c("scenario", "year", "region_code.IMPACT159", "carbohydrate_g.Q", "fat_g.Q", "protein_g.Q")
+  deleteListCol <- names(dt)[!names(dt)  %in% AMDRNuts]
+  dt[, (deleteListCol) := NULL]
+  dt <- dt[scenario %in% scenarioNames, ]
+  dt <- unique(dt)
+  return(dt)
+}
+
+plotByRegionBarAMDRinShiny <- function(barData, yLab) {
+  temp <- data.table::copy(barData)
+  countryName <- countryNameLookup(unique(temp$region_code.IMPACT159), fileloc("mData"))
+  plotTitle <- paste("AMDR plots for ", countryName, sep = "")
+  temp  <- data.table::melt(
+    data = temp,
+    id.vars = c("scenario", "region_code.IMPACT159", "year"),
+    measure.vars = c("carbohydrate_g.Q", "fat_g.Q", "protein_g.Q"),
+    variable.name = "nutrient",
+    value.name = "value",
+    variable.factor = FALSE
+  )
+  temp[, nutrient := gsub("_g.Q", "", nutrient)]
+  AMDR_hi.carbohydrate <- 65
+  AMDR_hi.fat <- 35
+  AMDR_hi.protein <- 30
+  AMDR_lo.carbohydrate <- 45
+  AMDR_lo.fat <- 25
+  AMDR_lo.protein <- 10
+  int_hi <- c(AMDR_hi.carbohydrate, AMDR_hi.fat, AMDR_hi.protein)
+  int_lo = c(AMDR_lo.carbohydrate, AMDR_lo.fat, AMDR_lo.protein)
+  slope <- c(0,0,0)
+  nutrient = c("carbohydrate", "fat", "protein")
+  ref_hi <- data.frame(int_hi, slope, nutrient)
+  ref_lo <- data.frame(int_lo, slope, nutrient)
+
+  #select color explicitly
+  scenOrder <- scenarioNames
+  paletteChoice <- "OrRd" #choices are described in the help for RcolorBrewer
+
+  #put here so its easy to see alignment of colors and bars
+  colorsNeeded <- length(scenarioNames)
+  colorList <- c("#000000", brewer.pal(colorsNeeded, paletteChoice))
+
+  # a kludge to make the climate scenario green (#2ca25f)
+  colorList[3] <- "#2CA25F"
+
+  p <- ggplot(temp, aes(x = year, y = value, fill = scenario )) +
+    geom_bar_interactive(stat = "identity", position = "dodge") +
+    scale_fill_manual(values = colorList) +
+    facet_wrap( ~ nutrient, scales = "fixed") +
+    #    scale_y_continuous(name = yLab) +
+    # needs to be geom_line. geom_hline shows up on all facets
+    geom_abline(data = ref_hi, aes(intercept = int_hi, slope = slope), color = "red", size = 1) +
+    geom_abline(data = ref_lo, aes(intercept = int_lo, slope = slope), color = "green", size = 1) +
+    theme(strip.text.x = element_text(family = fontFamily, face = "plain")) +
+    ylab(yLab)
+
+  p = p + theme(legend.position = "right") +
+    theme(axis.text.x = element_text(angle = 45, hjust = 1, family = fontFamily, face = "plain")) +
+    theme(axis.title.y = element_text(family = fontFamily, face = "plain")) +
+    theme(plot.title = element_text(hjust = 0.5, size = 12, family = fontFamily, face = "plain")) +
+    ggtitle(plotTitle)
+  return(p)
 }
 
