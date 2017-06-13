@@ -5,7 +5,7 @@
 #' @source \url{http://faostat3.fao.org/download/FB/FBS/E}
 #'
 #' @include nutrientModFunctions.R
-if (!exists("getNewestVersion", mode = "function"))
+#' if (!exists("getNewestVersion", mode = "function"))
 {source("R/nutrientModFunctions.R")
   source("R/workbookFunctions.R")
   source("R/nutrientCalcFunctions.R")}
@@ -92,8 +92,8 @@ dt.FBS.raw <- dt.FBS.rawData[,colKeepList, with = FALSE]
 dt.FBS.raw[element == "Food", element := "foodMT"]
 dt.FBS.raw[element == "Food supply quantity (kg/capita/yr)", element := "perCapKg"]
 dt.FBS.raw[element == "Food supply (kcal/capita/day)",element := "perCapKcal"]
-dt.FBS.raw[element == "Protein supply quantity (g/capita/day)", element := "perCapProt"]
-dt.FBS.raw[element == "Fat supply quantity (g/capita/day)", element := "perCapFat"]
+#dt.FBS.raw[element == "Protein supply quantity (g/capita/day)", element := "perCapProt"]
+#dt.FBS.raw[element == "Fat supply quantity (g/capita/day)", element := "perCapFat"]
 
 # change 'element' to 'variable' to make it consistent with other data sources
 data.table::setnames(dt.FBS.raw,old = c("element","variable_code"),new = c("variable","variable_code"))
