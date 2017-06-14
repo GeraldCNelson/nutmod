@@ -736,7 +736,11 @@ graphData <- function(countryName, scenarioName, dt, displayColumnName) {
 }
 
 spiderGraphOutput <- function(spiderData, scenarioName) {
-  titleText <- paste("Scenario: ", scenarioName)
+  countryCode <- unique(spiderData$region_code.IMPACT159)
+  countryName <- countryNameLookup(countryCode)
+  spiderData[, region_code.IMPACT159 := NULL]
+  data.table::setnames(spiderData, old = names(spiderData), new = capwords(names(spiderData)))
+  titleText <- paste("Country: ", countryName, "Scenario: ", scenarioName)
   p <- ggRadar(data = spiderData, mapping = aes(colour = Year),
                rescale = FALSE, interactive = FALSE, size = 2,
                legend.position = "right")
@@ -947,7 +951,8 @@ barGraphData <- function(countryName, inData) {
 
 plotByRegionBarAMDRinShiny <- function(barData, yLab) {
   temp <- data.table::copy(barData)
-  countryName <- countryNameLookup(unique(temp$region_code.IMPACT159), fileloc("mData"))
+  countryName <- countryNameLookup(countryCode)
+#  countryName <- countryNameLookup(unique(temp$region_code.IMPACT159), fileloc("mData"))
   plotTitle <- paste("AMDR plots for ", countryName, sep = "")
   temp  <- data.table::melt(
     data = temp,

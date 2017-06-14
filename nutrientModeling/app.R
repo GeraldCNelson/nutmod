@@ -567,8 +567,8 @@ server <- function(input, output, session) {
   output$availabilitySpiderGraphP1 <- renderggiraph({
     dt <- data.table::copy(data.foodAvail())
     scenarioName <- unique(dt$scenario)
-    dt[, region_code.IMPACT159 := NULL]
-    data.table::setnames(dt, old = names(dt), new = capwords(names(dt)))
+ #   dt[, region_code.IMPACT159 := NULL]
+ #   data.table::setnames(dt, old = names(dt), new = capwords(names(dt)))
     p <- spiderGraphOutput(dt, scenarioName)
     ggiraph(code = print(p), zoom_max = 1, width = .75)
   })
@@ -607,8 +607,8 @@ server <- function(input, output, session) {
   output$adequacySpiderGraphP1 <- renderggiraph({
     dt <- data.table::copy(data.adequacy.macro())
     scenarioName <- unique(dt$scenario)
-    dt[, region_code.IMPACT159 := NULL][, scenario := gsub("-REF", "", scenario)]
-    data.table::setnames(dt, old = names(dt), new = capwords(names(dt)))
+    dt[, scenario := gsub("-REF", "", scenario)]
+ #   data.table::setnames(dt, old = names(dt), new = capwords(names(dt)))
     p <- spiderGraphOutput(dt, scenarioName)
     ggiraph(code = print(p), zoom_max = 1, width = 1)
   })
@@ -616,8 +616,8 @@ server <- function(input, output, session) {
   output$adequacySpiderGraphP2 <- renderggiraph({
     dt <- data.table::copy(data.adequacy.vits())
     scenarioName <- unique(dt$scenario)
-    dt[, region_code.IMPACT159 := NULL][, scenario := gsub("-REF", "", scenario)]
-    data.table::setnames(dt, old = names(dt), new = capwords(names(dt)))
+    dt[, scenario := gsub("-REF", "", scenario)]
+    #   data.table::setnames(dt, old = names(dt), new = capwords(names(dt)))
     p <- spiderGraphOutput(dt, scenarioName)
     ggiraph(code = print(p), zoom_max = 1, width = 1)
   })
@@ -625,8 +625,8 @@ server <- function(input, output, session) {
   output$adequacySpiderGraphP3 <- renderggiraph({
     dt <- data.table::copy(data.adequacy.minrls())
     scenarioName <- unique(dt$scenario)
-    dt[, region_code.IMPACT159 := NULL][, scenario := gsub("-REF", "", scenario)]
-    data.table::setnames(dt, old = names(dt), new = capwords(names(dt)))
+    dt[, scenario := gsub("-REF", "", scenario)]
+    #   data.table::setnames(dt, old = names(dt), new = capwords(names(dt)))
     p <- spiderGraphOutput(dt, scenarioName)
     ggiraph(code = print(p), zoom_max = 1, width = 1)
   })
@@ -694,9 +694,10 @@ server <- function(input, output, session) {
     dt <- data.table::copy(data.energy.share())
     scenarioName <- unique(dt$scenario)
     countryCode <- unique(dt$region_code.IMPACT159)
-    countryName <- countryNameLookup((unique(dt$region_code.IMPACT159)))
+    countryName <- countryNameLookup(countryCode)
+#    countryName <- countryNameLookup((unique(dt$region_code.IMPACT159)))
     # colors_in <- c( "gray", "green", "blue", "red", "yellow" )
-    titleText <- paste("Share of total kilocalories by macronutrient\n", "Country: ", countryName,"Scenario: ", scenarioName)
+    titleText <- paste("Share of total kilocalories by macronutrient\n", "Country: ", countryName, "Scenario: ", scenarioName)
     yLab <- "(percent)"
     p <- ggplot(dt, aes(x = year, y = value, tooltip = value, fill = nutrient, order = c("region_name") )) +
       geom_bar_interactive(stat = "identity") +
@@ -847,7 +848,7 @@ server <- function(input, output, session) {
     dt[,(colsToRound) := round(.SD,2), .SDcols = colsToRound]
     data.table::setnames(dt, old = "region_code.IMPACT159", new = "country code")
     data.table::setnames(dt, old = names(dt), new = capwords(names(dt)))
-    dt <- DT::datatable(dt, rownames = FALSE, options = list(pageLength = 15, dom = 't', ordering = F))
+    dt <- DT::datatable(dt, rownames = FALSE, options = list(pageLength = 15, dom = 't', filter = list(position = "top")))
     dt
   })
 
@@ -868,7 +869,7 @@ server <- function(input, output, session) {
     data.table::setnames(dt, old = "region_code.IMPACT159", new = "country code")
     #    dt[, nutrient := capwords(nutrient)]
     dt[, nutrient := capwords(cleanupNutrientNames(nutrient))]
-    dt <- DT::datatable(dt, rownames = FALSE, options = list(pageLength = 15, dom = 't', ordering = F))
+    dt <- DT::datatable(dt, rownames = FALSE, options = list(pageLength = 15, dom = 't', filter = list(position = "top")))
     dt
   })
 
