@@ -1049,6 +1049,7 @@ server <- function(input, output, session) {
   output$fileDocumentation <- DT::renderDataTable({
     getNewestVersion("resultFileLookup", fileloc("mData"))
   })
+  session$onSessionEnded(stopApp)
 }
 
 # Run the application -----
