@@ -401,9 +401,19 @@ generateResults.dataPrep <- function(req, dt.IMPACTfood, scenarioListIMPACT, dt.
     # calculate ratio of kcals from nutrient to total kcals. Multiply by 100 so its in same units as the AMDR values
 
     # use different source for dt.food.agg for AMDRs
+    dt.nutrients.kcals <- getNewestVersion("dt.nutrients.kcals", fileloc("resultsDir"))
     dt.food.agg <- data.table::copy(dt.nutrients.kcals)
-    keepListCol <- c("scenario", "region_code.IMPACT159", "year", "kcalsPerDay.fat", "kcalsPerDay.protein", "kcalsPerDay.carbohydrate", "kcalsPerDay.tot")
-    dt.food.agg <- unique(dt.food.agg[, (keepListCol), with = FALSE])
+    formula.wide <- paste("scenario + region_code.IMPACT159 + year ~nutrient")
+    dt.food.agg <-
+      temp <- data.table::dcast(
+        data = dt.food.agg,
+        formula = formula.wide,
+        value.var = "value"
+      )
+    # commented out on Jun 14, 2017 because dt.nutrients.kcals is now in long vorm
+    # keepListCol <- c("scenario", "region_code.IMPACT159", "year", "nutrient", "value")
+    #                  #"kcalsPerDay.fat", "kcalsPerDay.protein", "kcalsPerDay.carbohydrate", "kcalsPerDay.tot")
+    # dt.food.agg <- unique(dt.food.agg[, (keepListCol), with = FALSE])
 
     # the .Q variables are the percent of the macronutrient kcals in total kcals
     dt.food.agg[, `:=`(

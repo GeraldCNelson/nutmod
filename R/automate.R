@@ -27,7 +27,7 @@ ptm <- proc.time()
 
 #install needed packages
 list.of.packages <- c("data.table", "openxlsx", "dplyr", "dtplyr", "utils", "ggplot2", "stringi", "tidyr", "splitstackshape",
-                      "gridExtra","gplots", "cacheSweave", "RColorBrewer")
+                      "gridExtra","gplots", "RColorBrewer", "RODBC")
 new.packages <- list.of.packages[!(list.of.packages %in% installed.packages()[,"Package"])]
 if (length(new.packages)) install.packages(new.packages)
 

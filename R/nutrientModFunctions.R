@@ -1063,10 +1063,10 @@ regionAgg <- function(aggChoice) {
 
 gdxrrwExistenceCheck <- function(){
   # the GAMS gdxrrw package is needed to import data from IMPACT (in R scripts gdxrrwSetup.R, dataPrep.IMPACT.R and dataManagement.IMPACT.R)
-  gdxrrwText <- 'The gdxrrw package is needed to run this. It is available at this url, not from CRAN.
+  gdxrrwText <- 'The gdxrrw package is needed to run this. It is not available from CRAN; use this url:
 https://support.gams.com/gdxrrw:interfacing_gams_and_r. Download the relevant file and use the following command to install
 - install.packages("gdxrrw_1.0.2.tgz",repos = NULL). Replace gdxrrw_1.0.2.tgz with the
-name of the file you downloaded. If you put it in the main directory of your project, the install.packages command will find it.
+name of the file you downloaded. Note that if you need the source version, download and install gdxrrw_1.0.2.tar.gz If you put it in the main directory of your project, the install.packages command will find it.
 After GAMS is installed you need to tell R where the GAMS library is located. Here are some examples
 - mac installation - /Applications/GAMS/gams24.5_osx_x64_64_sfx
 - linux installation - /opt/gams/gams24.3_linux_x64_64_sfx
