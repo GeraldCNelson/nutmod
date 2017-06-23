@@ -78,7 +78,7 @@ generateResults.dataPrep <- function(req, dt.IMPACTfood, scenarioListIMPACT, dt.
 
   #' get list of nutrients from dt.nutsReqPerCap for the req set of requirements
   nutListReq <- names(dt.nutsReqPerCap)[4:length(names( dt.nutsReqPerCap))]
-  
+
   #' list of names for the product of daily availability by nutrient content for each commodity
   nutListReq.Q <- paste(nutListReq, "Q", sep = ".") # note that these are in percent of total daily kcals for AMDRs
 
@@ -126,7 +126,7 @@ generateResults.dataPrep <- function(req, dt.IMPACTfood, scenarioListIMPACT, dt.
   #' use the data table dt.nuts only in the function
   dt.nuts <- data.table::copy(dt.nutrients.adj)
   dt.nuts <- dt.nuts[,(keepListCol), with = FALSE]
-  
+
   #' combine the food availability info with the nutrients for each of the IMPACT commodities
   data.table::setkey(dt.nuts, IMPACT_code)
   data.table::setkeyv(dt.food, c("scenario","region_code.IMPACT159","IMPACT_code","year" ))
@@ -235,7 +235,7 @@ generateResults.dataPrep <- function(req, dt.IMPACTfood, scenarioListIMPACT, dt.
     cleanup(inDT, outName, fileloc("resultsDir"), "csv")
     keepListCol <- c("scenario","region_code.IMPACT159", "year", "bioavailability.iron")
     dt.bioavail.iron <- dt.bioavail.iron[, (keepListCol), with = FALSE]
-    
+
     #' adjust iron in dt.food.agg
     temp <- merge(dt.food.agg, dt.bioavail.iron, by = c("scenario", "region_code.IMPACT159", "year"))
     dt.food.agg <- temp[,iron_mg.Q := iron_mg.Q * bioavailability.iron/100][,c("bioavailability.iron") := NULL]
@@ -344,13 +344,13 @@ generateResults.dataPrep <- function(req, dt.IMPACTfood, scenarioListIMPACT, dt.
     data.table::setkeyv(dt.food.agg, allKey)
     dt.food.agg <- dt.food.agg[, (nutListReq.sum.all) := lapply(.SD, sum), .SDcols = nutListReq.Q,
                                by = eval(data.table::key(dt.food.agg))]
-     #' individual nutrients by staples
+    #' individual nutrients by staples
     data.table::setkeyv(dt.food.agg,stapleKey)
     dt.food.agg <- dt.food.agg[, (nutListReq.sum.staples) := lapply(.SD, sum), .SDcols = nutListReq.Q,
                                by = eval(data.table::key(dt.food.agg))]
 
     print(paste("summing by staples ", req, sep = ""))
-  
+
     # individual nutrients by food group -----
     data.table::setkeyv(dt.food.agg,foodGroupKey)
     dt.food.agg <- dt.food.agg[, (nutListReq.sum.foodGroup) := lapply(.SD, sum), .SDcols = nutListReq.Q,
@@ -449,7 +449,7 @@ generateResults.dataPrep <- function(req, dt.IMPACTfood, scenarioListIMPACT, dt.
     print(paste("finished with requirement ratio for the food group categories ", req, sep = ""))
     print(proc.time())
   }
-  
+
   #' cap alcohol at 100 gm
   if ("ethanol_g" %in% names(dt.food.agg)) {
     dt.food.agg[ethanol_g.sum.all > 100, ethanol_g.sum.all := 100]
