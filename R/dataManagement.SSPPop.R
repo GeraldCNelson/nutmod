@@ -1,4 +1,7 @@
-# Intro -------------------------------------------------------------------
+#' Copy files to shiny app directories
+#' title: "Management of SSP Population Data"
+#' @keywords data management, SSP, population data
+#' @name copyFilestoNutrientModeling.R
 #' @description
 #' This script reads in the Shared Socioeconomic Profiles population data written by dataPrep.SSP.R
 #' and does manipulations
@@ -13,7 +16,7 @@
 #'   req.MRVs.ssp - data/req.MRVs.percap.rds" # added March 24, 2017
 
 #' @source \url{https://tntcat.ac.at/SspDb/download/common/SspDb_country_data_2013-06-12.csv.zip}
-#Copyright (C) 2015 Gerald C. Nelson, except where noted
+#Copyright (C) 2015 - 2017 Gerald C. Nelson, except where noted
 
 #   This program is free software: you can redistribute it and/or modify
 #   it under the terms of the GNU General Public License as published by
@@ -32,19 +35,20 @@
   source("R/workbookFunctions.R")
   source("R/nutrientCalcFunctions.R")}
 keepYearList <- keyVariable("keepYearList")
+
 # Read in the cleaned up SSP population data ----
 dt.SSPPop <- getNewestVersion("dt.SSPPopClean")
-# do this to remove year 0, which was needed for the fish and alcohol calculations
+#' do this to remove year 0, which was needed for the fish and alcohol calculations
 dt.SSPPop <- dt.SSPPop[year %in% keepYearList,]
 data.table::setkey(dt.SSPPop, ISO_code)
 
 dt.regions.all <- getNewestVersion("dt.regions.all")
 data.table::setkey(dt.regions.all, ISO_code)
-# this could be a problem
+
+#' this could be a problem
 dt.SSPPop <-  merge(dt.SSPPop, dt.regions.all, by = "ISO_code", all.y = TRUE, allow.cartesian = TRUE)
 
 # Read in the region to aggregate to -----
-# region <- keyVariable("region")
 keepListCol <- c("scenario","ageGenderCode","year", "value", "region_code.IMPACT159")
 dt.SSPPop <- dt.SSPPop[, keepListCol, with = FALSE]
 dt.SSPPop <- dt.SSPPop[!is.na(scenario),]

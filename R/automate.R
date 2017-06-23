@@ -1,7 +1,13 @@
+# a test to see if the compiler helps with the automate script
+require(compiler)
+enableJIT(3)
+ls(all.names = TRUE)
+#' Nutrient Modeling automation script
+#' title: "Functions needed to make the nutrientModeling shiny app work"
 #' @author Gerald C. Nelson, \email{nelson.gerald.c@@gmail.com}
-#' @keywords utilities, nutrient data, IMPACT food commodities nutrient lookup
+#' @keywords utilities, nutrient data, IMPACT food commodities nutrient lookup, automation
 # Intro ---------------------------------------------------------------
-#Copyright (C) 2016 Gerald C. Nelson, except where noted
+#Copyright (C) 2016-2017 Gerald C. Nelson, except where noted
 
 # This program is free software: you can redistribute it and/or modify it
 # under the terms of the GNU General Public License as published by the Free

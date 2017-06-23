@@ -1,9 +1,23 @@
-#' Nutrient Modeling Functions
-#'
-#' @keywords utilities, nutrient data management functions
-#' title: "Functions needed to make the nutrientModeling shiny app work"
+#' Nutrient Modeling Functions for the shiny app
+#' title: "Global functions needed to make the nutrientModeling shiny app work"
+#' @keywords utilities, nutrient data management functions, shiny app
 #' @name global.R
 #' @author Gerald C. Nelson, \\email{nelson.gerald.c@@gmail.com}
+#' @description
+#' This script contains functions that are needed across the shiny app. It has duplicates of key functions
+#' from nutrientModFunctions.R. The shiny specific scripts are towards the end.
+
+#Copyright (C) 2015-2017 Gerald C,Nelson, except where noted
+
+#     This program is free software: you can redistribute it and/or modify
+#     it under the terms of the GNU General Public License as published by
+#     the Free Software Foundation, either version 3 of the License, or
+#     (at your option) any later version.
+#
+#     This program is distributed in the hope that it will be useful,
+#     but WITHOUT ANY WARRANTY; without even the implied warranty of
+#     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE, See the
+#     GNU General Public License for more details at http://www.gnu.org/licenses/.
 
 getGdxChoice <- function() {
   gdxCombo <- read.csv(file = paste0(getwd(), "/results/gdxInfo.csv"), header = TRUE, stringsAsFactors = FALSE)
@@ -76,19 +90,7 @@ getNewestVersion <- function(fileShortName, directory, fileType) {
   fileShortNameTest <- paste(fileShortName,"_2", sep = "") # this should get rid of the multiple files problem
   filesofFileType <- list.files(mData)[grep(fileType,list.files(mData))]
   fileLongName <- filesofFileType[grep(fileShortNameTest, filesofFileType, fixed = TRUE)]
-  #  temp <- gsub(fillIn, "", list.files(mData))
-  # filesList <-
-  #   grep(regExp,
-  #        list.files(mData),
-  #        value = TRUE,
-  #        perl = TRUE)
-  # print(filesList)
-  # newestFile <- filesList[length(filesList)]
-
-  #  if (length(newestFile) == 0) {
-  # check to see if the short file name is in the list from the relevant directory
-  # print(paste("fileShortName is ", fileShortName))
-  #  print(fileLongName)
+  
   if (length(fileLongName) == 0) {
     stop(sprintf("There is no file  '%s' in directory %s", fileShortName, mData))
   } else {
@@ -127,24 +129,6 @@ removeOldVersions <- function(fileShortName,dir) {
   regExp <- paste("(?=^", fileShortName, ")(?=.*csv$)", sep = "")
   removeFcn(regExp)
 }
-
-# #' Title removeOldVersions.xlsx - remove old xlsx versions in preparation for writing out new ones
-# #' @param fileShortName - short name of the files to be removed
-# #' @export
-# removeOldVersions.xlsx <- function(fileShortName,dir) {
-#   #mData <- fileloc("mData")
-#   # returns a list of all the [fileShortName] files in the mData
-#   # directory
-#   regExp <- paste("(?=^", fileShortName, ")(?=.*xlsx$)", sep = "")
-#   oldVersionList <-
-#     grep(regExp,
-#          list.files(dir),
-#          value = TRUE,
-#          perl = TRUE)
-#   if (length(oldVersionList) > 0) {
-#     file.remove(paste(dir, oldVersionList, sep = "/"))
-#   }
-# }
 
 #capitalize words
 capwords <- function(s, strict = FALSE) {
@@ -310,9 +294,6 @@ countryCodeLookup <- function(countryName, directory) {
   if (!countryName %in% countryNames) {
     stop(sprintf("The country name you entered (%s) is not in the lookup table", countryName))
   } else {
-    # region159codes <- dt.regions$region_code.IMPACT159
-    # rowNum <- dt.regions[region_name.IMPACT159 == countryName, which = TRUE]
-    # countryCode <- region159codes[rowNum]
     #' this next step is somewhat kludgy. EG there are four countries represented in CHM
     countryCode <- unique(dt.regions.all[region_name.IMPACT159 == countryName, region_code.IMPACT159])
     return(countryCode)
@@ -344,233 +325,6 @@ countryCodeCleanup <- function(dt) {
   dt <- dt[region_code.IMPACT159 %in% "OPO", region_code.IMPACT159 := "WSM"]
   return(dt)
 }
-#
-# nutReqDataPrep <- function(reqTypeChoice, countryCode, scenarioName, years, dir) {
-#   resultFileLookup <- getNewestVersion("resultFileLookup", fileloc("mData"))
-#   # SSPname <- stringi::stri_split_fixed(scenarioName, "-", simplify = TRUE)[1]
-#   # climModel <- stringi::stri_split_fixed(scenarioName, "-", simplify = TRUE)[2]
-#   experiment <- stringi::stri_split_fixed(scenarioName, "-", simplify = TRUE)[3]
-#   #if (is.na(experiment)) {experiment <- "REF"}
-#   if (is.na(experiment)) {scenarioName <- paste(scenarioName, "-REF", sep = "")}
-#
-#   fileName <- resultFileLookup[reqTypeName == reqTypeChoice, fileName]
-#   if (length(fileName) == "0") print(paste(reqTypeChoice, "is not a valid choice", sep = " "))
-#   reqRatios.long <- getNewestVersion(reqTypeChoice, dir)
-#   # reqRatios.long <- reqRatios.long[scenario %in% scenarioName, ]
-#   reqRatios.long <- reqRatios.long[scenario %in% scenarioName &
-#                                      region_code.IMPACT159 %in% countryCode &
-#                                      year %in% years, ]
-#   formula.ratios <- paste("scenario + region_code.IMPACT159 + year ~ nutrient")
-#   reqRatios.wide <- data.table::dcast(
-#     reqRatios.long,
-#     formula = formula.ratios,
-#     value.var = "value")
-#
-#   # i <- countryCode; j <- SSPname; k <- climModel; m <- experiment; l <- years
-#   #
-#   # reqRatios.nuts <-
-#   #   reqRatios.wide[region_code.IMPACT159 %in% i & SSP %in% j & climate_model %in% k &
-#   #                    experiment == m]
-#   #get rid of year along with the others
-#   deleteListCol <- c("scenario", "region_code.IMPACT159", "year")
-#   reqRatios.wide[,(deleteListCol) := NULL]
-#   spokeCols <- names(reqRatios.wide)
-#   #  nutListShort <- cleanupNutrientNames(spokeCols)
-#
-#   reqRatios.wide[is.nan(get(spokeCols)),  (spokeCols) := 0]
-#   reqRatios.wide <- reqRatios.wide[,(spokeCols) := round(.SD,2), .SDcols = spokeCols]
-#
-#   # radarchart- If maxmin is TRUE, this must include maximum values as row 1 and minimum values as row 2 for each variables
-#   colMins <- as.list(c(rep.int(0,ncol(reqRatios.wide))))
-#   reqRatios.wide[, nmax := max(.SD), .SDcols = spokeCols]
-#   cMax <- round(reqRatios.wide[1,nmax])
-#   colMaxs <- as.list(c(rep.int(cMax,ncol(reqRatios.wide) - 1))) # -1 because nmax is a temporary column
-#   reqRatios.wide[,nmax := NULL]
-#
-#   # include the requirement ratio of 1
-#   reqRatioRow <- as.list(c(rep(1,ncol(reqRatios.wide))))
-#   reqRatios.wide <- rbind(colMaxs, colMins, reqRatioRow, reqRatios.wide)
-#
-#   reqRatios.wide[, (spokeCols) := lapply(.SD, as.numeric), .SDcols = spokeCols]
-#   reqRatios.wide[is.nan(get(spokeCols)),  (spokeCols) := 0]
-#   data.table::setnames(reqRatios.wide, old = names(reqRatios.wide), new = cleanupNutrientNames(names(reqRatios.wide)))
-#   return(reqRatios.wide)
-# }
-#
-# nutReqSpiderGraph <- function(reqTypeName, countryCode, scenarioName, years, dir) {
-#   reqRatios.nuts <- nutReqDataPrep(reqTypeName,countryCode, scenarioName, years, dir)
-#   resultFileLookup <- getNewestVersion("resultFileLookup")
-#   # reqRatioList <- resultFileLookup[1:6, reqType] # list of req types that include are based on a requirement
-#   # SSP <- stringi::stri_split_fixed(scenarioName, "-", simplify = TRUE)[1]
-#   # climModel <- stringi::stri_split_fixed(scenarioName, "-", simplify = TRUE)[2]
-#   # experiment <- stringi::stri_split_fixed(scenarioName, "-", simplify = TRUE)[3]
-#   # if (is.na(experiment)) {experiment <- "REF"}
-#   #
-#   # fileName <- resultFileLookup[reqType == reqTypeName, fileName]
-#   # reqRatios <- getNewestVersion(fileName, dir)
-#   # keepListCol <- c("scenario", "SSP", "climate_model", "experiment", "RCP", "region_code.IMPACT159",
-#   #                  "nutrient", years)
-#   # idVars <- c("scenario", "SSP", "climate_model", "experiment", "region_code.IMPACT159", "nutrient")
-#   # formula.ratios <- paste("scenario + SSP + climate_model + experiment + region_code.IMPACT159 + year ~ nutrient")
-#   #
-#   # reqRatios <- reqRatios[, keepListCol, with = FALSE]
-#   description <- resultFileLookup[reqTypeName == reqTypeChoice, description]
-#
-#   chartTitle <- description
-#
-#   #temp1 <- rbind(colMins, colMaxs, reqRatioRow, reqRatios.wide.nuts)
-#
-#   legendText <- c("REQ",years)
-#   colors_border <- c(  "black", rgb(0.2,0.5,0.5,0.9), rgb(0.8,0.2,0.5,0.9), rgb(0.7,0.5,0.1,0.9) )
-#   colors_in <- c( "black", rgb(0.2,0.5,0.5,0.4), rgb(0.8,0.2,0.5,0.4), rgb(0.7,0.5,0.1,0.4) )
-#
-#   lineType <- c(3, 1, 1, 1)
-#   plot.new()
-#   par(mar = c(1, 2, 2, 1))
-#   reqNames <- names(reqRatios.nuts)
-#   radarchart(reqRatios.nuts, axistype = 2,
-#              title = chartTitle,
-#              vlabels = reqNames,
-#              seg = 3,
-#              #custom polygon
-#              pcol = colors_border, plwd = 1, plty = lineType,
-#              #customgrid colors
-#              cglcol = "grey", cglty = 1, axislabcol = "grey", caxislabels = seq(0,20,5), cglwd = 0.8,
-#              #custom labels
-#              vlcex = 0.8,
-#              maxmin = TRUE
-#   )
-#
-#   legend(x = "bottomright", y = NULL, legend = legendText, bty = "n", pch = 20,
-#          col = colors_in, text.col = "black", cex = .9, pt.cex = .9, pt.lwd = 1,
-#          y.intersp = .9)
-# }
-
-# # test data for nutSharedatasetup
-# countryCode <- "AFG"; years <- c("X2010", "X2030", "X2050")
-# reqFileName <- "RDA.minrls.FG.ratio"
-# # dir <- fileloc("resultsDir"); scenarioName <- "SSP2-NoCC"
-# nutshareSpiderGraph <- function(reqFileName, countryCode, scenario, years, dir) {
-#   #reqRatiodatasetup <- function(reqTypeName,country, scenarioName, years, dir) {
-#   resultFileLookup <- getNewestVersion("resultFileLookup")
-#   dt.foodGroupLU <- getNewestVersion("dt.foodGroupsInfo")
-#   SSP <- stringi::stri_split_fixed(scenarioName, "-", simplify = TRUE)[1]
-#   climModel <- stringi::stri_split_fixed(scenarioName, "-", simplify = TRUE)[2]
-#   experiment <- stringi::stri_split_fixed(scenarioName, "-", simplify = TRUE)[3]
-#   if (is.na(experiment)) {experiment <- "REF"}
-#
-#   #  fileName <- resultFileLookup[reqType == reqTypeName, fileName]
-#   shareRatios <- getNewestVersion(reqFileName, dir)
-#   # keepListCol <- c("scenario", "SSP", "climate_model", "experiment", "RCP", "region_code.IMPACT159",
-#   keepListCol <- c("scenario", "SSP", "climate_model", "experiment", "region_code.IMPACT159",
-#                    "nutrient", years)
-#   idVars <- c("scenario", "SSP", "climate_model", "experiment", "region_code.IMPACT159", "nutrient")
-#
-#   if ("food_group_code" %in% names(shareRatios)) {
-#     #    keepListCol <- c("scenario", "SSP", "climate_model", "experiment", "RCP", "region_code.IMPACT159",
-#     keepListCol <- c("scenario", "SSP", "climate_model", "experiment", "region_code.IMPACT159",
-#                      "food_group_code", "nutrient", years)
-#     idVars <- c("scenario", "SSP", "climate_model", "experiment", "region_code.IMPACT159", "nutrient", "food_group_code")
-#     formula.ratios <- paste("scenario + SSP + climate_model + experiment + region_code.IMPACT159 + nutrient + year ~ food_group_code")
-#   }
-#   if ("staple_code" %in% names(shareRatios)) {
-#     #   keepListCol <- c("scenario", "SSP", "climate_model", "experiment", "RCP", "region_code.IMPACT159",
-#     keepListCol <- c("scenario", "SSP", "climate_model", "experiment", "region_code.IMPACT159",
-#                      "staple_code", "nutrient", years)
-#     idVars <- c("scenario", "SSP", "climate_model", "experiment", "region_code.IMPACT159", "nutrient", "staple_code")
-#     formula.ratios <- paste("scenario + SSP + climate_model + experiment + region_code.IMPACT159 + nutrient + year ~ staple_code")
-#   }
-#   shareRatios <- shareRatios[, keepListCol, with = FALSE]
-#   description <- resultFileLookup[reqTypeName == reqTypeChoice, description]
-#
-#   #  measureVars <- keyVariable("keepYearList")
-#   measureVars <- years
-#   shareRatios.long <- data.table::melt(
-#     data = shareRatios, id.vars = idVars, measure.vars = measureVars, variable.name = "year",
-#     value.name = "value", variable.factor = FALSE)
-#
-#   shareRatios.wide <- data.table::dcast(
-#     shareRatios.long,
-#     formula = formula.ratios,
-#     value.var = "value")
-#
-#   i <- countryCode; j <- SSP; k <- climModel; m <- experiment; l <- years
-#
-#   shareRatios.nuts <-
-#     shareRatios.wide[region_code.IMPACT159 %in% i & SSP %in% j & climate_model %in% k &
-#                        experiment == m]
-#   # shareRatios.nuts[, year := gsub("X","",year)]
-#   #get rid of year along with the others
-#   deleteListCol <- c("scenario", "SSP", "climate_model", "experiment", "region_code.IMPACT159", "year")
-#   shareRatios.nuts[,(deleteListCol) := NULL]
-#   spokeCols <- names(shareRatios.nuts)[2:ncol(shareRatios.nuts)]
-#   foodGroupShort <- cleanupNutrientNames(spokeCols)
-#   # if (("food_group_code" %in% names(shareRatios)) | ("staple_code" %in% names(shareRatios))) {
-#   #  # dt.foodGroupsInfo <- getNewestVersion("dt.foodGroupsInfo")
-#   #   #foodGroupList <- sort(unique(foodGroupsInfo$food_group_code))
-#   #   stapleList <- unique(dt.foodGroupLU$staple_code)
-#   shareRatios.nuts[, nutrient := gsub("_g.ratio.foodGroup","", nutrient)]
-#   shareRatios.nuts[, nutrient := gsub("_µg.ratio.foodGroup","", nutrient)]
-#   shareRatios.nuts[, nutrient := gsub("_mg.ratio.foodGroup","", nutrient)]
-#   shareRatios.nuts[, nutrient := gsub("_"," ", nutrient)]
-#   shareRatios.nuts[, nutrient := gsub("vit ","vitamin ", nutrient)]
-#   # }
-#   shareRatios.nuts[is.nan(get(spokeCols)),  (spokeCols) := 0, with = FALSE]
-#   shareRatios.nuts <- shareRatios.nuts[,(spokeCols) := round(.SD,2), .SDcols = spokeCols]
-#
-#   #temp1 <- rbind(colMins, colMaxs, reqRatioRow, shareRatios.wide.nuts)
-#
-#   legendText <- years
-#   colors_border <- c(rgb(0.2,0.5,0.5,0.9), rgb(0.8,0.2,0.5,0.9), rgb(0.7,0.5,0.1,0.9) )
-#   colors_in <- c(rgb(0.2,0.5,0.5,0.4), rgb(0.8,0.2,0.5,0.4), rgb(0.7,0.5,0.1,0.4) )
-#
-#   lineType <- c(3, 1, 1, 1)
-#   plot.new()
-#   title(description)
-#
-#   nutrientList <- sort(unique(shareRatios.nuts$nutrient))
-#   par(mar = c(1, 2, 2, 1))
-#   nrowsGraphs = round(length(nutrientList)/2)
-#   par(mfrow = c(nrowsGraphs,2))
-#
-#   for (i in nutrientList) {
-#     temp <- copy(shareRatios.nuts[nutrient %in% i, ])# radarchart- If maxmin is TRUE, this must include maximum values as row 1 and minimum values as row 2 for each variables
-#     temp[, nmax := max(.SD), .SDcols = spokeCols]
-#     cMax <- round(temp[1,nmax], digits = 2)
-#     colMaxs <- as.list(c(rep.int(cMax,ncol(temp) - 1))) # -1 because nmax is a temporary column
-#     temp[,nmax := NULL]
-#     colMins <- as.list(c(rep.int(0,ncol(temp))))
-#
-#     temp <- rbind(colMaxs, colMins, temp)
-#     temp[, (spokeCols) := lapply(.SD, as.numeric), .SDcols = spokeCols]
-#     temp[is.nan(get(spokeCols)),  (spokeCols) := 0, with = FALSE]
-#     temp[, nutrient := NULL]
-#
-#     vnames <- vector(mode = "character", length = length(foodGroupShort))
-#     for (j in 1:length(foodGroupShort)) {
-#       vnames[j] <- as.character(dt.foodGroupLU[food_group_codes == foodGroupShort[j], food_groups])
-#     }
-#
-#     radarchart(temp, axistype = 2,
-#                title = i,
-#                vlabels = vnames,
-#                seg = 3,
-#                #custom polygon
-#                pcol = colors_border, plwd = 1, plty = lineType,
-#                #customgrid colors
-#                cglcol = "grey", cglty = 1, axislabcol = "grey", caxislabels = seq(0,20,5), cglwd = 0.8,
-#                #custom labels
-#                vlcex = 0.8,
-#                maxmin = TRUE
-#     )
-#
-#     legend(x = "bottomright", y = NULL, legend = legendText, bty = "n", pch = 20,
-#            col = colors_in, text.col = "black", cex = .6, pt.cex = .8, pt.lwd = 1,
-#            y.intersp = .8)
-#   }
-#   return(temp)
-# }
-
 
 # generateWorldMaps -----
 # code to generate choropleth world maps. In principle it should be able to handle an arbitrary number of scenarios
@@ -579,8 +333,7 @@ generateWorldMaps <- function(spData, scenOrder, titleText, legendText, lowColor
   for (j in 1:length(scenOrder)) {
     #    titletext <- paste0(titleText, scenOrder[j])
     titletext <- NULL
-    temp.sp <- spData[scenario %in% scenOrder[j],]
-    #    temp.sp[,scenario := NULL]
+    temp.sp <- spData[scenario %in% scenOrder[j],]    #    temp.sp[,scenario := NULL]
     temp.sp <- as.data.frame(temp.sp)
     summary(temp.sp)
     plotName.new <- paste0("plot.", gsub("-", "_", scenOrder[j]))
@@ -599,9 +352,8 @@ generateWorldMaps <- function(spData, scenOrder, titleText, legendText, lowColor
     scenGraphs[[plotName.new]] <- gg
   }
 
-  # good source of information on using grid to place graphics - https://stat.ethz.ch/R-manual/R-devel/library/grid/doc/grid.pdf
-
-  # code below is modified from multiplot
+  #' good source of information on using grid to place graphics - https://stat.ethz.ch/R-manual/R-devel/library/grid/doc/grid.pdf
+  #' code below is modified from multiplot
   cols <- 2
   numPlots <- length(scenGraphs)
   layout <- matrix(seq(1, cols * ceiling(numPlots/cols)),
@@ -628,7 +380,7 @@ generateWorldMaps <- function(spData, scenOrder, titleText, legendText, lowColor
 
 # store world map dataframe -----
 storeWorldMapDF <- function(){
-  # naturalearth world map geojson
+  #' naturalearth world map geojson
   #world <- readOGR(dsn="https://raw.githubusercontent.com/nvkelso/natural-earth-vector/master/geojson/ne_50m_admin_0_countries.geojson", layer="OGRGeoJSON")
   #world <- readOGR(dsn = "data-raw/spatialData/ne_50m_admin_0_countries.geojson", layer = "OGRGeoJSON")
   world <- rgdal::readOGR(dsn = "data-raw/spatialData/ne_110m_admin_0_countries.geojson", layer = "OGRGeoJSON")
@@ -641,7 +393,7 @@ storeWorldMapDF <- function(){
   world <- sp::spTransform(world, CRS("+proj=longlat"))
 
   #world.simp <- gSimplify(world, tol = .1, topologyPreserve = TRUE)
-  # alternative would be CRS("+proj=longlat")) for WGS 84
+  #' alternative would be CRS("+proj=longlat")) for WGS 84
   # dat_url <- getURL("https://gist.githubusercontent.com/hrbrmstr/7a0ddc5c0bb986314af3/raw/6a07913aded24c611a468d951af3ab3488c5b702/pop.csv")
   # pop <- read.csv(text=dat_url, stringsAsFactors=FALSE, header=TRUE)
   worldMap <- broom::tidy(world, region = "iso_a3")
@@ -718,8 +470,6 @@ spiderGraphData <- function(countryName, scenarioName, dt, displayColumnName) {
   countryCode <- countryCodeLookup(countryName, fileloc("mData"))
   dt <- dt[region_code.IMPACT159 %in% countryCode & scenario %in% scenarioName,]
   dt[, year := gsub("X", "", year)]
-  if (displayColumnName %in% "nutrient") dt[, nutrient := cleanupNutrientNames(nutrient)]
-  if (displayColumnName %in% "food_group_code") dt[, food_group_code := cleanupNutrientNames(food_group_code)]
   formula.wide <- sprintf("scenario + region_code.IMPACT159 + year ~ %s", displayColumnName)
   dt <- dcast(data = dt, formula = formula.wide, value.var = "value")
   return(dt)
@@ -739,9 +489,9 @@ spiderGraphOutput <- function(spiderData, scenarioName) {
   countryCode <- unique(spiderData$region_code.IMPACT159)
   countryName <- countryNameLookup(countryCode)
   spiderData[, region_code.IMPACT159 := NULL]
-  data.table::setnames(spiderData, old = names(spiderData), new = capwords(names(spiderData)))
+#  data.table::setnames(spiderData, old = names(spiderData), new = capwords(names(spiderData)))
   titleText <- paste("Country: ", countryName, "Scenario: ", scenarioName)
-  p <- ggRadar(data = spiderData, mapping = aes(colour = Year),
+  p <- ggRadar(data = spiderData, mapping = aes(colour = year),
                rescale = FALSE, interactive = FALSE, size = 2,
                legend.position = "right")
   p <- p + theme(plot.title = element_text(hjust = 0.5, size = 12, family = fontFamily,
@@ -752,13 +502,12 @@ spiderGraphOutput <- function(spiderData, scenarioName) {
 }
 
 load_data <- function(dataSetsToLoad) {
-  #load data that are not year or scenario specific; these are handled in the observe code in the server
+  #' load data that are not year or scenario specific; these are handled in the observe code in the server
   #' development files
   "dt.metadata" <- getNewestVersion("dt.metadata", fileloc("mData"))
   "dt.IMPACTgdxParams" <- getNewestVersion("dt.IMPACTgdxParams", fileloc("mData"))
 
-  loadNresize <- function(dt) {
-    #   print(dt)
+  loadNresize <- function(dt) {    #   print(dt)
     temp <- getNewestVersion(dt, fileloc("mData"))
     temp <- (temp[year %in% years])
     temp <- temp[scenario %in% scenarioNames]
@@ -767,14 +516,14 @@ load_data <- function(dataSetsToLoad) {
   }
 
   withProgress(message = 'Loading data', value = 0, {
-    # Number of times we'll go through the loop
+    #' Number of times we'll go through the loop
     n <- length(dataSetsToLoad)
 
     for (i in 1:n) {
-      # load the data
+      #' load the data
       dt <- loadNresize(dataSetsToLoad[i])
       assign(dataSetsToLoad[i], dt)
-      # Increment the progress bar, and update the detail text.
+      #' Increment the progress bar, and update the detail text.
       incProgress(1/n, detail = paste("Loading file", i, "of", n))
     }
   })
@@ -793,8 +542,6 @@ plotByRegionBarAMDR <- function(dt, fileName, plotTitle, yLab, yRange, aggChoice
 
   temp[, scenario := gsub("-REF", "", scenario)]
   scenOrder <- gsub("-REF", "", scenOrder)
-  # temp <- temp[order(region_code)]
-  #  if (aggChoice %in% "WB") regionNameOrder <- c("Low income", "Lower middle income", "Upper middle income", "High income")
   if (aggChoice %in% "WB") regionNameOrder <- c("Low", "Lower middle", "Upper middle", "High")
   if (aggChoice %in% "AggReg1") regionNameOrder <- regionNames
   if (aggChoice %in% "tenregions") regionNameOrder <- regionNames
@@ -818,16 +565,15 @@ plotByRegionBarAMDR <- function(dt, fileName, plotTitle, yLab, yRange, aggChoice
     scale_fill_manual(values = colorList) +
     theme(plot.title = element_text(hjust = 0.5, size = 11, family = "Times", face = "plain")) +
     ggtitle(plotTitle) +
-    #   ylim(yRange) +
     labs(y = yLab, x = NULL) +
     geom_hline(aes(yintercept = AMDR_lo,  color = "green")) +
     geom_text( aes(.75, AMDR_lo + 2, label = "Low", color = "green")) +
     geom_hline(aes(yintercept = AMDR_hi,  color = "dark red")) +
     geom_text( aes(.75, AMDR_hi + 2, label = "High", color = "green"))
-  # code to save the plot for future use
+
+#' code to save the plot for future use
   graphsListHolder[[fileName]] <- p
   assign("graphsListHolder", graphsListHolder, envir = .GlobalEnv)
-
 
   print(p)
   # legend <- g_legend(p)
@@ -862,7 +608,6 @@ load_data_special <- function(data_name) {
     }
     incProgress(1)})
 }
-
 
 pivotWideToWideYear <- function(inData) {
   dt <- data.table::copy(inData)
@@ -901,15 +646,9 @@ facetGraphOutput <- function(inData, facetColumnName, displayColumnName, foodGro
   scenarioName <- unique(dt$scenario)
   countryCode <- unique(dt$region_code.IMPACT159)
   countryName <- countryNameLookup(countryCode)
-#   dt <- dt[scenario %in% scenarioName & region_code.IMPACT159 %in% countryCode]
-  # inData[, scenario := gsub("-REF", "", scenario)]
   dt[,c("scenario", "region_code.IMPACT159") := NULL]
-  #  names.new <- cleanupNutrientNamesFacetGraph(names(inData))
-  #  data.table::setnames(inData, old = names(inData), new = capwords(names.new))
   if (facetColumnName %in% "nutrient") dt[, nutrient := capwords(cleanupNutrientNamesFacetGraph(nutrient))]
   if (displayColumnName %in% "food_group_code") {
- #   dt[, food_group_code := cleanupNutrientNames(food_group_code)]
-
     for (i in 1:length(foodGroupNames)) {
       dt[food_group_code == foodGroupNames[i], food_group_code := foodGroupNamesNoWrap[i]]
     }
@@ -921,10 +660,6 @@ facetGraphOutput <- function(inData, facetColumnName, displayColumnName, foodGro
     scale_fill_discrete(name = "Year") +
     geom_col(position = "dodge") + facet_wrap(~nutrient, scales = "free_x", ncol = 3) +
     coord_flip() # + theme(plot.margin = unit(c(1, 1, 1, 1), "null"))
-
-  # p <- ggRadar(data = spiderData, mapping = aes_string(colour = colourName, facet = facetColumnName),
-  #              rescale = FALSE, interactive = FALSE, size = 2, scales = "fixed",
-  #              legend.position = "right")
   p <- p + theme(plot.title = element_text(hjust = 0.5, size = 12, family = fontFamily,
                                            face = "plain")) + ggtitle(titleText)
   p <- p + theme(axis.text.x = element_text(size = 12, family = fontFamily, face = "plain"))
@@ -951,8 +686,8 @@ barGraphData <- function(countryName, inData) {
 
 plotByRegionBarAMDRinShiny <- function(barData, yLab) {
   temp <- data.table::copy(barData)
+  countryCode <- unique(temp$region_code.IMPACT159)
   countryName <- countryNameLookup(countryCode)
-#  countryName <- countryNameLookup(unique(temp$region_code.IMPACT159), fileloc("mData"))
   plotTitle <- paste("AMDR plots for ", countryName, sep = "")
   temp  <- data.table::melt(
     data = temp,

@@ -13,6 +13,7 @@ library(ggiraphExtra) #to do the interactive spider graphs. As of May 27, 2017, 
 #library(markdown)
 require(ggiraph)
 library(RColorBrewer)
+library(sjlabelled)
 library(shiny.router) # so you can link to a specific page
 source("global.R") # load all the background functions
 options(repos = c(CRAN = "https://cran.rstudio.com"))
@@ -66,10 +67,21 @@ datasetsToLoad.complete <- c(dataSetsToLoad, dataSetsToLoad.supplemental)
 datasetsToLoad.desc.complete <- c(dataSetsToLoad.desc, dataSetsToLoad.desc.supplemental)
 
 #' foodGroupNames and foodGroupNamesNoWrap must align
-foodGroupNames <- c("alcohol", "beverages", "cereals", "dairy", "eggs", "fish", "fruits", "meats", "nutsNseeds",
-                    "oils", "pulses", "rootsNPlantain", "sweeteners", "vegetables")
+codeNames.foodGroups <- c("alcohol", "beverages", "cereals", "dairy", "eggs", "fish", "fruits", "meats", "nutsNseeds",
+                          "oils", "pulses", "rootsNPlantain", "sweeteners", "vegetables")
 foodGroupNamesNoWrap <- c("Beverages, alcoholic", "Beverages, nonalcoholic", "Cereals", "Dairy", "Eggs", "Fish", "Fruits", "Meats", "Nuts and seeds",
                           "Oils", "Pulses", "Roots and plantain", "Sweeteners", "Vegetables")
+foodGroupNamesWrap <- c("Beverages,\nalcoholic", "Beverages,\nnonalcoholic", "Cereals", "Dairy", "Eggs", "Fish", "Fruits", "Meats", "Nuts and\nseeds",
+                          "Oils", "Pulses", "Roots and\nplantain", "Sweeteners", "Vegetables")
+codeNames.macro <- c("carbohydrate_g", "protein_g", "totalfiber_g")
+nutNamesNoUnitsWrap.macro <- c("Carbohydrate", "Protein", "Total fiber")
+codeNames.vits <- c("folate_µg", "niacin_mg", "riboflavin_mg", "thiamin_mg", "vit_a_rae_µg", "vit_b12_µg", "vit_b6_mg", "vit_c_mg",
+                    "vit_d_µg", "vit_e_mg", "vit_k_µg")
+nutNamesNoUnitsWrap.vits <- c("Folate", "Niacin", "Riboflavin", "Thiamin", "Vitamin\nA RAE", "Vitamin\nB12", "Vitamin\nB6", "Vitamin\nC",
+                              "Vitamin\nD", "Vitamin\nE", "Vitamin\nK")
+codeNames.minrls <- c("calcium_mg", "iron_mg", "magnesium_mg", "phosphorus_mg", "potassium_g", "zinc_mg")
+nutNamesNoUnitsWrap.minrls <- c("Calcium", "Iron", "Magnesium", "Phosphorus", "Potassium", "Zinc")
+
 # Define UI -----
 ui <- fluidPage(
   theme = shinytheme("sandstone"),
@@ -378,7 +390,7 @@ server <- function(input, output, session) {
     scenarioName <- input$adequacyScenarioName
     reqType <- RDA.macro_sum_reqRatio
     dt <- data.table::copy(reqType)
-    dt[, food_group_code := capwords(cleanupNutrientNames(nutrient))]
+    #  dt[, food_group_code := capwords(cleanupNutrientNames(nutrient))]
     spiderData <- spiderGraphData(countryName, scenarioName, dt, displayColumnName = "nutrient")
   })
 
@@ -388,7 +400,7 @@ server <- function(input, output, session) {
     scenarioName <- input$adequacyScenarioName
     reqType <- RDA.vits_sum_reqRatio
     dt <- data.table::copy(reqType)
-    dt[, food_group_code := capwords(cleanupNutrientNames(nutrient))]
+    #  dt[, food_group_code := capwords(cleanupNutrientNames(nutrient))]
     spiderData <- spiderGraphData(countryName, scenarioName, dt, displayColumnName = "nutrient")
   })
 
@@ -398,7 +410,7 @@ server <- function(input, output, session) {
     scenarioName <- input$adequacyScenarioName
     reqType <- RDA.minrls_sum_reqRatio
     dt <- data.table::copy(reqType)
-    dt[, food_group_code := capwords(cleanupNutrientNames(nutrient))]
+    #    dt[, food_group_code := capwords(cleanupNutrientNames(nutrient))]
     spiderData <- spiderGraphData(countryName, scenarioName, dt, displayColumnName = "nutrient")
   })
 
@@ -567,21 +579,12 @@ server <- function(input, output, session) {
   output$availabilitySpiderGraphP1 <- renderggiraph({
     dt <- data.table::copy(data.foodAvail())
     scenarioName <- unique(dt$scenario)
- #   dt[, region_code.IMPACT159 := NULL]
- #   data.table::setnames(dt, old = names(dt), new = capwords(names(dt)))
+    #   dt[, region_code.IMPACT159 := NULL]
+    #   data.table::setnames(dt, old = names(dt), new = capwords(names(dt)))
+    data.table::setnames(dt, old = codeNames.foodGroups, new = foodGroupNamesWrap)
     p <- spiderGraphOutput(dt, scenarioName)
     ggiraph(code = print(p), zoom_max = 1, width = .75)
   })
-
-  # dt.prod.crops.long <- data.table::melt(
-  #   data = dt.prod.crops,
-  #   id.vars = names(dt.prod.crops)[!names(dt.prod.crops) %in% keepListYears.composites],
-  #   measure.vars = keepListYears.composites,
-  #   variable.name = "year",
-  #   value.name = "Production",
-  #   variable.factor = FALSE
-  # )
-  #
 
   # availability table server side -----
   output$availabilityTableP1 <- DT::renderDataTable({
@@ -608,7 +611,9 @@ server <- function(input, output, session) {
     dt <- data.table::copy(data.adequacy.macro())
     scenarioName <- unique(dt$scenario)
     dt[, scenario := gsub("-REF", "", scenario)]
- #   data.table::setnames(dt, old = names(dt), new = capwords(names(dt)))
+    print(dt)
+    #   data.table::setnames(dt, old = names(dt), new = capwords(names(dt)))
+    data.table::setnames(dt, old = codeNames.macro, new = nutNamesNoUnitsWrap.macro)
     p <- spiderGraphOutput(dt, scenarioName)
     ggiraph(code = print(p), zoom_max = 1, width = 1)
   })
@@ -618,6 +623,7 @@ server <- function(input, output, session) {
     scenarioName <- unique(dt$scenario)
     dt[, scenario := gsub("-REF", "", scenario)]
     #   data.table::setnames(dt, old = names(dt), new = capwords(names(dt)))
+    data.table::setnames(dt, old = codeNames.vits, new = nutNamesNoUnitsWrap.vits)
     p <- spiderGraphOutput(dt, scenarioName)
     ggiraph(code = print(p), zoom_max = 1, width = 1)
   })
@@ -627,6 +633,7 @@ server <- function(input, output, session) {
     scenarioName <- unique(dt$scenario)
     dt[, scenario := gsub("-REF", "", scenario)]
     #   data.table::setnames(dt, old = names(dt), new = capwords(names(dt)))
+    data.table::setnames(dt, old = codeNames.minrls, new = nutNamesNoUnitsWrap.minrls)
     p <- spiderGraphOutput(dt, scenarioName)
     ggiraph(code = print(p), zoom_max = 1, width = 1)
   })
@@ -695,7 +702,7 @@ server <- function(input, output, session) {
     scenarioName <- unique(dt$scenario)
     countryCode <- unique(dt$region_code.IMPACT159)
     countryName <- countryNameLookup(countryCode)
-#    countryName <- countryNameLookup((unique(dt$region_code.IMPACT159)))
+    #    countryName <- countryNameLookup((unique(dt$region_code.IMPACT159)))
     # colors_in <- c( "gray", "green", "blue", "red", "yellow" )
     titleText <- paste("Share of total kilocalories by macronutrient\n", "Country: ", countryName, "Scenario: ", scenarioName)
     yLab <- "(percent)"
@@ -814,7 +821,7 @@ server <- function(input, output, session) {
   # adequacy AMDR graph server side ------
   output$AMDRbarGraphP1 <- renderggiraph({
     dt <- data.table::copy(data.AMDR())
-    p <- plotByRegionBarAMDRinShiny(dt, yLab = "(percent)")
+    p <- plotByRegionBarAMDRinShiny(dt, yLab = "share of total dietary energy (percent)")
     ggiraph(code = print(p), zoom_max = 1, width = .75)
   })
 
@@ -941,9 +948,9 @@ server <- function(input, output, session) {
   output$NutAvailFGbarGraphP1 <- renderPlot({
     dt <- data.table::copy(data.nutAvailFG())
     #    print(head(dt))
-    displayColumnName <- "food_group_code" # all these food groups are included in each spidergraph
+    displayColumnName <- "food_group_code" # all these food groups are included in each bar chart
     facetColumnName <- "nutrient" # one spider graph per facetColumnName
-    p <- facetGraphOutput(inData = dt, facetColumnName, displayColumnName, foodGroupNames, foodGroupNamesNoWrap)
+    p <- facetGraphOutput(inData = dt, facetColumnName, displayColumnName, codeNames.foodGroups, foodGroupNamesNoWrap)
     p
   }, height = "auto")
 

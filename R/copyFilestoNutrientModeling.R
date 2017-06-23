@@ -1,4 +1,10 @@
-# copy files from the dir directory (typically results) to the nutrientModeling directory.
+#' Copy files to shiny app directories
+#' title: "Copy files needed to make the nutrientModeling shiny app work"
+#' @keywords utilities, copy files, nutrient modeling shiny app
+#' @name copyFilestoNutrientModeling.R
+#' @author Gerald C. Nelson, \\email{nelson.gerald.c@@gmail.com}
+#' @description
+#' copy files from the dir directory (typically results) to the nutrientModeling directory.
 #' files to copy are
 #' dt.regions.all
 #' dt.scenarioListIMPACT
@@ -18,9 +24,7 @@
 #' RDA.vits_FG_reqRatio
 #' RDA.minrls_FG_reqRatio
 #' AMDR_hi_sum_reqRatio
-#'
 #' gdxinfo.csv
-
 
 #Copyright (C) 2016, 2017 Gerald C. Nelson, except where noted
 
@@ -33,6 +37,7 @@
 #   WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
 #   or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License
 #   for more details at http://www.gnu.org/licenses/.
+
 #' @include nutrientModFunctions.R
 #' @include workbookFunctions.R
 #' @include nutrientCalcFunctions.R
@@ -47,6 +52,7 @@ sourceDir <- fileloc("resultsDir")
 destDir <- paste("nutrientModeling/data", getGdxChoice(), sep = "/")
 fileType <- "rds"
 
+#' function that copies files from one directory to another taking into account file name structure in nutrient modeling
 copyFile <- function(fileShortName, sourceDir, destDir, fileType) {
   regExp <- paste("(?=^", fileShortName, ")(?=.*",fileType,"$)", sep = "")
   oldVersionList <-
@@ -91,18 +97,13 @@ for (i in copyListFromData) {
 for (i in copyListFromiData) {
   copyFile(i, fileloc("iData"), destDir, "rds")
 }
-# for (i in copyCsvFromData) {
-#   copyFile(i, fileloc("mData"),"nutrientModeling/data", "csv")
-# }
 
-# next line commented out because global.R will diverge from nutrientModFunctions.R
+#' next line commented out because global.R will diverge from nutrientModFunctions.R
 #file.copy("R/nutrientModFunctions.R", "nutrientModeling/global.R", overwrite = TRUE)
 
 # zip up csv files in the results directory
-
 zipFileName <- paste("results/resultsCSVzip", Sys.Date(), "zip", sep = "_" )
 regExp <- paste("(?=^", ")(?=.*csv$)", sep = "")
 zipList <-     grep(regExp, list.files(fileloc("resultsDir")), value = TRUE,  perl = TRUE)
 zipList <- paste("results", zipList, sep = "/")
-# zip(zipfile = zipFileName, files = zipList, flags = "-r9X", extras = "",  zip = Sys.getenv("R_ZIPCMD", "zip"))
 
