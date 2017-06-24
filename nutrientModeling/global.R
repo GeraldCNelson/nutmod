@@ -90,7 +90,7 @@ getNewestVersion <- function(fileShortName, directory, fileType) {
   fileShortNameTest <- paste(fileShortName,"_2", sep = "") # this should get rid of the multiple files problem
   filesofFileType <- list.files(mData)[grep(fileType,list.files(mData))]
   fileLongName <- filesofFileType[grep(fileShortNameTest, filesofFileType, fixed = TRUE)]
-  
+
   if (length(fileLongName) == 0) {
     stop(sprintf("There is no file  '%s' in directory %s", fileShortName, mData))
   } else {
@@ -280,7 +280,6 @@ keyVariable <- function(variableName) {
 
 countryNameLookup <- function(countryCode, directory) {
   if (missing(directory)) {mData <- fileloc("mData")} else {mData <- directory}
-  #  dt.regions <- getNewestVersion('dt.regions.all', fileloc("mData"))
   if (!countryCode %in% dt.regions.all$region_code.IMPACT159) {
     stop(sprintf("The country code you entered (%s) is not in the lookup table", countryCode))
   } else {
@@ -290,7 +289,6 @@ countryNameLookup <- function(countryCode, directory) {
 }
 countryCodeLookup <- function(countryName, directory) {
   if (missing(directory)) {mData <- fileloc("mData")} else {mData <- directory}
-  #  dt.regions <- getNewestVersion('dt.regions.all', fileloc("mData"))
   if (!countryName %in% countryNames) {
     stop(sprintf("The country name you entered (%s) is not in the lookup table", countryName))
   } else {
@@ -504,9 +502,8 @@ spiderGraphOutput <- function(spiderData, scenarioName) {
 load_data <- function(dataSetsToLoad) {
   #' load data that are not year or scenario specific; these are handled in the observe code in the server
   #' development files
-  "dt.metadata" <- getNewestVersion("dt.metadata", fileloc("mData"))
-  "dt.IMPACTgdxParams" <- getNewestVersion("dt.IMPACTgdxParams", fileloc("mData"))
-
+  dt.metadata <- getNewestVersion("dt.metadata", fileloc("mData"))
+  dt.IMPACTgdxParams <- getNewestVersion("dt.IMPACTgdxParams", fileloc("mData"))
   loadNresize <- function(dt) {    #   print(dt)
     temp <- getNewestVersion(dt, fileloc("mData"))
     temp <- (temp[year %in% years])

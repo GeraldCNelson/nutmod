@@ -31,13 +31,26 @@ userScenarioChoice <- initialScenarioName # until user chooses something differe
 #                           secret = 'hk4UOGDwRKr5Pkw2hKMzSxcRqL0GRsoU67shiwR/')
 # rsconnect::deployApp(appDir = paste(getwd(),"nutrientModeling", sep = "/"))
 
+#region groupings
+WBcountries <- list()
+region_name.WB <- c("Low income", "Lower middle income", "Upper middle income", "High income")
+dt <- data.table::copy(dt.regions.all)
+for (i in 1:length(region_name.WB)) {
+  dt <- dt.regions.all[region_name.WB %in% region_name.WB[i]]
+  temp <- sort(unique(dt$region_name.IMPACT159))
+  temp <- gsub(" plus", "", temp)
+  temp <- temp[temp %in% countryNames]
+  WBcountries[[region_name.WB[i]]] <- temp
+  #            assign(region_name.WB[i], temp)
+  # WBcountries <- c(WBcountries, get(region_name.WB[i]))
+}
+
 dataSetsToLoad <- c(
   #' affordability data
   "dt.budgetShare",
   #' availability data
   "dt.foodAvail.foodGroup",
   #    "dt.nutrients.sum.all", now called when needed
-
   #' adequacy data
   "dt.nutrients.kcals",
   "food_agg_AMDR_hi",
@@ -46,10 +59,9 @@ dataSetsToLoad <- c(
   "RDA.minrls_sum_reqRatio",
   "dt.nutBalScore",
   "dt.MRVRatios",
-  #     "dt.nutrients.sum.FG", # move to special
+  # "dt.nutrients.sum.FG", # move to special
   # "RDA.vits_FG_reqRatio",
   # "RDA.minrls_FG_reqRatio",
-
   #' diversity data
   "dt.shannonDiversity",
   "dt.KcalShare.nonstaple",
@@ -72,7 +84,7 @@ codeNames.foodGroups <- c("alcohol", "beverages", "cereals", "dairy", "eggs", "f
 foodGroupNamesNoWrap <- c("Beverages, alcoholic", "Beverages, nonalcoholic", "Cereals", "Dairy", "Eggs", "Fish", "Fruits", "Meats", "Nuts and seeds",
                           "Oils", "Pulses", "Roots and plantain", "Sweeteners", "Vegetables")
 foodGroupNamesWrap <- c("Beverages,\nalcoholic", "Beverages,\nnonalcoholic", "Cereals", "Dairy", "Eggs", "Fish", "Fruits", "Meats", "Nuts and\nseeds",
-                          "Oils", "Pulses", "Roots and\nplantain", "Sweeteners", "Vegetables")
+                        "Oils", "Pulses", "Roots and\nplantain", "Sweeteners", "Vegetables")
 codeNames.macro <- c("carbohydrate_g", "protein_g", "totalfiber_g")
 nutNamesNoUnitsWrap.macro <- c("Carbohydrate", "Protein", "Total fiber")
 codeNames.vits <- c("folate_µg", "niacin_mg", "riboflavin_mg", "thiamin_mg", "vit_a_rae_µg", "vit_b12_µg", "vit_b6_mg", "vit_c_mg",
@@ -108,7 +120,8 @@ ui <- fluidPage(
           tabPanel(title = "Affordability",
                    sidebarLayout(
                      sidebarPanel(width = 2,
-                                  selectizeInput(inputId = "affordabilityCountryName", label = "Choose a country", choices = countryNames),
+                                  selectizeInput(inputId = "affordabilityCountryName", label = "Choose a country", choices = countryNames,
+                                                 options = list(placeholder = "Select a country")),
                                   downloadButton("downloadData.afford", "Download data")),
                      mainPanel(titlePanel("Affordability of the current diet"),
                                includeHTML("www/affordabilityText.html"),
@@ -118,12 +131,18 @@ ui <- fluidPage(
           tabPanel(title = "Availability",
                    sidebarLayout(
                      sidebarPanel(width = 2,
-                                  selectizeInput(inputId = "availabilityCountryName", label = "Choose a country", choices = countryNames),
-                                  selectizeInput(inputId = "availabilityScenarioName", label = "Choose a scenario (see definition in glossary)", choices = scenarioNames),
+                                  selectizeInput(inputId = "availabilityCountryName", label = "Choose a country",
+                                                 choices = countryNames,
+                                                 options = list(placeholder = "Select a country")),
+
+                                  # selectizeInput(inputId = "availabilityScenarioName", label = "Choose a scenario (see definition in glossary)",
+                                  #                choices = scenarioNames),
                                   downloadButton("downloadData.avail", "Download data")),
                      mainPanel(titlePanel("Average daily availability by food group"),
                                includeHTML("www/availabilityText.html"),
-                               ggiraphOutput("availabilitySpiderGraphP1", height = "150px"),
+                               radioButtons("availabilityScenarioName", "Choose scenario (See glossary for details):",
+                                            list("SSP2-NoCC-REF", "SSP2-HGEM-REF", "SSP1-NoCC-REF", "SSP3-NoCC-REF"), inline = TRUE),
+                              ggiraphOutput("availabilitySpiderGraphP1", height = "150px"),
                                DT::dataTableOutput("availabilityTableP1")))),
 
           # Adequacy tab panel ------
@@ -134,7 +153,7 @@ ui <- fluidPage(
                               sidebarLayout(
                                 sidebarPanel(width = 2,
                                              selectizeInput(inputId = "adequacyCountryName", label = "Choose a country", choices = countryNames),
-                                             selectizeInput(inputId = "adequacyScenarioName", label = "Choose a scenario (see definition in glossary)", choices = scenarioNames),
+ #                                            selectizeInput(inputId = "adequacyScenarioName", label = "Choose a scenario (see definition in glossary)", choices = scenarioNames),
                                              downloadButton("downloadData.adequacy.macro", "Macro data"),
                                              downloadButton("downloadData.adequacy.vits", "Vitamin data"),
                                              downloadButton("downloadData.adequacy.minrls", "Minerals data"),
@@ -145,6 +164,8 @@ ui <- fluidPage(
                                 mainPanel(
                                   #                                  titlePanel("Dietary adequacy"), , width = "100%", height = "300px"
                                   includeHTML("www/adequacyText.html"),
+                                  radioButtons("adequacyScenarioName", "Choose scenario (See glossary for details):",
+                                               list("SSP2-NoCC-REF", "SSP2-HGEM-REF", "SSP1-NoCC-REF", "SSP3-NoCC-REF"), inline = TRUE),
                                   fluidRow(
                                     column(width = 6, ggiraphOutput("adequacySpiderGraphP1", height = "200px")),
                                     column(width = 6, ggiraphOutput("adequacySpiderGraphP2", height = "200px"))),
@@ -217,12 +238,15 @@ ui <- fluidPage(
                               sidebarLayout(
                                 sidebarPanel(width = 2,
                                              selectizeInput(inputId = "FGcountryName", label = "Choose a country", choices = countryNames),
-                                             selectizeInput(inputId = "FGscenarioName", label = "Choose a scenario", choices = scenarioNames),
+                                             # selectizeInput(inputId = "FGscenarioName", label = "Choose a scenario", choices = scenarioNames),
                                              selectizeInput(inputId = "nutrientGroup", label = "Choose a nutrient group", choices = c("vitamins", "minerals", "macronutrients")),
                                              downloadButton("downloadData.nutAvailFG", "Download data")),
                                 mainPanel(
                                   #                                  titlePanel("Nutrient diversity by food group"),
                                   includeHTML("www/foodGroupSpiderGraphText.html"),
+                                  radioButtons("FGscenarioName", "Choose scenario (See glossary for details):",
+                                               list("SSP2-NoCC-REF", "SSP2-HGEM-REF", "SSP1-NoCC-REF", "SSP3-NoCC-REF"), inline = TRUE),
+
                                   uiOutput("plot.NutAvailFGbarGraphP1"),
                                   #                                plotOutput("NutAvailFGbarGraphP1", height = nutheight, width = "100%"),
                                   DT::dataTableOutput("NutAvailFGTable"),
@@ -342,14 +366,6 @@ server <- function(input, output, session) {
     dt <- dt[region_code.IMPACT159 %in% countryCode, ]
     dt[, scenario := factor(scenario, levels = scenarioNames)]
     dt[, scenario := gsub("-REF", "", scenario)]
-    # oldNames <- names(dt)
-    # newNames <- gsub("pc", "Per Capita ", oldNames)
-    # newNames <- gsub(".PCX0_X", "\n", newNames)
-    # newNames <- gsub("X0_X", "\n", newNames)
-    # newNames <- gsub("incShare", "Share of income", newNames)
-    # newNames <- gsub("budget", "Food expenditures", newNames)
-    # newNames <- gsub("region_code.IMPACT159", "country code", newNames)
-    # setnames(dt, old = oldNames, new = newNames)
     dt
   })
 
@@ -357,23 +373,23 @@ server <- function(input, output, session) {
   observe({
     countryName <- input$userCountryName
     # Can also set the label and select items
-    updateSelectInput(session, "affordabilityCountryName", selected = countryName)
-    updateSelectInput(session, "availabilityCountryName", selected = countryName)
-    updateSelectInput(session, "adequacyCountryName", selected = countryName)
-    updateSelectInput(session, "nutbalCountryName", selected = countryName)
-    updateSelectInput(session, "AMDRCountryName", selected = countryName)
-    updateSelectInput(session, "diversityCountryName", selected = countryName)
-    updateSelectInput(session, "nonstapleEnergyShareCountryName", selected = countryName)
-    updateSelectInput(session, "MRVCountryName", selected = countryName)
-    updateSelectInput(session, "RaosQECountryName", selected = countryName)
-    updateSelectInput(session, "FGcountryName", selected = countryName)
+    updateSelectizeInput(session, "affordabilityCountryName", selected = countryName)
+    updateSelectizeInput(session, "availabilityCountryName", selected = countryName)
+    updateSelectizeInput(session, "adequacyCountryName", selected = countryName)
+    updateSelectizeInput(session, "nutbalCountryName", selected = countryName)
+    updateSelectizeInput(session, "AMDRCountryName", selected = countryName)
+    updateSelectizeInput(session, "diversityCountryName", selected = countryName)
+    updateSelectizeInput(session, "nonstapleEnergyShareCountryName", selected = countryName)
+    updateSelectizeInput(session, "MRVCountryName", selected = countryName)
+    updateSelectizeInput(session, "RaosQECountryName", selected = countryName)
+    updateSelectizeInput(session, "FGcountryName", selected = countryName)
 
     # scenario choice observer -----
     scenarioName <- input$userScenarioName
     # Can also set the label and select items
-    updateSelectInput(session, "availabilityScenarioName", selected = scenarioName)
-    updateSelectInput(session, "adequacyScenarioName", selected = scenarioName)
-    updateSelectInput(session, "FGscenarioName", selected = scenarioName)
+    updateSelectizeInput(session, "availabilityScenarioName", selected = scenarioName)
+    updateSelectizeInput(session, "adequacyScenarioName", selected = scenarioName)
+    updateSelectizeInput(session, "FGscenarioName", selected = scenarioName)
   })
 
   # food availability reactive -----

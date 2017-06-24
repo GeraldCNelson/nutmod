@@ -117,7 +117,7 @@ aggNorder <- function(gdxChoice, DTglobal, aggChoice, scenChoice, mergedVals) {
     data.table::setnames(merged, old = "MFAD", new = "value")
   }
 
-#' aggregation takes place in the next line of code.
+  #' aggregation takes place in the next line of code.
   #' It says create the variable value from the old variable value, averaged by the region
   #' code and year (and other variables, in particular nutrient in some cases) using the popX) value as weights
   merged <- merged[, min.region := min(value), by = mergedVals]
@@ -191,10 +191,9 @@ plotByRegionBar <- function(dt, fileName, plotTitle, yLab, yRange, aggChoice, sc
   regionCodes <- unique(temp$region_code)
   regionNames <- unique(temp$region_name)
   scenarios <- unique(temp$scenario)
-
   temp[, scenario := gsub("-REF", "", scenario)]
   scenOrder <- gsub("-REF", "", scenOrder)
-'  if (aggChoice %in% "WB") regionNameOrder <- c("Low", "Lower middle", "Upper middle", "High")
+  if (aggChoice %in% "WB") regionNameOrder <- c("Low", "Lower middle", "Upper middle", "High")
   if (aggChoice %in% "AggReg1") regionNameOrder <- regionNames
   if (aggChoice %in% "tenregions") regionNameOrder <- regionNames
   scenarioNameOrder <- scenOrder
@@ -286,7 +285,7 @@ plotByRegionStackedBar <- function(dt, fileName, plotTitle, yLab, yRange, aggCho
     theme(legend.position = "right") +
     theme(axis.text.x = element_text(angle = 70, hjust = 1, family = "Times", face = "plain")) +
     theme(axis.title.y = element_text(family = "Times", face = "plain")) +
-     scale_fill_manual(values = colorList) +
+    scale_fill_manual(values = colorList) +
     theme(plot.title = element_text(hjust = 0.5, size = 11, family = "Times", face = "plain")) +
     ggtitle(plotTitle) +
     labs(y = yLab, x = NULL)
@@ -313,7 +312,7 @@ plotByRegionStackedBar <- function(dt, fileName, plotTitle, yLab, yRange, aggCho
   temp.wide[,(colsToRound) := round(.SD,2), .SDcols = colsToRound]
   data.table::setnames(temp.wide, old = names(temp.wide), new = c("scenario", "nutrient", regionCodes))
   write.csv(temp.wide, file = paste(fileloc("gDir"),"/", fileName, "_", aggChoice, ".csv",
-  sep = ""))
+                                    sep = ""))
 }
 
 plotByBoxPlot2050 <- function(dt, fileName, plotTitle, yLab, yRange, aggChoice ){
@@ -473,7 +472,7 @@ plotByRegionBarAMDR <- function(dt, fileName, plotTitle, yLab, yRange, aggChoice
     geom_text( aes(.75, AMDR_lo + 2, label = "Low", color = "green")) +
     geom_hline(aes(yintercept = AMDR_hi,  color = "dark red")) +
     geom_text( aes(.75, AMDR_hi + 2, label = "High", color = "green"))
-  
+
   #' code to save the plot for future use
   graphsListHolder[[fileName]] <- p
   assign("graphsListHolder", graphsListHolder, envir = .GlobalEnv)
