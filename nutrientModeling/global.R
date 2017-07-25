@@ -20,7 +20,7 @@
 #     GNU General Public License for more details at http://www.gnu.org/licenses/.
 
 getGdxChoice <- function() {
-  gdxCombo <- read.csv(file = paste0(getwd(), "/results/gdxInfo.csv"), header = TRUE, stringsAsFactors = FALSE)
+  gdxCombo <- read.csv(file = paste0(getwd(), "/data/gdxInfo.csv"), header = TRUE, stringsAsFactors = FALSE)
   gdxChoice <- gdxCombo[,2]
   return(gdxChoice)
 }
