@@ -17,12 +17,13 @@ library(sjlabelled)
 library(shiny.router) # so you can link to a specific page
 source("global.R") # load all the background functions
 options(repos = c(CRAN = "https://cran.rstudio.com"))
+gdxChoice <- getGdxChoice()
 
 #' files for the development tab section
 FGreqChoices <- c("macro nutrients", "minerals", "vitamins")
 staplesReqChoices <- c("energy","macro nutrients", "minerals", "vitamins")
 initialCountryName <- "India"
-initialScenarioName <- "SSP2-HGEM-REF"
+initialScenarioName <- "SSP2-NoCC-REF"
 initialCountryCode <- countryCodeLookup(initialCountryName, fileloc("mData"))
 userCountryChoice <- initialCountryName # until user chooses something different in the first tab
 userScenarioChoice <- initialScenarioName # until user chooses something different in the first tab
@@ -142,7 +143,7 @@ ui <- fluidPage(
                                includeHTML("www/availabilityText.html"),
                                radioButtons("availabilityScenarioName", "Choose scenario (See glossary for details):",
                                             list("SSP2-NoCC-REF", "SSP2-HGEM-REF", "SSP1-NoCC-REF", "SSP3-NoCC-REF"), inline = TRUE),
-                              ggiraphOutput("availabilitySpiderGraphP1", height = "150px"),
+                              ggiraphOutput("availabilitySpiderGraphP1", height = "400px"),
                                DT::dataTableOutput("availabilityTableP1")))),
 
           # Adequacy tab panel ------
@@ -167,10 +168,10 @@ ui <- fluidPage(
                                   radioButtons("adequacyScenarioName", "Choose scenario (See glossary for details):",
                                                list("SSP2-NoCC-REF", "SSP2-HGEM-REF", "SSP1-NoCC-REF", "SSP3-NoCC-REF"), inline = TRUE),
                                   fluidRow(
-                                    column(width = 6, ggiraphOutput("adequacySpiderGraphP1", height = "200px")),
-                                    column(width = 6, ggiraphOutput("adequacySpiderGraphP2", height = "200px"))),
+                                    column(width = 6, ggiraphOutput("adequacySpiderGraphP1", height = "400px")),
+                                    column(width = 6, ggiraphOutput("adequacySpiderGraphP2", height = "400px"))),
                                   fluidRow(
-                                    column(width = 6, ggiraphOutput("adequacySpiderGraphP3", height = "200px"))),
+                                    column(width = 6, ggiraphOutput("adequacySpiderGraphP3", height = "400px"))),
                                   fluidRow(
                                     column(width = 6, ggiraphOutput("energyQuantityBarPlot")),
                                     column(width = 6, ggiraphOutput("energyShareBarPlot"))),
@@ -599,7 +600,7 @@ server <- function(input, output, session) {
     #   data.table::setnames(dt, old = names(dt), new = capwords(names(dt)))
     data.table::setnames(dt, old = codeNames.foodGroups, new = foodGroupNamesWrap)
     p <- spiderGraphOutput(dt, scenarioName)
-    ggiraph(code = print(p), zoom_max = 1, width = .75)
+    ggiraph(code = print(p), zoom_max = 1)
   })
 
   # availability table server side -----
@@ -627,11 +628,10 @@ server <- function(input, output, session) {
     dt <- data.table::copy(data.adequacy.macro())
     scenarioName <- unique(dt$scenario)
     dt[, scenario := gsub("-REF", "", scenario)]
-    print(dt)
     #   data.table::setnames(dt, old = names(dt), new = capwords(names(dt)))
     data.table::setnames(dt, old = codeNames.macro, new = nutNamesNoUnitsWrap.macro)
     p <- spiderGraphOutput(dt, scenarioName)
-    ggiraph(code = print(p), zoom_max = 1, width = 1)
+    ggiraph(code = print(p), zoom_max = 1)
   })
 
   output$adequacySpiderGraphP2 <- renderggiraph({
@@ -641,7 +641,7 @@ server <- function(input, output, session) {
     #   data.table::setnames(dt, old = names(dt), new = capwords(names(dt)))
     data.table::setnames(dt, old = codeNames.vits, new = nutNamesNoUnitsWrap.vits)
     p <- spiderGraphOutput(dt, scenarioName)
-    ggiraph(code = print(p), zoom_max = 1, width = 1)
+    ggiraph(code = print(p), zoom_max = 1)
   })
 
   output$adequacySpiderGraphP3 <- renderggiraph({
@@ -651,7 +651,7 @@ server <- function(input, output, session) {
     #   data.table::setnames(dt, old = names(dt), new = capwords(names(dt)))
     data.table::setnames(dt, old = codeNames.minrls, new = nutNamesNoUnitsWrap.minrls)
     p <- spiderGraphOutput(dt, scenarioName)
-    ggiraph(code = print(p), zoom_max = 1, width = 1)
+    ggiraph(code = print(p), zoom_max = 1)
   })
 
   # adequacy tables server side -----
@@ -730,7 +730,7 @@ server <- function(input, output, session) {
     p <- p + theme(axis.text = element_text(size = 12, family = fontFamily, face = "plain"))
     p <- p + theme(legend.text = element_text(size = 12, family = fontFamily, face = "plain")) +
       labs(y = yLab, x = NULL)
-    ggiraph(code = print(p), zoom_max = 1, width = 1)
+    ggiraph(code = print(p), zoom_max = 1)
   })
 
   # energy quantity bar chart -----
@@ -740,7 +740,7 @@ server <- function(input, output, session) {
     countryCode <- unique(dt$region_code.IMPACT159)
     countryName <- countryNameLookup(countryCode)
     # colors_in <- c( "gray", "green", "blue", "red", "yellow" )
-    titleText <- paste("Average daily availability of kilocalories\n","Country:", countryName,", Scenario:", scenarioName)
+    titleText <- paste("Average daily availability of kilocalories\n", "Country:", countryName," Scenario:", scenarioName)
     yLab <- "(kcals)"
     p <- ggplot(dt, aes(x = year, y = value, tooltip = value, fill = nutrient, order = c("region_name") )) +
       geom_bar_interactive(stat = "identity") +
@@ -752,7 +752,7 @@ server <- function(input, output, session) {
     p <- p + theme(axis.text = element_text(size = 12, family = fontFamily, face = "plain"))
     p <- p + theme(legend.text = element_text(size = 12, family = fontFamily, face = "plain")) +
       labs(y = yLab, x = NULL)
-    ggiraph(code = print(p), zoom_max = 1, width = 1)
+    ggiraph(code = print(p), zoom_max = 1)
   })
 
   # # energy table -----
@@ -838,7 +838,7 @@ server <- function(input, output, session) {
   output$AMDRbarGraphP1 <- renderggiraph({
     dt <- data.table::copy(data.AMDR())
     p <- plotByRegionBarAMDRinShiny(dt, yLab = "share of total dietary energy (percent)")
-    ggiraph(code = print(p), zoom_max = 1, width = .75)
+    ggiraph(code = print(p), zoom_max = 1)
   })
 
   # adequacy AMDR table server side ------
@@ -963,7 +963,7 @@ server <- function(input, output, session) {
   # nutrient avail, FG horizontal graphs -----
   output$NutAvailFGbarGraphP1 <- renderPlot({
     dt <- data.table::copy(data.nutAvailFG())
-    #    print(head(dt))
+       print(head(dt))
     displayColumnName <- "food_group_code" # all these food groups are included in each bar chart
     facetColumnName <- "nutrient" # one spider graph per facetColumnName
     p <- facetGraphOutput(inData = dt, facetColumnName, displayColumnName, codeNames.foodGroups, foodGroupNamesNoWrap)

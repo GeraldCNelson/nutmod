@@ -437,7 +437,7 @@ fmt_dcimals <- function(decimals=0){
   function(x) format(x,nsmall = decimals,scientific = FALSE)
 }
 
-#' code specifically for shiny app -----
+# code specifically for shiny app -----
 years <- c("X2010", "X2030", "X2050")
 yearsClean <- gsub("X", "", years)
 fontFamily <- "Times"
@@ -504,7 +504,7 @@ load_data <- function(dataSetsToLoad) {
   #' development files
   dt.metadata <- getNewestVersion("dt.metadata", fileloc("mData"))
   dt.IMPACTgdxParams <- getNewestVersion("dt.IMPACTgdxParams", fileloc("mData"))
-  loadNresize <- function(dt) {    #   print(dt)
+  loadNresize <- function(dt) {
     temp <- getNewestVersion(dt, fileloc("mData"))
     temp <- (temp[year %in% years])
     temp <- temp[scenario %in% scenarioNames]
@@ -571,7 +571,6 @@ plotByRegionBarAMDR <- function(dt, fileName, plotTitle, yLab, yRange, aggChoice
 #' code to save the plot for future use
   graphsListHolder[[fileName]] <- p
   assign("graphsListHolder", graphsListHolder, envir = .GlobalEnv)
-
   print(p)
   # legend <- g_legend(p)
   dev.off()
@@ -640,6 +639,7 @@ facetGraphData <- function(countryName, scenarioName, inData, facetColumnName, d
 
 facetGraphOutput <- function(inData, facetColumnName, displayColumnName, foodGroupNames, foodGroupNamesNoWrap) {
   dt <- data.table::copy(inData)
+  head(dt)
   scenarioName <- unique(dt$scenario)
   countryCode <- unique(dt$region_code.IMPACT159)
   countryName <- countryNameLookup(countryCode)
