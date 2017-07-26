@@ -972,7 +972,7 @@ server <- function(input, output, session) {
 
   output$plot.NutAvailFGbarGraphP1 <- renderUI({
     if (input$nutrientGroup == "vitamins") plotHeight = "800px"
-    if (input$nutrientGroup == "macro") plotHeight = "500px"
+    if (input$nutrientGroup == "macronutrients") plotHeight = "500px"
     if (input$nutrientGroup == "minerals") plotHeight = "500px"
     plotOutput("NutAvailFGbarGraphP1", width = "100%", height = plotHeight)
   })
