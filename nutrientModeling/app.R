@@ -3,7 +3,7 @@
 # the 'Run App' button in RStudio
 library(shiny)
 library(shinyjs)
-library(rsconnect)
+#library(rsconnect)
 library(data.table)
 library(dplyr) # to do %>%
 library(dtplyr)
@@ -13,8 +13,8 @@ library(ggiraphExtra) #to do the interactive spider graphs. As of May 27, 2017, 
 #library(markdown)
 require(ggiraph)
 library(RColorBrewer)
-library(sjlabelled)
-library(shiny.router) # so you can link to a specific page
+#library(sjlabelled)
+#library(shiny.router) # so you can link to a specific page
 source("global.R") # load all the background functions
 options(repos = c(CRAN = "https://cran.rstudio.com"))
 gdxChoice <- getGdxChoice()
@@ -963,7 +963,7 @@ server <- function(input, output, session) {
   # nutrient avail, FG horizontal graphs -----
   output$NutAvailFGbarGraphP1 <- renderPlot({
     dt <- data.table::copy(data.nutAvailFG())
-       print(head(dt))
+#       print(head(dt))
     displayColumnName <- "food_group_code" # all these food groups are included in each bar chart
     facetColumnName <- "nutrient" # one spider graph per facetColumnName
     p <- facetGraphOutput(inData = dt, facetColumnName, displayColumnName, codeNames.foodGroups, foodGroupNamesNoWrap)
