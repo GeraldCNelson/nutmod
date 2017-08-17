@@ -4,7 +4,7 @@
 #' title: "Functions to facilitate management of nutrient data"
 #' @name nutrientModFunctions.R
 #' @author Gerald C. Nelson, \\email{nelson.gerald.c@@gmail.com}
-
+library(data.table) # this is needed everywhere and currently some scripts don't call it
 # .onLoad <- function(libname, pkgname) {
 #   op <- options()
 #   op.devtools <- list(

@@ -25,6 +25,20 @@ getGdxChoice <- function() {
   return(gdxChoice)
 }
 
+#installation of missing required libraries
+#install needed packages
+list.of.packages <- c("shiny", "shinyjs", "data.table", "dplyr",
+"dtplyr", "DT", "shinythemes", # devtools::install_github("strengejacke/strengejacke - installs latest versions of sjlabelled, sjmisc
+"sjlabelled", "sjmisc", "ggiraphExtra", "ggiraph", "RColorBrewer", "Rcpp", "devtools")
+
+new.packages <- list.of.packages[!(list.of.packages %in% installed.packages()[,"Package"])]
+if (length(new.packages)) install.packages(new.packages, dependencies = TRUE)
+
+if (packageVersion("data.table") < "1.9.7") {
+  print("updating data.table")
+  install.packages("data.table")
+}
+
 fileloc <- function(variableName) {
   gdxChoice <- getGdxChoice()
   rawData <- "data-raw"

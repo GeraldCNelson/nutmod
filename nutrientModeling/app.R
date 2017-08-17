@@ -9,11 +9,13 @@ library(dplyr) # to do %>%
 library(dtplyr)
 library(DT) # needs to come after library(shiny)
 library(shinythemes)
+# devtools::install_github("strengejacke/strengejacke - installs latest versions of sjlabelled, sjmisc
+library(sjlabelled)
+library(sjmisc)
 library(ggiraphExtra) #to do the interactive spider graphs. As of May 27, 2017, needs to be installed with devtools::install_github('cardiomoon/ggiraphExtra')
 #library(markdown)
 require(ggiraph)
 library(RColorBrewer)
-#library(sjlabelled)
 #library(shiny.router) # so you can link to a specific page
 source("global.R") # load all the background functions
 options(repos = c(CRAN = "https://cran.rstudio.com"))
