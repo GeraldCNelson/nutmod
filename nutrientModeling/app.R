@@ -1,7 +1,6 @@
 # To make sure data and script files are up to date, first run copyFilestoNutrientModeling.R
 # This is a Shiny web application. You can run the application by clicking
 # the 'Run App' button in RStudio
-source("global.R") # load all the background functions and install packages if not already done
 library(shiny)
 library(shinyjs)
 #library(rsconnect)
@@ -17,6 +16,8 @@ library(ggiraphExtra) #to do the interactive spider graphs. As of May 27, 2017, 
 #library(markdown)
 require(ggiraph)
 library(RColorBrewer)
+source("global.R") # load all the background functions and install packages if not already done
+#note install packages feature in globa.R comments out
 #library(shiny.router) # so you can link to a specific page
 options(repos = c(CRAN = "https://cran.rstudio.com"))
 gdxChoice <- getGdxChoice()
