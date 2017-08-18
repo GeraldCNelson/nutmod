@@ -201,7 +201,6 @@ ui <- fluidPage(
                                   fluidRow(column(width = 12, ggiraphOutput("AMDRbarGraphP1"))),
                                   fluidRow(column(width = 12, DT::dataTableOutput("AMDRTableP1"))),
                                   includeHTML("www/tableNote_AMDR.html")))),
-
                      # nutrient balance tab panel -----
                      tabPanel(title = "Nutrient Balance Score",
                               sidebarLayout(
