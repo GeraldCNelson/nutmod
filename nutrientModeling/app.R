@@ -1,3 +1,22 @@
+#' Shiny app for the nutrient model results
+#' title: "Shiny app for the nutrient model results"
+#' @keywords shiny app
+#' @name app.R
+#' @author Gerald C. Nelson, \\email{nelson.gerald.c@@gmail.com}
+#' @description
+#' This script contains the shiny app for the nutrient modeling website
+
+#Copyright (C) 2015-2017 Gerald C,Nelson, except where noted
+
+#     This program is free software: you can redistribute it and/or modify
+#     it under the terms of the GNU General Public License as published by
+#     the Free Software Foundation, either version 3 of the License, or
+#     (at your option) any later version.
+#
+#     This program is distributed in the hope that it will be useful,
+#     but WITHOUT ANY WARRANTY; without even the implied warranty of
+#     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE, See the
+#     GNU General Public License for more details at http://www.gnu.org/licenses/.
 # To make sure data and script files are up to date, first run copyFilestoNutrientModeling.R
 # This is a Shiny web application. You can run the application by clicking
 # the 'Run App' button in RStudio
@@ -17,7 +36,7 @@ library(ggiraphExtra) #to do the interactive spider graphs. As of May 27, 2017, 
 require(ggiraph)
 library(RColorBrewer)
 source("global.R") # load all the background functions and install packages if not already done
-#note install packages feature in globa.R comments out
+#note install packages feature in global.R is commented out
 #library(shiny.router) # so you can link to a specific page
 options(repos = c(CRAN = "https://cran.rstudio.com"))
 gdxChoice <- getGdxChoice()
@@ -30,6 +49,7 @@ initialScenarioName <- "SSP2-NoCC-REF"
 initialCountryCode <- countryCodeLookup(initialCountryName, fileloc("mData"))
 userCountryChoice <- initialCountryName # until user chooses something different in the first tab
 userScenarioChoice <- initialScenarioName # until user chooses something different in the first tab
+#' the rsconnect code below is only for use in setting up the website at the shinyapps.io website
 # rsconnect::setAccountInfo(name = 'nutrientmodeling',
 #                           token = '3E8A9773C46C19C6EF42EE20C8C65BF0',
 #                           secret = 'hk4UOGDwRKr5Pkw2hKMzSxcRqL0GRsoU67shiwR/')
@@ -45,17 +65,11 @@ for (i in 1:length(region_name.WB)) {
   temp <- gsub(" plus", "", temp)
   temp <- temp[temp %in% countryNames]
   WBcountries[[region_name.WB[i]]] <- temp
-  #            assign(region_name.WB[i], temp)
-  # WBcountries <- c(WBcountries, get(region_name.WB[i]))
 }
 
 dataSetsToLoad <- c(
-  #' affordability data
   "dt.budgetShare",
-  #' availability data
   "dt.foodAvail.foodGroup",
-  #    "dt.nutrients.sum.all", now called when needed
-  #' adequacy data
   "dt.nutrients.kcals",
   "food_agg_AMDR_hi",
   "RDA.macro_sum_reqRatio",
@@ -63,10 +77,6 @@ dataSetsToLoad <- c(
   "RDA.minrls_sum_reqRatio",
   "dt.nutBalScore",
   "dt.MRVRatios",
-  # "dt.nutrients.sum.FG", # move to special
-  # "RDA.vits_FG_reqRatio",
-  # "RDA.minrls_FG_reqRatio",
-  #' diversity data
   "dt.shannonDiversity",
   "dt.KcalShare.nonstaple",
   "dt.RAOqe"
@@ -106,7 +116,6 @@ ui <- fluidPage(
   useShinyjs(debug = TRUE),
   div(
     id = "loading_page",
-    #    h1("Loading...")
     includeHTML("www/introText.html")
   ),
   hidden( # used to make the tabs not appear until the data sets are finished loading
@@ -163,7 +172,6 @@ ui <- fluidPage(
                                              downloadButton("downloadData.adequacy.minrls", "Minerals data"),
                                              downloadButton("downloadData.energyRat", "Energy share data"),
                                              downloadButton("downloadData.energyQ", "Kcal data")
-
                                 ),
                                 mainPanel(
                                   #                                  titlePanel("Dietary adequacy"), , width = "100%", height = "300px"
@@ -188,7 +196,6 @@ ui <- fluidPage(
                                     column(width = 12, DT::dataTableOutput("energyQuantityTable"))),
                                   fluidRow(
                                     column(width = 12, DT::dataTableOutput("energyShareTable")))))),
-
                      # AMDR tab panel -----
                      tabPanel(title = "Acceptable Macronutrient Distribution Range (AMDR)",
                               sidebarLayout(
@@ -211,7 +218,6 @@ ui <- fluidPage(
                                   #                                  titlePanel("Nutrient balance score"),
                                   includeHTML("www/nutbalGraphText.html"),
                                   DT::dataTableOutput("nutbalTableP1")))),
-
                      # MRV tab panel -----
                      tabPanel(title = "Maximum Recommended Intake",
                               sidebarLayout(
@@ -219,10 +225,8 @@ ui <- fluidPage(
                                              selectizeInput(inputId = "MRVCountryName", label = "Choose a country", choices = countryNames),
                                              downloadButton("downloadData.MRV", "Download data")),
                                 mainPanel(
-                                  #                                  titlePanel("Maximum Recommended Intake"),
                                   includeHTML("www/MRVText.html"),
                                   DT::dataTableOutput("MRVTableP1")))))),
-
           # Diversity tab panel, with tabset ------
           tabPanel("Dietary diversity",
                    tabsetPanel(
@@ -233,29 +237,22 @@ ui <- fluidPage(
                                              selectizeInput(inputId = "diversityCountryName", label = "Choose a country", choices = countryNames),
                                              downloadButton("downloadData.ShannonDiversity", "Download data")),
                                 mainPanel(
-                                  #                                  titlePanel("Shannon diversity index"),
                                   includeHTML("www/shannonDiversityText.html"),
                                   DT::dataTableOutput("diversityTable")))),
-
                      # Nut availability by food group tab panel ------
                      tabPanel(title = "Nutrient availability by food group",
                               sidebarLayout(
                                 sidebarPanel(width = 2,
                                              selectizeInput(inputId = "FGcountryName", label = "Choose a country", choices = countryNames),
-                                             # selectizeInput(inputId = "FGscenarioName", label = "Choose a scenario", choices = scenarioNames),
                                              selectizeInput(inputId = "nutrientGroup", label = "Choose a nutrient group", choices = c("vitamins", "minerals", "macronutrients")),
                                              downloadButton("downloadData.nutAvailFG", "Download data")),
                                 mainPanel(
-                                  #                                  titlePanel("Nutrient diversity by food group"),
                                   includeHTML("www/foodGroupSpiderGraphText.html"),
                                   radioButtons("FGscenarioName", "Choose scenario (See glossary for details):",
                                                list("SSP2-NoCC-REF", "SSP2-HGEM-REF", "SSP1-NoCC-REF", "SSP3-NoCC-REF"), inline = TRUE),
-
                                   uiOutput("plot.NutAvailFGbarGraphP1"),
-                                  #                                plotOutput("NutAvailFGbarGraphP1", height = nutheight, width = "100%"),
                                   DT::dataTableOutput("NutAvailFGTable"),
                                   includeHTML("www/nutrientDescription.html")))),
-
                      # nonstaple energy share tab panel ------
                      tabPanel(title = "Nonstaple share of dietary energy",
                               sidebarLayout(
@@ -267,7 +264,6 @@ ui <- fluidPage(
                                   includeHTML("www/nonStapleShareGraphText.html"),
                                   DT::dataTableOutput("nonStapleEnergyShareTable"),
                                   includeHTML("www/tableNote_nonstapleShare.html")))),
-
                      # Rao's QE tab panel ------
                      tabPanel(title = "Rao's quadratic entropy metric",
                               sidebarLayout(
@@ -277,12 +273,10 @@ ui <- fluidPage(
                                 mainPanel(
                                   includeHTML("www/RaosQEGraphText.html"),
                                   DT::dataTableOutput("RaosQETable")))))),
-
           # glossary tab panel ------
           tabPanel(title = "Glossary",
                    mainPanel(
                      includeHTML("www/glossaryText.html"))),
-
           # data review and download tab panel ------
           tabPanel(title = "View and download full data sets",
                    sidebarLayout(
@@ -293,7 +287,6 @@ ui <- fluidPage(
                                   includeHTML("www/downloadFullText.html")
                      ),
                      mainPanel(DT::dataTableOutput('table')))),
-
           # data and developer information tabs with tabset -----
           tabPanel(
             "Data and Developer Info",
@@ -335,7 +328,6 @@ ui <- fluidPage(
 )
 
 server <- function(input, output, session) {
-
   load_data(dataSetsToLoad) # load most of the data. Big files can be loaded elsewhere
 
   #not sure this is the best place for this. Need to get crude out of budget share. Just do once
@@ -361,7 +353,7 @@ server <- function(input, output, session) {
     formula = formula.budgetShare,
     value.var = "value")
 
-  # set up data download
+  #' set up data download
 
   # foodAfford reactive -----
   data.afford <- reactive({
@@ -411,7 +403,6 @@ server <- function(input, output, session) {
     scenarioName <- input$adequacyScenarioName
     reqType <- RDA.macro_sum_reqRatio
     dt <- data.table::copy(reqType)
-    #  dt[, food_group_code := capwords(cleanupNutrientNames(nutrient))]
     spiderData <- spiderGraphData(countryName, scenarioName, dt, displayColumnName = "nutrient")
   })
 
@@ -431,7 +422,6 @@ server <- function(input, output, session) {
     scenarioName <- input$adequacyScenarioName
     reqType <- RDA.minrls_sum_reqRatio
     dt <- data.table::copy(reqType)
-    #    dt[, food_group_code := capwords(cleanupNutrientNames(nutrient))]
     spiderData <- spiderGraphData(countryName, scenarioName, dt, displayColumnName = "nutrient")
   })
 
@@ -515,7 +505,6 @@ server <- function(input, output, session) {
     dt <- dt[region_code.IMPACT159 == countryCode,]
     dt[, value := round(value, 2)]
     dt[, scenario := gsub("-REF", "", scenario)][, year := gsub("X", "", year)]
-
     formula.wide <- paste("scenario + region_code.IMPACT159 ~ year")
     spiderData <- data.table::dcast(
       data = dt,
@@ -533,7 +522,6 @@ server <- function(input, output, session) {
     dt <- dt[region_code.IMPACT159 == countryCode,][, year := gsub("X", "", year)]
     colsToRound <- c("SD", "SDnorm")
     dt[, (colsToRound) := round(.SD, 2), .SDcols = colsToRound]
-
     idVars <- c("scenario", "region_code.IMPACT159", "year")
     measureVars <- names(dt)[!names(dt) %in% idVars]
     dt.long  <- data.table::melt(
@@ -543,21 +531,14 @@ server <- function(input, output, session) {
       variable.name = "Variable",
       value.name = "value",
       variable.factor = FALSE)
-
     formula.wide <- paste("scenario + region_code.IMPACT159 + Variable ~ year")
     dt.wide <- data.table::dcast(
       data = dt.long,
       formula = formula.wide,
       value.var = "value")
-
-    # reorder scenarios in temp to be the same order as scenarioNames
+    #' reorder scenarios in temp to be the same order as scenarioNames
     dt.wide[, scenario := factor(scenario, levels = scenarioNames)]
     dt.wide[, scenario := gsub("-REF", "", scenario)]
-    # formula.ShannonDiv <- paste("region_code.IMPACT159 + scenario ~ year")
-    # spiderData <- data.table::dcast(
-    #   data = dt,
-    #   formula = formula.ShannonDiv,
-    #   value.var = c("SD", "SDnorm"))
   })
 
   # RaosQE reactive -----
@@ -568,7 +549,6 @@ server <- function(input, output, session) {
     dt <- dt[region_code.IMPACT159 == countryCode,]
     dt[, value := round(value, 2)]
     dt[, scenario := gsub("-REF", "", scenario)][, year := gsub("X", "", year)]
-
     formula.wide <- paste("scenario + region_code.IMPACT159 ~ year")
     spiderData <- data.table::dcast(
       data = dt,
@@ -579,8 +559,6 @@ server <- function(input, output, session) {
   # full data set download reactive -----
   datasetInput <- reactive({
     # look up number of location of input value in the datasets name list
-    # switch(input$dataset.full,
-    #        datasetsToLoad.desc.complete[match(input$dataset.full, datasetsToLoad.desc.complete)] = datasetsToLoad.complete[match(input$dataset.full, datasetsToLoad.desc.complete)])
     get(datasetsToLoad.complete[match(input$dataset.full, datasetsToLoad.desc.complete)])
   })
 
@@ -749,8 +727,6 @@ server <- function(input, output, session) {
     p <- ggplot(dt, aes(x = year, y = value, tooltip = value, fill = nutrient, order = c("region_name") )) +
       geom_bar_interactive(stat = "identity") +
       theme(axis.title.y = element_text(family = fontFamily, face = "plain"))
-    # scale_y_continuous(limits = yRange) +
-    # scale_fill_manual(values = colorList) +
     p <- p + theme(plot.title = element_text(hjust = 0.5, size = 12, family = fontFamily,
                                              face = "plain")) + ggtitle(titleText)
     p <- p + theme(axis.text = element_text(size = 12, family = fontFamily, face = "plain"))
@@ -758,30 +734,6 @@ server <- function(input, output, session) {
       labs(y = yLab, x = NULL)
     ggiraph(code = print(p), zoom_max = 1)
   })
-
-  # # energy table -----
-  # output$energyTable <- DT::renderDataTable({
-  #   dt.long.share <- data.table::copy(data.energy.share())
-  #   dt.long.quantity <- data.table::copy(data.energy.quantity())
-  #   dt.long <- cbind(dt.long.quantity, dt.long.share)
-  #   formula.wide <- paste("scenario + region_code.IMPACT159 + nutrient ~ year")
-  #   dt <- data.table::dcast(
-  #     data = dt.long,
-  #     formula = formula.wide,
-  #     value.var = "value")
-  #   nutrient <- "share of total energy"
-  #   data.table::setnames(dt, old = "nutrient", new = nutrient) # new depends on whether dt is for food groups or nutrients
-  #   dt[, scenario := gsub("-REF", "", scenario)]
-  #   # formula.wide <- paste("scenario + region_code.IMPACT159 + ", nutrient, " ~ year")
-  #   # dt <- data.table::dcast(data = dt, formula = formula.wide, value.var = "value")
-  #   colsToRound <- names(dt)[!names(dt) %in% c("scenario", "region_code.IMPACT159", "year", nutrient)]
-  #   dt[,(colsToRound) := round(.SD,2), .SDcols = colsToRound]
-  #   data.table::setnames(dt, old = "region_code.IMPACT159", new = "country code")
-  #   dt[, scenario := gsub("-REF", "", scenario)]
-  #   data.table::setnames(dt, old = names(dt), new = capwords(names(dt)))
-  #   dt <- DT::datatable(dt, rownames = FALSE, options = list(dom = 't', ordering = F))
-  #   dt
-  # })
 
   # energy share table -----
   output$energyShareTable <- DT::renderDataTable({
