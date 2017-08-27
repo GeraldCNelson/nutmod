@@ -14,6 +14,7 @@
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 # GNU General Public License for more details at http://www.gnu.org/licenses/.
+
 # options(warn=2)
 #' @include nutrientModFunctions.R
 #if (!exists("getNewestVersion", mode = "function"))
@@ -38,10 +39,11 @@ IMPACTalcohol_code <- keyVariable("IMPACTalcohol_code")
 scenarioListSSP.pop <- keyVariable("scenarioListSSP.pop")
 scenarioListSSP.GDP <- keyVariable("scenarioListSSP.GDP")
 
-#load the SSP GDP data -----
+#load the SSP data -----
+#' GDP
 dt.SSPGDP <- getNewestVersion("dt.SSPGDPClean")
 
-# load the SSP population data
+# population
 dt.SSPPop <- getNewestVersion("dt.SSP.pop.tot")
 
 # get rid of the stuff after SSPx
@@ -193,7 +195,6 @@ dt.fishIncElast.SSP <- dt.fishIncElast[dt.regions.all]
 #dt.fishIncElast.SSP <- merge(dt.fishIncElast ,dt.regions.all, by = "region_code.IMPACT115")
 keepListCol <- c( "ISO_code","region_code.IMPACT159", fish_code.elast.list)
 dt.fishIncElast.SSP <- dt.fishIncElast.SSP[, keepListCol, with = FALSE]
-#dt.fishIncElast.SSP <- dt.fishIncElast.SSP[!is.na(region_code.SSP),]
 
 # create a fish elasticities data table with the same income elasticities in all years
 dt.years <- data.table::data.table(year = rep(keepYearList, each = nrow(dt.fishIncElast.SSP)))
@@ -208,7 +209,7 @@ dt.fishIncElast <- data.table::melt(
   measure.vars = fish_code.elast.list,
   variable.factor = FALSE
 )
-# dt.fishIncElast <- dt.fishIncElast[!is.na(region_code.SSP), ]
+
 inDT <- dt.fishIncElast
 outName <- "dt.fishIncElast"
 cleanup(inDT,outName,fileloc("iData"))
@@ -308,10 +309,10 @@ for (scenarioChoice in scenarioListSSP.GDP) {
 
   # alcohol calculations -------
 
-  # Salisu, M.A., and V.N. Balasubramanyam. 1997. “Income and Price Elasticities of Demand for Alcoholic Drinks.”
-  # Applied Economics Letters 4 (4): 247–51. doi:10.1080/758518504.
-  # has spirits income elasticites of .88 and 1.06 depending on estimation form, wine of 1.42 and 1.55, beer of .7 and .76.
-  # data from from UK for 1863 - 1993.
+  #' Salisu, M.A., and V.N. Balasubramanyam. 1997. “Income and Price Elasticities of Demand for Alcoholic Drinks.”
+  #' Applied Economics Letters 4 (4): 247–51. doi:10.1080/758518504.
+  #' has spirits income elasticites of .88 and 1.06 depending on estimation form, wine of 1.42 and 1.55, beer of .7 and .76.
+  #' data from from UK for 1863 - 1993.
   dt.elas.wide <- data.table::data.table(ISO_code = rep(dt.regions.all$region_code.SSP, each = length(keepYearList)),
                                          year = keepYearList,
                                          c_beer.elas = 0.50,
@@ -335,8 +336,7 @@ for (scenarioChoice in scenarioListSSP.GDP) {
   cleanup(inDT,outName, fileloc("iData"))
 
   # loop over scenarios and countries common to FBS and SSP  -----
-
-  # set up dt to hold the alcohol results
+  #' set up dt to hold the alcohol results
 
   dt.final <-
     data.table::data.table(scenario = character(0),
@@ -346,19 +346,18 @@ for (scenarioChoice in scenarioListSSP.GDP) {
 
   for (scenarioChoice in scenarioListSSP.GDP) {
     for (ctyChoice in ctyList) {
-      # print(paste(scenarioChoice,ctyChoice))
-      # create a data table with FBS alc perCapKg values for one country
+      #' create a data table with FBS alc perCapKg values for one country
       keylist <- c("ISO_code", "IMPACT_code")
       data.table::setkeyv(dt.FBS.kgPerCap, keylist)
       #' @param dt.FBS.kgPerCap - FBS kgPerCap numbers for years in the keepYearsList
       dt.FBS.subset <- dt.FBS.kgPerCap[J(ctyChoice, IMPACTalcohol_code)]
-      # some countries don't have values for the base year. Next two lines of code deal with this.
+      #' some countries don't have values for the base year. Next two lines of code deal with this.
       dt.FBS.subset[, year := (middleYear)]
-      #  dt.FBS.subset[is.na(get(baseYear)), (baseYear) := 0, with = FALSE]
+      #'  dt.FBS.subset[is.na(get(baseYear)), (baseYear) := 0, with = FALSE]
       dt.FBS.subset[is.na(get(baseYear)), (baseYear) := 0]
       data.table::setkeyv(dt.FBS.subset, c("IMPACT_code", baseYear))
 
-      # subset on current scenario and country
+      #' subset on current scenario and country
       data.table::setkeyv(dt.SSPGDPperCap, c("scenario", "ISO_code"))
       dt.GDP <-  dt.SSPGDPperCap[scenario %in% scenarioChoice  &  ISO_code %in% ctyChoice,]
       dt.GDP[,(IMPACTalcohol_code) := 0]
@@ -399,8 +398,8 @@ for (scenarioChoice in scenarioListSSP.GDP) {
       }
     }
 
-    # #keep only years in keepYearList
-    # needs to be reloaded to get rid of year0 added above
+    #' keep only years in keepYearList
+    #' needs to be reloaded to get rid of year0 added above
     dt.final <- dt.final[year %in% keyVariable("keepYearList"),]
 
     inDT <- dt.final

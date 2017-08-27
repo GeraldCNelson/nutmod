@@ -32,7 +32,6 @@ library(ggplot2)
 
 # get gdxChoice -----
 gdxChoice <- getGdxChoice()
-
 #' create legend grobs for use in multiple graph files -----
 updateLegendGrobs <- function(l, i, legendLoc, mergedVals) {
   # use an arbitrary file to construct the grob. This code modified from aggRun.R
@@ -43,7 +42,6 @@ updateLegendGrobs <- function(l, i, legendLoc, mergedVals) {
   regionCodes <- unique(DT$region_code)
   regionNames <- unique(DT$region_name)
   scenarios <- unique(DT$scenario)
-
   DT[, scenario := gsub("-REF", "", scenario)]
   scenOrder <- gsub("-REF", "", scenOrder)
   if (aggChoice %in% "WB") regionNameOrder <- c("Low", "Lower middle", "Upper middle", "High")
@@ -295,7 +293,6 @@ plotByRegionStackedBar <- function(dt, fileName, plotTitle, yLab, yRange, aggCho
   #' code to save the plot for future use
   graphsListHolder[[fileName]] <- p
   assign("graphsListHolder", graphsListHolder, envir = .GlobalEnv)
-
   print(p)
   dev.off()
   formula.wide <- "scenario + nutrient ~ factor(region_code, levels = unique(region_code))"

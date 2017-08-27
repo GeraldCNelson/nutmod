@@ -406,8 +406,7 @@ generateResults.dataPrep <- function(req, dt.IMPACTfood, scenarioListIMPACT, dt.
       fat_g.Q = 100 * kcalsPerDay.fat / kcalsPerDay.tot,
       protein_g.Q = 100 * kcalsPerDay.protein / kcalsPerDay.tot,
       carbohydrate_g.Q = 100 * kcalsPerDay.carbohydrate / kcalsPerDay.tot
-    )
-    ]
+    )]
     dt.food.agg[, c("kcalsPerDay.fat", "kcalsPerDay.protein", "kcalsPerDay.carbohydrate", "kcalsPerDay.tot") := NULL]
   }
   #' now do ratios with nutrient requirements
@@ -435,13 +434,11 @@ generateResults.dataPrep <- function(req, dt.IMPACTfood, scenarioListIMPACT, dt.
   print(paste("finished with ratio for each food item ", req, sep = ""))
 
   if (!req %in% c("req.AMDR_hi_percap", "req.AMDR_lo_percap")) { #' because staples and food groups are not relevant for AMDR
-
     #' ratio of nutrient from each staple item to the requirement
     for (k in 1:length(nutListReq)) {
       dt.food.agg[,nutListReq.reqRatio.staples[k] := get(nutListReq.sum.staples[k]) / get(nutListReq.Req[k])]
     }
     print(paste("finished with ratio for the staple/non staple categories ", req, sep = ""))
-
     #' ratio of nutrient from each food group item to the requirement
     for (k in 1:length(nutListReq)) {
       dt.food.agg[,nutListReq.reqRatio.foodGroup[k] := get(nutListReq.sum.foodGroup[k]) / get(nutListReq.Req[k])]

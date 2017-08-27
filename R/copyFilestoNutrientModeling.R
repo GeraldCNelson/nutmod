@@ -68,24 +68,17 @@ copyFile <- function(fileShortName, sourceDir, destDir, fileType) {
 
 copyListFromResults <- c( "dt.budgetShare",
                          "RDA.macro_sum_reqRatio", "RDA.vits_sum_reqRatio", "RDA.minrls_sum_reqRatio", "food_agg_AMDR_hi",
-                         #   "RDA.macro_staples_ratio","RDA.vits_staples_ratio", "RDA.minrls_staples_ratio",
                          "dt.nutrients.sum.all", "dt.nutrients.kcals",
-                          #  "RDA.macro_FG_reqRatio","RDA.vits_FG_reqRatio", "RDA.minrls_FG_reqRatio",
-                         #   "UL.vits.sum.req.ratio", "UL.minrls.sum.req.ratio", "dt.nutrients.sum.staples",
-                         #   "UL.minrls.FG.ratio", "UL.vits.FG.ratio",
                          "dt.KcalShare.nonstaple","dt.RAOqe", "dt.compDI", "dt.nutBalScore", "dt.metadata",
                          "dt.nutrients.sum.all", "dt.foodAvail.foodGroup",
                          "dt.shannonDiversity", "dt.MRVRatios", "dt.nutrients.sum.FG", "dt.nutrients.adj")
-#dt.nutrients.sum.all, "dt.nutrients.sum.staples")
-
 copyListFromData <- c("dt.regions.all", "dt.foodGroupsInfo", "resultFileLookup", "dt.scenarioListIMPACT")
 copyListFromiData <- c("dt.IMPACTgdxParams")
-#copyCsvFromData <- c("fileDocumentation.csv")
 
-# special copy for the gdxInfo file which is just below results
+#' special copy for the gdxInfo file which is just below results
 invisible(file.copy("results/gdxInfo.csv", "nutrientModeling/data"))
 
-# copy from results/gdxname
+#' copy from results/gdxname
 for (i in copyListFromResults) {
   print(sprintf("copying file %s from results to %s", i, destDir))
   copyFile(i, fileloc("resultsDir"), destDir, "rds")
@@ -98,7 +91,7 @@ for (i in copyListFromiData) {
   copyFile(i, fileloc("iData"), destDir, "rds")
 }
 
-#' next line commented out because global.R will diverge from nutrientModFunctions.R
+#' next line commented out because global.R diverges from nutrientModFunctions.R
 #file.copy("R/nutrientModFunctions.R", "nutrientModeling/global.R", overwrite = TRUE)
 
 # zip up csv files in the results directory

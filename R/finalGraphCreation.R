@@ -3,6 +3,19 @@
 #' @title Calculate nutrient deltas across scenarios
 #' @name aggRun.R
 #' @include nutrientModFunctions.R
+
+#Copyright (C) 2015-2017 Gerald C,Nelson, except where noted
+
+#     This program is free software: you can redistribute it and/or modify
+#     it under the terms of the GNU General Public License as published by
+#     the Free Software Foundation, either version 3 of the License, or
+#     (at your option) any later version.
+#
+#     This program is distributed in the hope that it will be useful,
+#     but WITHOUT ANY WARRANTY; without even the implied warranty of
+#     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE, See the
+#     GNU General Public License for more details at http://www.gnu.org/licenses/.
+
 #if (!exists("getNewestVersion", mode = "function"))
 {source("R/nutrientModFunctions.R")
   source("R/workbookFunctions.R")
@@ -211,10 +224,10 @@ for (figchoice in c("figs1")) {
   legendNum <- legendHorizontalNum
   layout <- layoutMatrix2
   height <- heights2
- plotNameList <- paste(prefix, "_", get(figchoice), "_", "WB",  sep = "")
- plotNameList <- c(plotNameList, paste(prefix, "_", get(figchoice), "_", "tenregions",  sep = ""))
- #' rev here reverses the order in which the graphs are plotted
- plotNumberList <- rev(which(graphNames %in% plotNameList))
+  plotNameList <- paste(prefix, "_", get(figchoice), "_", "WB",  sep = "")
+  plotNameList <- c(plotNameList, paste(prefix, "_", get(figchoice), "_", "tenregions",  sep = ""))
+  #' rev here reverses the order in which the graphs are plotted
+  plotNumberList <- rev(which(graphNames %in% plotNameList))
   plotNumberList <- c(plotNumberList, legendNum)
   g.out <- grid.arrange(
     grobs = graphsListHolder[plotNumberList],
