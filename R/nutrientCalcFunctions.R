@@ -84,9 +84,9 @@ cookingRetFishCorrect <- function(switch.useCookingRetnValues, switch.fixFish) {
 #' @return null
 #' @export
 budgetShareNpriceGrowth <- function(dt.IMPACTfood) {
-  # prices are in 2005 dollars per metric ton
-  # pcGDP is in 1000 2005 dollars
-  # 'FoodAvailability' variable is in kgs/person/year. DinY is days in year
+  #' prices are in 2005 dollars per metric ton
+  #' pcGDP is in 1000 2005 dollars
+  #' 'FoodAvailability' variable is in kgs/person/year. DinY is days in year
   dt.temp <- data.table::copy(dt.IMPACTfood)
   # data.table::setkeyv(dt.temp, c("scenario", "region_code.IMPACT159", "year"))
   # budget is in 1000 2005 dollars

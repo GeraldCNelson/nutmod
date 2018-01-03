@@ -167,12 +167,16 @@ combineIMPACTData <- function() {
   dt.PCX0.food <- createFood("dt.PCX0")
   dt.pcGDPX0 <- getNewestVersionIMPACT("dt.pcGDPX0")
 
-  data.table::setkeyv(dt.PWX0.food, c("scenario",    "IMPACT_code", "year"))
   data.table::setkeyv(dt.PCX0.food, c("scenario", "region_code.IMPACT159", "IMPACT_code", "year"))
-  data.table::setkeyv(dt.pcGDPX0,   c("scenario", "region_code.IMPACT159",                "year"))
   data.table::setkeyv(dt.FoodAvail, c("scenario", "region_code.IMPACT159", "IMPACT_code", "year"))
+  data.table::setkeyv(dt.pcGDPX0,   c("scenario", "region_code.IMPACT159",                "year"))
+  data.table::setkeyv(dt.PWX0.food, c("scenario",                          "IMPACT_code", "year"))
   dtlist <- list(dt.FoodAvail, dt.pcGDPX0, dt.PCX0.food, dt.PWX0.food)
   dt.IMPACTfood <- plyr::join_all(dtlist)
+  # an alternative to above that might not work. Might work but can't figure it out now.
+  # dtlist <- c("dt.FoodAvail", "dt.pcGDPX0", "dt.PCX0.food", "dt.PWX0.food")
+  # testList <- mget(dtlist)
+  # mergedDT <- Reduce(function(...) merge(...), testList)
   # set CSEs, PCX, and PWX that are NA to 0
   #  data.table::set(dt.IMPACTfood, which(is.na(dt.IMPACTfood[["CSE"]])), "CSE", 0)
   # needed because fish and alcohol don't have prices

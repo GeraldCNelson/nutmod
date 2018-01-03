@@ -1241,7 +1241,7 @@ storeWorldMapDF <- function(){
   othersToRemove <- c("ABW", "AIA", "ALA", "AND", "ASM", "AFT")
   world <- world[!world$iso_a3 %in% othersToRemove,]
   world <- world[!world$type %in% "Dependency",]
-  world <- sp::spTransform(world, CRS("+proj=longlat"))
+  world <- sp::spTransform(world, CRSobj="+proj=longlat")
 
   #world.simp <- gSimplify(world, tol = .1, topologyPreserve = TRUE)
   # alternative would be CRS("+proj=longlat")) for WGS 84

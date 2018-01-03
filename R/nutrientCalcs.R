@@ -152,6 +152,7 @@ generateResults.dataPrep <- function(req, dt.IMPACTfood, scenarioListIMPACT, dt.
       (x * dt.foodnNuts[['foodAvailpDay']])), .SDcols = nutListReq.bio]
 
     # iron bioavailability -----
+    #' initialize a data table to hold the bioavailable iron results
     dt.bioavail.iron <- data.table::copy(dt.bioavail)
     dt.bioavail.iron[, `:=`(kcal.avail = energy_kcal.Q,
                             kcal.cereals_legumes = 0,
@@ -162,20 +163,20 @@ generateResults.dataPrep <- function(req, dt.IMPACTfood, scenarioListIMPACT, dt.
                             protein.animal.avail_g = 0,
                             stimsFactor = 0
     )]
-    #' Heme iron = sum of iron from meats, poultry and fish x 0.40
-    hemeIronshare <- 0.4
-    #' bioavailability of heme iron = Heme iron * 25%
-    hemeIronBioavail <- 0.25
-    #' Nonheme iron = sum of all remaining iron (including iron from MPF x 0.60)
-    nonhemIronShare <- 0.60
-    #' get iron and protein from fish and meats
+
+    #' constants of iron calcs
+    hemeIronshare <- 0.4 # Heme iron = sum of iron from meats, poultry and fish x 0.40
+    hemeIronBioavail <- 0.25 # bioavailability of heme iron = Heme iron * 25%
+    nonhemeIronShare <- 0.60  #' Nonheme iron = sum of all remaining iron (including iron from MPF x 0.60)
+
+    #' get iron and protein from fish and meats and calculate bioavailable heme iron
     fishNmeats <- c("fish", "meats")
     dt.bioavail.iron[food_group_code %in% fishNmeats, `:=`(
       iron.heme_mg = foodAvailpDay * iron_mg * hemeIronshare * hemeIronBioavail,
-      iron.nonheme_mg = foodAvailpDay * iron_mg * nonhemIronShare,
+      iron.nonheme_mg = foodAvailpDay * iron_mg * nonhemeIronShare,
       protein.animal.avail_g = foodAvailpDay * protein_g)]
 
-    #' get ironfrom items other than fish and meats (! means not in)
+    #' get non heme iron from items other than fish and meats (! means not in)
     dt.bioavail.iron[!food_group_code %in% fishNmeats, `:=`(
       iron.nonheme_mg = foodAvailpDay * iron_mg)]
 
@@ -188,6 +189,7 @@ generateResults.dataPrep <- function(req, dt.IMPACTfood, scenarioListIMPACT, dt.
     #' dt.food.agg[IMPACT_code == "cteas", stimsFactor := 100 - (foodAvailpDay * (1/0.0442) * (1/1.5) * (1/0.6) * 60)]
     teaFactor <- 0.00792
     coffeeFactor <- 0.0442
+    #' units of stimsFactor are
     dt.bioavail.iron[IMPACT_code == "cteas", stimsFactor := foodAvailpDay * (1/teaFactor)]
     dt.bioavail.iron[IMPACT_code == "ccafs", stimsFactor := foodAvailpDay * (1/coffeeFactor) * (1/1.5)]
 
@@ -211,14 +213,16 @@ generateResults.dataPrep <- function(req, dt.IMPACTfood, scenarioListIMPACT, dt.
     dt.bioavail.iron[, (deleteListCol) := NULL]
     dt.bioavail.iron <- unique(dt.bioavail.iron)
 
-    #' adjust for interactions among vitamin c and protein
-    #' Note: for protein_g_per_1000kcal > 27, nonhemeBioavail is 15
+    #' adjust non heme iron for interactions with vitamin c and protein. These values from Table 2 in Murphy et al, 1992.
+    #' Note: for protein_g_per_1000kcal > 27, nonhemeBioavail is 15 %
     #' for protein_g_per_1000kcal 9- 27, nonhemeBioavail is 15, unless vit_c__mg_per_1000kcal >35
 
     dt.bioavail.iron[,`:=`(
       vit_c__mg_per_1000kcal = 1000 * sum.vit_c.avail_mg/sum.kcal.avail,
       protein_g_per_1000kcal = 1000 * sum.protein.animal.avail_g/sum.kcal.avail)
       ]
+
+    #' units for nonhemeBioavail are percent
     dt.bioavail.iron[,nonhemeBioavail := 15] # starting value; now adjust down
     dt.bioavail.iron[protein_g_per_1000kcal < 9 & vit_c__mg_per_1000kcal < 35,
                      nonhemeBioavail := 5]
@@ -227,7 +231,7 @@ generateResults.dataPrep <- function(req, dt.IMPACTfood, scenarioListIMPACT, dt.
     dt.bioavail.iron[protein_g_per_1000kcal >= 9 & protein_g_per_1000kcal <= 27 & vit_c__mg_per_1000kcal < 35,
                      nonhemeBioavail := 10]
 
-    dt.bioavail.iron[, iron_mg := sum.iron.heme_mg + (sum.iron.nonheme_mg*(nonhemeBioavail/100) * (sum.stimsFactor/100))]    #dt.bioavail.iron[, delta_iron_mg := iron_mg - sum.iron.raw_mg]
+    dt.bioavail.iron[, iron_mg := sum.iron.heme_mg + (sum.iron.nonheme_mg*(nonhemeBioavail/100) * (sum.stimsFactor/100))]
     dt.bioavail.iron[, bioavailability.iron := 100 * iron_mg/sum.iron.raw_mg]
     dt.bioavail.iron <- unique(dt.bioavail.iron)
     inDT <- dt.bioavail.iron

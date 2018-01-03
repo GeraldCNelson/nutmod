@@ -19,7 +19,8 @@ ls(all.names = TRUE)
 # or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License
 # for more details at http://www.gnu.org/licenses/.
 
-#' @description A script to recreate all data. Each R script is sourced in the order needed. gdxFileNameChoice lets the user chose which gdx to get IMPACT data from.
+#' @description A script to recreate all data. Each R script is sourced in the order needed.
+#' gdxFileNameChoice lets the user chose which gdx to get IMPACT data from.
 # Where files are created
 # Note: All files have a date suffix to the file name.
 # file locations -
@@ -41,14 +42,14 @@ print("The packages below are needed and currently available on CRAN or by downl
 print(paste("This set of scripts needs version 1.9.7 or greater of the data.table package. Version", as.character(packageVersion("data.table")), "is currently being used."))
 # print(paste("This set of scripts needs version 3.1.23 or greater of the openxlsx package. Version", as.character(packageVersion("openxlsx")), "is currently being used."))
 
-if (packageVersion("openxlsx") < "3.1.23") {
+if (packageVersion("openxlsx") < "4.0.17") {
   print("updating openxlsx")
   install.packages(c("Rcpp", "devtools"), dependencies = TRUE)
   require(devtools)
   install_github("awalker89/openxlsx")
 }
 
-if (packageVersion("data.table") < "1.9.7") {
+if (packageVersion("data.table") < "1.10.0") {
   print("updating data.table")
   install.packages("data.table")
 }
@@ -119,7 +120,7 @@ cat("Running dataManagement.ODBCaccess.R\n\n")
 source("R/dataManagement.ODBCaccess.R")
 #Manipulates the results of the ODBC_access script and prepare for dataPrep.nutrientData.R
 
-# print("Running dataPrep.nutrientData.R")
+# print("Running dataPrep.nutrientData.R") this section seems to be not needed.
 # source("R/dataPrep.nutrientData.R") # - creates dt.cookingRet and dt.nutrients, mData. Note that
 # # dt.nutrients does NOT take into account loss in cooking. That is done later and depends on a switch (search for switch.xxx .
 
@@ -135,7 +136,6 @@ source("R/dataPrep.NutrientRequirements.R")
 cat("Running dataManagement.SSPPop.R\n\n")
 source("R/dataManagement.SSPPop.R")
 #paste(gsub(".ssp","",nutReqName),"percap",sep = "."), mData - Nutrient requirements adjusted for population distribution, example is req.EAR.percap.2016-06-24.rds
-
 cat("Running dataManagement.foodNnuts.R\n\n")
 source("R/dataManagement.foodNnuts.R")
 #resultsD - creates dt.foodNnuts, dt.nutrients.kcals, dt.nutrients.sum.all, dt.nutrients.sum.staples,
@@ -148,7 +148,7 @@ source("R/nutrientCalcs.R")
 # "dt.nutrients.sum", fileloc("resultsDir"))
 
 cat("Running nutCalcsProcessing.R\n\n")
-source("R/nutCalcsProcessing.R")
+source("R/nutCalcsProcessing.R") # should probably be rewritten so it doesn't take so long to run
 #writes
 # paste(reqShortName, "all.sum", sep = ".")
 # paste(reqShortName, "sum.req.ratio", sep = ".")

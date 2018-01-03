@@ -45,7 +45,7 @@
 #only run in the dataPrep.regions.R script
 # source("R/createIMPACT159Regions.R")
 
-regionsLookup <- openxlsx::read.xlsx(fileNameList("regionsLookup"))
+regionsLookup <- openxlsx::read.xlsx(xlsxFile = fileNameList("regionsLookup"), sheet = "dt.regions.all")
 dt.regions.all <- data.table::as.data.table(regionsLookup)
 
 # # Read in the worksheet that has the WB region code/name -ISO country name lookup

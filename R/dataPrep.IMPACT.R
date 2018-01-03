@@ -3,10 +3,11 @@
 #' @title Import IMPACT data from a gdx file
 #' @name dataPrep.IMPACT.R
 #' @include nutrientModFunctions.R
-if (!exists("getNewestVersion", mode = "function"))
+#if (!exists("getNewestVersion", mode = "function"))
 {source("R/nutrientModFunctions.R")
   source("R/workbookFunctions.R")
   source("R/nutrientCalcFunctions.R")}
+gdxrrw::igdx(gamsSysDir = fileNameList("R_GAMS_SYSDIR"), silent = TRUE)
 
 # Intro -------------------------------------------------------------------
 
@@ -43,6 +44,7 @@ if (!exists("gdxFileName")) {
   dt.metadata <- getNewestVersion("dt.metadata", fileloc("resultsDir"))
   gdxFileName <- dt.metadata[file_description %in% "IMPACT demand data in gdx form", file_name_location]
 }
+gdxFileLoc <- paste(fileloc("IMPACTRawData"),gdxFileName, sep = "/")
 
 #' Title generateResults - send a list of variables with common categories to the
 #' function to write out the data
@@ -67,7 +69,6 @@ generateResults <- function(gdxFileName, vars, catNames){
 processIMPACT159Data <- function(gdxFileName, varName, catNames) {
   # dt.regions.all <- getNewestVersion("dt.regions.all")
   # IMPACTgdx <- gdxFileName
-  gdxFileLoc <- paste(fileloc("IMPACTRawData"),gdxFileName, sep = "/")
   dt.ptemp <- data.table::as.data.table(gdxrrw::rgdx.param(gdxFileLoc, varName,
                                                            ts = TRUE, names = catNames))
   dt.ptemp <- data.table::as.data.table(rapply(dt.ptemp, as.character, classes = "factor", how = "replace"))

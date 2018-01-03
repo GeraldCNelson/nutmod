@@ -47,7 +47,10 @@ colCharacter = c("Country Code", "Country","Item Code","Item","Element Code","El
 FBSdataZip <- filelocFBS("FBSdataZip")
 FBScsv <- filelocFBS("FBScsv")
 temp <- unzip(paste(getwd(),FBSdataZip,sep = "/"), files = FBScsv)
-dt.FBS.rawData <- data.table::fread(temp, header = TRUE)
+dt.FBS.rawData <- data.table::fread(temp, header = TRUE,
+                  colClasses = c(`Country Code` = "character",
+                                 `Item Code` = "character",
+                                 `Element Code` = "character"))
 file.remove(temp)
 
 #temp <- read.csv("data-raw/FBSData/FoodBalanceSheets_E_All_Data.csv",nrows = 10)
@@ -85,7 +88,6 @@ colKeepList <- c("FAOSTAT_country_code", "country_name", "item_code", "item",
                  "X2001","X2002","X2003","X2004","X2005",
                  "X2006","X2007","X2008","X2009","X2010",
                  "X2011","X2012","X2013","X2014","X2015")
-
 dt.FBS.raw <- dt.FBS.rawData[,colKeepList, with = FALSE]
 
 # improve on some element names
@@ -154,7 +156,6 @@ data.table::setnames(dt.FBSNameLookup,c("ISO3","FAOSTAT"),c("ISO_code","FAOSTAT_
 # Currently there are no data for South Sudan at all and only up to 2011 for Sudan.
 # So I'm going to change the code for Sudan in the name lookup to 206 and see what happens
 dt.FBSNameLookup[FAOSTAT_country_code == "276", FAOSTAT_country_code := "206"]
-
 
 data.table::setkey(dt.FBS.raw,FAOSTAT_country_code)
 data.table::setkey(dt.FBSNameLookup,FAOSTAT_country_code)

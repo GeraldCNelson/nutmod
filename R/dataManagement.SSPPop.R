@@ -46,7 +46,8 @@ dt.regions.all <- getNewestVersion("dt.regions.all")
 data.table::setkey(dt.regions.all, ISO_code)
 
 #' this could be a problem
-dt.SSPPop <-  merge(dt.SSPPop, dt.regions.all, by = "ISO_code", all.y = TRUE, allow.cartesian = TRUE)
+#dt.SSPPop <-  merge(dt.SSPPop, dt.regions.all, by = "ISO_code", all.y = TRUE, allow.cartesian = TRUE)
+dt.SSPPop <-  merge(dt.SSPPop, dt.regions.all, by = "ISO_code", all.y = TRUE)
 
 # Read in the region to aggregate to -----
 keepListCol <- c("scenario","ageGenderCode","year", "value", "region_code.IMPACT159")
@@ -87,8 +88,7 @@ dt.SSP.scen.wide <- data.table::dcast(
   formula = formula.wide,
   value.var = "value")
 
-ageColsToSum <- c(
-  "F15_19", "F20_24", "F25_29", "F30_34", "F35_39", "F40_44", "F45_49")
+ageColsToSum <- c("F15_19", "F20_24", "F25_29", "F30_34", "F35_39", "F40_44", "F45_49")
 dt.SSP.scen.wide[, F15_49 := rowSums(.SD), .SDcols = ageColsToSum]
 dt.SSP.scen.wide <- unique(dt.SSP.scen.wide)
 #pregnant and lactating women are a constant share of kids 0 to 4. This is a *kludge*!!!
@@ -317,6 +317,8 @@ temp <- 2:length(names(wbGeneral)) - 1
 temp <- c(length(names(wbGeneral)), temp)
 openxlsx::worksheetOrder(wbGeneral) <- temp
 
+if( exists("gdxChoice")) {
 xcelOutFileName <-
   paste("results/",gdxChoice, "/nut.requirements.", Sys.Date(), ".xlsx", sep = "")
 openxlsx::saveWorkbook(wb = wbGeneral, xcelOutFileName, overwrite = TRUE)
+}
