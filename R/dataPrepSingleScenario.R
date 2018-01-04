@@ -149,24 +149,12 @@ for (i in c("SSP2-HGEM2-WithGLOBE.gdx", "SSP2-HGEM-WithoutGLOBE.gdx")) {
   # generateResults(gdxFileLoc, vars.world, catNames.world)
 }
 
-# dt.CSEs <- data.table::as.data.table(
-# openxlsx::read.xlsx(CSEs,cols = c(1:3)))
-# data.table::setnames(dt.CSEs, old = c("CTY","C","CSE"), new = c("region_code.IMPACT159","IMPACT_code","CSE"))
-# data.table::set(dt.CSEs, which(is.na(dt.CSEs[["CSE"]])), "CSE", 0)
-# data.table::setorder(dt.CSEs, region_code.IMPACT159, IMPACT_code)
-# # add years to the CSE file, because it currently doesn't have any
-# dt.years <- data.table::data.table(year = rep(keyVariable("keepYearList"), each = nrow(dt.CSEs)))
-# dt.CSEs <- cbind(dt.years, dt.CSEs)
-# inDT <- dt.CSEs
-# outName <- "dt.CSEs"
-# cleanup(inDT,outName,fileloc("iData"))
-
-dt.FoodAvailability.woGlobe <- readRDS(file = "data/IMPACTData/singleScenario/dt.FoodAvailability.SSP2-HGEM-WithoutGLOBE_2017-12-31.rds")
-dt.FoodAvailability.wGlobe <- readRDS(file = "data/IMPACTData/singleScenario/dt.FoodAvailability.SSP2-HGEM2-WithGLOBE_2017-12-31.rds")
-dt.pcGDPX0.woGlobe <- readRDS(file = "data/IMPACTData/singleScenario/dt.pcGDPX0.SSP2-HGEM-WithoutGLOBE_2017-12-31.rds")
-dt.pcGDPX0.wGlobe <- readRDS(file = "data/IMPACTData/singleScenario/dt.pcGDPX0.SSP2-HGEM2-WithGLOBE_2017-12-31.rds")
-dt.PCX0.woGlobe <- readRDS(file = "data/IMPACTData/singleScenario/dt.PCX0.SSP2-HGEM-WithoutGLOBE_2017-12-31.rds")
-dt.PCX0.wGlobe <- readRDS(file = "data/IMPACTData/singleScenario/dt.PCX0.SSP2-HGEM2-WithGLOBE_2017-12-31.rds")
+dt.FoodAvailability.woGlobe <- readRDS(file = "data/IMPACTData/singleScenario/dt.FoodAvailability.SSP2-HGEM-WithoutGLOBE_2018-01-04.rds")
+dt.FoodAvailability.wGlobe <- readRDS(file = "data/IMPACTData/singleScenario/dt.FoodAvailability.SSP2-HGEM2-WithGLOBE_2018-01-04.rds")
+dt.pcGDPX0.woGlobe <- readRDS(file = "data/IMPACTData/singleScenario/dt.pcGDPX0.SSP2-HGEM-WithoutGLOBE_2018-01-04.rds")
+dt.pcGDPX0.wGlobe <- readRDS(file = "data/IMPACTData/singleScenario/dt.pcGDPX0.SSP2-HGEM2-WithGLOBE_2018-01-04.rds")
+dt.PCX0.woGlobe <- readRDS(file = "data/IMPACTData/singleScenario/dt.PCX0.SSP2-HGEM-WithoutGLOBE_2018-01-04.rds")
+dt.PCX0.wGlobe <- readRDS(file = "data/IMPACTData/singleScenario/dt.PCX0.SSP2-HGEM2-WithGLOBE_2018-01-04.rds")
 setkey(dt.FoodAvailability.woGlobe)
 setkey(dt.FoodAvailability.wGlobe)
 setkey(dt.pcGDPX0.woGlobe)

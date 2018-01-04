@@ -532,7 +532,6 @@ metadata <- function() {
 
 fileNameList <- function(variableName) {
   IMPACTCleanData      <- fileloc("IMPACTCleanData")
-  # NutrientData    <- fileloc("NutrientData")gdx
   nutrientDataDetails <- paste(fileloc("rawData"), "NutrientData/nutrientDetails", sep = "/")
   SSPData         <- fileloc("SSPData")
   DRIFileName     <- "DRI_IOM_V8.xlsx"
@@ -576,8 +575,8 @@ fileNameList <- function(variableName) {
   SSPdataZipFile   <- "SspDb_country_data_2013-06-12.csv.zip"
   SSPdataZip       <- paste(SSPData, SSPdataZipFile, sep = "/")
   #get the name of the file inside the zip. Assumes only 1
-  temp             <- unzip(SSPdataZip, list = TRUE)
-  SSPcsv           <- temp$Name[1]
+  zipHolder             <- unzip(SSPdataZip, list = TRUE)
+  SSPcsv           <- zipHolder$Name[1]
   modelListPop     <- "IIASA-WiC POP"
   modelListGDP    <- "OECD Env-Growth"
   SSP_DRI_ageGroupLUFileName <-  "SSP_DRI_ageGroupLookUp.xlsx"
