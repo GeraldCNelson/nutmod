@@ -340,6 +340,8 @@ keyVariable <- function(variableName) {
   switch.fixFish <- "TRUE"
   switch.useCookingRetnValues <- "TRUE"
   switch.changeElasticity <- "TRUE"
+  switch.ctyspecificCommodities <- "TRUE"
+
   region <- "region_code.IMPACT159"
   keepYearList <- c("X2010", "X2015", "X2020", "X2025", "X2030", "X2035", "X2040", "X2045", "X2050")
   keepYearList.FBS <- c("X2000", "X2001", "X2002", "X2003", "X2004", "X2005",
@@ -398,6 +400,8 @@ keyVariable <- function(variableName) {
       c(
         "switch.fixFish",
         "switch.changeElasticity",
+        "switch.useCookingRetnValues",
+        "switch.ctyspecificCommodities",
         "region",
         "keepYearList",
         "keepYearList.FBS",
@@ -1231,22 +1235,30 @@ generateWorldMaps <- function(spData, scenOrder, titleText, legendText, lowColor
 # store world map dataframe -----
 storeWorldMapDF <- function(){
   # naturalearth world map geojson
+  # updated source of data is http://www.naturalearthdata.com/downloads/50m-cultural-vectors/
+
   #world <- readOGR(dsn="https://raw.githubusercontent.com/nvkelso/natural-earth-vector/master/geojson/ne_50m_admin_0_countries.geojson", layer="OGRGeoJSON")
   #world <- readOGR(dsn = "data-raw/spatialData/ne_50m_admin_0_countries.geojson", layer = "OGRGeoJSON")
-  world <- rgdal::readOGR(dsn = "data-raw/spatialData/ne_110m_admin_0_countries.geojson", layer = "OGRGeoJSON")
+#  world <- rgdal::readOGR(dsn = "data-raw/spatialData/ne_110m_admin_0_countries.geojson", layer = "OGRGeoJSON")
+
+  fileloc <- "data-raw/spatialData"
+  fn <- file.path(fileloc, "ne_50m_admin_0_countries.zip")
+  download.file("http://www.naturalearthdata.com/http//www.naturalearthdata.com/download/50m/cultural/ne_50m_admin_0_countries.zip", fn)
+  unzip(fn, exdir = fileloc)
+  world.raw <- rgdal::readOGR(dsn = fileloc)
 
   # remove antarctica and some other small countries
-  world <- world[!world$iso_a3 %in% c("ATA"),]
+  world <- world.raw[!world.raw$ISO_A3 %in% c("ATA"),]
   othersToRemove <- c("ABW", "AIA", "ALA", "AND", "ASM", "AFT")
-  world <- world[!world$iso_a3 %in% othersToRemove,]
-  world <- world[!world$type %in% "Dependency",]
+  world <- world[!world$ISO_A3 %in% othersToRemove,]
+ # world <- world[world$TYPE %in% "SOVEREIGNT"]
   world <- sp::spTransform(world, CRSobj="+proj=longlat")
-
+saveRDS(world, file = paste(fileloc, "worldFile.RDS", sep = "/"))
   #world.simp <- gSimplify(world, tol = .1, topologyPreserve = TRUE)
   # alternative would be CRS("+proj=longlat")) for WGS 84
   # dat_url <- getURL("https://gist.githubusercontent.com/hrbrmstr/7a0ddc5c0bb986314af3/raw/6a07913aded24c611a468d951af3ab3488c5b702/pop.csv")
-  # pop <- read.csv(text=dat_url, stringsAsFactors=FALSE, header=TRUE)
-  worldMap <- broom::tidy(world, region = "iso_a3")
+    # pop <- read.csv(text=dat_url, stringsAsFactors=FALSE, header=TRUE)
+  worldMap <- broom::tidy(world, region = "ISO_A3")
   inDT <- worldMap
   outName <- "worldMap"
   cleanup(inDT, outName, fileloc("mData"))

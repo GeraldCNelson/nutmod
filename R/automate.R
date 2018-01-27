@@ -118,11 +118,7 @@ source("R/dataPrep.ODBCaccess.R")
 
 cat("Running dataManagement.ODBCaccess.R\n\n")
 source("R/dataManagement.ODBCaccess.R")
-#Manipulates the results of the ODBC_access script and prepare for dataPrep.nutrientData.R
-
-# print("Running dataPrep.nutrientData.R") this section seems to be not needed.
-# source("R/dataPrep.nutrientData.R") # - creates dt.cookingRet and dt.nutrients, mData. Note that
-# # dt.nutrients does NOT take into account loss in cooking. That is done later and depends on a switch (search for switch.xxx .
+#Manipulates the results of the ODBC_access script and prepares dt.nutrients for later scripts
 
 cat("Running dataPrep.NutrientRequirements.R\n\n")
 source("R/dataPrep.NutrientRequirements.R")

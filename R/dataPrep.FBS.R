@@ -15,9 +15,6 @@
 #' This script reads in the FAO Food Balance Sheet information from a zip file, does
 #' some manipulations of the data, and writes out results to an rds file
 #' }.
-#This script reads in the FAO Food Balance Sheet information from a zip file, does
-# some manipulations of the data,
-#and writes out results to an rds file
 
 #Copyright (C) 2015 Gerald C. Nelson, except where noted
 

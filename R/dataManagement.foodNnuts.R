@@ -36,27 +36,36 @@ scenarioListIMPACT <- unique(dt.scenarioListIMPACT$scenario)
 # read in nutrients data and optionally apply cooking retention values -----
 switch.useCookingRetnValues <- keyVariable("switch.useCookingRetnValues")
 switch.fixFish <- keyVariable("switch.fixFish") #get rid of nutrient info for shrimp, tuna, and salmon because they are not currently in the FBS data
+switch.ctyspecificCommodities <- keyVariable("switch.ctyspecificCommodities")
 #dt.nutrients is per 100 gm of the raw product (ie before edible portion is applied)
 #dt.nutrients.adj is per kg of food
-dt.nutrients.adj <- cookingRetFishCorrect(switch.useCookingRetnValues, switch.fixFish)
+dt.nutrients.adj <- cookingRetFishCorrect(switch.useCookingRetnValues, switch.fixFish, switch.ctyspecificCommodities)
 inDT <- dt.nutrients.adj
 outName <- "dt.nutrients.adj"
 cleanup(inDT, outName, fileloc("resultsDir"))
 
 # convert food availability from per year to per day
 # dt.IMPACTfood[, foodAvailpDay := FoodAvailability / keyVariable("DinY")]
-dt.IMPACTfood[, FoodAvailability := NULL]
+# dt.IMPACTfood[, FoodAvailability := NULL]
 
-dt.foodNnuts <- merge(dt.IMPACTfood, dt.nutrients.adj, by = "IMPACT_code", all = TRUE)
+if (switch.ctyspecificCommodities != TRUE) {
+  dt.foodNnuts <- merge(dt.IMPACTfood, dt.nutrients.adj, by = "IMPACT_code")
+}else{
+  dt.foodNnuts <- merge(dt.IMPACTfood, dt.nutrients.adj, by = c("IMPACT_code", "region_code.IMPACT159"))
+}
+budgetShareNpriceGrowth(dt.foodNnuts)
+dt.foodNnuts[, c("pcGDPX0", "FoodAvailability") := NULL] #gdp per cap removed here. Might be necesary to leave in.
 
 list.minrls <- c("calcium_mg", "iron_mg", "magnesium_mg", "phosphorus_mg", "potassium_g", "zinc_mg")
 list.vits <- c("folate_µg", "niacin_mg", "riboflavin_mg", "thiamin_mg", "vit_a_rae_µg", "vit_b6_mg",
                "vit_b12_µg", "vit_c_mg", "vit_d_µg",  "vit_e_mg", "vit_k_µg")
 list.macro <- c("carbohydrate_g", "protein_g",  "totalfiber_g", "fat_g")
-list.other <- c("caffeine_mg", "cholesterol_mg", "phytate_mg", "sugar_g", "ethanol_g")
+#list.other <- c("caffeine_mg", "cholesterol_mg", "phytate_mg", "sugar_g", "ethanol_g")
+list.other <- c( "phytate_mg", "sugar_g", "ethanol_g")
 list.energy <- c("kcals.fat_g", "kcals.carbohydrate_g", "kcals.protein_g",
                  "kcals.ethanol_g", "kcals.sugar_g", "kcals.ft_acds_tot_sat_g")  # note that "energy_kcal" is removed from this list
-list.fattyAcids <- c("ft_acds_mono_unsat_g", "ft_acds_plyunst_g", "ft_acds_tot_sat_g",  "ft_acds_tot_trans_g")
+#list.fattyAcids <- c("ft_acds_mono_unsat_g", "ft_acds_plyunst_g", "ft_acds_tot_sat_g",  "ft_acds_tot_trans_g")
+list.fattyAcids <- c("ft_acds_mono_unsat_g", "ft_acds_plyunst_g", "ft_acds_tot_sat_g")
 
 list.tot <- c(list.minrls, list.vits, list.macro, list.other, list.energy, list.fattyAcids)
 names.tot <- paste(list.tot, "Q", sep = ".")
@@ -65,7 +74,7 @@ dt.foodNnuts[, kcalsPerCommod := foodAvailpDay * energy_kcal]
 for (j in 1:length(list.tot)) {
   data.table::set(dt.foodNnuts, i = NULL, j = names.tot[j], value = dt.foodNnuts[[list.tot[j]]] * dt.foodNnuts[['foodAvailpDay']])
 }
-data.table::setorder(dt.foodNnuts, NULL)
+# data.table::setorder(dt.foodNnuts, NULL) Not sure what this is here for.
 dt.foodNnuts[, `:=`(
   foodQ.sum = sum(foodAvailpDay),
   kcalsPerDay.tot = sum(kcalsPerCommod),
@@ -84,7 +93,8 @@ kcals.ethanol.cap <- 100 * ethanolKcals
 dt.foodNnuts[kcalsPerDay.ethanol > kcals.ethanol.cap, kcalsPerDay.ethanol := kcals.ethanol.cap]
 
 dt.foodNnuts[, kcalsPerDay.other := kcalsPerDay.tot - (kcalsPerDay.carbohydrate + kcalsPerDay.fat + kcalsPerDay.protein) ]
-deleteListCol <- c(list.tot, "usda_code", "Ref_Desc", "phytate_source")
+#deleteListCol <- c(list.tot, "usda_code", "Ref_Desc", "phytate_source")
+deleteListCol <- c(list.tot, "usda_code")
 dt.foodNnuts[, (deleteListCol) := NULL]
 data.table::setnames(dt.foodNnuts, old = c(names.tot), new = c(list.tot))
 outName <- "dt.foodNnuts"
@@ -93,12 +103,13 @@ cleanup(dt.foodNnuts, outName, fileloc("resultsDir"))
 #' produce subsets that are more manageable in size -----
 # dt.nutrients.kcals -----
 dt.nutrients.kcals <- data.table::copy(dt.foodNnuts)
-deleteListCol <- c("pcGDPX0", "PCX0", "PWX0",  "foodAvailpDay", "foodQ.sum", "Long_Desc", "retentioncode_aus", "RetnDesc", "ft_acds_tot_sat_g",
-                   "ft_acds_mono_unsat_g", "ft_acds_plyunst_g", "ft_acds_tot_trans_g",
+# deleteListCol <- c("pcGDPX0", "PCX0", "PWX0",  "foodAvailpDay", "foodQ.sum", "Long_Desc", "retentioncode_aus", "RetnDesc", "ft_acds_tot_sat_g", "ft_acds_tot_trans_g"
+deleteListCol <- c("PCX0", "PWX0",  "foodAvailpDay", "foodQ.sum", "Long_Desc", "ft_acds_tot_sat_g",
+                   "ft_acds_mono_unsat_g", "ft_acds_plyunst_g",
                    "calcium_mg", "iron_mg", "magnesium_mg", "phosphorus_mg",
                    "potassium_g", "zinc_mg", "folate_µg", "niacin_mg", "riboflavin_mg", "thiamin_mg", "vit_a_rae_µg",
                    "vit_b6_mg", "vit_b12_µg", "vit_c_mg", "vit_d_µg", "vit_e_mg", "vit_k_µg", "carbohydrate_g", "protein_g",
-                   "totalfiber_g", "fat_g", "caffeine_mg", "cholesterol_mg", "phytate_mg", "sugar_g", "ethanol_g", "energy_kcal")
+                   "totalfiber_g", "fat_g", "phytate_mg", "sugar_g", "ethanol_g", "energy_kcal")
 dt.nutrients.kcals[, (deleteListCol) := NULL]
 
 kcalsSources <- c("kcalsPerDay.other", "kcalsPerDay.carbohydrate", "kcalsPerDay.fat",  "kcalsPerDay.protein",
@@ -128,7 +139,7 @@ cleanup(inDT, outName, fileloc("resultsDir"))
 
 # dt.nutrients.sum.all ------
 dt.nutrients.sum <- data.table::copy(dt.foodNnuts)
-deleteListCol <- c("pcGDPX0", "PCX0", "PWX0",  "Long_Desc", "energy_kcal", "retentioncode_aus", "RetnDesc")
+deleteListCol <- c("PCX0", "PWX0",  "Long_Desc", "energy_kcal")
 dt.nutrients.sum[, (deleteListCol) := NULL]
 dt.bioavail_zinc <- getNewestVersion("dt.bioavail_zinc", fileloc("resultsDir"))
 dt.bioavail_iron <- getNewestVersion("dt.bioavail_iron", fileloc("resultsDir"))
@@ -146,16 +157,16 @@ dt.nutrients.sum[, c("bioavailability.zinc", "bioavailability.iron") := NULL]
 #' use dt.nutrient.sum for all three sum files, all, staple, FG
 dt.nutrients.sum.all <- data.table::copy(dt.nutrients.sum)
 dt.nutrients.sum.all[, (list.tot) := lapply(.SD, sum), .SDcols = (list.tot),
-            by =  c("scenario", "region_code.IMPACT159", "year")]
+                     by =  c("scenario", "region_code.IMPACT159", "year")]
 dt.nutrients.sum.all <- unique(dt.nutrients.sum.all)
 measureVars <- c(list.tot, "kcalsPerDay.tot", "kcalsPerDay.carbohydrate", "kcalsPerDay.fat", "kcalsPerDay.protein",
                  "kcalsPerDay.ethanol", "kcalsPerDay.sugar", "kcalsPerDay.ft_acds_tot_sat", "kcalsPerDay.other")
 dt.nutrients.sum.all <- data.table::melt(dt.nutrients.sum.all,
-                                id.vars = c("scenario","region_code.IMPACT159", "year"),
-                                variable.name = "nutrient",
-                                measure.vars = measureVars,
-                                value.name = "value",
-                                variable.factor = FALSE)
+                                         id.vars = c("scenario","region_code.IMPACT159", "year"),
+                                         variable.name = "nutrient",
+                                         measure.vars = measureVars,
+                                         value.name = "value",
+                                         variable.factor = FALSE)
 inDT <- unique(dt.nutrients.sum.all)
 outName <- "dt.nutrients.sum.all" #this includes phytate. Might want to remove later.
 cleanup(inDT,outName, fileloc("resultsDir"))
@@ -182,7 +193,7 @@ cleanup(inDT, outName, fileloc("resultsDir"))
 # dt.nutrients.sum.staples ------
 dt.nutrients.sum.staples <- data.table::copy(dt.nutrients.sum)
 deleteListCol <- c("kcalsPerDay.tot", "kcalsPerDay.carbohydrate", "kcalsPerDay.fat", "kcalsPerDay.protein",
-                    "kcalsPerDay.ethanol", "kcalsPerDay.sugar", "kcalsPerDay.ft_acds_tot_sat", "kcalsPerDay.other",
+                   "kcalsPerDay.ethanol", "kcalsPerDay.sugar", "kcalsPerDay.ft_acds_tot_sat", "kcalsPerDay.other",
                    "foodQ.sum")
 dt.nutrients.sum.staples[, (deleteListCol) := NULL]
 dt.nutrients.sum.staples[, (list.tot) := lapply(.SD, sum), .SDcols = (list.tot),
@@ -193,11 +204,11 @@ dt.nutrients.sum.staples <- unique(dt.nutrients.sum.staples)
 #                  "kcalsPerDay.ethanol", "kcalsPerDay.sugar", "kcalsPerDay.ft_acds_tot_sat", "kcalsPerDay.other")
 measureVars <- c(list.tot)
 dt.nutrients.sum.staples.long <- data.table::melt(dt.nutrients.sum.staples,
-                                         id.vars = c("scenario","region_code.IMPACT159", "year", "staple_code"),
-                                         variable.name = "nutrient",
-                                         measure.vars = measureVars,
-                                         value.name = "value",
-                                         variable.factor = FALSE)
+                                                  id.vars = c("scenario","region_code.IMPACT159", "year", "staple_code"),
+                                                  variable.name = "nutrient",
+                                                  measure.vars = measureVars,
+                                                  value.name = "value",
+                                                  variable.factor = FALSE)
 inDT <- unique(dt.nutrients.sum.staples.long)
 outName <- "dt.nutrients.sum.staples" #this includes phytate. Might want to remove later.
 cleanup(inDT,outName, fileloc("resultsDir"))
@@ -210,11 +221,11 @@ dt.nutrients.sum.FG[, c("IMPACT_code", "foodAvailpDay", "kcalsPerCommod", "stapl
 dt.nutrients.sum.FG <- unique(dt.nutrients.sum.FG)
 
 dt.nutrients.sum.FG <- data.table::melt(dt.nutrients.sum.FG,
-                                             id.vars = c("scenario","region_code.IMPACT159", "food_group_code", "year"),
-                                             variable.name = "nutrient",
-                                             measure.vars = list.tot,
-                                             value.name = "value",
-                                             variable.factor = FALSE)
+                                        id.vars = c("scenario","region_code.IMPACT159", "year", "food_group_code"),
+                                        variable.name = "nutrient",
+                                        measure.vars = list.tot,
+                                        value.name = "value",
+                                        variable.factor = FALSE)
 dt.nutrients.sum.FG <- unique(dt.nutrients.sum.FG) #note that this contains phytate
 inDT <- dt.nutrients.sum.FG
 outName <- "dt.nutrients.sum.FG"
@@ -239,7 +250,7 @@ dt.foodAvail.foodGroup <- data.table::copy(dt.foodNnuts)
 deleteListCol <- names(dt.foodNnuts)[!names(dt.foodNnuts) %in% c("scenario", "region_code.IMPACT159", "IMPACT_code", "year", "food_group_code", "foodAvailpDay")]
 dt.foodAvail.foodGroup[, (deleteListCol) := NULL]
 dt.foodAvail.foodGroup <- dt.foodAvail.foodGroup[, foodavail.foodgroup.sum := sum(foodAvailpDay) * 1000,
-                                             by = c("scenario", "region_code.IMPACT159", "year", "food_group_code")]
+                                                 by = c("scenario", "region_code.IMPACT159", "year", "food_group_code")]
 dt.foodAvail.foodGroup[, c("IMPACT_code", "foodAvailpDay") := NULL]
 dt.foodAvail.foodGroup <- unique(dt.foodAvail.foodGroup)
 data.table::setnames(dt.foodAvail.foodGroup, old = "foodavail.foodgroup.sum", new = "value")

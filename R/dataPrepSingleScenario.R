@@ -9,6 +9,7 @@
   source("R/nutrientCalcFunctions.R")}
 library(gdxrrw)
 library(ggplot2)
+library(RColorBrewer)
 gdxrrw::igdx(gamsSysDir = fileNameList("R_GAMS_SYSDIR"), silent = TRUE)
 
 # Intro -------------------------------------------------------------------
@@ -149,12 +150,12 @@ for (i in c("SSP2-HGEM2-WithGLOBE.gdx", "SSP2-HGEM-WithoutGLOBE.gdx")) {
   # generateResults(gdxFileLoc, vars.world, catNames.world)
 }
 
-dt.FoodAvailability.woGlobe <- readRDS(file = "data/IMPACTData/singleScenario/dt.FoodAvailability.SSP2-HGEM-WithoutGLOBE_2018-01-04.rds")
-dt.FoodAvailability.wGlobe <- readRDS(file = "data/IMPACTData/singleScenario/dt.FoodAvailability.SSP2-HGEM2-WithGLOBE_2018-01-04.rds")
-dt.pcGDPX0.woGlobe <- readRDS(file = "data/IMPACTData/singleScenario/dt.pcGDPX0.SSP2-HGEM-WithoutGLOBE_2018-01-04.rds")
-dt.pcGDPX0.wGlobe <- readRDS(file = "data/IMPACTData/singleScenario/dt.pcGDPX0.SSP2-HGEM2-WithGLOBE_2018-01-04.rds")
-dt.PCX0.woGlobe <- readRDS(file = "data/IMPACTData/singleScenario/dt.PCX0.SSP2-HGEM-WithoutGLOBE_2018-01-04.rds")
-dt.PCX0.wGlobe <- readRDS(file = "data/IMPACTData/singleScenario/dt.PCX0.SSP2-HGEM2-WithGLOBE_2018-01-04.rds")
+dt.FoodAvailability.woGlobe <- readRDS(file = "data/IMPACTData/singleScenario/dt.FoodAvailability.SSP2-HGEM-WithoutGLOBE_2018-01-05.rds")
+dt.FoodAvailability.wGlobe <- readRDS(file = "data/IMPACTData/singleScenario/dt.FoodAvailability.SSP2-HGEM2-WithGLOBE_2018-01-05.rds")
+dt.pcGDPX0.woGlobe <- readRDS(file = "data/IMPACTData/singleScenario/dt.pcGDPX0.SSP2-HGEM-WithoutGLOBE_2018-01-05.rds")
+dt.pcGDPX0.wGlobe <- readRDS(file = "data/IMPACTData/singleScenario/dt.pcGDPX0.SSP2-HGEM2-WithGLOBE_2018-01-05.rds")
+dt.PCX0.woGlobe <- readRDS(file = "data/IMPACTData/singleScenario/dt.PCX0.SSP2-HGEM-WithoutGLOBE_2018-01-05.rds")
+dt.PCX0.wGlobe <- readRDS(file = "data/IMPACTData/singleScenario/dt.PCX0.SSP2-HGEM2-WithGLOBE_2018-01-05.rds")
 setkey(dt.FoodAvailability.woGlobe)
 setkey(dt.FoodAvailability.wGlobe)
 setkey(dt.pcGDPX0.woGlobe)
@@ -187,6 +188,10 @@ dt <- dt[!region_code.IMPACT159 %in% "SOM",]
 dt.50 <- dt[year %in% "X2050",]
 dt.50[, c("IMPACT_code", "FoodAvailability_woGlobe", "FoodAvailability_wGlobe", "PCX0_woGlobe", "PCX0_wGlobe","year") := NULL]
 dt.50 <- dt.50[!duplicated(region_code.IMPACT159),]
+dt.50[, incShareRatio := 100 * (incShare_wGlobe - incShare_woGlobe)/incShare_woGlobe]
+dt.50[, budgetRatio := 100 * (budget_wGlobe - budget_woGlobe)/budget_woGlobe]
+dt.50[, incRatio := 100 * (pcGDPX0_wGlobe - pcGDPX0_woGlobe)/pcGDPX0_woGlobe]
+
 #reorder the cols
 setcolorder(dt.50, c("region_code.IMPACT159", "pcGDPX0_woGlobe", "pcGDPX0_wGlobe", "budget_woGlobe",   "budget_wGlobe",  "incShare_woGlobe",  "incShare_wGlobe"))
 
@@ -215,21 +220,61 @@ dt.50.summary.wide <- dt.50.summary.wide[c(6,1,4,5,2,3), ]
 # facet maps of deltas due to use of Globe
 cat("\n Working on facet maps")
 worldMap <- getNewestVersion("worldMap", fileloc("mData"))
-DT <- dt.50
-DT <- countryCodeCleanup(DT) # converts IMPACT region codes to ISO3 codes for largest country in the region
-data.table::setnames(DT, old = "region_code.IMPACT159", new = "id")
 
-facetColName <- "food_group_code"
+measureVars <- c("pcGDPX0_woGlobe", "pcGDPX0_wGlobe", "budget_woGlobe", "budget_wGlobe",
+                 "incShare_woGlobe", "incShare_wGlobe",
+                 "budgetRatio", "incRatio", "incShareRatio")
+dt.50.long <- data.table::melt(dt.50,
+                               id.vars = "region_code.IMPACT159",
+                               variable.name = "metric",
+                               measure.vars = measureVars,
+                               value.name = "value",
+                               variable.factor = FALSE)
 
-# availability in quantity terms 2050, no CC -----
-legendText <- "Grams per day, 2050, \nno climate change"
-fillLimits <- c(0, 500)
-myPalette <- colorRampPalette(rev(brewer.pal(11, "Spectral")))
-palette <- myPalette(4)
-#' middle two values shift the palette gradient; the code below give a smooth change
-fillRange <- fillLimits[2] - fillLimits[1]
-breakValues <- scales::rescale(c(fillLimits[1], fillLimits[1] + fillRange/3, fillLimits[1] + fillRange/1.5, fillLimits[2]))
-displayOrder <- sort(unique(DT[, get(facetColName)])) # default - alphabetically sorted
-fileName <- paste(gdxChoice, l, "facetmap", "FGAvail", "2050", "noCC", sep = "_")
-facetMaps(worldMap, DT, fileName, legendText, fillLimits, palette, facetColName, graphsListHolder, breakValues, displayOrder)
+dt.50.long.base <- copy(dt.50.long)
+dt.50.long.share <- copy(dt.50.long)
+for (i in c("base", "share")) {
+  DT <- copy(dt.50.long)
+  if (i %in% "base"){
+    DT <- DT[metric %in% c("pcGDPX0_woGlobe", "pcGDPX0_wGlobe", "budget_woGlobe", "budget_wGlobe",
+                           "incShare_woGlobe", "incShare_wGlobe"), ]
+    legendText <- "Macro metrics range"
+    fillLimits <- c(0, 35)
+  }
+  if (i %in% "share"){
+    DT <- DT[metric %in% c("budgetRatio", "incRatio", "incShareRatio"), ]
+    legendText <- "(percent)"
+    fillLimits <- c(-11, 8)
+  }
+  DT <- countryCodeCleanup(DT) # converts IMPACT region codes to ISO3 codes for largest country in the region
+  data.table::setnames(DT, old = "region_code.IMPACT159", new = "id")
+  facetColName <- "metric"
 
+  myPalette <- colorRampPalette(rev(brewer.pal(11, "Spectral")))
+  palette <- myPalette(4)
+  #' middle two values shift the palette gradient; the code below give a smooth change
+  fillRange <- fillLimits[2] - fillLimits[1]
+  breakValues <- scales::rescale(c(fillLimits[1], fillLimits[1] + fillRange/3, fillLimits[1] + fillRange/1.5, fillLimits[2]))
+  displayOrder <- sort(unique(DT[, get(facetColName)])) # default - alphabetically sorted
+  fileName <- paste("facetmap", "macroMetrics", "2050", sep = "_")
+  graphsListHolder <- list()
+  facetMaps(worldMap, DT, fileName, legendText, fillLimits, palette, facetColName, graphsListHolder, breakValues, displayOrder)
+  print(graphsListHolder)
+
+  b <- breakValues
+  f <- fillLimits
+  p <- palette
+  d <- DT
+  #d[, (n) := factor(get(n), levels = displayOrder)]
+  gg <- ggplot(data = d, aes(map_id = region_code.IMPACT159))
+  gg <- gg + geom_map(aes(fill = incShareRatio), map = worldMap)
+  # gg <- gg + expand_limits(x = worldMap$long, y = worldMap$lat)
+  #gg <- gg + facet_wrap(facets = n)
+  gg <- gg + theme(legend.position = "bottom")
+  gg <- gg +  theme(axis.ticks = element_blank(),axis.title = element_blank(), axis.text.x = element_blank(),
+                    axis.text.y = element_blank(), strip.text = element_text(family = "Times", face = "plain"))
+  gg <- gg + scale_fill_gradientn(colors = p, name = legendText,
+                                  na.value = "grey50", values = b,
+                                  guide = "colorbar", limits = f)
+  gg
+}

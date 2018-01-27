@@ -183,7 +183,7 @@ aggNorder <- function(gdxChoice, DTglobal, aggChoice, scenChoice, mergedVals) {
 }
 
 plotByRegionBar <- function(dt, fileName, plotTitle, yLab, yRange, aggChoice, scenOrder, oneLine, colorList, AMDR_hi = NULL, plotErrorBars) {
-  cat(paste("\nplotting bars by region", aggChoice, "for", plotTitle))
+ cat(paste("\nplotting bars by region", aggChoice, "for", plotTitle))
   plotTitle <- capwords(plotTitle)
   temp <- copy(dt)
   regionCodes <- unique(temp$region_code)
@@ -206,7 +206,7 @@ plotByRegionBar <- function(dt, fileName, plotTitle, yLab, yRange, aggChoice, sc
   if (round(max(temp$value)) - max(temp$value) > 0.08) yRange[2] <- round(max(temp$value) + 1, digits = 1) # will hopefully deal with rare situation
   #' use the standard deviation value to define ymax
   if (plotErrorBars == TRUE) {
-    yRange[2] <- round(max(temp$sd.region + temp$value), digits = 1)
+    yRange[2] <- max(yRange[2], round(max(temp$sd.region + temp$value), digits = 1))
   }
   #' when all elements of value are the same as the max y range
   p <- ggplot(temp, aes(x = factor(region_name), y = value, fill = scenario, order = c("region_name") )) +

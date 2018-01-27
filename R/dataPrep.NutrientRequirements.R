@@ -20,13 +20,15 @@
 #' @description - This script calculates nutrient requirements for SSP age group categories
 #' The source of the requirements is
 #' @source \url{http://www.nal.usda.gov/fnic/DRI/DRI_Tables/recommended_intakes_individuals.pdf}
-#' The requirements are imported in dataPrep.nutrientData.R and saved as dt.nutrients
+#' The requirements are imported in dataManagement.ODBCaccess.R and saved as dt.nutrients
 
 #' @include nutrientModFunctions.R
 #if (!exists("getNewestVersion", mode = "function"))
-{source("R/nutrientModFunctions.R")
+{
+source("R/nutrientModFunctions.R")
   source("R/workbookFunctions.R")
-  source("R/nutrientCalcFunctions.R")}
+  source("R/nutrientCalcFunctions.R")
+}
 options(encoding = "UTF-8")
 
 # nutrients spreadsheet; otherwise the next line is fine

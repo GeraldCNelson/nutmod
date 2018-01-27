@@ -424,7 +424,7 @@ for (l in scenChoiceList) {
       files = paste(fileloc("gDir"), "/", temp, sep = ""), extras = "-qdgds 10m", flags = "-j")
 }
 
-# construct graphs fo ratios ------
+# construct graphs for ratios ------
 DT.master <- getNewestVersion("food_agg_AMDR_hi", fileloc("resultsDir")) # both hi and lo have the same values
 for (macroNut in c("fat_g.Q", "protein_g.Q", "carbohydrate_g.Q")) {
   cat(paste("\nWorking on AMDR for", macroNut))
@@ -466,7 +466,7 @@ for (macroNut in c("fat_g.Q", "protein_g.Q", "carbohydrate_g.Q")) {
 
 # facet maps, food availability by food groups  -----
 cat("\n Working on facet maps")
-worldMap <- getNewestVersion("worldMap", fileloc("mData"))
+worldMap <- getNewestVersion("worldMap", fileloc("mData")) # run storeWorldMapDF() if this is not available
 DT <- getNewestVersion("dt.foodAvail.foodGroup", fileloc("resultsDir"))
 deleteFoodGroups <- c("alcohol", "beverages", "fish", "meats", "oils", "dairy", "eggs", "nutsNseeds")
 DT <- DT[!food_group_code %in% deleteFoodGroups,]
