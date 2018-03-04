@@ -12,6 +12,13 @@ years <- c("X2010", "X2030", "X2050")
 scenarioName <- "SSP2-NoCC-REF"
 countryCode <- "USA"
 dt.stapleShares <- getNewestVersion("dt.nutrients.sum.staples", fileloc("resultsDir"))
+
+loadSwitchValues()
+if (switch.vars <- FALSE & switch.fortification <- FALSE) dt.stapleShares <- getNewestVersion("dt.nutrients.sum.staples", fileloc("resultsDir"))
+if (switch.vars <- TRUE & switch.fortification <- FALSE) dt.stapleShares <-  getNewestVersion("dt.nutrients.sum.staplesVar", fileloc("resultsDir"))
+if (switch.vars <- TRUE & switch.fortification <- TRUE) dt.stapleShares <-  getNewestVersion("dt.nutrients.sum.staplesVarFort", fileloc("resultsDir"))
+
+
 temp <- dt.stapleShares[region_code.IMPACT159 == countryCode & scenario == scenarioName & year %in% years,]
 macroNutrients <- c("energy_kcal.sum.staple", "protein_g.sum.staple", "fat_g.sum.staple", "carbohydrate_g.sum.staple",
                     "totalfiber_g.sum.staple")

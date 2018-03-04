@@ -116,9 +116,14 @@ cat("Running dataPrep.ODBCaccess.R\n\n")
 source("R/dataPrep.ODBCaccess.R")
 # reads in nutrient data from the USDA nutrient composition access database
 
-cat("Running dataManagement.ODBCaccess.R\n\n")
-source("R/dataManagement.ODBCaccess.R")
+# replaced by  v feb 25, 2018
+# cat("Running dataManagement.ODBCaccess.R\n\n")
+# source("R/dataManagement.ODBCaccess.R")
 #Manipulates the results of the ODBC_access script and prepares dt.nutrients for later scripts
+
+ cat("Running dataManagement.ODBCaccess.R\n\n")
+# source("R/dataManagement.ODBCaccess.R" \n\n")
+ source("R/dataManagement.ODBCaccess.R")
 
 cat("Running dataPrep.NutrientRequirements.R\n\n")
 source("R/dataPrep.NutrientRequirements.R")

@@ -150,6 +150,7 @@ removeOldVersions <- function(fileShortName,dir) {
            value = TRUE,
            perl = TRUE)
     if (length(oldVersionList) > 0) {
+      #      print(oldVersionList)
       file.remove(paste(dir, oldVersionList, sep = "/"))
     }
   }
@@ -302,7 +303,7 @@ cleanupNutrientNames <- function(nutList) {
   nutList <- gsub("_g","",nutList)
   nutList <- gsub("totalfiber","total fiber",nutList)
   nutList <- gsub(".ratio.foodGroup","",nutList)
- # nutList <- gsub("_share","",nutList)
+  # nutList <- gsub("_share","",nutList)
   nutList <- gsub(".sum.all","",nutList)
   nutList <- gsub("rootsNPlantain","roots and plantain",nutList)
   nutList <- gsub("nutsNseeds","nuts and seeds",nutList)
@@ -340,14 +341,15 @@ keyVariable <- function(variableName) {
   switch.fixFish <- "TRUE"
   switch.useCookingRetnValues <- "TRUE"
   switch.changeElasticity <- "TRUE"
-  switch.ctyspecificCommodities <- "TRUE"
-
+  switch.vars <- "TRUE"
+  switch.fortification <- "FALSE" # only relevant if switch.vars is TRUE
   region <- "region_code.IMPACT159"
   keepYearList <- c("X2010", "X2015", "X2020", "X2025", "X2030", "X2035", "X2040", "X2045", "X2050")
   keepYearList.FBS <- c("X2000", "X2001", "X2002", "X2003", "X2004", "X2005",
                         "X2006", "X2007", "X2008", "X2009", "X2010", "X2011")
   FBSyearsToAverage <- c("X2004", "X2005", "X2006")
 
+  keepListYears.composites <- c("Y2011", "Y2012", "Y2013")
   #' note shrimp, tuna, and salmon are removed in dataManagement.fish.R
   IMPACTfish_code <- c("c_Shrimp", "c_Crust", "c_Mllsc", "c_Salmon", "c_FrshD",
                        "c_Tuna", "c_OPelag", "c_ODmrsl", "c_OMarn", "c_FshOil", "c_aqan",
@@ -360,6 +362,18 @@ keyVariable <- function(variableName) {
                                  "crpol", "csoyb", "csbol", "csnfl", "csfol", "cplol", "cpkol", "crpsd",
                                  "ctols", "ctool", "ccoco", "ccafe", "cteas", "cothr", IMPACTfish_code,
                                  IMPACTalcohol_code))
+  macronutrients <- c("protein_g", "fat_g", "carbohydrate_g",  "totalfiber_g")
+  vitamins <- c("vit_c_mg", "thiamin_mg", "riboflavin_mg", "niacin_mg",
+                "vit_b6_mg", "folate_µg", "vit_b12_µg", "vit_a_rae_µg",
+                "vit_e_mg",  "vit_d_µg", "vit_k_µg")
+  minerals <- c("calcium_mg",  "iron_mg", "magnesium_mg", "phosphorus_mg",
+                "potassium_g", "zinc_mg")
+  fattyAcids <- c("ft_acds_tot_sat_g", "ft_acds_mono_unsat_g", "ft_acds_plyunst_g",
+                  "ft_acds_tot_trans_g")
+  other <- c("ethanol_g", "caffeine_mg", "cholesterol_mg")
+  energy <- c("kcals.fat_g", "kcals.carbohydrate_g", "kcals.protein_g",
+              "kcals.ethanol_g", "kcals.sugar_g", "kcals.ft_acds_tot_sat_g")  # note that "energy_kcal" is removed from this list
+  addedSugar <- c("sugar_g")
 
   #These are the scenario numbers for the IIASA data with population disaggregated.
   scenarioListSSP.pop <- c("SSP1_v9_130115", "SSP2_v9_130115", "SSP3_v9_130115",
@@ -384,11 +398,15 @@ keyVariable <- function(variableName) {
       "req.AMDR_hi",
       "req.AMDR_lo",
       "req.MRVs" # added March 24, 2017
-      # commmented out because as of Dec 25, 2016, PR requirements for iron and zinc are now in req.RDA.minrls
-      # ,
-      # "req.PR.iron",
-      # "req.PR.zinc"
     )
+  # ,
+
+
+  # commmented out because as of Dec 25, 2016, PR requirements for iron and zinc are now in req.RDA.minrls
+  # ,
+  # "req.PR.iron",
+  # "req.PR.zinc"
+
   reqsListPercap <- paste(reqsList,"_percap", sep = "")
   reqsListSSP <- paste(reqsList,"_ssp", sep = "")
   dropListCty <- c("GRL", "FSM", "GRD", "PRK")
@@ -401,7 +419,8 @@ keyVariable <- function(variableName) {
         "switch.fixFish",
         "switch.changeElasticity",
         "switch.useCookingRetnValues",
-        "switch.ctyspecificCommodities",
+        "switch.vars",
+        "switch.fortification",
         "region",
         "keepYearList",
         "keepYearList.FBS",
@@ -417,7 +436,14 @@ keyVariable <- function(variableName) {
         "switch.useCookingRetnValues",
         "commonList",
         "userName",
-        "dropListCty"
+        "dropListCty",
+        "macronutrients",
+        "vitamins",
+        "minerals",
+        "energy",
+        "fattyAcids",
+        "other",
+        "addedSugar"
       )
     )
   } else {
@@ -554,7 +580,8 @@ fileNameList <- function(variableName) {
   # IMPACT159regions <- paste(fileloc("IMPACTRawData"), IMPACT159regionsFileName, sep = "/")
   # IMPACTstdRegionsFileName <- "IMPACT-agg-regionsFeb2016.xlsx"
   # IMPACTstdRegions <- paste(fileloc("IMPACTRawData"), IMPACTstdRegionsFileName, sep = "/")
-  regionsLookupName <- "regions lookup Sep 6 2016.xlsx"
+  #  regionsLookupName <- "regions lookup Sep 6 2016.xlsx"
+  regionsLookupName <- "regions lookup Feb 14 2018.xlsx"
   regionsLookup <- paste(fileloc("rawData"),regionsLookupName, sep = "/")
   #IMPACTgdx         <- paste(fileloc("IMPACTRawData"), IMPACTgdxfileName, sep = "/")
   #gdxLib            <- "/Applications/GAMS/gams24.5_osx_x64_64_sfx"
@@ -576,11 +603,13 @@ fileNameList <- function(variableName) {
   foodGroupLU      <-
     paste(nutrientDataDetails, foodGroupLUFileName, sep = "/")
   # SSP information ----
-  SSPdataZipFile   <- "SspDb_country_data_2013-06-12.csv.zip"
-  SSPdataZip       <- paste(SSPData, SSPdataZipFile, sep = "/")
-  #get the name of the file inside the zip. Assumes only 1
-  zipHolder             <- unzip(SSPdataZip, list = TRUE)
-  SSPcsv           <- zipHolder$Name[1]
+  if (variableName %in% "SSPdataZip") {
+    SSPdataZipFile   <- "SspDb_country_data_2013-06-12.csv.zip"
+    SSPdataZip       <- paste(SSPData, SSPdataZipFile, sep = "/")
+    #get the name of the file inside the zip. Assumes only 1
+    zipHolder             <- unzip(SSPdataZip, list = TRUE)
+    SSPcsv           <- zipHolder$Name[1]
+  }
   modelListPop     <- "IIASA-WiC POP"
   modelListGDP    <- "OECD Env-Growth"
   SSP_DRI_ageGroupLUFileName <-  "SSP_DRI_ageGroupLookUp.xlsx"
@@ -1239,7 +1268,7 @@ storeWorldMapDF <- function(){
 
   #world <- readOGR(dsn="https://raw.githubusercontent.com/nvkelso/natural-earth-vector/master/geojson/ne_50m_admin_0_countries.geojson", layer="OGRGeoJSON")
   #world <- readOGR(dsn = "data-raw/spatialData/ne_50m_admin_0_countries.geojson", layer = "OGRGeoJSON")
-#  world <- rgdal::readOGR(dsn = "data-raw/spatialData/ne_110m_admin_0_countries.geojson", layer = "OGRGeoJSON")
+  #  world <- rgdal::readOGR(dsn = "data-raw/spatialData/ne_110m_admin_0_countries.geojson", layer = "OGRGeoJSON")
 
   fileloc <- "data-raw/spatialData"
   fn <- file.path(fileloc, "ne_50m_admin_0_countries.zip")
@@ -1251,13 +1280,13 @@ storeWorldMapDF <- function(){
   world <- world.raw[!world.raw$ISO_A3 %in% c("ATA"),]
   othersToRemove <- c("ABW", "AIA", "ALA", "AND", "ASM", "AFT")
   world <- world[!world$ISO_A3 %in% othersToRemove,]
- # world <- world[world$TYPE %in% "SOVEREIGNT"]
+  # world <- world[world$TYPE %in% "SOVEREIGNT"]
   world <- sp::spTransform(world, CRSobj="+proj=longlat")
-saveRDS(world, file = paste(fileloc, "worldFile.RDS", sep = "/"))
+  saveRDS(world, file = paste(fileloc, "worldFile.RDS", sep = "/"))
   #world.simp <- gSimplify(world, tol = .1, topologyPreserve = TRUE)
   # alternative would be CRS("+proj=longlat")) for WGS 84
   # dat_url <- getURL("https://gist.githubusercontent.com/hrbrmstr/7a0ddc5c0bb986314af3/raw/6a07913aded24c611a468d951af3ab3488c5b702/pop.csv")
-    # pop <- read.csv(text=dat_url, stringsAsFactors=FALSE, header=TRUE)
+  # pop <- read.csv(text=dat_url, stringsAsFactors=FALSE, header=TRUE)
   worldMap <- broom::tidy(world, region = "ISO_A3")
   inDT <- worldMap
   outName <- "worldMap"
@@ -1280,7 +1309,7 @@ facetMaps <- function(worldMap, DT, fileName, legendText, fillLimits, palette, f
                     axis.text.y = element_blank(), strip.text = element_text(family = "Times", face = "plain"))
   gg <- gg + scale_fill_gradientn(colors = p, name = legendText,
                                   na.value = "grey50", values = b,
-  guide = "colorbar", limits = f)
+                                  guide = "colorbar", limits = f)
   gg
 
   graphsListHolder[[fileName]] <- gg

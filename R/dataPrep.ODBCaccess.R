@@ -26,14 +26,20 @@ source("R/nutrientModFunctions.R")
 
 # principal files
 #FOOD_DES <- as.data.table(sqlFetch(con, "FOOD_DES", as.is = TRUE )) #food description; code is NDB_No, contains Food Group code, FdGrp_Cd)
+
+# library(readr)
+# FOOD_DES <- read_delim("data-raw/NutrientData/sr28asc/FOOD_DES.txt",
+#                        "^", quote = "~", escape_double = FALSE,
+#                        trim_ws = TRUE)
+
 FOOD_DES <- as.data.table(read.csv("data-raw/NutrientData/sr28asc/FOOD_DES.txt",
-                     quote = "~", sep = "^", head = FALSE, stringsAsFactors = FALSE,
-                     col.names = c("NDB_No", "FdGrp_Cd", "Long_Desc", "Shrt_Desc", "ComName", "ManufacName", "Survey",
-                                   "Ref_Desc", "Refuse", "SciName", "N_Factor", "Pro_Factor", "Fat_Factor", "CHO_Factor"),
-                     colClasses = c("character", "character", "character", "character", "character", "character", "character",
-                                    "character", "numeric", "character", "numeric", "numeric", "numeric", "numeric")))
+                                   quote = "~", sep = "^", head = FALSE, stringsAsFactors = FALSE,
+                                   col.names = c("NDB_No", "FdGrp_Cd", "Long_Desc", "Shrt_Desc", "ComName", "ManufacName", "Survey",
+                                                 "Ref_Desc", "Refuse", "SciName", "N_Factor", "Pro_Factor", "Fat_Factor", "CHO_Factor"),
+                                   colClasses = c("character", "character", "character", "character", "character", "character", "character",
+                                                  "character", "numeric", "character", "numeric", "numeric", "numeric", "numeric")))
 setnames(FOOD_DES, old = names(FOOD_DES), new = c("NDB_No", "FdGrp_Cd", "Long_Desc", "Shrt_Desc", "ComName", "ManufacName", "Survey",
-"Ref_Desc", "Refuse", "SciName", "N_Factor", "Pro_Factor", "Fat_Factor", "CHO_Factor"))
+                                                  "Ref_Desc", "Refuse", "SciName", "N_Factor", "Pro_Factor", "Fat_Factor", "CHO_Factor"))
 deleteListCol <- c("FdGrp_Cd","ComName", "ManufacName", "Survey", "Shrt_Desc", "SciName", "N_Factor", "Pro_Factor", "Fat_Factor", "CHO_Factor")
 FOOD_DES[,(deleteListCol) := NULL]
 FOOD_DES[,edible_share := 100 - Refuse][is.na(edible_share), edible_share := 100]
@@ -44,8 +50,8 @@ FOOD_DES[, usda_code := as.character(usda_code)]
 NUT_DATA <- as.data.table(read.csv("data-raw/NutrientData/sr28asc/NUT_DATA.txt",
                                    quote = "~", sep = "^", head = FALSE, stringsAsFactors = FALSE,
                                    col.names = c("NDB_No", "Nutr_No", "Nutr_Val", "Num_Data_Pts", "Std_Error", "Src_Cd", "Deriv_Cd",
-                                                       "Ref_NDB_No", "Add_Nutr_Mark", "Num_Studies", "Min", "Max", "DF", "Low_EB", "Up_EB",
-                                                       "Stat_Cmt", "AddMod_Date", "V18"),
+                                                 "Ref_NDB_No", "Add_Nutr_Mark", "Num_Studies", "Min", "Max", "DF", "Low_EB", "Up_EB",
+                                                 "Stat_Cmt", "AddMod_Date", "V18"),
                                    colClasses = c("character", "character",  "numeric", "numeric", "numeric", "character", "character",
                                                   "character", "character", "numeric", "numeric", "numeric", "numeric", "numeric", "numeric",
                                                   "character", "character", "character")))

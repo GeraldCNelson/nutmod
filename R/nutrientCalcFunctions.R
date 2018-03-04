@@ -12,248 +12,299 @@
 #     WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
 #     or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
 #     for more details at http://www.gnu.org/licenses/.
-
+#' @name nutrientCalcFunctions.R
 #' @description Has functions for cooking retention and budget share calculations
 #'
 
-cookingRetFishCorrect <- function(switch.useCookingRetnValues, switch.fixFish, switch.ctyspecificCommodities) {
-  if (switch.ctyspecificCommodities != TRUE) {
-    dt.nutrients <- getNewestVersion("dt.nutrients", fileloc("mData"))
-    deleteListCol <- c("Ref_Desc", "phytate_source","ft_acds_tot_trans_g", "caffeine_mg", "cholesterol_mg",
-                       "retentioncode_aus", "RetnDesc")
+loadSwitchValues <- function() {
+  assign("switch.useCookingRetnValues", keyVariable("switch.useCookingRetnValues"), envir = .GlobalEnv)
+  assign("switch.fixFish", keyVariable("switch.fixFish"), envir = .GlobalEnv)
+  assign("switch.vars", keyVariable("switch.vars"), envir = .GlobalEnv)
+  assign("switch.fortification", keyVariable("switch.fortification"), envir = .GlobalEnv)
+}
+#switches <- function(switch.useCookingRetnValues, switch.fixFish, switch.vars, switch.fortification) {
+switches <- function() {
+  # dt.IMPACTcodeLU <- data.table::as.data.table(openxlsx::read.xlsx("data-raw/NutrientData/nutrientDetails/IMPACTCodeLookup.xlsx"))
+  # dt.singleCodeLU <- dt.IMPACTcodeLU[is.na(IMPACT_conversion), IMPACT_conversion := 100] # as of Feb 18, 2018, dt.IMPACTcodeLU is only single commodities
+  # dt.USDAnutrients <- getNewestVersion("dt.USDAnutrients", fileloc("iData"))
+  # dt.composites.wld <- getNewestVersion("dt.composites.wld", fileloc("iData"))
+ dt.composites.cty <- getNewestVersion("dt.composites.cty", fileloc("iData"))
+  dt.nutrients.defaultVars <- getNewestVersion("dt.nutrients.defaultVars", fileloc("iData"))
+  dt.nutrients.ctyVars <- getNewestVersion("dt.nutrients.ctyVars", fileloc("iData"))
+  dt.nutrients.ctyVars.fort <- getNewestVersion("dt.nutrients.ctyVars.fort", fileloc("iData"))
+
+  if (switch.vars == FALSE) {
+    # old code commented out
+    # dt.nutrients <- dt.USDAnutrients[usda_code %in% unique(dt.singleCodeLU$usda_code),]
+    # dt.nutrients <- rbind(dt.composites.wld, dt.nutrients)
+    #
+    #   dt.nutrients <- getNewestVersion("dt.nutrients", fileloc("mData"))
+    #   deleteListCol <- c("Ref_Desc", "phytate_source","ft_acds_tot_trans_g", "caffeine_mg", "cholesterol_mg",
+    #                      "retentioncode_aus", "RetnDesc")
+    #   dt.nutrients[, (deleteListCol) := NULL]
+    dt.nutrients <- dt.nutrients.defaultVars
+    deleteListCol <- c("ft_acds_tot_trans_g", "caffeine_mg", "cholesterol_mg")
     dt.nutrients[, (deleteListCol) := NULL]
   } else {
+    dt.nutrients <- dt.nutrients.ctyVars
+    deleteListCol <- c("ft_acds_tot_trans_g", "caffeine_mg", "cholesterol_mg")
+    dt.nutrients[, (deleteListCol) := NULL]
+    # old commented out below
     # get the complete nutrient lookup file
-    dt.nutrients <- getNewestVersion("dt.nutrients.full", fileloc("mData"))
-    #get the country crop variety lookup datlbe
-    library(readxl)
-    dt.countryCropVariety <- as.data.table(read_excel("data-raw/NutrientData/countryCropVariety.xlsx", na = "NA"))
-    ctyNames <- names(dt.countryCropVariety)[!names(dt.countryCropVariety) %in% c("IMPACT_code", "usda_code")]
-    dt.countryCropVariety[, (ctyNames) := lapply(.SD, function(x) ifelse(is.na(x), usda_code, x)), .SDcols = (ctyNames)]
-    dt.countryCropVariety <- dt.countryCropVariety[!1,] # remove country names
-    dt.countryCropVariety.long <- data.table::melt(
-      data = dt.countryCropVariety,
-      id.vars = c("IMPACT_code", "usda_code"),
-      measure.vars = ctyNames ,
-      variable.name = "region_code.IMPACT159",
-      value.name = "usda_code.cty",
-      variable.factor = FALSE
-    )
-    dt.countryCropVariety.long[, usda_code := NULL]
-    setnames(dt.countryCropVariety.long, old = "usda_code.cty", new = "usda_code")
-    dt.nutrients <- merge(dt.countryCropVariety.long, dt.nutrients, by = c("IMPACT_code", "usda_code"))
+    # dt.nutrients <- getNewestVersion("dt.nutrients.full", fileloc("mData"))
+    # #get the country crop variety lookup data table
+    # library(readxl)
+    # dt.countryCropVariety <- as.data.table(read_excel("data-raw/NutrientData/countryCropVariety.xlsx", na = "NA"))
+    # ctyNames <- names(dt.countryCropVariety)[!names(dt.countryCropVariety) %in% c("IMPACT_code", "usda_code")]
+    # dt.countryCropVariety[, (ctyNames) := lapply(.SD, function(x) ifelse(is.na(x), usda_code, x)), .SDcols = (ctyNames)]
+    # dt.countryCropVariety <- dt.countryCropVariety[-1,] # remove country names
+    # dt.countryCropVariety.long <- data.table::melt(
+    #   data = dt.countryCropVariety,
+    #   id.vars = c("IMPACT_code", "usda_code"),
+    #   measure.vars = ctyNames ,
+    #   variable.name = "region_code.IMPACT159",
+    #   value.name = "usda_code.cty",
+    #   variable.factor = FALSE
+    # )
+    # dt.countryCropVariety.long[, usda_code := NULL]
+    # setnames(dt.countryCropVariety.long, old = "usda_code.cty", new = "usda_code")
+    # dt.nutrients <- merge(dt.countryCropVariety.long, dt.nutrients, by = c("IMPACT_code", "usda_code"))
+
+    if (switch.fortification == TRUE) {
+      #' read in fortification values and add to the base nutrient value. Note that this can only be done for the country specific version of dt.nutrients
+      #   dt.fortValues <- getNewestVersion("dt.fortValues")
+      #   nutrientsList.fort <- unique(dt.fortValues$Nutrient)
+      #   dt.fortValues[, Nutrient := paste0(Nutrient,".fort")]
+      #   formula.wide <- "region_code.IMPACT159 + IMPACT_code ~ Nutrient"
+      #   dt.fortValues.wide <- data.table::dcast(
+      #     data = dt.fortValues,
+      #     formula = formula.wide,
+      #     value.var = "value")
+      #
+      #   for (j in names(dt.fortValues.wide)) set(dt.fortValues.wide,which(is.na(dt.fortValues.wide[[j]])),j,0)
+      #   dt.nutrients <- merge(dt.fortValues.wide, dt.nutrients, by = c("IMPACT_code", "region_code.IMPACT159"), all.y = TRUE)
+      #   for (j in names(dt.nutrients)) set(dt.nutrients,which(is.na(dt.nutrients[[j]])),j,0)
+      #
+      #   dt.nutrients[, `:=`(
+      #     calcium_mg = calcium_mg + calcium_mg.fort,
+      #     iron_mg = iron_mg + iron_mg.fort,
+      #     niacin_mg = niacin_mg + niacin_mg.fort,
+      #     riboflavin_mg = riboflavin_mg + riboflavin_mg.fort,
+      #     thiamin_mg = thiamin_mg + thiamin_mg.fort,
+      #     vit_a_rae_µg = vit_a_rae_µg + vit_a_rae_µg.fort,
+      #     vit_b12_µg = vit_b12_µg + vit_b12_µg.fort,
+      #     vit_b6_mg = vit_b6_mg + vit_b6_mg.fort,
+      #     vit_d_µg = vit_d_µg + vit_d_µg.fort,
+      #     vit_e_mg = vit_e_mg + vit_e_mg.fort,
+      #     zinc_mg = zinc_mg + zinc_mg.fort
+      #   )]
+      #   deleteListCol <- c("calcium_mg.fort", "folate_µg.fort", "iron_mg.fort", "niacin_mg.fort",
+      #                      "riboflavin_mg.fort", "thiamin_mg.fort", "vit_a_rae_µg.fort", "vit_b12_µg.fort",
+      #                      "vit_b6_mg.fort", "vit_d_µg.fort", "vit_e_mg.fort", "zinc_mg.fort")
+      #   dt.nutrients[, (deleteListCol) := NULL]
+      dt.nutrients <- dt.nutrients.ctyVars.fort
+    }
   }
-  # dt.nutrients[,c("zinc_mg", "iron_mg") := NULL] #remove non bioavailable values
-  # dt.bioavail_zinc <- getNewestVersion("dt.bioavail_zinc", fileloc("resultsDir"))
-  # dt.bioavail_iron <- getNewestVersion("dt.bioavail_iron", fileloc("resultsDir"))
-  # keepListCol.zinc <- c("scenario", "region_code.IMPACT159", "year", "zinc_mg")
-  # keepListCol.iron <- c("scenario", "region_code.IMPACT159", "year", "iron_mg")
-  # dt.bioavail_zinc <- dt.bioavail_zinc[,(keepListCol.zinc), with = FALSE]
-  # dt.bioavail_iron <- dt.bioavail_iron[,(keepListCol.iron), with = FALSE]
-  # dt.nutrients.temp <- dt.bioavail_iron[,c("scenario", "region_code.IMPACT159", "year")]
-  # dt.nutrients.temp.zinc <- cbind(dt.nutrients.temp, dt.nutrients)
+
+    # apply cooking retention
+    cols.cookretn <- names(dt.nutrients)[grep("_cr",names(dt.nutrients))]
+
+    colsNotToMultiply <- c("IMPACT_code", "usda_code","Long_Desc", "food_group_code",
+                           "staple_code", cols.cookretn,
+                           "IMPACT_conversion", "edible_share")
+    if (switch.vars == TRUE) {
+      colsNotToMultiply <- c("region_code.IMPACT159", colsNotToMultiply)
+    }
+    nutrients.list <- names(dt.nutrients)[!(names(dt.nutrients) %in% colsNotToMultiply)]
+    # dt.nutrients is in nutrient per 100 grams of the edible portion
+    # reduce nutrient amount by conversion of meat from carcass to boneless (IMPACT_conversion)
+    dt.nutrients[ , (nutrients.list) := lapply(.SD, `*`, IMPACT_conversion / 100), .SDcols = nutrients.list]
+    # reduce nutrient amount by conversion of all items to edible share
+    dt.nutrients[ , (nutrients.list) := lapply(.SD, `*`, edible_share / 100), .SDcols = nutrients.list]
+
+    # drop columns that are not needed.
+    deleteListCol <- c("edible_share", "IMPACT_conversion")
+    dt.nutrients[, (deleteListCol) := NULL]
+
+    # use cooking retention values if TRUE -----
+    if (switch.useCookingRetnValues == "TRUE") {
+      # get cooking retention values. Update: commented out because dt.nutrients now has crs in it (11/25/2017)
+      # dt.cookRetn <- getNewestVersion("dt.cookingRet")
+      # data.table::setkey(dt.nutrients,IMPACT_code)
+      # data.table::setkey(dt.cookRetn,IMPACT_code)
+      # dt.temp <- dt.nutrients[dt.cookRetn]
+
+      for (i in 1:length(cols.cookretn)) {
+        nutrientName <-
+          substr(x = cols.cookretn[i], 1, nchar(cols.cookretn[i]) - 3)
+        nutRetName <- cols.cookretn[i]
+        # multiply amount of nutrient times the cooking retention value (in percent) and divide by 100 to get to share
+        dt.nutrients[,(nutrientName) := eval(parse(text = nutrientName)) *
+                       eval(parse(text = nutRetName)) / 100]
+      }
+      dt.nutrients <- dt.nutrients[,(c(cols.cookretn)) := NULL]
+    }
+    # fix fish if TRUE -----
+    if (switch.fixFish == "TRUE")  {
+      deleteListRow <- c("c_Shrimp", "c_Tuna", "c_Salmon")
+      dt.nutrients <- dt.nutrients[!IMPACT_code %in% deleteListRow,]
+    }
+    # convert to nutrients per kg of food
+    colsToMultiply <- names(dt.nutrients)[!names(dt.nutrients) %in% colsNotToMultiply]
+    dt.nutrients[, (colsToMultiply) := lapply(.SD, function(x) (x * 10)), .SDcols = colsToMultiply]
+    return(dt.nutrients)
+  }
+
+  # not being used because the vars stuff is in function above. Can delete.
+  # cookingRetFishCorrect.varieties <- function(switch.useCookingRetnValues, switch.fixFish) {
+  #   dt.nutrients <- getNewestVersion("dt.nutVarieties_sr28", fileloc("mData"))
   #
-  # dt.nutrients <- merge(dt.nutrients, dt.bioavail_iron, by = c("scenario", "region_code.IMPACT159", "year"))
-  # dt.nutrients <- merge(dt.nutrients, dt.bioavail_zinc, by = c("scenario", "region_code.IMPACT159", "year"))
+  #   # dt.nutrients <- merge(dt.nutrients, dt.bioavail_iron, by = c("scenario", "region_code.IMPACT159", "year"))
+  #   # dt.nutrients <- merge(dt.nutrients, dt.bioavail_zinc, by = c("scenario", "region_code.IMPACT159", "year"))
+  #
+  #   cols.cookretn <- names(dt.nutrients)[grep("_cr",names(dt.nutrients))]
+  #   colsNotToMultiply <- c("IMPACT_code" ,"usda_code","Long_Desc", "food_group_code",
+  #                          "staple_code", "Ref_Desc", "retentioncode_aus", "RetnDesc", cols.cookretn, "phytate_source",
+  #                          "IMPACT_conversion", "edible_share", "food_group_code", "staple_code")
+  #
+  #   nutrients.list <- names(dt.nutrients)[!(names(dt.nutrients) %in% colsNotToMultiply)]
+  #   # dt.nutrients is in nutrient per 100 grams of the edible portion
+  #   # reduce nutrient amount by conversion of meat from carcass to boneless (IMPACT_conversion)
+  #   dt.nutrients[ , (nutrients.list) := lapply(.SD, `*`, IMPACT_conversion / 100), .SDcols = nutrients.list]
+  #   # reduce nutrient amount by conversion of all items to edible share
+  #   dt.nutrients[ , (nutrients.list) := lapply(.SD, `*`, edible_share / 100), .SDcols = nutrients.list]
+  #
+  #   # drop columns that are not needed.
+  #   deleteListCol <- c("edible_share", "IMPACT_conversion")
+  #   dt.nutrients[, (deleteListCol) := NULL]
+  #
+  #   # use cooking retention values if TRUE -----
+  #   if (switch.useCookingRetnValues == "TRUE") {
+  #     # get cooking retention values. Update: commented out because dt.nutrients now has crs in it (11/25/2017)
+  #     # dt.cookRetn <- getNewestVersion("dt.cookingRet")
+  #     # data.table::setkey(dt.nutrients,IMPACT_code)
+  #     # data.table::setkey(dt.cookRetn,IMPACT_code)
+  #     # dt.temp <- dt.nutrients[dt.cookRetn]
+  #
+  #     for (i in 1:length(cols.cookretn)) {
+  #       nutrientName <-
+  #         substr(x = cols.cookretn[i], 1, nchar(cols.cookretn[i]) - 3)
+  #       nutRetName <- cols.cookretn[i]
+  #       # multiply amount of nutrient times the cooking retention value (in percent) and divide by 100 to get to share
+  #       dt.nutrients[,(nutrientName) := eval(parse(text = nutrientName)) *
+  #                      eval(parse(text = nutRetName)) / 100]
+  #     }
+  #     dt.nutrients <- dt.nutrients[,(c(cols.cookretn)) := NULL]
+  #   }
+  #   # fix fish if TRUE -----
+  #   if (switch.fixFish == "TRUE")  {
+  #     deleteListRow <- c("c_Shrimp", "c_Tuna", "c_Salmon")
+  #     dt.nutrients <- dt.nutrients[!IMPACT_code %in% deleteListRow,]
+  #   }
+  #   # convert to nutrients per kg of food
+  #   colsToMultiply <- names(dt.nutrients)[!names(dt.nutrients) %in% colsNotToMultiply]
+  #   dt.nutrients[, (colsToMultiply) := lapply(.SD, function(x) (x * 10)), .SDcols = colsToMultiply]
+  #   return(dt.nutrients)
+  # }
 
-  cols.cookretn <- names(dt.nutrients)[grep("_cr",names(dt.nutrients))]
+  #' Title budgetShare
+  #' calculate the share of per capita income spent on IMPACT commodities
+  #' writes out data table to the results directory
+  #' @param dt.IMPACTfood
+  #' @param region - the grouping of countries to aggregate to
+  #' @return null
+  #' @export
+  budgetShareNpriceGrowth <- function(dt.foodNnuts) {
+    #' prices are in 2005 dollars per metric ton
+    #' pcGDP is in 1000 2005 dollars
+    #' 'FoodAvailability' variable is in kgs/person/year. DinY is days in year
+    dt.temp <- data.table::copy(dt.foodNnuts)
+    # data.table::setkeyv(dt.temp, c("scenario", "region_code.IMPACT159", "year"))
+    # budget is in 1000 2005 dollars
+    # dt.temp[, budget.PWX0 := (sum(FoodAvailability * PWX0 / 1000 )) / 1000, by = eval(data.table::key(dt.temp))]
+    # dt.temp[, budget.PCX0 := (sum(FoodAvailability * PCX0 / 1000 )) / 1000, by = eval(data.table::key(dt.temp))]
+    dt.temp[, budget.PWX0 := (sum(FoodAvailability * PWX0 / 1000 )) / 1000, by = c("scenario", "region_code.IMPACT159", "year")]
+    dt.temp[, budget.PCX0 := (sum(FoodAvailability * PCX0 / 1000 )) / 1000, by = c("scenario", "region_code.IMPACT159", "year")]
+    # data.table::setkey(dt.temp, budget.PWX0) is this necessary?
+    # dt.budget <- dt.temp[!duplicated(budget.PCX0),]
+    dt.budget <- data.table::copy(dt.temp)
+    deleteListCol <- c("IMPACT_code", "FoodAvailability", "foodAvailpDay","PCX0","PWX0")
+    dt.budget[,(deleteListCol) := NULL]
+    dt.budget <- unique(dt.budget)
+    # at world prices -----
+    dt.budget[, incShare.PWX0 := 100 * budget.PWX0 / pcGDPX0 ]
+    # at domestic prices -----
+    dt.budget[, incShare.PCX0 := 100 * budget.PCX0 / pcGDPX0 ]
+    data.table::setkeyv(dt.budget, c("scenario", "region_code.IMPACT159", "year"))
+    inDT <- dt.budget
+    outName <- "dt.budgetShare"
+    cleanup(inDT,outName,fileloc("resultsDir"))
 
-  colsNotToMultiply <- c("IMPACT_code", "usda_code","Long_Desc", "food_group_code",
-                         "staple_code", cols.cookretn,
-                         "IMPACT_conversion", "edible_share")
-  if (switch.ctyspecificCommodities == TRUE) {
-    colsNotToMultiply <- c("region_code.IMPACT159", colsNotToMultiply)
+    # get world price change from 2010 to 2050 by food groups
+    #  dt.foodGroupsInfo <- getNewestVersion("dt.foodGroupsInfo", fileloc("mData"))
+    #  dt.foodGroupsInfo[, c("description", "food_group_assignment", "food_groups", "food_group_codes", "staple_category") := NULL]
+    # dt.temp <- merge(dt.foodGroupsInfo, dt.temp, by = "IMPACT_code")
+    deleteListRow <- c("c_aqan","c_aqpl", "c_beer", "c_Crust", "c_FrshD", "c_FshOil", "c_Mllsc", "c_ODmrsl", "c_OMarn",
+                       "c_OPelag", "c_spirits", "c_wine")
+    keepListYears <- c("X2010", "X2050")
+    dt.temp <- dt.temp[!IMPACT_code %in% deleteListRow & year %in% keepListYears]
+    keepListCol <- c("scenario","IMPACT_code", "FoodAvailability", "food_group_code", "staple_code", "year", "PWX0")
+    dt.temp <- dt.temp[,(keepListCol), with = FALSE]
+    dt.temp <- unique(dt.temp)
+
+    dt.temp <- dt.temp[, growthRatePW :=  lapply(.SD, function(x)((x/data.table::shift(x))^(1/(2050 - 2010)) - 1) * 100),
+                       .SDcols = "PWX0", by = c("scenario","IMPACT_code")]
+
+    dt.temp <- dt.temp[year %in% "X2050"]
+    dt.temp[, c("year", "PWX0") := NULL]
+
+    formula.wide.scen <- "IMPACT_code + FoodAvailability + food_group_code + staple_code ~ scenario"
+    dt.temp.wide.scen <- data.table::dcast(
+      data = dt.temp,
+      formula = formula.wide.scen,
+      value.var = "growthRatePW")
+
+    formula.wide.FG <- "IMPACT_code+ FoodAvailability + staple_code + scenario ~ food_group_code"
+    dt.temp.wide.FG <- data.table::dcast(
+      data = dt.temp,
+      formula = formula.wide.FG,
+      value.var = "growthRatePW")
+
+    formula.wide.staple <- "IMPACT_code+ FoodAvailability + food_group_code + scenario ~ staple_code"
+    dt.temp.wide.FG <- data.table::dcast(
+      data = dt.temp,
+      formula = formula.wide.staple,
+      value.var = "growthRatePW")
+
+    #calculate weighted average price growth rate by food groups
+    dt.temp[, growthRateAve.FG := weighted.mean(growthRatePW, FoodAvailability), by = c("scenario", "food_group_code")]
+    #calculate weighted average price growth rate by food groups
+    dt.temp[, growthRateAve.staple := weighted.mean(growthRatePW, FoodAvailability), by = c("scenario", "staple_code")]
+
+    dt.temp.FG <- data.table::copy(dt.temp)
+    deleteListCol <- c("IMPACT_code","growthRatePW", "FoodAvailability")
+    dt.temp.FG <- unique(dt.temp.FG[, c(deleteListCol, "staple_code", "growthRateAve.staple") := NULL])
+
+    dt.temp.staple <- data.table::copy(dt.temp)
+    dt.temp.staple <- unique(dt.temp.staple[, c(deleteListCol, "food_group_code", "growthRateAve.FG") := NULL])
+
+    formula.wide.staple.scen <- "staple_code  ~ scenario"
+    dt.temp.staple.wide.scen <- data.table::dcast(
+      data = dt.temp.staple,
+      formula = formula.wide.staple.scen,
+      value.var = "growthRateAve.staple")
+
+    inDT <- dt.temp.staple.wide.scen
+    outName <- "dt.priceGrowth.staple.wide"
+    cleanup(inDT, outName, fileloc("resultsDir"), "xlsx")
+
+    formula.wide.FG.scen <- "food_group_code  ~ scenario"
+    dt.temp.FG.wide.scen <- data.table::dcast(
+      data = dt.temp.FG,
+      formula = formula.wide.FG.scen,
+      value.var = "growthRateAve.FG")
+
+    inDT <- dt.temp.FG.wide.scen
+    outName <- "dt.priceGrowth.FG.wide"
+    cleanup(inDT, outName, fileloc("resultsDir"), "xlsx")
   }
-  nutrients.list <- names(dt.nutrients)[!(names(dt.nutrients) %in% colsNotToMultiply)]
-  # dt.nutrients is in nutrient per 100 grams of the edible portion
-  # reduce nutrient amount by conversion of meat from carcass to boneless (IMPACT_conversion)
-  dt.nutrients[ , (nutrients.list) := lapply(.SD, `*`, IMPACT_conversion / 100), .SDcols = nutrients.list]
-  # reduce nutrient amount by conversion of all items to edible share
-  dt.nutrients[ , (nutrients.list) := lapply(.SD, `*`, edible_share / 100), .SDcols = nutrients.list]
-
-  # drop columns that are not needed.
-  deleteListCol <- c("edible_share", "IMPACT_conversion")
-  dt.nutrients[, (deleteListCol) := NULL]
-
-  # use cooking retention values if TRUE -----
-  if (switch.useCookingRetnValues == "TRUE") {
-    # get cooking retention values. Update: commented out because dt.nutrients now has crs in it (11/25/2017)
-    # dt.cookRetn <- getNewestVersion("dt.cookingRet")
-    # data.table::setkey(dt.nutrients,IMPACT_code)
-    # data.table::setkey(dt.cookRetn,IMPACT_code)
-    # dt.temp <- dt.nutrients[dt.cookRetn]
-
-    for (i in 1:length(cols.cookretn)) {
-      nutrientName <-
-        substr(x = cols.cookretn[i], 1, nchar(cols.cookretn[i]) - 3)
-      nutRetName <- cols.cookretn[i]
-      # multiply amount of nutrient times the cooking retention value (in percent) and divide by 100 to get to share
-      dt.nutrients[,(nutrientName) := eval(parse(text = nutrientName)) *
-                     eval(parse(text = nutRetName)) / 100]
-    }
-    dt.nutrients <- dt.nutrients[,(c(cols.cookretn)) := NULL]
-  }
-  # fix fish if TRUE -----
-  if (switch.fixFish == "TRUE")  {
-    deleteListRow <- c("c_Shrimp", "c_Tuna", "c_Salmon")
-    dt.nutrients <- dt.nutrients[!IMPACT_code %in% deleteListRow,]
-  }
-  # convert to nutrients per kg of food
-  colsToMultiply <- names(dt.nutrients)[!names(dt.nutrients) %in% colsNotToMultiply]
-  dt.nutrients[, (colsToMultiply) := lapply(.SD, function(x) (x * 10)), .SDcols = colsToMultiply]
-  return(dt.nutrients)
-}
-
-cookingRetFishCorrect.varieties <- function(switch.useCookingRetnValues, switch.fixFish) {
-  dt.nutrients <- getNewestVersion("dt.nutVarieties_sr28", fileloc("mData"))
-
-  # dt.nutrients <- merge(dt.nutrients, dt.bioavail_iron, by = c("scenario", "region_code.IMPACT159", "year"))
-  # dt.nutrients <- merge(dt.nutrients, dt.bioavail_zinc, by = c("scenario", "region_code.IMPACT159", "year"))
-
-  cols.cookretn <- names(dt.nutrients)[grep("_cr",names(dt.nutrients))]
-  colsNotToMultiply <- c("IMPACT_code" ,"usda_code","Long_Desc", "food_group_code",
-                         "staple_code", "Ref_Desc", "retentioncode_aus", "RetnDesc", cols.cookretn, "phytate_source",
-                         "IMPACT_conversion", "edible_share", "food_group_code", "staple_code")
-
-  nutrients.list <- names(dt.nutrients)[!(names(dt.nutrients) %in% colsNotToMultiply)]
-  # dt.nutrients is in nutrient per 100 grams of the edible portion
-  # reduce nutrient amount by conversion of meat from carcass to boneless (IMPACT_conversion)
-  dt.nutrients[ , (nutrients.list) := lapply(.SD, `*`, IMPACT_conversion / 100), .SDcols = nutrients.list]
-  # reduce nutrient amount by conversion of all items to edible share
-  dt.nutrients[ , (nutrients.list) := lapply(.SD, `*`, edible_share / 100), .SDcols = nutrients.list]
-
-  # drop columns that are not needed.
-  deleteListCol <- c("edible_share", "IMPACT_conversion")
-  dt.nutrients[, (deleteListCol) := NULL]
-
-  # use cooking retention values if TRUE -----
-  if (switch.useCookingRetnValues == "TRUE") {
-    # get cooking retention values. Update: commented out because dt.nutrients now has crs in it (11/25/2017)
-    # dt.cookRetn <- getNewestVersion("dt.cookingRet")
-    # data.table::setkey(dt.nutrients,IMPACT_code)
-    # data.table::setkey(dt.cookRetn,IMPACT_code)
-    # dt.temp <- dt.nutrients[dt.cookRetn]
-
-    for (i in 1:length(cols.cookretn)) {
-      nutrientName <-
-        substr(x = cols.cookretn[i], 1, nchar(cols.cookretn[i]) - 3)
-      nutRetName <- cols.cookretn[i]
-      # multiply amount of nutrient times the cooking retention value (in percent) and divide by 100 to get to share
-      dt.nutrients[,(nutrientName) := eval(parse(text = nutrientName)) *
-                     eval(parse(text = nutRetName)) / 100]
-    }
-    dt.nutrients <- dt.nutrients[,(c(cols.cookretn)) := NULL]
-  }
-  # fix fish if TRUE -----
-  if (switch.fixFish == "TRUE")  {
-    deleteListRow <- c("c_Shrimp", "c_Tuna", "c_Salmon")
-    dt.nutrients <- dt.nutrients[!IMPACT_code %in% deleteListRow,]
-  }
-  # convert to nutrients per kg of food
-  colsToMultiply <- names(dt.nutrients)[!names(dt.nutrients) %in% colsNotToMultiply]
-  dt.nutrients[, (colsToMultiply) := lapply(.SD, function(x) (x * 10)), .SDcols = colsToMultiply]
-  return(dt.nutrients)
-}
-
-#' Title budgetShare
-#' calculate the share of per capita income spent on IMPACT commodities
-#' writes out data table to the results directory
-#' @param dt.IMPACTfood
-#' @param region - the grouping of countries to aggregate to
-#' @return null
-#' @export
-budgetShareNpriceGrowth <- function(dt.IMPACTfood) {
-  #' prices are in 2005 dollars per metric ton
-  #' pcGDP is in 1000 2005 dollars
-  #' 'FoodAvailability' variable is in kgs/person/year. DinY is days in year
-  dt.temp <- data.table::copy(dt.IMPACTfood)
-  # data.table::setkeyv(dt.temp, c("scenario", "region_code.IMPACT159", "year"))
-  # budget is in 1000 2005 dollars
-  # dt.temp[, budget.PWX0 := (sum(FoodAvailability * PWX0 / 1000 )) / 1000, by = eval(data.table::key(dt.temp))]
-  # dt.temp[, budget.PCX0 := (sum(FoodAvailability * PCX0 / 1000 )) / 1000, by = eval(data.table::key(dt.temp))]
-  dt.temp[, budget.PWX0 := (sum(FoodAvailability * PWX0 / 1000 )) / 1000, by = c("scenario", "region_code.IMPACT159", "year")]
-  dt.temp[, budget.PCX0 := (sum(FoodAvailability * PCX0 / 1000 )) / 1000, by = c("scenario", "region_code.IMPACT159", "year")]
-  # data.table::setkey(dt.temp, budget.PWX0) is this necessary?
-  # dt.budget <- dt.temp[!duplicated(budget.PCX0),]
-  dt.budget <- data.table::copy(dt.temp)
-  deleteListCol <- c("IMPACT_code", "FoodAvailability", "foodAvailpDay","PCX0","PWX0")
-  dt.budget[,(deleteListCol) := NULL]
-  dt.budget <- unique(dt.budget)
-  # at world prices -----
-  dt.budget[, incShare.PWX0 := 100 * budget.PWX0 / pcGDPX0 ]
-  # at domestic prices -----
-  dt.budget[, incShare.PCX0 := 100 * budget.PCX0 / pcGDPX0 ]
-  data.table::setkeyv(dt.budget, c("scenario", "region_code.IMPACT159", "year"))
-  inDT <- dt.budget
-  outName <- "dt.budgetShare"
-  cleanup(inDT,outName,fileloc("resultsDir"))
-
-  # get world price change from 2010 to 2050 by food groups
-  # dt.foodGroupsInfo <- getNewestVersion("dt.foodGroupsInfo", fileloc("mData"))
-  # dt.foodGroupsInfo[, c("description", "food_group_assignment", "food_groups", "food_group_codes", "staple_category") := NULL]
-
-#  dt.temp <- merge(dt.foodGroupsInfo, dt.temp, by = "IMPACT_code")
-  deleteListRow <- c("c_aqan","c_aqpl", "c_beer", "c_Crust", "c_FrshD", "c_FshOil", "c_Mllsc", "c_ODmrsl", "c_OMarn",
-                     "c_OPelag", "c_spirits", "c_wine")
-  keepListYears <- c("X2010", "X2050")
-  dt.temp <- dt.temp[!IMPACT_code %in% deleteListRow & year %in% keepListYears]
-  keepListCol <- c("scenario","IMPACT_code", "FoodAvailability", "food_group_code", "staple_code", "year", "PWX0")
-  dt.temp <- dt.temp[,(keepListCol), with = FALSE]
-  dt.temp <- unique(dt.temp)
-
-  dt.temp <- dt.temp[, growthRatePW :=  lapply(.SD, function(x)((x/data.table::shift(x))^(1/(2050 - 2010)) - 1) * 100),
-                     .SDcols = "PWX0", by = c("scenario","IMPACT_code")]
-
-  dt.temp <- dt.temp[year %in% "X2050"]
-  dt.temp[, c("year", "PWX0") := NULL]
-
-  formula.wide.scen <- "IMPACT_code + FoodAvailability + food_group_code + staple_code ~ scenario"
-  dt.temp.wide.scen <- data.table::dcast(
-    data = dt.temp,
-    formula = formula.wide.scen,
-    value.var = "growthRatePW")
-
-  formula.wide.FG <- "IMPACT_code+ FoodAvailability + staple_code + scenario ~ food_group_code"
-  dt.temp.wide.FG <- data.table::dcast(
-    data = dt.temp,
-    formula = formula.wide.FG,
-    value.var = "growthRatePW")
-
-  formula.wide.staple <- "IMPACT_code+ FoodAvailability + food_group_code + scenario ~ staple_code"
-  dt.temp.wide.FG <- data.table::dcast(
-    data = dt.temp,
-    formula = formula.wide.staple,
-    value.var = "growthRatePW")
-
-  #calculate weighted average price growth rate by food groups
-  dt.temp[, growthRateAve.FG := weighted.mean(growthRatePW, FoodAvailability), by = c("scenario", "food_group_code")]
-  #calculate weighted average price growth rate by food groups
-  dt.temp[, growthRateAve.staple := weighted.mean(growthRatePW, FoodAvailability), by = c("scenario", "staple_code")]
-
-  dt.temp.FG <- data.table::copy(dt.temp)
-  deleteListCol <- c("IMPACT_code","growthRatePW", "FoodAvailability")
-  dt.temp.FG <- unique(dt.temp.FG[, c(deleteListCol, "staple_code", "growthRateAve.staple") := NULL])
-
-  dt.temp.staple <- data.table::copy(dt.temp)
-  dt.temp.staple <- unique(dt.temp.staple[, c(deleteListCol, "food_group_code", "growthRateAve.FG") := NULL])
-
-  formula.wide.staple.scen <- "staple_code  ~ scenario"
-  dt.temp.staple.wide.scen <- data.table::dcast(
-    data = dt.temp.staple,
-    formula = formula.wide.staple.scen,
-    value.var = "growthRateAve.staple")
-
-  inDT <- dt.temp.staple.wide.scen
-  outName <- "dt.priceGrowth.staple.wide"
-  cleanup(inDT, outName, fileloc("resultsDir"), "xlsx")
-
-  formula.wide.FG.scen <- "food_group_code  ~ scenario"
-  dt.temp.FG.wide.scen <- data.table::dcast(
-    data = dt.temp.FG,
-    formula = formula.wide.FG.scen,
-    value.var = "growthRateAve.FG")
-
-  inDT <- dt.temp.FG.wide.scen
-  outName <- "dt.priceGrowth.FG.wide"
-  cleanup(inDT, outName, fileloc("resultsDir"), "xlsx")
-}

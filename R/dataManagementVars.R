@@ -1,0 +1,159 @@
+#' @author Gerald C. Nelson, \email{nelson.gerald.c@@gmail.com}
+#' @keywords utilities, nutrient data, IMPACT food commodities nutrient lookup
+# Intro ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+#Copyright (C) 2018 Gerald C. Nelson, except where noted
+
+#     This program is free software: you can redistribute it and/or modify it
+#     under the terms of the GNU General Public License as published by the Free
+#     Software Foundation, either version 3 of the License, or (at your option)
+#     any later version.
+#
+#     This program is distributed in the hope that it will be useful, but
+#     WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
+#     or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
+#     for more details at http://www.gnu.org/licenses/.
+#'
+#' @name dataManagementVars.R
+#' @description Replaces default crop varieties with country-specific varieties and does some graphing
+#' @name dataPrep.SingleScenario.R
+
+{source("R/nutrientModFunctions.R")
+  source("R/workbookFunctions.R")
+  source("R/nutrientCalcFunctions.R")
+  source("R/aggNorder.R")}
+
+#get the country crop variety lookup data table
+library(readxl)
+dt.countryCropVariety <- as.data.table(read_excel("data-raw/NutrientData/countryCropVariety.xlsx", na = "NA"))
+#' delete country names in first row
+dt <- dt.countryCropVariety[-1]
+temp <- sapply(dt, function(x)all(is.na(x))) # find all columns that have no country-specific varieties
+ctyWspecVarieties <- names(dt)[temp == FALSE]
+# get rid of the column names "IMPACT_code" "usda_code"
+ctyWspecVarieties <- ctyWspecVarieties[3:length(ctyWspecVarieties)]
+
+# dt.nutrients.sum.all <- getNewestVersion("dt.nutrients.sum.all", fileloc("resultsDir"))
+# dt.nutrients.sum.specVars <- dt.nutrients.sum.all[region_code.IMPACT159 %in% ctyWspecVarieties, ]
+# switch.vars <- keyVariable("switch.vars")
+# inDT <- dt.nutrients.sum.specVars
+# if (switch.vars == TRUE) {
+#   outname <- "dt.nutrients.sum.var"
+# }else{
+#   outname <- "dt.nutrients.sum.base"
+#   }
+# cleanup(inDT, outname, fileloc("resultsDir"))
+
+dt.nutrients.sum.all <- getNewestVersion("dt.nutrients.sum.all.base", fileloc("resultsDir"))
+dt.nutrients.sum.allVar <- getNewestVersion("dt.nutrients.sum.allVar", fileloc("resultsDir"))
+dt.nutrients.sum.allVarFort <- getNewestVersion("dt.nutrients.sum.allVarFort", fileloc("resultsDir"))
+
+#' compare results with default and country-specific vars
+dt.nutrients.sumVar <- dt.nutrients.sum.allVar[region_code.IMPACT159 %in% ctyWspecVarieties]
+dt.nutrients.sum.base <- dt.nutrients.sum.all[region_code.IMPACT159 %in% ctyWspecVarieties]
+setnames(dt.nutrients.sumVar, old = "value", new = "valueVar")
+setnames(dt.nutrients.sum.base, old = "value", new = "valueBase")
+temp <- merge(dt.nutrients.sumVar, dt.nutrients.sum.base)
+# delete irrelevant nutrients
+deleteListNuts <- c("kcalsPerDay.other", "ethanol_g", "kcalsPerDay.ethanol", "kcals.ethanol_g",
+                    "kcalsPerDay.ft_acds_tot_sat", "kcalsPerDay.protein", "kcalsPerDay.sugar",
+                    "kcals.protein_g", "kcals.sugar_g", "kcalsPerDay.carbohydrate", "kcalsPerDay.fat",
+                    "ft_acds_mono_unsat_g", "ft_acds_plyunst_g", "ft_acds_tot_sat_g",
+                    "kcals.carbohydrate_g", "kcals.fat_g", "kcals.ft_acds_tot_sat_g")
+temp <- temp[!nutrient %in% deleteListNuts]
+
+temp[, diff := valueVar - valueBase]
+temp[, diffRatio := 100 * diff/valueBase]
+temp.small <- temp[scenario %in% "SSP2-NoCC-REF" & year %in% "X2010",]
+# macronutrients <- c("carbohydrate_g", "fat_g", "protein_g", "totalfiber_g" )
+# vitamins <- c("folate_µg", "niacin_mg", "riboflavin_mg", "thiamin_mg",
+#               "vit_a_rae_µg", "vit_b12_µg", "vit_b6_mg", "vit_c_mg",
+#               "vit_d_µg", "vit_e_mg", "vit_k_µg")
+# minerals <- c("iron_mg", "magnesium_mg", "phosphorus_mg", "potassium_g", "zinc_mg")
+
+macronutrients <- keyVariable("macronutrients")
+vitamins <- keyVariable("vitamins")
+minerals <- keyVariable("minerals")
+
+
+for (i in c("macronutrients", "vitamins", "minerals")) {
+  dt <- temp.small[nutrient %in% eval(parse(text = i)),]
+p <- ggplot(data = dt, aes(x = region_code.IMPACT159, y = diffRatio, group = nutrient, color = nutrient)) +
+  xlab("Country") +
+  ylab("(percent)") +
+#  scale_y_continuous() +
+  theme_bw() +
+  #  ggtitle(sprintf("%s\n egg %s", gasinTitle, eggName)) +
+  ggtitle("Difference between variety-specific and base results") +
+  theme(plot.title = element_text(hjust = 0.5)) + # center title
+  theme(legend.position = "bottom") +
+  guides(color = guide_legend(nrow = 3, byrow = TRUE))+
+  theme(legend.title=element_blank())+
+  geom_bar(aes(fill=nutrient),   # fill depends on cond2
+           stat="identity",
+           colour="black",    # Black outline for all
+           position=position_dodge()) # Put bars side-by-side instead of stacked)
+#   print(ggplotly(p, tooltip = c("timeStamp", i), dynamicTicks = TRUE))
+print(p)
+}
+
+#' compare results with country-specific vars with and without fortification
+
+# get list of countries that have fortification
+dt.fortValues <- getNewestVersion("dt.fortValues", fileloc("mData"))
+ctyWFort <- sort(unique(dt.fortValues$region_code.IMPACT159))
+
+dt.nutrients.sumVar <- dt.nutrients.sum.allVarFort[region_code.IMPACT159 %in% ctyWFort]
+dt.nutrients.sum.base <- dt.nutrients.sum.allVar[region_code.IMPACT159 %in% ctyWFort]
+setnames(dt.nutrients.sumVar, old = "value", new = "valueVar")
+setnames(dt.nutrients.sum.base, old = "value", new = "valueBase")
+temp <- merge(dt.nutrients.sumVar, dt.nutrients.sum.base)
+
+# dt.nutrients.sumVar <- copy(dt.nutrients.sum.allVarFort)
+# setnames(dt.nutrients.sumVar, old = "value", new = "valueVar")
+#
+# dt.nutrients.sum.base <- copy(dt.nutrients.sum.allVar)
+# setnames(dt.nutrients.sum.base, old = "value", new = "valueBase")
+# temp <- merge(dt.nutrients.sumVar, dt.nutrients.sum.base)
+# # delete irrelevant nutrients
+# deleteListNuts <- c("kcalsPerDay.other", "ethanol_g", "kcalsPerDay.ethanol", "kcals.ethanol_g",
+#                     "kcalsPerDay.ft_acds_tot_sat", "kcalsPerDay.protein", "kcalsPerDay.sugar",
+#                     "kcals.protein_g", "kcals.sugar_g", "kcalsPerDay.carbohydrate", "kcalsPerDay.fat",
+#                     "ft_acds_mono_unsat_g", "ft_acds_plyunst_g", "ft_acds_tot_sat_g",
+#                     "kcals.carbohydrate_g", "kcals.fat_g", "kcals.ft_acds_tot_sat_g")
+temp <- temp[!nutrient %in% deleteListNuts]
+
+temp[, diff := valueVar - valueBase]
+temp[, diffRatio := 100 * diff/valueBase]
+temp.small <- temp[scenario %in% "SSP2-NoCC-REF" & year %in% "X2010",]
+macronutrients <- keyVariable("macronutrients")
+vitamins <- keyVariable("vitamins")
+minerals <- keyVariable("minerals")
+
+for (i in c("macronutrients", "vitamins", "minerals")) {
+  dt <- temp.small[nutrient %in% eval(parse(text = i)),]
+  p <- ggplot(data = dt, aes(x = region_code.IMPACT159, y = diffRatio, group = nutrient, color = nutrient)) +
+    xlab("Country") +
+    ylab("(percent)") +
+    #  scale_y_continuous() +
+    theme_bw() +
+    #  ggtitle(sprintf("%s\n egg %s", gasinTitle, eggName)) +
+    ggtitle("Difference between fortified and unfortified results") +
+    theme(plot.title = element_text(hjust = 0.5)) + # center title
+    theme(legend.position = "bottom") +
+    guides(color = guide_legend(nrow = 3, byrow = TRUE))+
+    theme(legend.title=element_blank())+
+    geom_bar(aes(fill=nutrient),   # fill depends on cond2
+             stat="identity",
+             colour="black",    # Black outline for all
+             position=position_dodge()) # Put bars side-by-side instead of stacked)
+  #   print(ggplotly(p, tooltip = c("timeStamp", i), dynamicTicks = TRUE))
+  print(p)
+}
+
+# misc code below
+
+dt.nutrients.adj <- getNewestVersion("dt.nutrients.adj", fileloc("resultsDir"))
+dt.nutrients.adjVar <- getNewestVersion("dt.nutrients.adjVar", fileloc("resultsDir"))
+dt.nutrients.adjVarFort <- getNewestVersion("dt.nutrients.adjVarFort", fileloc("resultsDir"))
+
+

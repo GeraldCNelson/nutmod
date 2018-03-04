@@ -31,7 +31,12 @@ library(data.table)
 keepYearList <- keyVariable("keepYearList")
 
 # Read IMPACT food and nutrient content data ------------------------------
-dt.foodNnuts <- getNewestVersion("dt.foodNnuts", fileloc("resultsDir"))
+loadSwitchValues()
+if (switch.vars <- FALSE & switch.fortification <- FALSE) dt.foodNnuts <- getNewestVersion("dt.foodNnuts.base", fileloc("resultsDir"))
+if (switch.vars <- TRUE & switch.fortification <- FALSE) dt.foodNnuts <-  getNewestVersion("dt.foodNnutsVar", fileloc("resultsDir"))
+if (switch.vars <- TRUE & switch.fortification <- TRUE) dt.foodNnuts <-  getNewestVersion("dt.foodNnutsVarFort", fileloc("resultsDir"))
+
+#dt.foodNnuts <- getNewestVersion("dt.foodNnuts", fileloc("resultsDir"))
 #keepListCol <- c("scenario", "region_code.IMPACT159", "year", "IMPACT_code", "foodAvailpDay", "foodQ.sum")
 #dt.foodNnuts <- dt.foodNnuts[, (keepListCol), with = FALSE]
 dt.foodNnuts <- dt.foodNnuts[year %in% keepYearList, ]
@@ -233,12 +238,6 @@ kcalRef <- 2000
 
 #' as of March 24, 2017, the MRV for ethanol is now done as part of the nutrient requirements calculations.
 #' mrv.ethanol <- 20 * ethanolKcals #20 is in gm; convert kcals. source is https://en.wikipedia.org/wiki/Recommended_maximum_intake_of_alcoholic_beverages#Daily_maximum_drinks_.28no_weekly_limits_recommended
-
-#' now already as part of dt.foodNnuts
-# switch.useCookingRetnValues <- keyVariable("switch.useCookingRetnValues")
-# switch.fixFish <- keyVariable("switch.fixFish") #get rid of nutrient info for shrimp, tuna, and salmon because they are not currently in the FBS data
-# #dt.nutrients.adj is per kg of the raw product after IMPACT conversion and edible portion adjustments applied)
-# dt.nutrients.adj <- cookingRetFishCorrect(switch.useCookingRetnValues, switch.fixFish) # used only for disqualifying nutrients
 
 Nq <- length(nutrients.qual)
 Nd <- length(nutrients.disqual)

@@ -21,10 +21,12 @@ dt.IMPACTfood <- getNewestVersionIMPACT("dt.IMPACTfood")
 
 # keep just one country, one year, and one scenario
 dt.IMPACTfood <- dt.IMPACTfood[scenario %in% "SSP2-NoCC-REF" & region_code.IMPACT159 %in% "ARG" & year %in% "X2010", ]
-switch.useCookingRetnValues <- keyVariable("switch.useCookingRetnValues")
-switch.fixFish <- keyVariable("switch.fixFish") #get rid of nutrient info for shrimp, tuna, and salmon because they are not currently in the FBS data
-#dt.nutrients.adj is per kg of the raw product after IMPACT conversion and edible portion adjustments applied)
-dt.nutrients.adj <- cookingRetFishCorrect(switch.useCookingRetnValues, switch.fixFish) # used only for disqualifying nutrients
+ # switch.useCookingRetnValues <- keyVariable("switch.useCookingRetnValues")
+ # switch.fixFish <- keyVariable("switch.fixFish") #get rid of nutrient info for shrimp, tuna, and salmon because they are not currently in the FBS data
+
+ loadSwitchValues()
+ #' dt.nutrients.adj is per kg of the raw product after IMPACT conversion and edible portion adjustments applied)
+dt.nutrients.adj <- switches() # used only for disqualifying nutrients
 
 reqsListPercap <- keyVariable("reqsListPercap")
 deleteListReqs <- c("req.UL.vits_percap", "req.UL.minrls_percap",  "req.AMDR_hi_percap", "req.AMDR_lo_percap", "req.MRVs_percap")

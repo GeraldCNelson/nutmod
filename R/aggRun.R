@@ -217,7 +217,13 @@ for (l in scenChoiceList) {
 
     # nonstaple share of kcals ------
     cat(paste("\n\nWorking on bar chart for the nonstaple share of kcals for", aggChoice))
-    DTglobal <- getNewestVersion("dt.KcalShare.nonstaple", fileloc("resultsDir"))
+
+    #   DTglobal <- getNewestVersion("dt.KcalShare.nonstaple", fileloc("resultsDir"))
+    loadSwitchValues()
+    if (switch.vars <- FALSE & switch.fortification <- FALSE) DTglobal <- getNewestVersion("dt.KcalShare.nonstaple.base", fileloc("resultsDir"))
+    if (switch.vars <- TRUE & switch.fortification <- FALSE) DTglobal <-  getNewestVersion("dt.KcalShare.nonstapleVar", fileloc("resultsDir"))
+    if (switch.vars <- TRUE & switch.fortification <- TRUE) DTglobal <-  getNewestVersion("dt.KcalShare.nonstapleVarFort", fileloc("resultsDir"))
+
     DT <- aggNorder(gdxChoice, DTglobal, aggChoice, scenChoice = get(l),
                     mergedVals =  c("scenario", "region_code", "year"))
     ylab <- "(percent)"
@@ -264,7 +270,11 @@ for (l in scenChoiceList) {
     # total kcal bar chart ----
     cat(paste("\n\nWorking on stacked kcal bar chart for ", aggChoice))
 
-    DTglobal <- getNewestVersion("dt.nutrients.kcals", fileloc("resultsDir"))
+    loadSwitchValues()
+    if (switch.vars <- FALSE & switch.fortification <- FALSE) DTglobal <- getNewestVersion("dt.nutrients.kcals.base", fileloc("resultsDir"))
+    if (switch.vars <- TRUE & switch.fortification <- FALSE) DTglobal <-  getNewestVersion("dt.nutrients.kcalsVar", fileloc("resultsDir"))
+    if (switch.vars <- TRUE & switch.fortification <- TRUE) DTglobal <-  getNewestVersion("dt.nutrients.kcalsVarFort", fileloc("resultsDir"))
+ #   DTglobal <- getNewestVersion("dt.nutrients.kcals", fileloc("resultsDir"))
     DT <- aggNorder(gdxChoice, DTglobal, aggChoice, scenChoice = get(l),
                     mergedVals =  c("scenario", "region_code", "year", "nutrient"))
     DT <- DT[nutrient %in% c("kcalsPerDay.carbohydrate", "kcalsPerDay.fat", "kcalsPerDay.other", "kcalsPerDay.protein"), ]
@@ -278,7 +288,12 @@ for (l in scenChoiceList) {
 
     # food groups -----
     cat(paste("\n\nWorking on bar chart for dt.foodAvail.foodGroup for", aggChoice))
-    temp.in <- getNewestVersion("dt.foodAvail.foodGroup", fileloc("resultsDir"))
+
+    if (switch.vars <- FALSE & switch.fortification <- FALSE) temp.in <- getNewestVersion("dt.foodAvail.foodGroup.base", fileloc("resultsDir"))
+    if (switch.vars <- TRUE & switch.fortification <- FALSE) temp.in <-  getNewestVersion("dt.foodAvail.foodGroupVar", fileloc("resultsDir"))
+    if (switch.vars <- TRUE & switch.fortification <- TRUE) temp.in <-  getNewestVersion("dt.foodAvail.foodGroupVarFort", fileloc("resultsDir"))
+
+#    temp.in <- getNewestVersion("dt.foodAvail.foodGroup", fileloc("resultsDir"))
     #  temp.in <- merge(temp.in, dt.pop, by = c("scenario","region_code.IMPACT159", "year"))
 
     #keep just the scenario.base scenario for 2010 and rename the scenario to 2010. Now done in aggNorder
@@ -467,7 +482,12 @@ for (macroNut in c("fat_g.Q", "protein_g.Q", "carbohydrate_g.Q")) {
 # facet maps, food availability by food groups  -----
 cat("\n Working on facet maps")
 worldMap <- getNewestVersion("worldMap", fileloc("mData")) # run storeWorldMapDF() if this is not available
-DT <- getNewestVersion("dt.foodAvail.foodGroup", fileloc("resultsDir"))
+#DT <- getNewestVersion("dt.foodAvail.foodGroup", fileloc("resultsDir"))
+
+if (switch.vars <- FALSE & switch.fortification <- FALSE) DT <- getNewestVersion("dt.foodAvail.foodGroup.base", fileloc("resultsDir"))
+if (switch.vars <- TRUE & switch.fortification <- FALSE) DT <-  getNewestVersion("dt.foodAvail.foodGroupVar", fileloc("resultsDir"))
+if (switch.vars <- TRUE & switch.fortification <- TRUE) DT <-  getNewestVersion("dt.foodAvail.foodGroupVarFort", fileloc("resultsDir"))
+
 deleteFoodGroups <- c("alcohol", "beverages", "fish", "meats", "oils", "dairy", "eggs", "nutsNseeds")
 DT <- DT[!food_group_code %in% deleteFoodGroups,]
 DT[, scenario := gsub("-", "_", scenario)] # needed to have valid column names
@@ -898,5 +918,9 @@ for (fname in filesToAgg) {
 
 # save graph files for future use
 inDT <- graphsListHolder
-outName <- "graphsListHolder"
+outName <- "graphsListHolder.base"
+loadSwitchValues()
+if (switch.vars <- TRUE & switch.fortification <- FALSE) outName <-  "graphsListHolderVar"
+if (switch.vars <- TRUE & switch.fortification <- TRUE) outName <-  "graphsListHolderVarFort"
+
 cleanupGraphFiles(inDT, outName, fileloc("gDir"))

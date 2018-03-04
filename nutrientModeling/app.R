@@ -22,6 +22,7 @@
 # the 'Run App' button in RStudio
 library(shiny)
 library(shinyjs)
+library(ggplot2)
 #library(rsconnect)
 library(data.table)
 library(dplyr) # to do %>%
@@ -330,7 +331,8 @@ ui <- fluidPage(
 server <- function(input, output, session) {
   load_data(dataSetsToLoad) # load most of the data. Big files can be loaded elsewhere
 
-  #not sure this is the best place for this. Need to get crude out of budget share. Just do once
+  #not sure this is the best place for this. Need to get crud out of budget share. Just do once
+  # update Jan 28, 2018. I think this this code was written, dt.budgetShare is now already in long form with name changes done
   keepListCol <- c("scenario", "region_code.IMPACT159", "year", "pcGDPX0", "budget.PCX0", "incShare.PCX0")
   deleteListCol <- names(dt.budgetShare)[!names(dt.budgetShare) %in% keepListCol]
   dt.budgetShare[, (deleteListCol) := NULL]
@@ -347,7 +349,8 @@ server <- function(input, output, session) {
     value.name = "value",
     variable.factor = FALSE
   )
-  formula.budgetShare <- paste("scenario + region_code.IMPACT159 + Variable  ~ year")
+  dt.budgetShare.long <- unique(dt.budgetShare.long)
+ formula.budgetShare <- paste("scenario + region_code.IMPACT159 + Variable  ~ year")
   dt.budgetShare.wide <- data.table::dcast(
     dt.budgetShare.long,
     formula = formula.budgetShare,

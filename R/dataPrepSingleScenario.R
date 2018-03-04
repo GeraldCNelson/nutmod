@@ -1,6 +1,20 @@
 #' @author Gerald C. Nelson, \email{nelson.gerald.c@@gmail.com}
-#' @keywords utilities, IMPACT data, gdx
-#' @title Import IMPACT data from a gdx file
+#' @keywords utilities, nutrient data, IMPACT food commodities nutrient lookup
+# Intro ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+#Copyright (C) 2018 Gerald C. Nelson, except where noted
+
+#     This program is free software: you can redistribute it and/or modify it
+#     under the terms of the GNU General Public License as published by the Free
+#     Software Foundation, either version 3 of the License, or (at your option)
+#     any later version.
+#
+#     This program is distributed in the hope that it will be useful, but
+#     WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
+#     or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
+#     for more details at http://www.gnu.org/licenses/.
+
+#' @description Imports gdx data for SSP2 HGEM results with and without GLOBE CGE adjustments and
+#' calculates the effects on the food budget share.
 #' @name dataPrep.SingleScenario.R
 #' @include nutrientModFunctions.R
 #if (!exists("getNewestVersion", mode = "function"))
@@ -12,39 +26,11 @@ library(ggplot2)
 library(RColorBrewer)
 gdxrrw::igdx(gamsSysDir = fileNameList("R_GAMS_SYSDIR"), silent = TRUE)
 
-# Intro -------------------------------------------------------------------
-
-#Copyright (C) 2015 Gerald C. Nelson, except where noted
-
-# This program is free software: you can redistribute it and/or modify it
-# under the terms of the GNU General Public License as published by the Free
-# Software Foundation, either version 3 of the License, or (at your option)
-# any later version.
-#
-# This program is distributed in the hope that it will be useful, but
-# WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
-# or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License
-# for more details at http://www.gnu.org/licenses/.
-
-#' @description This script reads in the IMPACT data from a gdx file and writes out selected variables to a .rds file.
-#' The gdxrrw package is needed to run this. It is available at this url, not from CRAN.
-#' @source \url{https://support.gams.com/gdxrrw:interfacing_gams_and_r}
-#' Download the relevant file and use the following command to install
-#' install.packages("gdxrrw_1.0.0.tgz",repos=NULL). Replace gdxrrw_1.0.0.tgz with the
-#' name of the file you downloaded. If you put it in the main directory of your project,
-#' the install.packages command will find it.
-#' @import gdxrrw
-
-#' Title importIMPACT - Import data from the IMPACT model and write out rds and excel files
-#' @description Read IMPACT159 data from a gdx file
-#'
-#' @return dt.temp
-#' @export
-#'
 
 # #gdxFileName <- "SSP2-HGEM2-WithGLOBE.gdx"
 # gdxFileName <- "SSP2-HGEM-WithoutGLOBE.gdx"
 singleScenario <- TRUE
+fileDest <- "data/IMPACTData/singleScenario"
 
 catList <- c("catNames.land", "catNames.commod", "catNames.region", "catNames.world")
 vars.land <- c("AREACTYX0", "YLDCTYX0", "ANMLNUMCTYX0")
@@ -63,18 +49,6 @@ vars.world <- "PWX0"
 catNames.world <- c("scenario", "IMPACT_code", "year", "value")
 keepYearList <- keyVariable("keepYearList")
 
-# if (singleScenario == TRUE) {
-#   for (i in catList) {
-#     temp <- eval(parse(text = i))
-#     temp <- temp[!temp %in% "scenario"]
-#     assign(i, temp)
-#   }
-# }
-
-# if (!exists("gdxFileName")) {
-#   dt.metadata <- getNewestVersion("dt.metadata", fileloc("resultsDir"))
-#   gdxFileName <- dt.metadata[file_description %in% "IMPACT demand data in gdx form", file_name_location]
-# }
 
 #' Title generateResults - send a list of variables with common categories to the
 #' function to write out the data
@@ -133,7 +107,6 @@ processIMPACT159Data <- function(gdxFileName, gdxFileLoc, varName, catNames, sin
   # this is where dt.FoodAvailability is written out, for example
   outName <- paste("dt", varName, gsub(".gdx", "", gdxFileName), sep = ".")
   if (singleScenario == TRUE) {
-    fileDest <- "data/IMPACTData/singleScenario"
     cleanup(inDT,outName,fileDest)
   }else{
     cleanup(inDT,outName,fileloc("iData"))
@@ -150,12 +123,13 @@ for (i in c("SSP2-HGEM2-WithGLOBE.gdx", "SSP2-HGEM-WithoutGLOBE.gdx")) {
   # generateResults(gdxFileLoc, vars.world, catNames.world)
 }
 
-dt.FoodAvailability.woGlobe <- readRDS(file = "data/IMPACTData/singleScenario/dt.FoodAvailability.SSP2-HGEM-WithoutGLOBE_2018-01-05.rds")
-dt.FoodAvailability.wGlobe <- readRDS(file = "data/IMPACTData/singleScenario/dt.FoodAvailability.SSP2-HGEM2-WithGLOBE_2018-01-05.rds")
-dt.pcGDPX0.woGlobe <- readRDS(file = "data/IMPACTData/singleScenario/dt.pcGDPX0.SSP2-HGEM-WithoutGLOBE_2018-01-05.rds")
-dt.pcGDPX0.wGlobe <- readRDS(file = "data/IMPACTData/singleScenario/dt.pcGDPX0.SSP2-HGEM2-WithGLOBE_2018-01-05.rds")
-dt.PCX0.woGlobe <- readRDS(file = "data/IMPACTData/singleScenario/dt.PCX0.SSP2-HGEM-WithoutGLOBE_2018-01-05.rds")
-dt.PCX0.wGlobe <- readRDS(file = "data/IMPACTData/singleScenario/dt.PCX0.SSP2-HGEM2-WithGLOBE_2018-01-05.rds")
+dt.FoodAvailability.woGlobe <- getNewestVersion("dt.FoodAvailability.SSP2-HGEM-WithoutGLOBE", fileDest)
+dt.FoodAvailability.wGlobe <- getNewestVersion("dt.FoodAvailability.SSP2-HGEM2-WithGLOBE", fileDest)
+dt.pcGDPX0.woGlobe <- getNewestVersion("dt.pcGDPX0.SSP2-HGEM-WithoutGLOBE", fileDest)
+dt.pcGDPX0.wGlobe <- getNewestVersion("dt.pcGDPX0.SSP2-HGEM2-WithGLOBE", fileDest)
+dt.PCX0.woGlobe <- getNewestVersion("dt.PCX0.SSP2-HGEM-WithoutGLOBE", fileDest)
+dt.PCX0.wGlobe <- getNewestVersion("dt.PCX0.SSP2-HGEM2-WithGLOBE", fileDest)
+
 setkey(dt.FoodAvailability.woGlobe)
 setkey(dt.FoodAvailability.wGlobe)
 setkey(dt.pcGDPX0.woGlobe)
@@ -193,7 +167,11 @@ dt.50[, budgetRatio := 100 * (budget_wGlobe - budget_woGlobe)/budget_woGlobe]
 dt.50[, incRatio := 100 * (pcGDPX0_wGlobe - pcGDPX0_woGlobe)/pcGDPX0_woGlobe]
 
 #reorder the cols
-setcolorder(dt.50, c("region_code.IMPACT159", "pcGDPX0_woGlobe", "pcGDPX0_wGlobe", "budget_woGlobe",   "budget_wGlobe",  "incShare_woGlobe",  "incShare_wGlobe"))
+setcolorder(dt.50, c("region_code.IMPACT159",
+                     "pcGDPX0_woGlobe", "pcGDPX0_wGlobe",
+                     "budget_woGlobe", "budget_wGlobe",
+                     "incShare_woGlobe",  "incShare_wGlobe",
+                     "incShareRatio", "budgetRatio", "incRatio"))
 
 dt.50.summary <- as.data.table(summary(dt.50))
 dt.50.summary[, V1 := NULL]
@@ -208,12 +186,23 @@ dt.50.summary.wide <- data.table::dcast(
   formula = formula.wide,
   value.var = "value")
 
+# some names have acquired unwanted spaces. Fix this
+setnames(dt.50.summary.wide, old = names(dt.50.summary.wide), new = gsub(" ", "", names(dt.50.summary.wide)))
+
 #reorder the cols
-setcolorder(dt.50.summary.wide, c("type", "pcGDPX0_woGlobe", "pcGDPX0_wGlobe", "budget_woGlobe",   "budget_wGlobe",  "incShare_woGlobe",  "incShare_wGlobe"))
+setcolorder(dt.50.summary.wide, c("type", "pcGDPX0_woGlobe", "pcGDPX0_wGlobe",
+                                  "budget_woGlobe",   "budget_wGlobe",
+                                  "incShare_woGlobe",  "incShare_wGlobe",
+                                  "incRatio", "budgetRatio", "incShareRatio"))
 
 #reorder the rows
 dt.50.summary.wide <- dt.50.summary.wide[c(6,1,4,5,2,3), ]
 
+sumStats <- openxlsx::createWorkbook()
+openxlsx::addWorksheet(wb = sumStats, sheetName = "stats")
+openxlsx::writeData(
+  wb = sumStats, sheet = "stats", dt.50.summary.wide, rowNames = FALSE, colNames = TRUE, startCol = 1)
+openxlsx::saveWorkbook(wb = sumStats, file = paste(fileDest, "compareStats.xlsx", sep = "/"))
 # low-income removal
 # noSom <- temp2[!region_code.IMPACT159 %in% c("SOM", "BDI", "LBR", "CAF", "NER", "RWA"),]
 
@@ -224,6 +213,7 @@ worldMap <- getNewestVersion("worldMap", fileloc("mData"))
 measureVars <- c("pcGDPX0_woGlobe", "pcGDPX0_wGlobe", "budget_woGlobe", "budget_wGlobe",
                  "incShare_woGlobe", "incShare_wGlobe",
                  "budgetRatio", "incRatio", "incShareRatio")
+
 dt.50.long <- data.table::melt(dt.50,
                                id.vars = "region_code.IMPACT159",
                                variable.name = "metric",
@@ -233,18 +223,27 @@ dt.50.long <- data.table::melt(dt.50,
 
 dt.50.long.base <- copy(dt.50.long)
 dt.50.long.share <- copy(dt.50.long)
-for (i in c("base", "share")) {
-  DT <- copy(dt.50.long)
+#for (i in c("base", "share")) {
+  for (i in c( "share")) {
+    DT <- copy(dt.50.long)
   if (i %in% "base"){
     DT <- DT[metric %in% c("pcGDPX0_woGlobe", "pcGDPX0_wGlobe", "budget_woGlobe", "budget_wGlobe",
                            "incShare_woGlobe", "incShare_wGlobe"), ]
+    # setnames(DT, old = c("pcGDPX0_woGlobe", "pcGDPX0_wGlobe", "budget_woGlobe", "budget_wGlobe",
+    #                       "incShare_woGlobe", "incShare_wGlobe"),
+    #           new = c("per capita income, w/o Globe", "per capita income, with Globe",
+    #                   "food budget, w/o Globe", "food budget, with Globe",
+    #                   "income share, w/o Globe", "income share, with Globe"))
     legendText <- "Macro metrics range"
     fillLimits <- c(0, 35)
   }
   if (i %in% "share"){
     DT <- DT[metric %in% c("budgetRatio", "incRatio", "incShareRatio"), ]
+    DT[metric %in% c("budgetRatio"), metric := "Food budget effect"]
+    DT[metric %in% c("incRatio"), metric := "Income effect"]
+    DT[metric %in% c("incShareRatio"), metric := "Food budget share of income effect"]
     legendText <- "(percent)"
-    fillLimits <- c(-11, 8)
+    fillLimits <- c(-5, 5)
   }
   DT <- countryCodeCleanup(DT) # converts IMPACT region codes to ISO3 codes for largest country in the region
   data.table::setnames(DT, old = "region_code.IMPACT159", new = "id")
@@ -277,4 +276,11 @@ for (i in c("base", "share")) {
                                   na.value = "grey50", values = b,
                                   guide = "colorbar", limits = f)
   gg
-}
+  }
+
+gg <- ggplot(data = dt.50, aes(incRatio, incShareRatio))
+gg <- gg + geom_point()
+gg <- gg + xlab("Change in per capita income (percent)") + ylab("Change in food budget share of per capita income (percent)")
+gg
+
+lmout <- lm(incShareRatio ~  incRatio, dt.50 )

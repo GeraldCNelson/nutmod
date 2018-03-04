@@ -47,7 +47,7 @@ fileloc <- function(variableName) {
   iData <- paste(mData, "IMPACTData/", sep = "/")
   nutData <- "data-raw/NutrientData"
   resultsTop <- "results"
-  resultsDir <- paste("results/", gdxChoice, sep = "")
+  resultsDir <- paste("data/", gdxChoice, sep = "")
   resultsPaperDir <- "results/nutPaper"
   shinyApp <- "nutrientModeling"
   shinyAppData <- "nutrientModeling/data"
@@ -465,7 +465,7 @@ dt.foodGroupsInfo <- getNewestVersion("dt.foodGroupsInfo", fileloc("mData"))
 countryNamesPlus <- sort(unique(dt.regions.all$region_name.IMPACT159))
 countryNames <- gsub(" plus", "", countryNamesPlus)
 #' development files
-"dt.metadata" <- getNewestVersion("dt.metadata", fileloc("mData"))
+"dt.metadata" <- getNewestVersion("dt.metadata", fileloc("resultsDir"))
 "dt.IMPACTgdxParams" <- getNewestVersion("dt.IMPACTgdxParams", fileloc("mData"))
 FGreqChoices <- c("macro nutrients", "minerals", "vitamins")
 staplesReqChoices <- c("energy","macro nutrients", "minerals", "vitamins")
@@ -518,6 +518,7 @@ load_data <- function(dataSetsToLoad) {
   #' development files
   dt.metadata <- getNewestVersion("dt.metadata", fileloc("mData"))
   dt.IMPACTgdxParams <- getNewestVersion("dt.IMPACTgdxParams", fileloc("mData"))
+
   loadNresize <- function(dt) {
     temp <- getNewestVersion(dt, fileloc("mData"))
     temp <- (temp[year %in% years])

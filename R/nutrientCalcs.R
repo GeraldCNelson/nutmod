@@ -34,29 +34,15 @@
 #' get the list of scenarios in the IMPACT data for use below
 dt.scenarioListIMPACT <- getNewestVersion("dt.scenarioListIMPACT", fileloc("mData"))
 scenarioListIMPACT <- unique(dt.scenarioListIMPACT$scenario)
-dt.foodNnuts <- getNewestVersion("dt.foodNnuts", fileloc("resultsDir"))
-dt.nutrients.sum.all <- getNewestVersion("dt.nutrients.sum.all", fileloc("resultsDir"))
 
-#' #' read in nutrients data and optionally apply cooking retention values -----
-#' switch.useCookingRetnValues <- keyVariable("switch.useCookingRetnValues")
-#' switch.fixFish <- keyVariable("switch.fixFish") #get rid of nutrient info for shrimp, tuna, and salmon because they are not currently in the FBS data
-#' #' dt.nutrients is per 100 gm of the raw product (ie before edible portion is applied)
-#' #' dt.nutrients.adj is per kg of food
-#' switch.ctyspecificCommodities <- keyVariable("switch.ctyspecificCommodities")
-#' dt.nutrients.adj <- cookingRetFishCorrect(switch.useCookingRetnValues, switch.fixFish, switch.ctyspecificCommodities)
+loadSwitchValues()
+if (switch.vars <- FALSE & switch.fortification <- FALSE) dt.foodNnuts <- getNewestVersion("dt.foodNnuts.base", fileloc("resultsDir"))
+if (switch.vars <- TRUE & switch.fortification <- FALSE) dt.foodNnuts <-  getNewestVersion("dt.foodNnutsVar", fileloc("resultsDir"))
+if (switch.vars <- TRUE & switch.fortification <- TRUE) dt.foodNnuts <-  getNewestVersion("dt.foodNnutsVarFort", fileloc("resultsDir"))
 
-#' calculate the share of per capita income spent on IMPACT commodities
-#budgetShareNpriceGrowth(dt.IMPACTfood)
-#' budgetShareNpriceGrowth(dt.foodNnuts)
-#'
-#' keepListCol <- c("scenario", "IMPACT_code", "region_code.IMPACT159", "FoodAvailability", "foodAvailpDay", "year")
-#' dt.IMPACTfood <- dt.IMPACTfood[, keepListCol, with = FALSE]
-#'
-#' #' get rid of duplicate rows, caused by getting rid of GDP column
-#' data.table::setkey(dt.IMPACTfood)
-#' dt.IMPACTfood <- unique(dt.IMPACTfood)
-#'
-#' dt.IMPACTfood[,FoodAvailability := NULL]
+if (switch.vars <- FALSE & switch.fortification <- FALSE) dt.nutrients.sum.all <- getNewestVersion("dt.nutrients.sum.all.base", fileloc("resultsDir"))
+if (switch.vars <- TRUE & switch.fortification <- FALSE) dt.nutrients.sum.all <-  getNewestVersion("dt.nutrients.sum.allVar", fileloc("resultsDir"))
+if (switch.vars <- TRUE & switch.fortification <- TRUE) dt.nutrients.sum.all <-  getNewestVersion("dt.nutrients.sum.allVarFort", fileloc("resultsDir"))
 
 #' reqsListPercap is a list of the requirements types. Each has a different set of nutrients. These are a subset
 #' of what are in the nutrients requirements tables from IOM. They are the nutrients common to
@@ -75,7 +61,7 @@ generateResults.dataPrep <- function(req, dt.foodNnuts, scenarioListIMPACT) {
   dt.food <- dt.food[scenario %in% scenarioListIMPACT,]
 
   #' read in nutrient requirements data for a representative consumer -----
-  #' Note that these are for SSP categories and thus vary by SSP category and year for each region
+  #' Note that these are for SSP age group and gender categories and thus vary by SSP category and year for each region
   dt.nutsReqPerCap <- getNewestVersion(req)
 
   #' get list of nutrients from dt.nutsReqPerCap for the req set of requirements
@@ -116,7 +102,7 @@ generateResults.dataPrep <- function(req, dt.foodNnuts, scenarioListIMPACT) {
   dt.nutsReqPerCap <- dt.temp[,keepListCol, with = FALSE][scenario %in% scenarioListIMPACT,]
 
   #' reduce calculations to just the nutrients in nutListReq
-  #' and the nutrients in nutListReq plus those needed for iron and zinc bioavailability,
+  #' plus those needed for iron and zinc bioavailability,
   #' "phytate_mg", "vit_c_mg", "energy_kcal", "protein_g".
 
   keepListCol <- c("IMPACT_code","food_group_code","staple_code",nutListReq)
@@ -344,7 +330,7 @@ generateResults.dataPrep <- function(req, dt.foodNnuts, scenarioListIMPACT) {
   stapleKey <- c("scenario", "region_code.IMPACT159", "year", "staple_code")
   foodGroupKey <- c("scenario", "region_code.IMPACT159", "year", "food_group_code")
 
-  #' AMDR are lo and hi ranges for fat, carbohydrate and protein as percent of total kcals; if statement excludes AMDR calcs
+  #' AMDR are lo and hi ranges for fat, carbohydrate and protein as percent of total kcals; if statement excludes AMDR calcs which are done below
   if (!req %in% c("req.AMDR_hi_percap", "req.AMDR_lo_percap")) {
     #' first sum individual nutrients from all commodities
     data.table::setkeyv(dt.food.agg, allKey)
@@ -393,7 +379,11 @@ generateResults.dataPrep <- function(req, dt.foodNnuts, scenarioListIMPACT) {
     #' calculate ratio of kcals from nutrient to total kcals. Multiply by 100 so its in same units as the AMDR values
 
     #' use different source for dt.food.agg for AMDRs
-    dt.nutrients.kcals <- getNewestVersion("dt.nutrients.kcals", fileloc("resultsDir"))
+    loadSwitchValues()
+    if (switch.vars <- FALSE & switch.fortification <- FALSE) dt.nutrients.kcals <- getNewestVersion("dt.nutrients.kcals.base", fileloc("resultsDir"))
+    if (switch.vars <- TRUE & switch.fortification <- FALSE) dt.nutrients.kcals <-  getNewestVersion("dt.nutrients.kcalsVar", fileloc("resultsDir"))
+    if (switch.vars <- TRUE & switch.fortification <- TRUE) dt.nutrients.kcals <-  getNewestVersion("dt.nutrients.kcalsVarFort", fileloc("resultsDir"))
+
     dt.food.agg <- data.table::copy(dt.nutrients.kcals)
     formula.wide <- paste("scenario + region_code.IMPACT159 + year ~nutrient")
     dt.food.agg <-

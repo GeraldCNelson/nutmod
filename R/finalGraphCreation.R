@@ -39,7 +39,12 @@ macroList.reqRatio <- paste(prefix, macroList[!macroList %in% "fat_g"], ".reqRat
 macroList.AMDR <- macroList[!macroList %in% "totalfiber_g"]
 
 
-graphsListHolder <- getNewestVersion("graphsListHolder", fileloc("gDir"))
+#graphsListHolder <- getNewestVersion("graphsListHolder", fileloc("gDir"))
+loadSwitchValues()
+if (switch.vars <- FALSE & switch.fortification <- FALSE) graphsListHolder <- getNewestVersion("graphsListHolder.base", fileloc("resultsDir"))
+if (switch.vars <- TRUE & switch.fortification <- FALSE) graphsListHolder <-  getNewestVersion("graphsListHolderVar", fileloc("resultsDir"))
+if (switch.vars <- TRUE & switch.fortification <- TRUE) graphsListHolder <-  getNewestVersion("graphsListHolderVarFort", fileloc("resultsDir"))
+
 graphNames <- names(graphsListHolder)
 
 #' Fig 4 budget -----

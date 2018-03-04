@@ -48,7 +48,7 @@ for (i in AMDRs) {
   cleanup(inDT, outName, fileloc("resultsDir"), "csv")
 }
 
-# individual food function
+# individual food function -----
 req <- "req.RDA.vits" # - for testing purposes
 f.ratios.all <- function(){
   keepListCol <- c(mainCols, cols.all)
@@ -119,7 +119,7 @@ f.ratios.all <- function(){
     variable.name = "nutrient",
     #    value.name = "nut_share", variable.factor = FALSE)
     value.name = "value", variable.factor = FALSE)
-  dt.all.ratio.long[, nutrient := gsub(".ratio.all", "",nutrient)]
+  dt.all.ratio.long[, nutrient := gsub(".ratio.all", "", nutrient)]
 
   dt.all_reqRatio_long <- data.table::melt(
     dt.all.reqRatio,
@@ -139,26 +139,21 @@ f.ratios.all <- function(){
   inDT[, nutrient := gsub("_reqRatio", "", nutrient)]
   inDT <- unique(inDT)
   print(paste0("dt.sum_reqRatio_long"))
-  #  print(unique(inDT$nutrient))
   outName <- paste(reqShortName, "sum_reqRatio", sep = "_")
   cleanup(inDT, outName, fileloc("resultsDir"), "csv")
 
   inDT <- unique(dt.all.ratio.long)
-  # print(paste0("dt.all.ratio.long"))
-  # print(unique(inDT$nutrient))
   outName <- paste(reqShortName, "all_ratio", sep = "_")
   cleanup(inDT, outName, fileloc("resultsDir"), "csv")
 
   inDT <- dt.all_reqRatio_long
   inDT[, nutrient := gsub("_reqRatio_all", "", nutrient)]
   inDT <- unique(inDT)
-  # print(paste0("dt.all_reqRatio_long"))
-  # print(unique(inDT$nutrient))
   outName <- paste(reqShortName, "all_reqRatio", sep = "_")
   cleanup(inDT, outName, fileloc("resultsDir"), "csv")
 }
 
-# foodGroup function
+# foodGroup function -----
 f.ratios.FG <- function(){
   dt.food_agg <- data.table::copy(dt.food_agg.master)
   keepListCol <- c(mainCols, cols.foodGroup)
@@ -183,6 +178,7 @@ f.ratios.FG <- function(){
     value.name = "value",
     variable.factor = FALSE
   )
+
   dt.foodGroup_reqRatio_long <- data.table::melt(
     dt.foodGroup.reqRatio,
     id.vars = foodGroupKey,
@@ -239,6 +235,7 @@ f.ratios.staples <- function(){
     value.name = "value",
     variable.factor = FALSE
   )
+
   dt.staples.ratio.long <- data.table::melt(
     dt.staples.ratio,
     id.vars = stapleKey,
@@ -247,6 +244,7 @@ f.ratios.staples <- function(){
     value.name = "value",
     variable.factor = FALSE
   )
+
   dt.staples_reqRatio_long <- data.table::melt(
     dt.staples.reqRatio,
     id.vars = stapleKey,
@@ -286,16 +284,6 @@ for (req in reqList) {
   cols.staple <- names(dt.food_agg.master)[grep(".staple", names(dt.food_agg.master))]
   cols.foodGroup <- names(dt.food_agg.master)[grep(".foodGroup", names(dt.food_agg.master))]
   mainCols <- names(dt.food_agg.master)[!names(dt.food_agg.master) %in% c(cols.all,cols.staple,cols.foodGroup)]
-
-  # dt.nutsReqPerCap <- getNewestVersion(paste(req,"percap",sep = "."))
-  # # scenarioComponents code needed because nutsReqPerCap are only available with scenario as SSPs
-  # scenarioComponents <- c("SSP", "climate_model", "experiment")
-  # dt.food_agg.master[, (scenarioComponents) := data.table::tstrsplit(scenario, "-", fixed = TRUE)]
-  # dt.nuts.temp <- dt.nutsReqPerCap[scenario %in% unique(dt.food_agg.master$SSP),]
-  # dt.foodNnuts <- merge(dt.food_agg.master,dt.nuts.temp, by.x = c("SSP", "region_code.IMPACT159", "year"),
-  #               by.y = c("scenario", "region_code.IMPACT159", "year"),
-  #               all.x = TRUE)
-  # dt.foodNnuts[,(scenarioComponents) := NULL]
 
 # run the ratios functions -----
   f.ratios.all()
