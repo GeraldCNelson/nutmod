@@ -36,13 +36,13 @@ dt.scenarioListIMPACT <- getNewestVersion("dt.scenarioListIMPACT", fileloc("mDat
 scenarioListIMPACT <- unique(dt.scenarioListIMPACT$scenario)
 
 loadSwitchValues()
-if (switch.vars <- FALSE & switch.fortification <- FALSE) dt.foodNnuts <- getNewestVersion("dt.foodNnuts.base", fileloc("resultsDir"))
-if (switch.vars <- TRUE & switch.fortification <- FALSE) dt.foodNnuts <-  getNewestVersion("dt.foodNnutsVar", fileloc("resultsDir"))
-if (switch.vars <- TRUE & switch.fortification <- TRUE) dt.foodNnuts <-  getNewestVersion("dt.foodNnutsVarFort", fileloc("resultsDir"))
+if (switch.vars == FALSE & switch.fortification  == FALSE) dt.foodNnuts <- getNewestVersion("dt.foodNnuts.base", fileloc("resultsDir"))
+if (switch.vars  ==  TRUE & switch.fortification== FALSE) dt.foodNnuts <-  getNewestVersion("dt.foodNnutsVar", fileloc("resultsDir"))
+if (switch.vars  ==  TRUE & switch.fortification == TRUE) dt.foodNnuts <-  getNewestVersion("dt.foodNnutsVarFort", fileloc("resultsDir"))
 
-if (switch.vars <- FALSE & switch.fortification <- FALSE) dt.nutrients.sum.all <- getNewestVersion("dt.nutrients.sum.all.base", fileloc("resultsDir"))
-if (switch.vars <- TRUE & switch.fortification <- FALSE) dt.nutrients.sum.all <-  getNewestVersion("dt.nutrients.sum.allVar", fileloc("resultsDir"))
-if (switch.vars <- TRUE & switch.fortification <- TRUE) dt.nutrients.sum.all <-  getNewestVersion("dt.nutrients.sum.allVarFort", fileloc("resultsDir"))
+if (switch.vars == FALSE & switch.fortification == FALSE) dt.nutrients.sum.all <- getNewestVersion("dt.nutrients.sum.all.base", fileloc("resultsDir"))
+if (switch.vars == TRUE & switch.fortification == FALSE) dt.nutrients.sum.all <-  getNewestVersion("dt.nutrients.sum.allVar", fileloc("resultsDir"))
+if (switch.vars == TRUE & switch.fortification == TRUE) dt.nutrients.sum.all <-  getNewestVersion("dt.nutrients.sum.allVarFort", fileloc("resultsDir"))
 
 #' reqsListPercap is a list of the requirements types. Each has a different set of nutrients. These are a subset
 #' of what are in the nutrients requirements tables from IOM. They are the nutrients common to
@@ -380,9 +380,9 @@ generateResults.dataPrep <- function(req, dt.foodNnuts, scenarioListIMPACT) {
 
     #' use different source for dt.food.agg for AMDRs
     loadSwitchValues()
-    if (switch.vars <- FALSE & switch.fortification <- FALSE) dt.nutrients.kcals <- getNewestVersion("dt.nutrients.kcals.base", fileloc("resultsDir"))
-    if (switch.vars <- TRUE & switch.fortification <- FALSE) dt.nutrients.kcals <-  getNewestVersion("dt.nutrients.kcalsVar", fileloc("resultsDir"))
-    if (switch.vars <- TRUE & switch.fortification <- TRUE) dt.nutrients.kcals <-  getNewestVersion("dt.nutrients.kcalsVarFort", fileloc("resultsDir"))
+    if (switch.vars == FALSE & switch.fortification == FALSE) dt.nutrients.kcals <- getNewestVersion("dt.nutrients.kcals.base", fileloc("resultsDir"))
+    if (switch.vars == TRUE & switch.fortification == FALSE) dt.nutrients.kcals <-  getNewestVersion("dt.nutrients.kcalsVar", fileloc("resultsDir"))
+    if (switch.vars == TRUE & switch.fortification == TRUE) dt.nutrients.kcals <-  getNewestVersion("dt.nutrients.kcalsVarFort", fileloc("resultsDir"))
 
     dt.food.agg <- data.table::copy(dt.nutrients.kcals)
     formula.wide <- paste("scenario + region_code.IMPACT159 + year ~nutrient")
