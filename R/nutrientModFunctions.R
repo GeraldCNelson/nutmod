@@ -362,6 +362,7 @@ keyVariable <- function(variableName) {
                                  "crpol", "csoyb", "csbol", "csnfl", "csfol", "cplol", "cpkol", "crpsd",
                                  "ctols", "ctool", "ccoco", "ccafe", "cteas", "cothr", IMPACTfish_code,
                                  IMPACTalcohol_code))
+
   macronutrients <- c("protein_g", "fat_g", "carbohydrate_g",  "totalfiber_g")
   vitamins <- c("vit_c_mg", "thiamin_mg", "riboflavin_mg", "niacin_mg",
                 "vit_b6_mg", "folate_µg", "vit_b12_µg", "vit_a_rae_µg",
@@ -401,7 +402,6 @@ keyVariable <- function(variableName) {
     )
   # ,
 
-
   # commmented out because as of Dec 25, 2016, PR requirements for iron and zinc are now in req.RDA.minrls
   # ,
   # "req.PR.iron",
@@ -430,7 +430,7 @@ keyVariable <- function(variableName) {
         "IMPACTfoodCommodList",
         "scenarioListSSP.pop",
         "scenarioListSSP.GDP",
-        #        "scenarioListIMPACT",
+        # "scenarioListIMPACT",
         "DinY",
         "reqListSSP",
         "switch.useCookingRetnValues",
@@ -603,7 +603,7 @@ fileNameList <- function(variableName) {
   foodGroupLU      <-
     paste(nutrientDataDetails, foodGroupLUFileName, sep = "/")
   # SSP information ----
-  if (variableName %in% "SSPdataZip") {
+  if (variableName %in% c("SSPcsv", "SSPdataZip")) {
     SSPdataZipFile   <- "SspDb_country_data_2013-06-12.csv.zip"
     SSPdataZip       <- paste(SSPData, SSPdataZipFile, sep = "/")
     #get the name of the file inside the zip. Assumes only 1

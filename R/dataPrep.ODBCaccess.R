@@ -32,7 +32,7 @@ source("R/nutrientModFunctions.R")
 #                        "^", quote = "~", escape_double = FALSE,
 #                        trim_ws = TRUE)
 
-FOOD_DES <- as.data.table(read.csv("data-raw/NutrientData/sr28asc/FOOD_DES.txt",
+FOOD_DES <- as.data.table(fread("data-raw/NutrientData/sr28asc/FOOD_DES.txt",
                                    quote = "~", sep = "^", head = FALSE, stringsAsFactors = FALSE,
                                    col.names = c("NDB_No", "FdGrp_Cd", "Long_Desc", "Shrt_Desc", "ComName", "ManufacName", "Survey",
                                                  "Ref_Desc", "Refuse", "SciName", "N_Factor", "Pro_Factor", "Fat_Factor", "CHO_Factor"),
@@ -47,7 +47,7 @@ data.table::setnames(FOOD_DES, old = "NDB_No", new = "usda_code")
 FOOD_DES[, usda_code := as.character(usda_code)]
 
 #NUT_DATA <- as.data.table(sqlFetch(con, "NUT_DATA", as.is = TRUE)) #nutrient data file; code is Nutr_No; contains NDB_No
-NUT_DATA <- as.data.table(read.csv("data-raw/NutrientData/sr28asc/NUT_DATA.txt",
+NUT_DATA <- as.data.table(fread("data-raw/NutrientData/sr28asc/NUT_DATA.txt",
                                    quote = "~", sep = "^", head = FALSE, stringsAsFactors = FALSE,
                                    col.names = c("NDB_No", "Nutr_No", "Nutr_Val", "Num_Data_Pts", "Std_Error", "Src_Cd", "Deriv_Cd",
                                                  "Ref_NDB_No", "Add_Nutr_Mark", "Num_Studies", "Min", "Max", "DF", "Low_EB", "Up_EB",

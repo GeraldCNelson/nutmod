@@ -112,18 +112,28 @@ source("R/dataManagement.IMPACT.R")
 #paste(fileShortName, "food, sep = "."), iData - just data for food commodities, example is dt.CSEs.food.2016-06-21.rds
 #dt.IMPACTfood, iData
 
+cat("Running dataPrepFishStat.R\n\n")
+source("R/dataPrepFishStat.R")
+# adds fish data for composite fish commodities, writes out IMPACT variables just for composite fish items (names begin with c),
+# destination is fileloc("iData")
+
 cat("Running dataPrep.ODBCaccess.R\n\n")
 source("R/dataPrep.ODBCaccess.R")
 # reads in nutrient data from the USDA nutrient composition access database
 
-# replaced by  v feb 25, 2018
+# replaced by dataPrepUSDANuts.R feb 25, 2018
 # cat("Running dataManagement.ODBCaccess.R\n\n")
 # source("R/dataManagement.ODBCaccess.R")
 #Manipulates the results of the ODBC_access script and prepares dt.nutrients for later scripts
 
- cat("Running dataManagement.ODBCaccess.R\n\n")
+cat("Running dataPrepFortification.R\n\n")
+source("R/dataPrepFortification.R")
+# reads in data on where fortification occurs (not all types of fortification); writes out data file in appropriate format
+# and also creates facet maps with this information
+
+ cat("Running dataPrepUSDANuts.R\n\n")
 # source("R/dataManagement.ODBCaccess.R" \n\n")
- source("R/dataManagement.ODBCaccess.R")
+ source("R/dataPrepUSDANuts.R")
 
 cat("Running dataPrep.NutrientRequirements.R\n\n")
 source("R/dataPrep.NutrientRequirements.R")

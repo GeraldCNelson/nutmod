@@ -66,25 +66,25 @@ copyFile <- function(fileShortName, sourceDir, destDir, fileType) {
   file.copy(from = paste(sourceDir, oldVersionList, sep = "/"), to = destDir, overwrite = TRUE)
 }
 loadSwitchValues()
-if (switch.vars <- FALSE & switch.fortification <- FALSE) dt.nutrients.adj <- dt.nutrients.adj.base
-if (switch.vars <- TRUE & switch.fortification <- FALSE) dt.nutrients.adj <-  dt.nutrients.adjVar
-if (switch.vars <- TRUE & switch.fortification <- TRUE) dt.nutrients.adj <-  dt.nutrients.adjVarFort
+if (switch.vars == FALSE & switch.fortification == FALSE) dt.nutrients.adj <- getNewestVersion("dt.nutrients.adj.base", fileloc("resultsDir"))
+if (switch.vars <- TRUE & switch.fortification == FALSE) dt.nutrients.adj <-  getNewestVersion("dt.nutrients.adj.var", fileloc("resultsDir"))
+if (switch.vars == TRUE & switch.fortification == TRUE) dt.nutrients.adj <-  getNewestVersion("dt.nutrients.adj.varFort", fileloc("resultsDir"))
 
-if (switch.vars <- FALSE & switch.fortification <- FALSE) dt.foodNnuts <- getNewestVersion("dt.foodNnuts.base", fileloc("resultsDir"))
-if (switch.vars <- TRUE & switch.fortification <- FALSE) dt.foodNnuts <-  getNewestVersion("dt.foodNnutsVar", fileloc("resultsDir"))
-if (switch.vars <- TRUE & switch.fortification <- TRUE) dt.foodNnuts <-  getNewestVersion("dt.foodNnutsVarFort", fileloc("resultsDir"))
+if (switch.vars == FALSE & switch.fortification == FALSE) dt.foodNnuts <- getNewestVersion("dt.foodNnuts.base", fileloc("resultsDir"))
+if (switch.vars == TRUE & switch.fortification == FALSE) dt.foodNnuts <-  getNewestVersion("dt.foodNnuts.var", fileloc("resultsDir"))
+if (switch.vars == TRUE & switch.fortification == TRUE) dt.foodNnuts <-  getNewestVersion("dt.foodNnuts.varFort", fileloc("resultsDir"))
 
-if (switch.vars <- FALSE & switch.fortification <- FALSE) dt.nutrients.sum.FG <- getNewestVersion("dt.nutrients.sum.FG.base", fileloc("resultsDir"))
-if (switch.vars <- TRUE & switch.fortification <- FALSE) dt.nutrients.sum.FG <-  getNewestVersion("ddt.nutrients.sum.FGVar", fileloc("resultsDir"))
-if (switch.vars <- TRUE & switch.fortification <- TRUE) dt.nutrients.sum.FG <-  getNewestVersion("dt.nutrients.sum.FGVarFort", fileloc("resultsDir"))
+if (switch.vars == FALSE & switch.fortification == FALSE) dt.nutrients.sum.FG <- getNewestVersion("dt.nutrients.sum.FG.base", fileloc("resultsDir"))
+if (switch.vars == TRUE & switch.fortification == FALSE) dt.nutrients.sum.FG <-  getNewestVersion("dt.nutrients.sum.FG.var", fileloc("resultsDir"))
+if (switch.vars == TRUE & switch.fortification == TRUE) dt.nutrients.sum.FG <-  getNewestVersion("dt.nutrients.sum.FG.varFort", fileloc("resultsDir"))
 
-if (switch.vars <- FALSE & switch.fortification <- FALSE) dt.nutrients.sum.FG <- getNewestVersion("dt.nutrients.sum.FG.base", fileloc("resultsDir"))
-if (switch.vars <- TRUE & switch.fortification <- FALSE) dt.nutrients.sum.FG <-  getNewestVersion("ddt.nutrients.sum.FGVar", fileloc("resultsDir"))
-if (switch.vars <- TRUE & switch.fortification <- TRUE) dt.nutrients.sum.FG <-  getNewestVersion("dt.nutrients.sum.FGVarFort", fileloc("resultsDir"))
+if (switch.vars == FALSE & switch.fortification == FALSE) dt.nutrients.sum.FG <- getNewestVersion("dt.nutrients.sum.FG.base", fileloc("resultsDir"))
+if (switch.vars == TRUE & switch.fortification == FALSE) dt.nutrients.sum.FG <-  getNewestVersion("dt.nutrients.sum.FG.var", fileloc("resultsDir"))
+if (switch.vars == TRUE & switch.fortification == TRUE) dt.nutrients.sum.FG <-  getNewestVersion("dt.nutrients.sum.FG.varFort", fileloc("resultsDir"))
 
-if (switch.vars <- FALSE & switch.fortification <- FALSE) dt.foodAvail.foodGroup <- getNewestVersion("dt.foodAvail.foodGroup.base", fileloc("resultsDir"))
-if (switch.vars <- TRUE & switch.fortification <- FALSE) dt.foodAvail.foodGroup <-  getNewestVersion("dt.foodAvail.foodGroupVar", fileloc("resultsDir"))
-if (switch.vars <- TRUE & switch.fortification <- TRUE) dt.foodAvail.foodGroup <-  getNewestVersion("dt.foodAvail.foodGroupVarFort", fileloc("resultsDir"))
+if (switch.vars == FALSE & switch.fortification == FALSE) dt.foodAvail.foodGroup <- getNewestVersion("dt.foodAvail.foodGroup.base", fileloc("resultsDir"))
+if (switch.vars == TRUE & switch.fortification == FALSE) dt.foodAvail.foodGroup <-  getNewestVersion("dt.foodAvail.foodGroup.var", fileloc("resultsDir"))
+if (switch.vars == TRUE & switch.fortification == TRUE) dt.foodAvail.foodGroup <-  getNewestVersion("dt.foodAvail.foodGroup.varFort", fileloc("resultsDir"))
 
 copyListFromSpecificResults <- c( "dt.budgetShare",
                          "RDA.macro_sum_reqRatio", "RDA.vits_sum_reqRatio", "RDA.minrls_sum_reqRatio", "food_agg_AMDR_hi",

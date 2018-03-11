@@ -35,10 +35,10 @@ gdxChoice <- getGdxChoice()
 #' create legend grobs for use in multiple graph files -----
 updateLegendGrobs <- function(l, i, legendLoc, mergedVals) {
   # use an arbitrary file to construct the grob. This code modified from aggRun.R
-  DTglobal <- getNewestVersion("dt.budgetShare", fileloc("resultsDir"))
+  DTglobal <- getNewestVersion("dt.budgetShare.base", fileloc("resultsDir"))
   DT <- aggNorder(gdxChoice, DTglobal, aggChoice = i, scenChoice = get(l), mergedVals)
   ylab <- "(percent)"
-  print(paste("creating legend grob for ", i, ",", l, "and", legendLoc))
+  print(paste("\ncreating legend grob for ", i, ",", l, "and", legendLoc))
   regionCodes <- unique(DT$region_code)
   regionNames <- unique(DT$region_name)
   scenarios <- unique(DT$scenario)
@@ -183,7 +183,7 @@ aggNorder <- function(gdxChoice, DTglobal, aggChoice, scenChoice, mergedVals) {
 }
 
 plotByRegionBar <- function(dt, fileName, plotTitle, yLab, yRange, aggChoice, scenOrder, oneLine, colorList, AMDR_hi = NULL, plotErrorBars) {
- cat(paste("\nplotting bars by region", aggChoice, "for", plotTitle))
+ cat("\nplotting bars by region", aggChoice, "for", plotTitle)
   plotTitle <- capwords(plotTitle)
   temp <- copy(dt)
   regionCodes <- unique(temp$region_code)
@@ -255,7 +255,7 @@ plotByRegionBar <- function(dt, fileName, plotTitle, yLab, yRange, aggChoice, sc
 }
 
 plotByRegionStackedBar <- function(dt, fileName, plotTitle, yLab, yRange, aggChoice, scenOrder, oneLine, colorList) {
-  cat(paste("\nPlotting stacked bars by region", aggChoice, "for", plotTitle))
+  cat("\nPlotting stacked bars by region", aggChoice, "for", plotTitle)
   plotTitle <- capwords(plotTitle)
   temp <- copy(dt)
   regionCodes <- unique(temp$region_code)
@@ -313,7 +313,7 @@ plotByRegionStackedBar <- function(dt, fileName, plotTitle, yLab, yRange, aggCho
 }
 
 plotByBoxPlot2050 <- function(dt, fileName, plotTitle, yLab, yRange, aggChoice ){
-  print(paste("plotting boxplot for 2050 by region", aggChoice))
+  print(paste("\nplotting boxplot for 2050 by region", aggChoice))
   plotTitle <- capwords(plotTitle)
   temp <- copy(dt)
   regionCodes <- unique(temp$region_code)
@@ -386,7 +386,7 @@ plotByRegionLine <- function(dt, fileName, plotTitle, yRange, regionCodes, color
 
 # error bars-----
 plotByRegionErrorBars <- function(dt, fileName, plotTitle, yLab, yRange, aggChoice, oneLine) {
-  print(paste("plotting lines with error bars by region ", aggChoice, "for ", plotTitle))
+  print(paste("\nplotting lines with error bars by region ", aggChoice, "for ", plotTitle))
   plotTitle <- capwords(plotTitle)
   temp <- copy(dt)
   regionCodes <- unique(temp$region_code)
@@ -435,7 +435,7 @@ plotByRegionErrorBars <- function(dt, fileName, plotTitle, yLab, yRange, aggChoi
 }
 
 plotByRegionBarAMDR <- function(dt, fileName, plotTitle, yLab, yRange, aggChoice, scenOrder, colorList, AMDR_lo, AMDR_hi, graphsListHolder, plotErrorBars) {
-  print(paste("plotting AMDR bars for region ", aggChoice, "for", plotTitle))
+  print(paste("\nplotting AMDR bars for region ", aggChoice, "for", plotTitle))
   plotTitle <- capwords(plotTitle)
   temp <- copy(dt)
   regionCodes <- unique(temp$region_code)
@@ -473,7 +473,7 @@ plotByRegionBarAMDR <- function(dt, fileName, plotTitle, yLab, yRange, aggChoice
   #' code to save the plot for future use
   graphsListHolder[[fileName]] <- p
   assign("graphsListHolder", graphsListHolder, envir = .GlobalEnv)
-
+print(fileName) # delete later
   print(p)
   dev.off()
 

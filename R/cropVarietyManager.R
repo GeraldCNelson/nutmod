@@ -46,9 +46,9 @@ data.table::setnames(nutr_def, old = "Units", new = "unit")
   #wheatNames <- c("durum", "hardRedSpring", "hardRedWinter", "softRedWinter", "hardWhite", "softWhite")
   riceCodes <- c("20036", "20040", "20054", "20446", "20450", "20452", "20444")
   maizeCodes <- c("20314", "20014", "20020")
-  #' default wheat is 20072, hardRedWinter
-  #' default rice is 20444, Rice, white, long-grain, regular, raw, unenriched
-  #' default maize is currently 20020 Cornmeal, whole-grain, yellow; should this be changed?
+  #' base wheat is 20072, hardRedWinter
+  #' base rice is 20444, Rice, white, long-grain, regular, raw, unenriched
+  #' base maize is currently 20020 Cornmeal, whole-grain, yellow; should this be changed?
 
   variety_data <- nut_data[usda_code %in% c(wheatCodes, riceCodes, maizeCodes),]
   # add IMPACT code for the crop to the variety specific information on nutrients

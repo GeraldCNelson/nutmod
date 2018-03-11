@@ -28,270 +28,277 @@ reqsToDelete <- c( "req.EAR", "req.AMDR_hi", "req.AMDR_lo" ) #, "req.UL.vits", "
 reqList <- reqList[!reqList %in% reqsToDelete]
 AMDRs <-  c("req.AMDR_hi", "req.AMDR_lo")
 
-#do AMDRs as a special case
-for (i in AMDRs) {
-  print(paste0("------ working on ", i))
-  reqShortName <- gsub("req.", "", i)
-  temp <- paste("food_agg_", reqShortName, sep = "")
-  DT <- getNewestVersion(temp, fileloc("resultsDir"))
-  basicKey <- c("scenario", "region_code.IMPACT159", "year")
+for (switchloop in 1:3) {
+  if (switchloop == 1) {switch.vars <- FALSE;  switch.fortification <- FALSE; suffix = "base"}
+  if (switchloop == 2) {switch.vars <- TRUE;  switch.fortification <- FALSE; suffix = "var"}
+  if (switchloop == 3) {switch.vars <- TRUE;  switch.fortification <- TRUE; suffix = "varFort"}
 
-  DT.long <- data.table::melt(
-  DT,
-  id.vars = basicKey,
-  measure.vars =  c("carbohydrate_g.reqRatio.all", "fat_g.reqRatio.all" , "protein_g.reqRatio.all"),
-  variable.name = "nutrient",
-  value.name = "value", variable.factor = FALSE)
-  DT.long[, nutrient := gsub(".reqRatio.all", "",nutrient)]
-  inDT <- unique(DT.long)
-  outName <- paste(reqShortName, "sum_reqRatio", sep = "_")
-  cleanup(inDT, outName, fileloc("resultsDir"), "csv")
-}
+  #do AMDRs as a special case
+  for (i in AMDRs) {
+    print(paste0("------ working on ", i))
+    reqShortName <- gsub("req.", "", i)
+    temp <- paste("food_agg_", reqShortName, ".", suffix, sep = "")
+    DT <- getNewestVersion(temp, fileloc("resultsDir"))
+    basicKey <- c("scenario", "region_code.IMPACT159", "year")
 
-# individual food function -----
-req <- "req.RDA.vits" # - for testing purposes
-f.ratios.all <- function(){
-  keepListCol <- c(mainCols, cols.all)
-  dt.food_agg <- dt.food_agg.master[, (keepListCol), with = FALSE]
-  sumKey <- c(basicKey, "IMPACT_code")
-  # the total daily consumption of each nutrient
-  nutList.sum.all <-    paste(nutList, "sum.all", sep = ".")
-  # the ratio of daily consumption of each nutrient to the total consumption
-  nutList.ratio.all <-   paste(nutList, "ratio.all", sep = ".")
-  # the ratio of daily consumption of each nutrient by the nutrient requirement
-  nutList_reqRatio_all <- paste(nutList, "reqRatio.all", sep = ".")
+    DT.long <- data.table::melt(
+      DT,
+      id.vars = basicKey,
+      measure.vars =  c("carbohydrate_g.reqRatio.all", "fat_g.reqRatio.all" , "protein_g.reqRatio.all"),
+      variable.name = "nutrient",
+      value.name = "value", variable.factor = FALSE)
+    DT.long[, nutrient := gsub(".reqRatio.all", "",nutrient)]
+    inDT <- unique(DT.long)
+    outName <- paste(reqShortName, "_sum_reqRatio", ".", suffix, sep = "")
+    cleanup(inDT, outName, fileloc("resultsDir"), "csv")
+  }
 
-  # the list of columns to keep for each group of data tables
-  keepListCol.sum.all <-    c(basicKey, nutList.sum.all)
-  keepListCol.ratio.all <-   c(sumKey, nutList.ratio.all)
-  keepListCol_reqRatio_all <- c(sumKey, nutList_reqRatio_all)
+  # individual food function -----
+  req <- "req.RDA.vits" # - for testing purposes
+  f.ratios.all <- function(){
+    keepListCol <- c(mainCols, cols.all)
+    dt.food_agg <- dt.food_agg.master[, (keepListCol), with = FALSE]
+    sumKey <- c(basicKey, "IMPACT_code")
+    # the total daily consumption of each nutrient
+    nutList.sum.all <-    paste(nutList, "sum.all", sep = ".")
+    # the ratio of daily consumption of each nutrient to the total consumption
+    nutList.ratio.all <-   paste(nutList, "ratio.all", sep = ".")
+    # the ratio of daily consumption of each nutrient by the nutrient requirement
+    nutList_reqRatio_all <- paste(nutList, "reqRatio.all", sep = ".")
 
-  # create the data table and remove unneeded columns
-  dt.all.sum <- dt.food_agg[,keepListCol.sum.all, with = FALSE]
-  data.table::setkey(dt.all.sum)
-  dt.all.sum <- unique(dt.all.sum)
+    # the list of columns to keep for each group of data tables
+    keepListCol.sum.all <-    c(basicKey, nutList.sum.all)
+    keepListCol.ratio.all <-   c(sumKey, nutList.ratio.all)
+    keepListCol_reqRatio_all <- c(sumKey, nutList_reqRatio_all)
 
-  dt.all.ratio <- dt.food_agg[,   keepListCol.ratio.all, with = FALSE]
-  data.table::setkey(dt.all.ratio)
-  dt.all.ratio <- unique(dt.all.ratio)
+    # create the data table and remove unneeded columns
+    dt.all.sum <- dt.food_agg[,keepListCol.sum.all, with = FALSE]
+    data.table::setkey(dt.all.sum)
+    dt.all.sum <- unique(dt.all.sum)
 
-  dt.all.reqRatio <- dt.food_agg[, keepListCol_reqRatio_all, with = FALSE]
-  data.table::setkey(dt.all.reqRatio)
-  dt.all.reqRatio <- unique(dt.all.reqRatio)
+    dt.all.ratio <- dt.food_agg[,   keepListCol.ratio.all, with = FALSE]
+    data.table::setkey(dt.all.ratio)
+    dt.all.ratio <- unique(dt.all.ratio)
 
-  # calculate the ratio of nutrient consumption for all commodities to the requirement
-  # # dt.sum.copy <- data.table::copy(dt.all.sum)
-  #  # scenarioComponents code needed because nutsReqPerCap are only available with scenario as SSPs
-  #  scenarioComponents <- c("SSP", "climate_model", "experiment")
-  #  dt.sum[, (scenarioComponents) := data.table::tstrsplit(scenario, "-", fixed = TRUE)]
-  #  dt.nuts.temp <- dt.nutsReqPerCap[scenario %in% unique(dt.sum$SSP),]
-  #  temp <- merge(dt.sum,dt.nuts.temp, by.x = c("SSP", "region_code.IMPACT159", "year"),
-  #                by.y = c("scenario", "region_code.IMPACT159", "year"),
-  #                all.x = TRUE)
-  #  temp[,SSP := NULL]
-  nutListSum <- as.vector(paste(nutList,".sum.all", sep = ""))
-  nutListReqRatio <- as.vector(paste(nutList,".reqRatio", sep = ""))
-  nutListReq <- as.vector(paste(nutList,".req", sep = ""))
-  # note: an alternative to the Map code below is simply to sum (using ethanol as an example) ethanol_g.reqRatio.all by scenario year region
-  # the R code is explained at http://stackoverflow.com/questions/37802687/r-data-table-divide-list-of-columns-by-a-second-list-of-columns
-  dt.food_agg[, (nutListReqRatio) := Map(`/`, mget(nutListSum), mget(nutListReq))]
-  keepListCol <- c(basicKey, nutListReqRatio)
-  dt.sum.reqRatio <- unique(dt.food_agg[, keepListCol, with = FALSE])
+    dt.all.reqRatio <- dt.food_agg[, keepListCol_reqRatio_all, with = FALSE]
+    data.table::setkey(dt.all.reqRatio)
+    dt.all.reqRatio <- unique(dt.all.reqRatio)
 
-  dt.all.sum.long <- data.table::melt(
-    dt.all.sum,  id.vars = basicKey,
-    measure.vars = nutList.sum.all,
-    variable.name = "nutrient",
-    value.name = "value", variable.factor = FALSE)
-  dt.all.sum.long[, nutrient := gsub(".sum.all", "",nutrient)]
+    # calculate the ratio of nutrient consumption for all commodities to the requirement
+    # # dt.sum.copy <- data.table::copy(dt.all.sum)
+    #  # scenarioComponents code needed because nutsReqPerCap are only available with scenario as SSPs
+    #  scenarioComponents <- c("SSP", "climate_model", "experiment")
+    #  dt.sum[, (scenarioComponents) := data.table::tstrsplit(scenario, "-", fixed = TRUE)]
+    #  dt.nuts.temp <- dt.nutsReqPerCap[scenario %in% unique(dt.sum$SSP),]
+    #  temp <- merge(dt.sum,dt.nuts.temp, by.x = c("SSP", "region_code.IMPACT159", "year"),
+    #                by.y = c("scenario", "region_code.IMPACT159", "year"),
+    #                all.x = TRUE)
+    #  temp[,SSP := NULL]
+    nutListSum <- as.vector(paste(nutList,".sum.all", sep = ""))
+    nutListReqRatio <- as.vector(paste(nutList,".reqRatio", sep = ""))
+    nutListReq <- as.vector(paste(nutList,".req", sep = ""))
+    # note: an alternative to the Map code below is simply to sum (using ethanol as an example) ethanol_g.reqRatio.all by scenario year region
+    # the R code is explained at http://stackoverflow.com/questions/37802687/r-data-table-divide-list-of-columns-by-a-second-list-of-columns
+    dt.food_agg[, (nutListReqRatio) := Map(`/`, mget(nutListSum), mget(nutListReq))]
+    keepListCol <- c(basicKey, nutListReqRatio)
+    dt.sum.reqRatio <- unique(dt.food_agg[, keepListCol, with = FALSE])
 
-  dt.sum_reqRatio_long <- data.table::melt(
-    dt.sum.reqRatio,
-    id.vars = basicKey,
-    measure.vars = nutListReqRatio,
-    variable.name = "nutrient",
-    value.name = "value", variable.factor = FALSE)
-  dt.sum_reqRatio_long[, nutrient := gsub(".reqRatio", "",nutrient)]
+    dt.all.sum.long <- data.table::melt(
+      dt.all.sum,
+      id.vars = basicKey,
+      measure.vars = nutList.sum.all,
+      variable.name = "nutrient",
+      value.name = "value", variable.factor = FALSE)
+    dt.all.sum.long[, nutrient := gsub(".sum.all", "",nutrient)]
 
-  dt.all.ratio.long <- data.table::melt(
-    dt.all.ratio, id.vars = sumKey,
-    measure.vars = nutList.ratio.all,
-    variable.name = "nutrient",
-    #    value.name = "nut_share", variable.factor = FALSE)
-    value.name = "value", variable.factor = FALSE)
-  dt.all.ratio.long[, nutrient := gsub(".ratio.all", "", nutrient)]
+    dt.sum_reqRatio_long <- data.table::melt(
+      dt.sum.reqRatio,
+      id.vars = basicKey,
+      measure.vars = nutListReqRatio,
+      variable.name = "nutrient",
+      value.name = "value", variable.factor = FALSE)
+    dt.sum_reqRatio_long[, nutrient := gsub(".reqRatio", "",nutrient)]
 
-  dt.all_reqRatio_long <- data.table::melt(
-    dt.all.reqRatio,
-    id.vars =  sumKey,
-    measure.vars = nutList_reqRatio_all,
-    variable.name = "nutrient",
-    value.name = "value", variable.factor = FALSE)
-  dt.all_reqRatio_long[, nutrient := gsub(".reqRatio_all", "",nutrient)]
+    dt.all.ratio.long <- data.table::melt(
+      dt.all.ratio, id.vars = sumKey,
+      measure.vars = nutList.ratio.all,
+      variable.name = "nutrient",
+      #    value.name = "nut_share", variable.factor = FALSE)
+      value.name = "value", variable.factor = FALSE)
+    dt.all.ratio.long[, nutrient := gsub(".ratio.all", "", nutrient)]
 
-  reqShortName <- gsub("req.", "", req)
+    dt.all_reqRatio_long <- data.table::melt(
+      dt.all.reqRatio,
+      id.vars =  sumKey,
+      measure.vars = nutList_reqRatio_all,
+      variable.name = "nutrient",
+      value.name = "value", variable.factor = FALSE)
+    dt.all_reqRatio_long[, nutrient := gsub(".reqRatio_all", "",nutrient)]
 
-  inDT <- unique(dt.all.sum.long)
-  outName <- paste(reqShortName, "all_sum", sep = "_")
-  cleanup(inDT, outName, fileloc("resultsDir"), "csv")
+    reqShortName <- gsub("req.", "", req)
 
-  inDT <- dt.sum_reqRatio_long
-  inDT[, nutrient := gsub("_reqRatio", "", nutrient)]
-  inDT <- unique(inDT)
-  print(paste0("dt.sum_reqRatio_long"))
-  outName <- paste(reqShortName, "sum_reqRatio", sep = "_")
-  cleanup(inDT, outName, fileloc("resultsDir"), "csv")
+    inDT <- unique(dt.all.sum.long)
+    outName <- paste(reqShortName, "_all_sum", ".", suffix, sep = "")
+    cleanup(inDT, outName, fileloc("resultsDir"), "csv")
 
-  inDT <- unique(dt.all.ratio.long)
-  outName <- paste(reqShortName, "all_ratio", sep = "_")
-  cleanup(inDT, outName, fileloc("resultsDir"), "csv")
+    inDT <- dt.sum_reqRatio_long
+    inDT[, nutrient := gsub("_reqRatio", "", nutrient)]
+    inDT <- unique(inDT)
+    print(paste0("dt.sum_reqRatio_long"))
+    outName <- paste(reqShortName, "_sum_reqRatio", ".", suffix, sep = "")
+    cleanup(inDT, outName, fileloc("resultsDir"), "csv")
 
-  inDT <- dt.all_reqRatio_long
-  inDT[, nutrient := gsub("_reqRatio_all", "", nutrient)]
-  inDT <- unique(inDT)
-  outName <- paste(reqShortName, "all_reqRatio", sep = "_")
-  cleanup(inDT, outName, fileloc("resultsDir"), "csv")
-}
+    inDT <- unique(dt.all.ratio.long)
+    outName <- paste(reqShortName, "_all_ratio", ".", suffix, sep = "")
+    cleanup(inDT, outName, fileloc("resultsDir"), "csv")
 
-# foodGroup function -----
-f.ratios.FG <- function(){
-  dt.food_agg <- data.table::copy(dt.food_agg.master)
-  keepListCol <- c(mainCols, cols.foodGroup)
-  dt.food_agg <- dt.food_agg[, (keepListCol), with = FALSE]
-  foodGroupKey <- c(basicKey, "food_group_code")
-  nutList_ratio_foodGroup <-   paste(nutList, "ratio.foodGroup", sep = ".")
-  nutList_reqRatio_foodGroup <- paste(nutList, "reqRatio.foodGroup", sep = ".")
-  keepListCol_ratio_foodGroup <-   c(foodGroupKey, nutList_ratio_foodGroup)
-  keepListCol_reqRatio_foodGroup <- c(foodGroupKey, nutList_reqRatio_foodGroup)
-  dt.foodGroup_ratio <- dt.food_agg[,   keepListCol_ratio_foodGroup, with = FALSE]
-  data.table::setkey(dt.foodGroup_ratio)
-  dt.foodGroup.ratio <- unique(dt.foodGroup_ratio)
-  dt.foodGroup.reqRatio <- dt.food_agg[, keepListCol_reqRatio_foodGroup, with = FALSE]
-  data.table::setkey(dt.foodGroup.reqRatio)
-  dt.foodGroup_reqRatio <- unique(dt.foodGroup.reqRatio)
+    inDT <- dt.all_reqRatio_long
+    inDT[, nutrient := gsub("_reqRatio_all", "", nutrient)]
+    inDT <- unique(inDT)
+    outName <- paste(reqShortName, "_all_reqRatio", ".", suffix, sep = "")
+    cleanup(inDT, outName, fileloc("resultsDir"), "csv")
+  }
 
-  dt.foodGroup.ratio.long <- data.table::melt(
-    dt.foodGroup.ratio,
-    id.vars = foodGroupKey,
-    measure.vars = nutList_ratio_foodGroup,
-    variable.name = "nutrient",
-    value.name = "value",
-    variable.factor = FALSE
-  )
+  # foodGroup function -----
+  f.ratios.FG <- function(){
+    dt.food_agg <- data.table::copy(dt.food_agg.master)
+    keepListCol <- c(mainCols, cols.foodGroup)
+    dt.food_agg <- dt.food_agg[, (keepListCol), with = FALSE]
+    foodGroupKey <- c(basicKey, "food_group_code")
+    nutList_ratio_foodGroup <-   paste(nutList, "ratio.foodGroup", sep = ".")
+    nutList_reqRatio_foodGroup <- paste(nutList, "reqRatio.foodGroup", sep = ".")
+    keepListCol_ratio_foodGroup <-   c(foodGroupKey, nutList_ratio_foodGroup)
+    keepListCol_reqRatio_foodGroup <- c(foodGroupKey, nutList_reqRatio_foodGroup)
+    dt.foodGroup_ratio <- dt.food_agg[,   keepListCol_ratio_foodGroup, with = FALSE]
+    data.table::setkey(dt.foodGroup_ratio)
+    dt.foodGroup.ratio <- unique(dt.foodGroup_ratio)
+    dt.foodGroup.reqRatio <- dt.food_agg[, keepListCol_reqRatio_foodGroup, with = FALSE]
+    data.table::setkey(dt.foodGroup.reqRatio)
+    dt.foodGroup_reqRatio <- unique(dt.foodGroup.reqRatio)
 
-  dt.foodGroup_reqRatio_long <- data.table::melt(
-    dt.foodGroup.reqRatio,
-    id.vars = foodGroupKey,
-    measure.vars = nutList_reqRatio_foodGroup,
-    variable.name = "nutrient",
-    value.name = "value",
-    variable.factor = FALSE
-  )
+    dt.foodGroup.ratio.long <- data.table::melt(
+      dt.foodGroup.ratio,
+      id.vars = foodGroupKey,
+      measure.vars = nutList_ratio_foodGroup,
+      variable.name = "nutrient",
+      value.name = "value",
+      variable.factor = FALSE
+    )
 
-  reqShortName <- gsub("req.", "", req)
+    dt.foodGroup_reqRatio_long <- data.table::melt(
+      dt.foodGroup.reqRatio,
+      id.vars = foodGroupKey,
+      measure.vars = nutList_reqRatio_foodGroup,
+      variable.name = "nutrient",
+      value.name = "value",
+      variable.factor = FALSE
+    )
 
-  inDT <- unique(dt.foodGroup.ratio.long)
-  outName <- paste(reqShortName, "FGratio", sep = "_")
-  cleanup(inDT, outName, fileloc("resultsDir"), "csv")
+    reqShortName <- gsub("req.", "", req)
 
-  inDT <- unique(dt.foodGroup_reqRatio_long)
-  outName <- paste(reqShortName, "FG_reqRatio", sep = "_")
-  cleanup(inDT, outName, fileloc("resultsDir"), "csv")
-}
+    inDT <- unique(dt.foodGroup.ratio.long)
+    outName <- paste(reqShortName, "_FGratio", ".", suffix, sep = "")
+    cleanup(inDT, outName, fileloc("resultsDir"), "csv")
 
-# staples function
-f.ratios.staples <- function(){
-  dt.food_agg <- data.table::copy(dt.food_agg.master)
-  keepListCol <- c(mainCols, cols.staple)
-  dt.food_agg <- dt.food_agg[, (keepListCol), with = FALSE]
-  stapleKey <- c(basicKey, "staple_code")
+    inDT <- unique(dt.foodGroup_reqRatio_long)
+    outName <- paste(reqShortName, "_FG_reqRatio", ".", suffix, sep = "")
+    cleanup(inDT, outName, fileloc("resultsDir"), "csv")
+  }
 
-  # the total daily consumption of each staple
-  nutList_sum_staple <-    paste(nutList, "sum.staple", sep = ".")
+  # staples function
+  f.ratios.staples <- function(){
+    dt.food_agg <- data.table::copy(dt.food_agg.master)
+    keepListCol <- c(mainCols, cols.staple)
+    dt.food_agg <- dt.food_agg[, (keepListCol), with = FALSE]
+    stapleKey <- c(basicKey, "staple_code")
 
-  # the ratio of daily consumption of each nutrient for each staple to the total consumption
-  nutList_ratio_staple <-   paste(nutList, "ratio.staple", sep = ".")
-  nutList_reqRatio_staple <- paste(nutList, "reqRatio.staple", sep = ".")
-  keepListCol_sum_staple <-    c(stapleKey, nutList_sum_staple)
-  keepListCol_ratio_staple <-   c(stapleKey, nutList_ratio_staple)
-  keepListCol_reqRatio_staple <- c(stapleKey, nutList_reqRatio_staple)
+    # the total daily consumption of each staple
+    nutList_sum_staple <-    paste(nutList, "sum.staple", sep = ".")
 
-  dt.staples.sum <- dt.food_agg[,    keepListCol_sum_staple, with = FALSE]
-  data.table::setkey(dt.staples.sum, NULL)
-  dt.staples.sum <- unique(dt.staples.sum)
-  dt.staples.ratio <- dt.food_agg[,   keepListCol_ratio_staple, with = FALSE]
-  data.table::setkey(dt.staples.ratio, NULL)
-  dt.staples.ratio <- unique(dt.staples.ratio)
-  dt.staples.reqRatio <- dt.food_agg[, keepListCol_reqRatio_staple, with = FALSE]
-  data.table::setkey(dt.staples.reqRatio, NULL)
-  dt.staples.reqRatio <- unique(dt.staples.reqRatio)
+    # the ratio of daily consumption of each nutrient for each staple to the total consumption
+    nutList_ratio_staple <-   paste(nutList, "ratio.staple", sep = ".")
+    nutList_reqRatio_staple <- paste(nutList, "reqRatio.staple", sep = ".")
+    keepListCol_sum_staple <-    c(stapleKey, nutList_sum_staple)
+    keepListCol_ratio_staple <-   c(stapleKey, nutList_ratio_staple)
+    keepListCol_reqRatio_staple <- c(stapleKey, nutList_reqRatio_staple)
 
-  #reshape the results to get years in columns
-  dt.staples.sum.long <- data.table::melt(
-    dt.staples.sum,
-    id.vars = stapleKey,
-    measure.vars = nutList_sum_staple,
-    variable.name = "nutrient",
-    value.name = "value",
-    variable.factor = FALSE
-  )
+    dt.staples.sum <- dt.food_agg[,    keepListCol_sum_staple, with = FALSE]
+    data.table::setkey(dt.staples.sum, NULL)
+    dt.staples.sum <- unique(dt.staples.sum)
+    dt.staples.ratio <- dt.food_agg[,   keepListCol_ratio_staple, with = FALSE]
+    data.table::setkey(dt.staples.ratio, NULL)
+    dt.staples.ratio <- unique(dt.staples.ratio)
+    dt.staples.reqRatio <- dt.food_agg[, keepListCol_reqRatio_staple, with = FALSE]
+    data.table::setkey(dt.staples.reqRatio, NULL)
+    dt.staples.reqRatio <- unique(dt.staples.reqRatio)
 
-  dt.staples.ratio.long <- data.table::melt(
-    dt.staples.ratio,
-    id.vars = stapleKey,
-    measure.vars = nutList_ratio_staple,
-    variable.name = "nutrient",
-    value.name = "value",
-    variable.factor = FALSE
-  )
+    #reshape the results to get years in columns
+    dt.staples.sum.long <- data.table::melt(
+      dt.staples.sum,
+      id.vars = stapleKey,
+      measure.vars = nutList_sum_staple,
+      variable.name = "nutrient",
+      value.name = "value",
+      variable.factor = FALSE
+    )
 
-  dt.staples_reqRatio_long <- data.table::melt(
-    dt.staples.reqRatio,
-    id.vars = stapleKey,
-    measure.vars = nutList_reqRatio_staple,
-    variable.name = "nutrient",
-    value.name = "value",
-    variable.factor = FALSE
-  )
+    dt.staples.ratio.long <- data.table::melt(
+      dt.staples.ratio,
+      id.vars = stapleKey,
+      measure.vars = nutList_ratio_staple,
+      variable.name = "nutrient",
+      value.name = "value",
+      variable.factor = FALSE
+    )
 
-  reqShortName <- gsub("req.", "", req)
-  inDT <- unique(dt.staples.sum.long)
-  outName <- paste(reqShortName, "staples_sum", sep = "_")
-  cleanup(inDT, outName, fileloc("resultsDir"), "csv")
+    dt.staples_reqRatio_long <- data.table::melt(
+      dt.staples.reqRatio,
+      id.vars = stapleKey,
+      measure.vars = nutList_reqRatio_staple,
+      variable.name = "nutrient",
+      value.name = "value",
+      variable.factor = FALSE
+    )
 
-  inDT <- unique(dt.staples.ratio.long)
-  outName <- paste(reqShortName, "staples_ratio", sep = "_")
-  cleanup(inDT, outName, fileloc("resultsDir"), "csv")
+    reqShortName <- gsub("req.", "", req)
+    inDT <- unique(dt.staples.sum.long)
+    outName <- paste(reqShortName, "_staples_sum", ".", suffix, sep = "")
+    cleanup(inDT, outName, fileloc("resultsDir"), "csv")
 
-  #  inDT <- dt.staples_reqRatio_wide
-  inDT <- unique(dt.staples_reqRatio_long)
-  outName <- paste(reqShortName, "staples_reqRatio", sep = "_")
-  cleanup(inDT, outName, fileloc("resultsDir"), "csv")
-}
+    inDT <- unique(dt.staples.ratio.long)
+    outName <- paste(reqShortName, "_staples_ratio", ".", suffix, sep = "")
+    cleanup(inDT, outName, fileloc("resultsDir"), "csv")
 
-for (req in reqList) {
-  print(paste0("------ working on ", req))
-  reqShortName <- gsub("req.", "", req)
-  temp <- paste("food_agg_", reqShortName, sep = "")
-  dt.food_agg.master <- getNewestVersion(temp, fileloc("resultsDir"))
-  dt.food_agg.master[, scenario := gsub("IRREXP-WUE2", "IRREXP_WUE2", scenario)]
-  dt.food_agg.master[, scenario := gsub("PHL-DEV2", "PHL_DEV2", scenario)]
-  # get list of nutrients from dt.nutsReqPerCap for the req set of requirements
-  dt.nutsReqPerCap <- getNewestVersion(paste(req,"percap",sep = "_"))
-  nutList <- names(dt.nutsReqPerCap)[4:length(names(dt.nutsReqPerCap))]
-  basicKey <- c("scenario", "region_code.IMPACT159", "year")
-  cols.all <- names(dt.food_agg.master)[grep(".all", names(dt.food_agg.master))]
-  cols.staple <- names(dt.food_agg.master)[grep(".staple", names(dt.food_agg.master))]
-  cols.foodGroup <- names(dt.food_agg.master)[grep(".foodGroup", names(dt.food_agg.master))]
-  mainCols <- names(dt.food_agg.master)[!names(dt.food_agg.master) %in% c(cols.all,cols.staple,cols.foodGroup)]
+    #  inDT <- dt.staples_reqRatio_wide
+    inDT <- unique(dt.staples_reqRatio_long)
+    outName <- paste(reqShortName, "_staples_reqRatio", ".", suffix, sep = "")
+    cleanup(inDT, outName, fileloc("resultsDir"), "csv")
+  }
 
-# run the ratios functions -----
-  f.ratios.all()
-  f.ratios.staples()
-  f.ratios.FG()
+  for (req in reqList) {
+    print(paste0("------ working on ", req))
+    reqShortName <- gsub("req.", "", req)
+    temp <- paste("food_agg_", reqShortName, ".", suffix, sep = "")
+    dt.food_agg.master <- getNewestVersion(temp, fileloc("resultsDir"))
+    dt.food_agg.master[, scenario := gsub("IRREXP-WUE2", "IRREXP_WUE2", scenario)]
+    dt.food_agg.master[, scenario := gsub("PHL-DEV2", "PHL_DEV2", scenario)]
+    # get list of nutrients from dt.nutsReqPerCap for the req set of requirements
+    dt.nutsReqPerCap <- getNewestVersion(paste(req,"percap",sep = "_"))
+    nutList <- names(dt.nutsReqPerCap)[4:length(names(dt.nutsReqPerCap))]
+    basicKey <- c("scenario", "region_code.IMPACT159", "year")
+    cols.all <- names(dt.food_agg.master)[grep(".all", names(dt.food_agg.master))]
+    cols.staple <- names(dt.food_agg.master)[grep(".staple", names(dt.food_agg.master))]
+    cols.foodGroup <- names(dt.food_agg.master)[grep(".foodGroup", names(dt.food_agg.master))]
+    mainCols <- names(dt.food_agg.master)[!names(dt.food_agg.master) %in% c(cols.all,cols.staple,cols.foodGroup)]
+
+    # run the ratios functions -----
+    f.ratios.all()
+    f.ratios.staples()
+    f.ratios.FG()
+  }
 }
 # kcals calculations -----
-print("------ working on kcals")
+# print("------ working on kcals")
 # # fats, etc share of total kcals ------
 # # source of conversion http://www.convertunits.com/from/joules/to/calorie+[thermochemical]
 # # fat 37kJ/g - 8.8432122371 kCal

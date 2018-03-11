@@ -16,12 +16,13 @@
 #' @description Has functions for cooking retention and budget share calculations
 #'
 
-loadSwitchValues <- function() {
-  assign("switch.useCookingRetnValues", keyVariable("switch.useCookingRetnValues"), envir = .GlobalEnv)
-  assign("switch.fixFish", keyVariable("switch.fixFish"), envir = .GlobalEnv)
-  assign("switch.vars", keyVariable("switch.vars"), envir = .GlobalEnv)
-  assign("switch.fortification", keyVariable("switch.fortification"), envir = .GlobalEnv)
-}
+# loadSwitchValues has been replaced. Leaving the code here for a while. Mar 6, 2018
+# loadSwitchValues <- function() {
+#   assign("switch.useCookingRetnValues", keyVariable("switch.useCookingRetnValues"), envir = .GlobalEnv)
+#   assign("switch.fixFish", keyVariable("switch.fixFish"), envir = .GlobalEnv)
+#   assign("switch.vars", keyVariable("switch.vars"), envir = .GlobalEnv)
+#   assign("switch.fortification", keyVariable("switch.fortification"), envir = .GlobalEnv)
+# }
 #switches <- function(switch.useCookingRetnValues, switch.fixFish, switch.vars, switch.fortification) {
 switches <- function() {
   # dt.IMPACTcodeLU <- data.table::as.data.table(openxlsx::read.xlsx("data-raw/NutrientData/nutrientDetails/IMPACTCodeLookup.xlsx"))
@@ -29,7 +30,7 @@ switches <- function() {
   # dt.USDAnutrients <- getNewestVersion("dt.USDAnutrients", fileloc("iData"))
   # dt.composites.wld <- getNewestVersion("dt.composites.wld", fileloc("iData"))
  dt.composites.cty <- getNewestVersion("dt.composites.cty", fileloc("iData"))
-  dt.nutrients.defaultVars <- getNewestVersion("dt.nutrients.defaultVars", fileloc("iData"))
+  dt.nutrients.baseVars <- getNewestVersion("dt.nutrients.baseVars", fileloc("iData"))
   dt.nutrients.ctyVars <- getNewestVersion("dt.nutrients.ctyVars", fileloc("iData"))
   dt.nutrients.ctyVars.fort <- getNewestVersion("dt.nutrients.ctyVars.fort", fileloc("iData"))
 
@@ -42,66 +43,15 @@ switches <- function() {
     #   deleteListCol <- c("Ref_Desc", "phytate_source","ft_acds_tot_trans_g", "caffeine_mg", "cholesterol_mg",
     #                      "retentioncode_aus", "RetnDesc")
     #   dt.nutrients[, (deleteListCol) := NULL]
-    dt.nutrients <- dt.nutrients.defaultVars
+    dt.nutrients <- dt.nutrients.baseVars
     deleteListCol <- c("ft_acds_tot_trans_g", "caffeine_mg", "cholesterol_mg")
     dt.nutrients[, (deleteListCol) := NULL]
   } else {
     dt.nutrients <- dt.nutrients.ctyVars
     deleteListCol <- c("ft_acds_tot_trans_g", "caffeine_mg", "cholesterol_mg")
     dt.nutrients[, (deleteListCol) := NULL]
-    # old commented out below
-    # get the complete nutrient lookup file
-    # dt.nutrients <- getNewestVersion("dt.nutrients.full", fileloc("mData"))
-    # #get the country crop variety lookup data table
-    # library(readxl)
-    # dt.countryCropVariety <- as.data.table(read_excel("data-raw/NutrientData/countryCropVariety.xlsx", na = "NA"))
-    # ctyNames <- names(dt.countryCropVariety)[!names(dt.countryCropVariety) %in% c("IMPACT_code", "usda_code")]
-    # dt.countryCropVariety[, (ctyNames) := lapply(.SD, function(x) ifelse(is.na(x), usda_code, x)), .SDcols = (ctyNames)]
-    # dt.countryCropVariety <- dt.countryCropVariety[-1,] # remove country names
-    # dt.countryCropVariety.long <- data.table::melt(
-    #   data = dt.countryCropVariety,
-    #   id.vars = c("IMPACT_code", "usda_code"),
-    #   measure.vars = ctyNames ,
-    #   variable.name = "region_code.IMPACT159",
-    #   value.name = "usda_code.cty",
-    #   variable.factor = FALSE
-    # )
-    # dt.countryCropVariety.long[, usda_code := NULL]
-    # setnames(dt.countryCropVariety.long, old = "usda_code.cty", new = "usda_code")
-    # dt.nutrients <- merge(dt.countryCropVariety.long, dt.nutrients, by = c("IMPACT_code", "usda_code"))
 
     if (switch.fortification == TRUE) {
-      #' read in fortification values and add to the base nutrient value. Note that this can only be done for the country specific version of dt.nutrients
-      #   dt.fortValues <- getNewestVersion("dt.fortValues")
-      #   nutrientsList.fort <- unique(dt.fortValues$Nutrient)
-      #   dt.fortValues[, Nutrient := paste0(Nutrient,".fort")]
-      #   formula.wide <- "region_code.IMPACT159 + IMPACT_code ~ Nutrient"
-      #   dt.fortValues.wide <- data.table::dcast(
-      #     data = dt.fortValues,
-      #     formula = formula.wide,
-      #     value.var = "value")
-      #
-      #   for (j in names(dt.fortValues.wide)) set(dt.fortValues.wide,which(is.na(dt.fortValues.wide[[j]])),j,0)
-      #   dt.nutrients <- merge(dt.fortValues.wide, dt.nutrients, by = c("IMPACT_code", "region_code.IMPACT159"), all.y = TRUE)
-      #   for (j in names(dt.nutrients)) set(dt.nutrients,which(is.na(dt.nutrients[[j]])),j,0)
-      #
-      #   dt.nutrients[, `:=`(
-      #     calcium_mg = calcium_mg + calcium_mg.fort,
-      #     iron_mg = iron_mg + iron_mg.fort,
-      #     niacin_mg = niacin_mg + niacin_mg.fort,
-      #     riboflavin_mg = riboflavin_mg + riboflavin_mg.fort,
-      #     thiamin_mg = thiamin_mg + thiamin_mg.fort,
-      #     vit_a_rae_µg = vit_a_rae_µg + vit_a_rae_µg.fort,
-      #     vit_b12_µg = vit_b12_µg + vit_b12_µg.fort,
-      #     vit_b6_mg = vit_b6_mg + vit_b6_mg.fort,
-      #     vit_d_µg = vit_d_µg + vit_d_µg.fort,
-      #     vit_e_mg = vit_e_mg + vit_e_mg.fort,
-      #     zinc_mg = zinc_mg + zinc_mg.fort
-      #   )]
-      #   deleteListCol <- c("calcium_mg.fort", "folate_µg.fort", "iron_mg.fort", "niacin_mg.fort",
-      #                      "riboflavin_mg.fort", "thiamin_mg.fort", "vit_a_rae_µg.fort", "vit_b12_µg.fort",
-      #                      "vit_b6_mg.fort", "vit_d_µg.fort", "vit_e_mg.fort", "zinc_mg.fort")
-      #   dt.nutrients[, (deleteListCol) := NULL]
       dt.nutrients <- dt.nutrients.ctyVars.fort
     }
   }
@@ -214,7 +164,7 @@ switches <- function() {
   #' @param region - the grouping of countries to aggregate to
   #' @return null
   #' @export
-  budgetShareNpriceGrowth <- function(dt.foodNnuts) {
+  budgetShareNpriceGrowth <- function(dt.foodNnuts, suffix) {
     #' prices are in 2005 dollars per metric ton
     #' pcGDP is in 1000 2005 dollars
     #' 'FoodAvailability' variable is in kgs/person/year. DinY is days in year
@@ -237,7 +187,7 @@ switches <- function() {
     dt.budget[, incShare.PCX0 := 100 * budget.PCX0 / pcGDPX0 ]
     data.table::setkeyv(dt.budget, c("scenario", "region_code.IMPACT159", "year"))
     inDT <- dt.budget
-    outName <- "dt.budgetShare"
+    outName <- paste("dt.budgetShare", suffix, sep = ".")
     cleanup(inDT,outName,fileloc("resultsDir"))
 
     # get world price change from 2010 to 2050 by food groups

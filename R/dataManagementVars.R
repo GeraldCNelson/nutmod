@@ -14,7 +14,7 @@
 #     for more details at http://www.gnu.org/licenses/.
 #'
 #' @name dataManagementVars.R
-#' @description Replaces default crop varieties with country-specific varieties and does some graphing
+#' @description Replaces base crop varieties with country-specific varieties and does some graphing
 #' @name dataPrep.SingleScenario.R
 
 {source("R/nutrientModFunctions.R")
@@ -47,7 +47,7 @@ dt.nutrients.sum.all <- getNewestVersion("dt.nutrients.sum.all.base", fileloc("r
 dt.nutrients.sum.allVar <- getNewestVersion("dt.nutrients.sum.allVar", fileloc("resultsDir"))
 dt.nutrients.sum.allVarFort <- getNewestVersion("dt.nutrients.sum.allVarFort", fileloc("resultsDir"))
 
-#' compare results with default and country-specific vars
+#' compare results with base and country-specific vars
 dt.nutrients.sumVar <- dt.nutrients.sum.allVar[region_code.IMPACT159 %in% ctyWspecVarieties]
 dt.nutrients.sum.base <- dt.nutrients.sum.all[region_code.IMPACT159 %in% ctyWspecVarieties]
 setnames(dt.nutrients.sumVar, old = "value", new = "valueVar")
@@ -102,11 +102,11 @@ print(p)
 dt.fortValues <- getNewestVersion("dt.fortValues", fileloc("mData"))
 ctyWFort <- sort(unique(dt.fortValues$region_code.IMPACT159))
 
-dt.nutrients.sumVar <- dt.nutrients.sum.allVarFort[region_code.IMPACT159 %in% ctyWFort]
-dt.nutrients.sum.base <- dt.nutrients.sum.allVar[region_code.IMPACT159 %in% ctyWFort]
-setnames(dt.nutrients.sumVar, old = "value", new = "valueVar")
+dt.nutrients.sum.var <- dt.nutrients.sum.all.varFort[region_code.IMPACT159 %in% ctyWFort]
+dt.nutrients.sum.base <- dt.nutrients.sum.all.var[region_code.IMPACT159 %in% ctyWFort]
+setnames(dt.nutrients.sum.var, old = "value", new = "valueVar")
 setnames(dt.nutrients.sum.base, old = "value", new = "valueBase")
-temp <- merge(dt.nutrients.sumVar, dt.nutrients.sum.base)
+temp <- merge(dt.nutrients.sum.var, dt.nutrients.sum.base)
 
 # dt.nutrients.sumVar <- copy(dt.nutrients.sum.allVarFort)
 # setnames(dt.nutrients.sumVar, old = "value", new = "valueVar")

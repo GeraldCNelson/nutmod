@@ -40,27 +40,27 @@ switch.fixFish <- keyVariable("switch.fixFish") #get rid of nutrient info for sh
 # switch.fortification <- keyVariable("switch.fortification")
 
 for (switchloop in 1:3) {
-  if (switchloop == 1) {switch.vars <- FALSE;  switch.fortification <- FALSE} # creates dt.nutrients.adj.base
-  if (switchloop == 2) {switch.vars <- TRUE;  switch.fortification <- FALSE} # creates dt.nutrients.adjVar; ie, country specific nutrient amounts
-  if (switchloop == 3) {switch.vars <- TRUE;  switch.fortification <- TRUE}# creates dt.nutrients.adjVarFort; adds fortification to dt.nutrients.adjVar
+  if (switchloop == 1) {switch.vars <- FALSE;  switch.fortification <- FALSE; suffix = "base"}
+  if (switchloop == 2) {switch.vars <- TRUE;  switch.fortification <- FALSE; suffix = "var"}
+  if (switchloop == 3) {switch.vars <- TRUE;  switch.fortification <- TRUE; suffix = "varFort"}
 
   #dt.nutrients is per 100 gm
   #dt is per kg of food
   dt <- switches()
   # if (switch.vars == FALSE) {
   #   outName <- "dt.nutrients.adj.base"
-  #   # make sure this just includes default varieties
+  #   # make sure this just includes base varieties
   #   # allVars <- c("20036", "20040", "20054", "20444", "20446", "20450", "20452", "20071", "20072", "20073", "20074", "20075", "20076", "20014", "20020", "20314")
   #   allVars <- unique(dt.singleCodeLU$usda_code)
-  #   # defaultRiceWheatMaize <- c("20444", "20073", "20014")
-  #   # extraVarieties <- allVars[!allVars %in% defaultRiceWheatMaize]
+  #   # baseRiceWheatMaize <- c("20444", "20073", "20014")
+  #   # extraVarieties <- allVars[!allVars %in% baseRiceWheatMaize]
   #   # dt <- dt[!usda_code %in% extraVarieties]
   #   inDT <- dt
   # }else{
   #   if (switch.fortification == FALSE) {
-  #     outName <- "dt.nutrients.adjVar"
+  #     outName <- "dt.nutrients.adj.var"
   #   }else{
-  #     outName <- "dt.nutrients.adjVarFort"
+  #     outName <- "dt.nutrients.adj.varFort"
   #   }
   # }
   # inDT <- dt
@@ -71,7 +71,7 @@ for (switchloop in 1:3) {
   }else{ # for both var-specific and with or without fortification
     dt.foodNnuts <- merge(dt.IMPACTfood, dt, by = c("IMPACT_code", "region_code.IMPACT159"))
   }
-  budgetShareNpriceGrowth(dt.foodNnuts)
+  budgetShareNpriceGrowth(dt.foodNnuts, suffix)
   dt.foodNnuts[, c("pcGDPX0", "FoodAvailability") := NULL] #gdp per cap removed here. Might be necesary to leave in.
 
 
@@ -90,8 +90,8 @@ for (switchloop in 1:3) {
   names.tot <- paste(list.tot, "Q", sep = ".")
   dt.foodNnuts[, kcalsPerCommod := foodAvailpDay * energy_kcal]
 
-    # set NAs to zero
-   dt.foodNnuts[, (list.tot) := lapply(.SD, function(x){x[is.na(x)] <- 0; x}), .SDcols = list.tot]
+  # set NAs to zero
+  dt.foodNnuts[, (list.tot) := lapply(.SD, function(x){x[is.na(x)] <- 0; x}), .SDcols = list.tot]
 
 
   for (j in 1:length(list.tot)) {
@@ -124,13 +124,7 @@ for (switchloop in 1:3) {
   dt.foodNnuts[, (list.tot) := NULL]
   data.table::setnames(dt.foodNnuts, old = c(names.tot), new = c(list.tot))
 
-  outName <- "dt.foodNnuts.base"
-  if (switch.vars == TRUE) {
-    outName <- "dt.foodNnutsVar"
-    if (switch.fortification == TRUE) {
-      outName <- "dt.foodNnutsVarFort"
-    }
-  }
+  outName <- paste("dt.foodNnuts", suffix, sep = ".")
   cleanup(dt.foodNnuts, outName, fileloc("resultsDir"))
 
   #' produce subsets that are more manageable in size -----
@@ -165,13 +159,7 @@ for (switchloop in 1:3) {
     value.name = "value",
     variable.factor = FALSE)
   inDT <- unique(dt.nutrients.kcals)
-  outName <- "dt.nutrients.kcals.base"
-  if (switch.vars == TRUE) {
-    outName <- "dt.nutrients.kcalsVar"
-    if (switch.fortification == TRUE) {
-      outName <- "dt.nutrients.kcalsVarFort"
-    }
-  }
+  outName <- paste("dt.nutrients.kcals", suffix, sep = ".")
   cleanup(inDT, outName, fileloc("resultsDir"))
 
   # dt.nutrients.sum.all ------
@@ -205,13 +193,7 @@ for (switchloop in 1:3) {
                                            value.name = "value",
                                            variable.factor = FALSE)
   inDT <- unique(dt.nutrients.sum.all)
-  outName <- "dt.nutrients.sum.all.base" #this includes phytate. Might want to remove later.
-  if (switch.vars == TRUE) {
-    outName <- "dt.nutrients.sum.allVar"
-    if (switch.fortification == TRUE) {
-      outName <- "dt.nutrients.sum.allVarFort"
-    }
-  }
+  outName <- paste("dt.nutrients.sum.all", suffix, sep = ".") #this includes phytate. Might want to remove later.
   cleanup(inDT,outName, fileloc("resultsDir"))
 
   dt.KcalShare.nonstaple <- data.table::copy(dt.foodNnuts)
@@ -231,12 +213,7 @@ for (switchloop in 1:3) {
   dt.KcalShare.nonstaple[,value := value * 100]
   inDT <- dt.KcalShare.nonstaple
   outName <- "dt.KcalShare.nonstaple.base"
-  if (switch.vars == TRUE) {
-    outName <- "dt.KcalShare.nonstapleVar"
-    if (switch.fortification == TRUE) {
-      outName <- "dt.KcalShare.nonstapleVarFort"
-    }
-  }
+  outName <- paste("dt.KcalShare.nonstaple", suffix, sep = ".")
   cleanup(inDT, outName, fileloc("resultsDir"))
 
   # dt.nutrients.sum.staples ------
@@ -259,15 +236,7 @@ for (switchloop in 1:3) {
                                                     value.name = "value",
                                                     variable.factor = FALSE)
   inDT <- unique(dt.nutrients.sum.staples.long)
-  outName <- "dt.nutrients.sum.staples.base" #this includes phytate. Might want to remove later.
-
-  if (switch.vars == TRUE) {
-    outName <- "dt.nutrients.sum.staplesVar"
-    if (switch.fortification == TRUE) {
-      outName <- "dt.nutrients.sum.staplesVarFort"
-    }
-  }
-
+  outName <- paste("dt.nutrients.sum.staples", suffix, sep = ".")
   cleanup(inDT,outName, fileloc("resultsDir"))
 
   # dt.nutrients.sum.FG ------
@@ -285,13 +254,7 @@ for (switchloop in 1:3) {
                                           variable.factor = FALSE)
   dt.nutrients.sum.FG <- unique(dt.nutrients.sum.FG) #note that this contains phytate
   inDT <- dt.nutrients.sum.FG
-  outName <- "dt.nutrients.sum.FG.base"
-  if (switch.vars == TRUE) {
-    outName <- "dt.nutrients.sum.FGVar"
-    if (switch.fortification == TRUE) {
-      outName <- "dt.nutrients.sum.FGVarFort"
-    }
-  }
+  outName <- paste("dt.nutrients.sum.FG", suffix, sep = ".")
   cleanup(inDT,outName, fileloc("resultsDir"))
 
   # # dt.nutrients.nonstapleShare, not currently (Feb 2018) so commented out ------
@@ -303,15 +266,6 @@ for (switchloop in 1:3) {
   # dt.nut.nonstaple.share.wide[, value := 100 * nonstaple/(nonstaple + staple) ][is.na(value), value := 0]
   #
   # dt.nutrients.nonstapleShare <- dt.nut.nonstaple.share.wide[,c("nonstaple", "staple") := NULL]
-  # inDT <- dt.nutrients.nonstapleShare
-  # outName <- "dt.nutrients.nonstapleShare.base"
-  # if (switch.vars == TRUE) {
-  #   outName <- "dt.nutrients.sum.nonstapleShareVar"
-  #   if (switch.fortification == TRUE) {
-  #     outName <- "dt.nutrients.sum.nonstapleShareVarFort"
-  #   }
-  # }
-  # cleanup(inDT, outName, fileloc("resultsDir"))
 
   # dt.foodAvail.foodGroup -----
   #sum and convert to grams. Note that the food group alcohol results are for the grams in the total beverage, not ethanol.
@@ -325,12 +279,6 @@ for (switchloop in 1:3) {
   data.table::setnames(dt.foodAvail.foodGroup, old = "foodavail.foodgroup.sum", new = "value")
   dt.foodAvail.foodGroup <- unique(dt.foodAvail.foodGroup)
   inDT <- dt.foodAvail.foodGroup
-  outName <- "dt.foodAvail.foodGroup.base"
-  if (switch.vars == TRUE) {
-    outName <- "dt.foodAvail.foodGroupVar"
-    if (switch.fortification == TRUE) {
-      outName <- "dt.foodAvail.foodGroupVarFort"
-    }
-  }
+  outName <- paste("dt.foodAvail.foodGroup", suffix, sep = ".")
   cleanup(inDT, outName, fileloc("resultsDir"), "csv")
 }

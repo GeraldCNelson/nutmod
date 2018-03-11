@@ -236,23 +236,24 @@ wbInfoGeneral[(nrow(wbInfoGeneral) + 1), ] <-
 wbInfoGeneral[(nrow(wbInfoGeneral) + 1), ] <-
   c("Sheet names", "Description of sheet contents")
 
-#add a worksheet called IMPACTCommdlist to the workbook wb = wbGeneral, with info on the commodities and nutrients
-temp <- getNewestVersion("dt.nutrients")
-openxlsx::addWorksheet(wb = wbGeneral, sheetName = "IMPACTCommdlist")
+#add a worksheet called IMPACTBaselist to the workbook wb = wbGeneral, with info on the commodities in the base set and their nutrients
+dt.nutrients <- getNewestVersion("dt.nutrients.baseVars", fileloc("iData"))
+
+openxlsx::addWorksheet(wb = wbGeneral, sheetName = "IMPACTBaselist")
 #commodityNames <- cbind(nutrients[c("Name","IMPACT_code")])
 openxlsx::writeData(
   wb = wbGeneral,
-  x = temp,
-  sheet = "IMPACTCommdlist",
+  x = dt.nutrients,
+  sheet = "IMPACTBaselist",
   startRow = 1,
   startCol = 1
 )
 openxlsx::addStyle(
   wb = wbGeneral,
-  sheet = "IMPACTCommdlist",
+  sheet = "IMPACTBaselist",
   style = numStyle,
-  rows = 2:nrow(temp),
-  cols = 3:(ncol(temp)),
+  rows = 2:nrow(dt.nutrients),
+  cols = 3:(ncol(dt.nutrients)),
   gridExpand = TRUE
 )
 

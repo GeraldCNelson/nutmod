@@ -20,7 +20,7 @@
 #' @description - This script calculates nutrient requirements for SSP age group categories
 #' The source of the requirements is
 #' @source \url{http://www.nal.usda.gov/fnic/DRI/DRI_Tables/recommended_intakes_individuals.pdf}
-#' The requirements are imported in dataManagement.ODBCaccess.R and saved as dt.nutrients
+#' The requirements are imported in dataManagement.ODBCaccess.R. .Maybe not now; March 5, 2018
 
 #' @include nutrientModFunctions.R
 #if (!exists("getNewestVersion", mode = "function"))
@@ -31,12 +31,12 @@ source("R/nutrientModFunctions.R")
 }
 options(encoding = "UTF-8")
 
-# nutrients spreadsheet; otherwise the next line is fine
-#' @param dt.nutrients - list of nutrient data generated in dataPrep.nutrientData.R
-dt.nutrients <- getNewestVersion("dt.nutrients")
+# nutrients spreadsheet for the base runs. This should be fine because this script just needs the list of nutrients
+ dt.nutrients <- getNewestVersion("dt.nutrients.baseVars", fileloc("iData"))
 
 #' @param allFoodGroups - list of all food groups
-allFoodGroups <- unique(dt.nutrients$food_group_code)
+FGlookup <- data.table::as.data.table(openxlsx::read.xlsx(fileNameList("foodGroupLU")))
+allFoodGroups <- unique(FGlookup$food_group_code)
 
 # Read in and set up the nutrient requirements data -----
 
