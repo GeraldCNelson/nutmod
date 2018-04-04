@@ -3,7 +3,6 @@
 #' @title Align data to the current region, identified in nutrentModFunctions.R
 #' @name dataManagement.regions.R
 #' @include nutrientModFunctions.R
-if (!exists("getNewestVersion", mode = "function"))
 {source("R/nutrientModFunctions.R")
   source("R/workbookFunctions.R")
   source("R/nutrientCalcFunctions.R")}

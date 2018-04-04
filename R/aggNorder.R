@@ -1,5 +1,5 @@
 #' Nutrient Modeling Functions for the shiny app
-#' title: "Global functions needed to make the nutrientModeling shiny app work"
+#' @title: "Functions used in aggRun.R and a few other scripts for aggregating and graphing
 #' @name aggNorder.R
 #' @author Gerald C. Nelson, \email{nelson.gerald.c@@gmail.com}
 #' @keywords utilities, aggregate data, sort data
@@ -20,33 +20,34 @@
 # or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License
 # for more details at http://www.gnu.org/licenses/.
 
-{source("R/nutrientModFunctions.R")
-  source("R/workbookFunctions.R")
-  source("R/nutrientCalcFunctions.R")
-  source("R/renameUSAIDscenarios.R")}
 # GDP setup -----
-library(data.table)
 library(gridExtra)
 library(gplots)
 library(ggplot2)
 
+source("R/renameUSAIDscenarios.R")
+
 # get gdxChoice -----
 gdxChoice <- getGdxChoice()
+
+#' population data set used for weighting by population -----
+dt.pop <- getNewestVersion("dt.PopX0", fileloc("iData"))
+
 #' create legend grobs for use in multiple graph files -----
-updateLegendGrobs <- function(l, i, legendLoc, mergedVals) {
+updateLegendGrobs <- function(l, aggChoice, legendLoc, mergedVals) {
   # use an arbitrary file to construct the grob. This code modified from aggRun.R
   DTglobal <- getNewestVersion("dt.budgetShare.base", fileloc("resultsDir"))
-  DT <- aggNorder(gdxChoice, DTglobal, aggChoice = i, scenChoice = get(l), mergedVals)
+  DT <- aggNorder(gdxChoice, DTglobal, aggChoice, scenChoice = get(l), mergedVals, plotErrorBars)
   ylab <- "(percent)"
-  print(paste("\ncreating legend grob for ", i, ",", l, "and", legendLoc))
+  cat("\nCreating legend grob for ", aggChoice, ",", l, "and", legendLoc)
   regionCodes <- unique(DT$region_code)
   regionNames <- unique(DT$region_name)
   scenarios <- unique(DT$scenario)
   DT[, scenario := gsub("-REF", "", scenario)]
   scenOrder <- gsub("-REF", "", scenOrder)
   if (aggChoice %in% "WB") regionNameOrder <- c("Low", "Lower middle", "Upper middle", "High")
-  if (i %in% "AggReg1") regionNameOrder <- regionNames
-  if (i %in% "tenregions") regionNameOrder <- regionNames
+  if (aggChoice %in% "AggReg1") regionNameOrder <- regionNames
+  if (aggChoice %in% "tenregions") regionNameOrder <- regionNames
   scenarioNameOrder <- scenOrder
   DT[, region_name := gsub(" income", "", region_name)]
   DT[, region_name := factor(region_name, levels =  regionNameOrder)]
@@ -62,9 +63,6 @@ updateLegendGrobs <- function(l, i, legendLoc, mergedVals) {
     scale_fill_manual(values = colorList)
   return(g_legend(p))
 }
-
-#' population data set usde for weighting by population -----
-dt.pop <- getNewestVersion("dt.PopX0", fileloc("iData"))
 
 orderRegions <- function(DT, aggChoice) {
   # order by regions
@@ -89,7 +87,7 @@ orderRegions <- function(DT, aggChoice) {
   return(DT)
 }
 
-aggNorder <- function(gdxChoice, DTglobal, aggChoice, scenChoice, mergedVals) {
+aggNorder <- function(gdxChoice, DTglobal, aggChoice, scenChoice, mergedVals, plotErrorBars) {
   setkey(DTglobal, NULL)
   dt.regions <- regionAgg(aggChoice)
   # aggregate to and retain only the relevant regions
@@ -115,12 +113,15 @@ aggNorder <- function(gdxChoice, DTglobal, aggChoice, scenChoice, mergedVals) {
     data.table::setnames(merged, old = "MFAD", new = "value")
   }
 
-  #' aggregation takes place in the next line of code.
+  #' aggregation takes place in the next lines of code.
   #' It says create the variable value from the old variable value, averaged by the region
   #' code and year (and other variables, in particular nutrient in some cases) using the popX) value as weights
-  merged <- merged[, min.region := min(value), by = mergedVals]
-  merged <- merged[, max.region := max(value), by = mergedVals]
-  merged <- merged[, sd.region := sd(value), by = mergedVals]
+  #' don't do min, max, and sd if aggChoice = tenregions
+  if (plotErrorBars == TRUE) {
+    merged <- merged[, min.region := min(value), by = mergedVals]
+    merged <- merged[, max.region := max(value), by = mergedVals]
+    merged <- merged[, sd.region := sd(value), by = mergedVals]
+  }
   merged <- merged[, value := weighted.mean(value, PopX0), by = mergedVals]
 
   # other potential stats to add
@@ -129,6 +130,7 @@ aggNorder <- function(gdxChoice, DTglobal, aggChoice, scenChoice, mergedVals) {
   # upper=quantile(value, .75, na.rm=TRUE),
 
   keepListCol <- c(mergedVals, "region_name", "value", "min.region", "max.region", "sd.region")
+  if(aggChoice %in% "tenregions") keepListCol <- c(mergedVals, "region_name", "value")
   if ("nutrient" %in% names(merged))  {
     # set kcalsPerDay.other to zero if it is less than zero.
     merged[nutrient %in% "kcalsPerDay.other" & value < 0, value := 0]
@@ -182,8 +184,8 @@ aggNorder <- function(gdxChoice, DTglobal, aggChoice, scenChoice, mergedVals) {
   return(DT)
 }
 
-plotByRegionBar <- function(dt, fileName, plotTitle, yLab, yRange, aggChoice, scenOrder, oneLine, colorList, AMDR_hi = NULL, plotErrorBars) {
- cat("\nplotting bars by region", aggChoice, "for", plotTitle)
+plotByRegionBar <- function(dt, fileName, plotTitle, yLab, yRange, aggChoice, suffix, scenOrder, oneLine, colorList, AMDR_hi = NULL, plotErrorBars) {
+  cat("\nPlotting bars by region", aggChoice, "for", plotTitle)
   plotTitle <- capwords(plotTitle)
   temp <- copy(dt)
   regionCodes <- unique(temp$region_code)
@@ -201,25 +203,54 @@ plotByRegionBar <- function(dt, fileName, plotTitle, yLab, yRange, aggChoice, sc
   temp[, scenario := factor(scenario, levels = scenarioNameOrder)]
   if (gdxChoice %in% "USAID")  temp <- renameUSAIDscenarios(temp)
 
-  #' draw bars
-  pdf(paste(fileloc("gDir"),"/", fileName, ".pdf", sep = ""), width = 7, height = 5.2, useDingbats = FALSE)
-  if (round(max(temp$value)) - max(temp$value) > 0.08) yRange[2] <- round(max(temp$value) + 1, digits = 1) # will hopefully deal with rare situation
-  #' use the standard deviation value to define ymax
-  if (plotErrorBars == TRUE) {
-    yRange[2] <- max(yRange[2], round(max(temp$sd.region + temp$value), digits = 1))
-  }
+   if (round(max(temp$value)) - max(temp$value) > 0.08) yRange[2] <- round(max(temp$value) + 1, digits = 1) # will hopefully deal with rare situation
+  #' use the standard deviation value to define ymax. Commented out April 3, 2018 because yminmax is now calculated in aggRun.
+  # if (plotErrorBars == TRUE) {
+  #   yRange[2] <- max(yRange[2], round(max(temp$sd.region + temp$value), digits = 1))
+  # }
+
+  #    if (aggChoice %in% "tenregions") temp[, c("min.region", "max.region", "sd.region") := NULL] now done in aggNorder
   #' when all elements of value are the same as the max y range
-  p <- ggplot(temp, aes(x = factor(region_name), y = value, fill = scenario, order = c("region_name") )) +
-    geom_bar(stat = "identity", position = "dodge", color = "black") +
-    #   theme(legend.position = "bottom") +
+  temp[, value := round(value, 2)]
+
+  # adjust font size for bars by aggchoice
+  if (aggChoice %in% "tenregions") fontsize <- 1.8
+  if (aggChoice %in% "WB") fontsize <- 3
+  # adjust y location for graph type
+  if (yLab %in% "(Adequacy Ratio)") {yval = 0.01} else {yval = 0.25}
+
+    #' draw bars
+  # pdf(paste(fileloc("gDir"),"/", fileName, ".pdf", sep = ""), width = 7, height = 5.2,)
+  p = ggplot(data = temp, aes(x = factor(region_name), y = value, group = scenario)) +
+    geom_col(aes(fill = scenario), position = "dodge", color = "black") +
+    coord_cartesian(ylim = yRange) +
     theme(legend.position = "none") +
-    labs(x = NULL) +
+    labs(x = NULL, y = yLab) +
     theme(axis.text.x = element_text(angle = 45, hjust = 1, family = "Times", face = "plain")) +
     theme(axis.title.y = element_text(family = "Times", face = "plain")) +
-    scale_y_continuous(name = yLab, limits = yRange, labels = fmt_dcimals(0)) + # fmt_dcimals sets number of digits to right of decimal
+  #   geom_text(aes(label = value, y = 1.25), position = position_dodge(0.9), size = 2.25, angle = 90,  color = "white", vjust = "bottom") +
+  geom_text(aes(label = formatC( round(value, 1), format='f', digits=1), x = factor(region_name), y = yval), position = position_dodge(0.9), size = fontsize, angle = 90,  vjust = "bottom", hjust = 'left', color = "white") +
     scale_fill_manual(values = colorList) +
     theme(plot.title = element_text(hjust = 0.5, size = 11, family = "Times", face = "plain")) +
     ggtitle(plotTitle)
+
+  #
+  #     p <- ggplot(temp, aes(x = factor(region_name), y = value,  fill = scenario, order = c("region_name") )) +
+  #       geom_bar(stat = "identity", position = "dodge", color = "black") +
+  #       #   theme(legend.position = "bottom") +
+  #       theme(legend.position = "none") +
+  #       labs(x = NULL, y = yLab) +
+  #       theme(axis.text.x = element_text(angle = 45, hjust = 1, family = "Times", face = "plain")) +
+  #       theme(axis.title.y = element_text(family = "Times", face = "plain")) +
+  #  #     scale_y_continuous(name = yLab, limits = yRange, labels = fmt_dcimals(0)) + # fmt_dcimals sets number of digits to right of decimal
+  #       coord_cartesian(ylim = yRange) +
+  # #      geom_text(aes(label=value), position = position_fill(vjust = 0.5)) +
+  # #      geom_text(label = temp$value) +
+  # #      geom_text(aes(label = value, y = value, color = "gray", vjust = "center"), position=position_dodge(width = 1), size = 2.5) +
+  #       geom_text(aes(label = temp$value), color = "white", position = position_dodge(width = 1), vjust = 0, size = 2.5) +
+  #       scale_fill_manual(values = colorList) +
+  #       theme(plot.title = element_text(hjust = 0.5, size = 11, family = "Times", face = "plain")) +
+  #       ggtitle(plotTitle)
 
   #' the 'or' part of the if statement means don't draw the line if it's greater than ymax
   if (oneLine == FALSE | oneLine > yRange[2]) {} else {
@@ -231,13 +262,14 @@ plotByRegionBar <- function(dt, fileName, plotTitle, yLab, yRange, aggChoice, sc
     p <- p + geom_errorbar(aes(ymin = yminValue, ymax = ymaxValue), width = .2,
                            position = position_dodge(.9), color = "grey")
   }
+  ggsave(file = paste0(fileloc("gDir"),"/",fileName,".pdf"), plot = p,
+         width = 7, height = 6)
+  # dev.off()
 
   #' code to save the plot for future use
   graphsListHolder[[fileName]] <- p
   assign("graphsListHolder", graphsListHolder, envir = .GlobalEnv)
 
-  print(p)
-  dev.off()
   formula.wide <- "scenario ~ factor(region_code, levels = unique(region_code))"
   temp.wide <- data.table::dcast(
     data = temp,
@@ -254,7 +286,7 @@ plotByRegionBar <- function(dt, fileName, plotTitle, yLab, yRange, aggChoice, sc
   write.csv(temp.wide, file = paste(fileloc("gDir"),"/", fileName, ".csv", sep = ""))
 }
 
-plotByRegionStackedBar <- function(dt, fileName, plotTitle, yLab, yRange, aggChoice, scenOrder, oneLine, colorList) {
+plotByRegionStackedBar <- function(dt, fileName, plotTitle, yLab, yRange, aggChoice, suffix, scenOrder, oneLine, colorList) {
   cat("\nPlotting stacked bars by region", aggChoice, "for", plotTitle)
   plotTitle <- capwords(plotTitle)
   temp <- copy(dt)
@@ -276,8 +308,9 @@ plotByRegionStackedBar <- function(dt, fileName, plotTitle, yLab, yRange, aggCho
   if (gdxChoice %in% "USAID")  temp <- renameUSAIDscenarios(temp)
 
   #' draw bars
-  pdf(paste(fileloc("gDir"),"/", fileName, "_", aggChoice, ".pdf", sep = ""), width = 7, height = 5.2, useDingbats = FALSE)
-  if (max(temp$value) - yRange[2] > 0) yRange[2] <- max(temp$value)
+pdfFileName <- paste(fileloc("gDir"),"/", fileName, ".pdf", sep = "")
+ # pdf(file = pdfFileName, width = 7, height = 5.2,)
+#  if (max(temp$value) - yRange[2] > 0) yRange[2] <- max(temp$value) - commented out April 3, 2018
   p <- ggplot(temp, aes(as.numeric(interaction(scenario,region_name)), y = value, fill = nutrient, order = c("region_name") )) +
     geom_bar(stat = "identity", position = "stack", color = "black", width = .80, group = "scenario") +
     theme(legend.position = "right") +
@@ -289,12 +322,13 @@ plotByRegionStackedBar <- function(dt, fileName, plotTitle, yLab, yRange, aggCho
     labs(y = yLab, x = NULL)
 
   if (oneLine == FALSE) {} else {p + geom_abline(intercept = oneLine, slope = 0)}
+  ggsave(file = paste0(fileloc("gDir"),"/",fileName,".pdf"), plot = p,
+         width = 7, height = 6)
 
   #' code to save the plot for future use
   graphsListHolder[[fileName]] <- p
   assign("graphsListHolder", graphsListHolder, envir = .GlobalEnv)
-  print(p)
-  dev.off()
+  # dev.off()
   formula.wide <- "scenario + nutrient ~ factor(region_code, levels = unique(region_code))"
   temp.wide <- data.table::dcast(
     data = temp,
@@ -308,12 +342,11 @@ plotByRegionStackedBar <- function(dt, fileName, plotTitle, yLab, yRange, aggCho
   colsToRound <- names(temp.wide)[3:length(temp.wide)]
   temp.wide[,(colsToRound) := round(.SD,2), .SDcols = colsToRound]
   data.table::setnames(temp.wide, old = names(temp.wide), new = c("scenario", "nutrient", regionCodes))
-  write.csv(temp.wide, file = paste(fileloc("gDir"),"/", fileName, "_", aggChoice, ".csv",
-                                    sep = ""))
+  write.csv(temp.wide, file = paste(fileloc("gDir"),"/", fileName, ".csv", sep = ""))
 }
 
-plotByBoxPlot2050 <- function(dt, fileName, plotTitle, yLab, yRange, aggChoice ){
-  print(paste("\nplotting boxplot for 2050 by region", aggChoice))
+plotByBoxPlot2050 <- function(dt, fileName, plotTitle, yLab, yRange, aggChoice, suffix ){
+  cat("\nPlotting boxplot for 2050 by region", aggChoice)
   plotTitle <- capwords(plotTitle)
   temp <- copy(dt)
   regionCodes <- unique(temp$region_code)
@@ -331,7 +364,7 @@ plotByBoxPlot2050 <- function(dt, fileName, plotTitle, yLab, yRange, aggChoice )
   if (gdxChoice %in% "USAID")  temp <- renameUSAIDscenarios(temp)
 
   # draw boxplot
-  pdf(paste(fileloc("gDir"),"/", fileName, ".pdf", sep = ""), width = 7, height = 5.2, useDingbats = FALSE)
+  # pdf(paste(fileloc("gDir"),"/", fileName, ".pdf", sep = ""), width = 7, height = 5.2)
   p <- ggplot(temp, aes(x = region_name, y = value)) +
     geom_boxplot(stat = "boxplot", position = "dodge", color = "black", outlier.shape = NA) + # outlier.shape = NA, gets rid of outlier dots
     theme(axis.text.x = element_text(angle = 45, hjust = 1, family = "Times", face = "plain")) +
@@ -341,101 +374,101 @@ plotByBoxPlot2050 <- function(dt, fileName, plotTitle, yLab, yRange, aggChoice )
     ggtitle(plotTitle) +
     ylim(yRange) +
     labs(y = yLab, x = NULL)
-
+  # dev.off()
   #' code to save the plot for future use
   graphsListHolder[[fileName]] <- p
   assign("graphsListHolder", graphsListHolder, envir = .GlobalEnv)
-  print(p)
-  dev.off()
+  ggsave(file = paste0(fileloc("gDir"),"/",fileName,".pdf"), plot = p,
+         width = 7, height = 6)
 }
+#
+# plotByRegionLine <- function(dt, fileName, plotTitle, yRange, regionCodes, colorList) {
+#   plotTitle <- capwords(plotTitle)
+#   dt.pcGDPX0 <- getNewestVersionIMPACT("dt.pcGDPX0")
+#   dt.pcGDPX0.2010.ref <- dt.pcGDPX0[year ==  "X2010" & scenario == scenario.base,][,c("scenario","year") :=  NULL]
+#   temp <- getNewestVersion(dt, fileloc("resultsDir"))
+#   temp <- merge(temp, dt.pcGDPX0.2010.ref, by = "region_code.IMPACT159")
+#   temp <- temp[region_code.IMPACT159 %in% regionAgg("I3regions")]
+#   scenarios <- unique(temp$scenario)
+#
+#   if (gdxChoice %in% "USAID")  temp <- renameUSAIDscenarios(temp)
+#
+#   pdf(paste(fileloc("gDir"),"/", fileName, ".pdf", sep = ""))
+#   par(mfrow = c(1,1))
+#   legendText <- NULL
+#   for (i in 1:length(scenarios)) {
+#     if (i == 1) {
+#       plot(temp[year %in% "X2050" & scenario == scenarios[i],value], type = "l", col = "green",
+#            xlab = "", xaxt = "n", ylab = "share (%)",
+#            main = plotTitle, cex.main = 1, ylim = yRange) # common range for requirements share
+#       par(new = T)
+#     } else {
+#       lines(temp[year %in% "X2050" & scenario == scenarios[i],value], col = colorList[i])
+#       par(new = F)
+#     }
+#     legendText <- c(legendText,scenarios[i])
+#   }
+#   lines(temp[year %in% "X2010" & scenario %in% scenario.base, value], col = "black")
+#   legendText <- c(legendText, "2010")
+#   # print(legendText)
+#   axis(1, at = 1:length(unique(dt.GDP.2010.ref$region_code.IMPACT159)), labels = unique(dt.GDP.2010.ref$region_code.IMPACT159), cex.axis = 0.5, padj = -3)
+#   abline(h = 1, lty = 3, lwd = 0.8)
+#   legendText <- gsub("-REF", "", legendText)
+#   # dev.off()
+# }
 
-plotByRegionLine <- function(dt, fileName, plotTitle, yRange, regionCodes, colorList) {
-  plotTitle <- capwords(plotTitle)
-  dt.pcGDPX0 <- getNewestVersionIMPACT("dt.pcGDPX0")
-  dt.pcGDPX0.2010.ref <- dt.pcGDPX0[year ==  "X2010" & scenario == scenario.base,][,c("scenario","year") :=  NULL]
-  temp <- getNewestVersion(dt, fileloc("resultsDir"))
-  temp <- merge(temp, dt.pcGDPX0.2010.ref, by = "region_code.IMPACT159")
-  temp <- temp[region_code.IMPACT159 %in% regionAgg("I3regions")]
-  scenarios <- unique(temp$scenario)
+#' # error bars-----
+#' plotByRegionErrorBars <- function(dt, fileName, plotTitle, yLab, yRange, aggChoice, oneLine) {
+#'   cat("\nPlotting lines with error bars by region ", aggChoice, "for ", plotTitle)
+#'   plotTitle <- capwords(plotTitle)
+#'   temp <- copy(dt)
+#'   regionCodes <- unique(temp$region_code)
+#'   regionNames <- unique(temp$region_name)
+#'   scenarios <- unique(temp$scenario)
+#'   if (gdxChoice == "SSPs") colorList <- c("black", "red", "red3", "red4", "green", "green3", "green4")
+#'   if (gdxChoice == "USAID") colorList <- c("black", rainbow(10)[1:length(scenarios) - 1])
+#'   legendText <- unique(gsub("-REF", "", scenarios))
+#'
+#'   temp[, scenario := gsub("-REF", "", scenario)]
+#'   regionNameOrder <- c("Low", "Lower middle", "Upper middle", "High")
+#'   scenarioNameOrder <- c("2010", "SSP2-NoCC", "SSP1-NoCC", "SSP3-NoCC", "SSP2-GFDL", "SSP2-IPSL", "SSP2-HGEM")
+#'   temp[, region_name := gsub(" income", "", region_name)]
+#'   temp[, region_name := factor(region_name, levels =  regionNameOrder)]
+#'   temp[, scenario := factor(scenario, levels = scenarioNameOrder)]
+#'   temp[, region_name := gsub(" income", "", region_name)]
+#'   scenario.econ <- c("SSP2-NoCC", "SSP1-NoCC", "SSP3-NoCC")
+#'   scenario.clim <- c("SSP2-GFDL", "SSP2-IPSL", "SSP2-HGEM")
+#'   min.econ <- temp[scenario %in% scenario.econ,  min(value), by = c("region_code")]
+#'   temp[scenario %in% scenario.econ, value.max.econ := max(value), by = c("region_code")]
+#'   temp[scenario %in% scenario.clim, value.min.clim := min(value), by = c("region_code")]
+#'   temp[scenario %in% scenario.clim, value.max.clim := max(value), by = c("region_code")]
+#'   temp[scenario %in% "2010", value.min.econ := value]
+#'   temp[scenario %in% "2010", value.max.econ := value]
+#'   temp[scenario %in% "2010", value.min.clim := value]
+#'   temp[scenario %in% "2010", value.max.clim := value]
+#'   #
+#'
+#'   #' draw lines
+#'   temp2 <- temp[scenario %in% c("2010", "SSP2-NoCC") & region_code %in% "lowInc",]
+#'   ggplot(temp2, aes(x = region_name, y = value, fill = scenario, order = c("region_name") )) +
+#'     theme(axis.text.x = element_text(angle = 45, hjust = 1, family = "Times", face = "plain")) +
+#'     theme(axis.title.y = element_text(family = "Times", face = "plain")) +
+#'     geom_line(aes(group = 1)) +
+#'     geom_point(size = 2) +
+#'     theme(plot.title = element_text(hjust = 0.5, size = 11, family = "Times", face = "plain")) +
+#'     ggtitle(plotTitle) +
+#'     ylim(yRange) +
+#'     labs(y = yLab, x = NULL) +
+#'     geom_errorbar(aes(ymin = value.min.econ, ymax = value.max.econ),color = "green",
+#'                   size = 2, width = 0.2)
+#'
+#'   #' code to save the plot for future use
+#'   graphsListHolder[[fileName]] <- p
+#'   assign("graphsListHolder", graphsListHolder, envir = .GlobalEnv)
+#' }
 
-  if (gdxChoice %in% "USAID")  temp <- renameUSAIDscenarios(temp)
-
-  pdf(paste(fileloc("gDir"),"/", fileName, ".pdf", sep = ""))
-  par(mfrow = c(1,1))
-  legendText <- NULL
-  for (i in 1:length(scenarios)) {
-    if (i == 1) {
-      plot(temp[year %in% "X2050" & scenario == scenarios[i],value], type = "l", col = "green",
-           xlab = "", xaxt = "n", ylab = "share (%)",
-           main = plotTitle, cex.main = 1, ylim = yRange) # common range for requirements share
-      par(new = T)
-    } else {
-      lines(temp[year %in% "X2050" & scenario == scenarios[i],value], col = colorList[i])
-      par(new = F)
-    }
-    legendText <- c(legendText,scenarios[i])
-  }
-  lines(temp[year %in% "X2010" & scenario %in% scenario.base, value], col = "black")
-  legendText <- c(legendText, "2010")
-  # print(legendText)
-  axis(1, at = 1:length(unique(dt.GDP.2010.ref$region_code.IMPACT159)), labels = unique(dt.GDP.2010.ref$region_code.IMPACT159), cex.axis = 0.5, padj = -3)
-  abline(h = 1, lty = 3, lwd = 0.8)
-  legendText <- gsub("-REF", "", legendText)
-  dev.off()
-}
-
-# error bars-----
-plotByRegionErrorBars <- function(dt, fileName, plotTitle, yLab, yRange, aggChoice, oneLine) {
-  print(paste("\nplotting lines with error bars by region ", aggChoice, "for ", plotTitle))
-  plotTitle <- capwords(plotTitle)
-  temp <- copy(dt)
-  regionCodes <- unique(temp$region_code)
-  regionNames <- unique(temp$region_name)
-  scenarios <- unique(temp$scenario)
-  if (gdxChoice == "SSPs") colorList <- c("black", "red", "red3", "red4", "green", "green3", "green4")
-  if (gdxChoice == "USAID") colorList <- c("black", rainbow(10)[1:length(scenarios) - 1])
-  legendText <- unique(gsub("-REF", "", scenarios))
-
-  temp[, scenario := gsub("-REF", "", scenario)]
-  regionNameOrder <- c("Low", "Lower middle", "Upper middle", "High")
-  scenarioNameOrder <- c("2010", "SSP2-NoCC", "SSP1-NoCC", "SSP3-NoCC", "SSP2-GFDL", "SSP2-IPSL", "SSP2-HGEM")
-  temp[, region_name := gsub(" income", "", region_name)]
-  temp[, region_name := factor(region_name, levels =  regionNameOrder)]
-  temp[, scenario := factor(scenario, levels = scenarioNameOrder)]
-  temp[, region_name := gsub(" income", "", region_name)]
-  scenario.econ <- c("SSP2-NoCC", "SSP1-NoCC", "SSP3-NoCC")
-  scenario.clim <- c("SSP2-GFDL", "SSP2-IPSL", "SSP2-HGEM")
-  min.econ <- temp[scenario %in% scenario.econ,  min(value), by = c("region_code")]
-  temp[scenario %in% scenario.econ, value.max.econ := max(value), by = c("region_code")]
-  temp[scenario %in% scenario.clim, value.min.clim := min(value), by = c("region_code")]
-  temp[scenario %in% scenario.clim, value.max.clim := max(value), by = c("region_code")]
-  temp[scenario %in% "2010", value.min.econ := value]
-  temp[scenario %in% "2010", value.max.econ := value]
-  temp[scenario %in% "2010", value.min.clim := value]
-  temp[scenario %in% "2010", value.max.clim := value]
-  #
-
-  #' draw lines
-  temp2 <- temp[scenario %in% c("2010", "SSP2-NoCC") & region_code %in% "lowInc",]
-  ggplot(temp2, aes(x = region_name, y = value, fill = scenario, order = c("region_name") )) +
-    theme(axis.text.x = element_text(angle = 45, hjust = 1, family = "Times", face = "plain")) +
-    theme(axis.title.y = element_text(family = "Times", face = "plain")) +
-    geom_line(aes(group = 1)) +
-    geom_point(size = 2) +
-    theme(plot.title = element_text(hjust = 0.5, size = 11, family = "Times", face = "plain")) +
-    ggtitle(plotTitle) +
-    ylim(yRange) +
-    labs(y = yLab, x = NULL) +
-    geom_errorbar(aes(ymin = value.min.econ, ymax = value.max.econ),color = "green",
-                  size = 2, width = 0.2)
-
-  #' code to save the plot for future use
-  graphsListHolder[[fileName]] <- p
-  assign("graphsListHolder", graphsListHolder, envir = .GlobalEnv)
-}
-
-plotByRegionBarAMDR <- function(dt, fileName, plotTitle, yLab, yRange, aggChoice, scenOrder, colorList, AMDR_lo, AMDR_hi, graphsListHolder, plotErrorBars) {
-  print(paste("\nplotting AMDR bars for region ", aggChoice, "for", plotTitle))
+plotByRegionBarAMDR <- function(dt, fileName, plotTitle, yLab, yRange, aggChoice, suffix, scenOrder, colorList, AMDR_lo, AMDR_hi, graphsListHolder, plotErrorBars) {
+  cat("\nPlotting AMDR bars for region ", aggChoice, "for", plotTitle)
   plotTitle <- capwords(plotTitle)
   temp <- copy(dt)
   regionCodes <- unique(temp$region_code)
@@ -453,7 +486,7 @@ plotByRegionBarAMDR <- function(dt, fileName, plotTitle, yLab, yRange, aggChoice
   if (gdxChoice %in% "USAID")  temp <- renameUSAIDscenarios(temp)
 
   #' draw bars
-  pdf(paste(fileloc("gDir"),"/", fileName, ".pdf", sep = ""), width = 7, height = 5.2, useDingbats = FALSE)
+#  pdf(paste(fileloc("gDir"),"/", fileName, ".pdf", sep = ""), width = 7, height = 5.2)
   if (round(max(temp$value) - yRange[2]) == 0) yRange[2] <- max(temp$value) # will hopefully deal with rare situation
   #' when all elements of value are the same as the max y range
   p <- ggplot(temp, aes(x = region_name, y = value, fill = scenario, order = c("region_name") )) +
@@ -469,13 +502,12 @@ plotByRegionBarAMDR <- function(dt, fileName, plotTitle, yLab, yRange, aggChoice
     geom_text( aes(.75, AMDR_lo + 2, label = "Low", color = "green")) +
     geom_hline(aes(yintercept = AMDR_hi,  color = "dark red")) +
     geom_text( aes(.75, AMDR_hi + 2, label = "High", color = "green"))
-
+   ggsave(filename = paste0(fileloc("gDir"),"/",fileName,".pdf"), plot = p,
+         width = 7, height = 6)
+ # # dev.off()
   #' code to save the plot for future use
   graphsListHolder[[fileName]] <- p
   assign("graphsListHolder", graphsListHolder, envir = .GlobalEnv)
-print(fileName) # delete later
-  print(p)
-  dev.off()
 
   # save data
   formula.wide <- "scenario ~ factor(region_code, levels = unique(region_code))"

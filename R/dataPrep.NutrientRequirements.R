@@ -1,3 +1,4 @@
+#' @title alculate nutrient requirements for SSP age group categories
 #' @author Gerald C. Nelson, \email{nelson.gerald.c@@gmail.com}
 #' @keywords utilities, IMPACT data, gdx
 # Intro -------------------------------------------------------------------
@@ -20,27 +21,26 @@
 #' @description - This script calculates nutrient requirements for SSP age group categories
 #' The source of the requirements is
 #' @source \url{http://www.nal.usda.gov/fnic/DRI/DRI_Tables/recommended_intakes_individuals.pdf}
-#' The requirements are imported in dataManagement.ODBCaccess.R. .Maybe not now; March 5, 2018
+#' The requirements are imported in dataManagement.ODBCaccess.R. Not now; March 5, 2018. ODBCaccess renamed to old
 
 #' @include nutrientModFunctions.R
-#if (!exists("getNewestVersion", mode = "function"))
 {
-source("R/nutrientModFunctions.R")
+  source("R/nutrientModFunctions.R")
   source("R/workbookFunctions.R")
   source("R/nutrientCalcFunctions.R")
 }
+sourceFile <- "dataPrep.NutrientRequirements.R"
+ createScriptMetaData()
+
 options(encoding = "UTF-8")
 
 # nutrients spreadsheet for the base runs. This should be fine because this script just needs the list of nutrients
- dt.nutrients <- getNewestVersion("dt.nutrients.baseVars", fileloc("iData"))
+dt.nutrients <- getNewestVersion("dt.nutrients.base", fileloc("iData"))
 
-#' @param allFoodGroups - list of all food groups
-FGlookup <- data.table::as.data.table(openxlsx::read.xlsx(fileNameList("foodGroupLU")))
-allFoodGroups <- unique(FGlookup$food_group_code)
 
 # Read in and set up the nutrient requirements data -----
 
-# getSheetNames(DRIFileName)
+# getSheetNames(DRIFileName). Not used elsewhere so commenting it out. Mar 17, 2018
 #' @param req.metadata - meta data for the nutrient requirements
 reqsFile <- fileNameList("DRIs")
 req.metadata <- openxlsx::read.xlsx(reqsFile, sheet = "Reference", colNames = FALSE)
@@ -49,93 +49,63 @@ format(req.metadata, justify = c("left"))
 #' @param req.EAR - Estimated Average Requirements (EAR) data
 req.EAR <-
   data.table::as.data.table(openxlsx::read.xlsx(reqsFile, startRow = 1,  colNames = TRUE, sheet = "EAR"))
-keepListCol.reqs <- names(req.EAR)[!names(req.EAR) %in% c("status_group", "age_group")]
-req.EAR <- req.EAR[, (keepListCol.reqs), with = FALSE]
-reqsList <- "req.EAR"
+req.EAR[, c("status_group", "age_group") := NULL]
 
 #' @param req.RDA.vits - Recommended Daily Allowance (RDA) data for vitamins
 req.RDA.vits <-
-  data.table::as.data.table(openxlsx::read.xlsx(reqsFile, startRow = 1,  colNames = TRUE,
-                      sheet = "RDAorAI_vitamins"))
-keepListCol.reqs <- names(req.RDA.vits)[!names(req.RDA.vits) %in% c("status_group", "age_group")]
-req.RDA.vits <- req.RDA.vits[, (keepListCol.reqs), with = FALSE]
-reqsList <- c(reqsList,"req.RDA.vits")
+  data.table::as.data.table(openxlsx::read.xlsx(reqsFile, startRow = 1,  colNames = TRUE, sheet = "RDAorAI_vitamins"))
+req.RDA.vits[, c("status_group", "age_group") := NULL]
 
 #' @param req.RDA.minrls - Recommended Daily Allowance (RDA) data for minerals
 req.RDA.minrls <-
-  data.table::as.data.table(openxlsx::read.xlsx(reqsFile, startRow = 1,  colNames = TRUE,
-                      sheet = "RDAorAI_minerals"))
-keepListCol.reqs <- names(req.RDA.minrls)[!names(req.RDA.minrls) %in% c("status_group", "age_group")]
-req.RDA.minrls <- req.RDA.minrls[, (keepListCol.reqs), with = FALSE]
+  data.table::as.data.table(openxlsx::read.xlsx(reqsFile, startRow = 1,  colNames = TRUE, sheet = "RDAorAI_minerals"))
+req.RDA.minrls[, c("status_group", "age_group") := NULL]
 
-#remove the requirements for iron and zinc that are not based on physiological requirements
-deleteListCols = c("iron_mg", "zinc_mg")
-req.RDA.minrls[, (deleteListCols) := NULL]
+#remove the requirements for iron and zinc that are not based on physiological requirements (PR)
+req.RDA.minrls[, c("iron_mg", "zinc_mg") := NULL]
 
 # add PR based iron and zinc requirements to the reqs data
 req.PR.iron <-
-  data.table::as.data.table(openxlsx::read.xlsx(reqsFile, startRow = 1,  colNames = TRUE,
-                      sheet = "PR_iron"))
-keepListCol.reqs <- names(req.PR.iron)[!names(req.PR.iron) %in% c("status_group", "age_group")]
-req.PR.iron <- req.PR.iron[, (keepListCol.reqs), with = FALSE]
+  data.table::as.data.table(openxlsx::read.xlsx(reqsFile, startRow = 1,  colNames = TRUE, sheet = "PR_iron"))
+req.PR.iron[, c("status_group", "age_group") := NULL]
 req.PR.zinc <-
-  data.table::as.data.table(openxlsx::read.xlsx(reqsFile, startRow = 1,  colNames = TRUE,
-                      sheet = "PR_zinc"))
-keepListCol.reqs <- names(req.PR.zinc)[!names(req.PR.zinc) %in% c("status_group", "age_group")]
-req.PR.zinc <- req.PR.zinc[, (keepListCol.reqs), with = FALSE]
+  data.table::as.data.table(openxlsx::read.xlsx(reqsFile, startRow = 1,  colNames = TRUE, sheet = "PR_zinc"))
+req.PR.zinc[, c("status_group", "age_group") := NULL]
 req.RDA.minrls <- merge(req.RDA.minrls, req.PR.iron, by = c("ageGenderCode"))
 req.RDA.minrls <- merge(req.RDA.minrls, req.PR.zinc, by = c("ageGenderCode"))
-#reqsList <- c(reqsList,"req.PR.iron", "req.PR.zinc"). Not needed because these are the only requirements now.
-reqsList <- c(reqsList,"req.RDA.minrls")
 
 #' @param req.RDA.macro - Recommended Daily Allowance (RDA) data for macro nutrients
 req.RDA.macro <-
-  data.table::as.data.table(openxlsx::read.xlsx(reqsFile, startRow = 1, colNames = TRUE,
-                      sheet = "RDAorAI_macro"))
-keepListCol.reqs <- names(req.RDA.macro)[!names(req.RDA.macro) %in% c("status_group", "age_group")]
-req.RDA.macro <- req.RDA.macro[, (keepListCol.reqs), with = FALSE]
-reqsList <- c(reqsList,"req.RDA.macro")
+  data.table::as.data.table(openxlsx::read.xlsx(reqsFile, startRow = 1, colNames = TRUE, sheet = "RDAorAI_macro"))
+req.RDA.macro[, c("status_group", "age_group") := NULL]
 
 #' @param req.UL.vits - Recommended Upper Limit (UL) data for vitamins
 req.UL.vits <-
-  data.table::as.data.table(openxlsx::read.xlsx(reqsFile, startRow = 1,  colNames = TRUE,
-                      sheet = "UL_vitamins"))
-keepListCol.reqs <- names(req.UL.vits)[!names(req.UL.vits) %in% c("status_group", "age_group")]
-req.UL.vits <- req.UL.vits[, (keepListCol.reqs), with = FALSE]
-reqsList <- c(reqsList,"req.UL.vits")
+  data.table::as.data.table(openxlsx::read.xlsx(reqsFile, startRow = 1,  colNames = TRUE, sheet = "UL_vitamins"))
+req.UL.vits[, c("status_group", "age_group") := NULL]
 
 #' @param req.UL.minrls - Recommended Upper Limit (UL) data for minerals
 req.UL.minrls <-
-  data.table::as.data.table(openxlsx::read.xlsx(reqsFile, startRow = 1,  colNames = TRUE,
-                      sheet = "UL_minerals"))
-keepListCol.reqs <- names(req.UL.minrls)[!names(req.UL.minrls) %in% c("status_group", "age_group")]
-req.UL.minrls <- req.UL.minrls[, (keepListCol.reqs), with = FALSE]
-
-reqsList <- c(reqsList,"req.UL.minrls")
+  data.table::as.data.table(openxlsx::read.xlsx(reqsFile, startRow = 1,  colNames = TRUE, sheet = "UL_minerals"))
+req.UL.minrls[, c("status_group", "age_group") := NULL]
 
 #' @param req.AMDR_hi - Acceptable Macronutrient Distribution Range, high level
 req.AMDR_hi <-
-  data.table::as.data.table(openxlsx::read.xlsx(reqsFile, startRow = 1,  colNames = TRUE,
-                      sheet = "AMDR_hi"))
-keepListCol.reqs <- names(req.AMDR_hi)[!names(req.AMDR_hi) %in% c("status_group", "age_group")]
-req.AMDR_hi <- req.AMDR_hi[, (keepListCol.reqs), with = FALSE]
+  data.table::as.data.table(openxlsx::read.xlsx(reqsFile, startRow = 1,  colNames = TRUE, sheet = "AMDR_hi"))
+req.AMDR_hi[, c("status_group", "age_group") := NULL]
 
 #' @param req.AMDR_lo - Acceptable Macronutrient Distribution Range, low level
 req.AMDR_lo <-
-  data.table::as.data.table(openxlsx::read.xlsx(reqsFile, startRow = 1,  colNames = TRUE,
-                      sheet = "AMDR_lo"))
-keepListCol.reqs <- names(req.AMDR_lo)[!names(req.AMDR_lo) %in% c("status_group", "age_group")]
-req.AMDR_lo <- req.AMDR_lo[, (keepListCol.reqs), with = FALSE]
-reqsList <- c(reqsList,"req.AMDR_hi", "req.AMDR_lo")
+  data.table::as.data.table(openxlsx::read.xlsx(reqsFile, startRow = 1,  colNames = TRUE, sheet = "AMDR_lo"))
+req.AMDR_lo[, c("status_group", "age_group") := NULL]
 
-#' @param req.MRV.alcohol - maximum recommended consumption of alcohol
+#' @param req.MRV.alcohol - maximum recommended consumption of alcohol. The only MRV in the file is alcohol
 req.MRVs <-
-  data.table::as.data.table(openxlsx::read.xlsx(reqsFile, startRow = 1,
-                                                colNames = TRUE,
-                                                sheet = "MRVs"))
-keepListCol.reqs <- names(req.MRVs)[!names(req.MRVs) %in% c("status_group", "age_group")]
-req.MRVs <- req.MRVs[, (keepListCol.reqs), with = FALSE]
-reqsList <- c(reqsList,"req.MRVs")
+  data.table::as.data.table(openxlsx::read.xlsx(reqsFile, startRow = 1, colNames = TRUE, sheet = "MRVs"))
+req.MRVs[, c("status_group", "age_group") := NULL]
+
+reqsList <- c("req.EAR","req.RDA.vits","req.RDA.minrls","req.RDA.macro","req.UL.vits","req.UL.minrls",
+              "req.AMDR_hi", "req.AMDR_lo","req.MRVs")
 
 # create lists of nutrients common to the food nutrient and  requirements lists ------
 # keep only the common nutrients in the req list---
@@ -158,8 +128,6 @@ reqsList <- c(reqsList,"req.MRVs")
 # # female children are the same as male children
 # chldrn.female.SSP <- chldrn.male.SSP
 # chldrn.female.SSP$ageGenderCode <- "SSPF0_4"
-# j <-
-#   dplyr::bind_rows(list(j, chldrn.male.SSP, chldrn.female.SSP))
 
 # calculations needed for the pregnant and lactating women results ----
 # SSPF15_49 <- (F14_18 + F19_30 + F31_50)/3
@@ -170,17 +138,22 @@ dt.ageGroupLU <- data.table::as.data.table(openxlsx::read.xlsx(fileNameList("SSP
 # for loop to do recalculations -----
 # this loop assigns requirements by the age groups used in the SSP data
 for (i in reqsList) {
-commonListName <- paste("common", gsub("req.", "", i), sep = ".")
-  temp <- intersect(sort(colnames(dt.nutrients)), sort(colnames(eval(parse(text = i)))))
-  assign(commonListName, temp)
-  j <- eval(parse(text = i))
+  commonListName <- paste("common", gsub("req.", "", i), sep = ".")
+  dt <- eval(parse(text = i))
+  nutList <- intersect(sort(colnames(dt.nutrients)), sort(colnames(dt)))
+  assign(commonListName, nutList)
   # Note: EARS include Reference_weight_kg. This is removed in the next line of code.
-  j <- j[, c("ageGenderCode", temp), with = FALSE]
-  j[is.na(j)] = 0
-  # now do the adjustment for the differences in infant age groupd
-  nutList <- names(j)[2:ncol(j)]
-  req.transpose <- data.table::as.data.table(data.table::dcast(data.table::melt(j, id.vars = "ageGenderCode", measure.vars = nutList, variable.name = "nutrient"), nutrient ~ ageGenderCode))
-#create new groups to convert the requirements data so they align with the age and gender groups in the SSP data
+  deleteListCol <- names(dt)[!names(dt) %in% c("ageGenderCode", nutList)]
+  if (length(deleteListCol) > 0) dt[, (deleteListCol) := NULL]
+  dt[is.na(dt)] = 0
+  # now do the adjustment for the differences in infant age group
+  # Note combo of melt and dcast
+  req.transpose <- dcast(data.table::melt(dt,
+                                          id.vars = "ageGenderCode",
+                                          measure.vars = nutList,
+                                          variable.name = "nutrient"),
+                         nutrient ~ ageGenderCode)
+  #create new groups to convert the requirements data so they align with the age and gender groups in the SSP data
   req.transpose[, Chil0_3 :=  1/6 * (Inf0_0.5 * 1 + Inf0.5_1 * 1 + Chil1_3 * 4)]
   req.transpose[, LactTot := (Lact14_18 + Lact19_30 + Lact31_50)/3]
   req.transpose[, PregTot := (Preg14_18 + Preg19_30 + Preg31_50)/3]
@@ -196,10 +169,10 @@ commonListName <- paste("common", gsub("req.", "", i), sep = ".")
   j[, ageGenderCode := NULL]
   data.table::setnames(j, old = "ssp", new = "ageGenderCode")
   data.table::setcolorder(j, c("ageGenderCode", nutList))
-    # assign (i, j) give the original req name to j
-  assign(paste(i,"ssp", sep = "_"), j)
   inDT <- j
   outName <- paste(i,"ssp", sep = "_")
-  cleanup(inDT,outName,fileloc("mData"))
+  desc <- paste0("SSP data for ", i)
+  cleanup(inDT,outName,fileloc("mData"), desc = desc)
 }
+finalizeScriptMetadata(metadataDT, sourceFile)
 

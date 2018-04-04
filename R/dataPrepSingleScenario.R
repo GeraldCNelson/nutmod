@@ -1,3 +1,4 @@
+#' @title Food budget share calcs with and without CGE adjustments
 #' @author Gerald C. Nelson, \email{nelson.gerald.c@@gmail.com}
 #' @keywords utilities, nutrient data, IMPACT food commodities nutrient lookup
 # Intro ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -17,7 +18,6 @@
 #' calculates the effects on the food budget share.
 #' @name dataPrep.SingleScenario.R
 #' @include nutrientModFunctions.R
-#if (!exists("getNewestVersion", mode = "function"))
 {source("R/nutrientModFunctions.R")
   source("R/workbookFunctions.R")
   source("R/nutrientCalcFunctions.R")}
@@ -107,9 +107,11 @@ processIMPACT159Data <- function(gdxFileName, gdxFileLoc, varName, catNames, sin
   # this is where dt.FoodAvailability is written out, for example
   outName <- paste("dt", varName, gsub(".gdx", "", gdxFileName), sep = ".")
   if (singleScenario == TRUE) {
-    cleanup(inDT,outName,fileDest)
+    desc <- paste0("gdx data for ", varName)
+    cleanup(inDT,outName,fileDest, desc = desc)
   }else{
-    cleanup(inDT,outName,fileloc("iData"))
+    desc <- paste0("gdx data for ", varName)
+    cleanup(inDT,outName,fileloc("iData"), desc = desc)
   }
 }
 

@@ -3,11 +3,11 @@ require(compiler)
 enableJIT(3)
 ls(all.names = TRUE)
 #' Nutrient Modeling automation script
-#' title: "Functions needed to make the nutrientModeling shiny app work"
+#' @title "Functions needed to make the nutrientModeling shiny app work"
 #' @author Gerald C. Nelson, \email{nelson.gerald.c@@gmail.com}
 #' @keywords utilities, nutrient data, IMPACT food commodities nutrient lookup, automation
 # Intro ---------------------------------------------------------------
-#Copyright (C) 2016-2017 Gerald C. Nelson, except where noted
+#Copyright (C) 2016-2018 Gerald C. Nelson, except where noted
 
 # This program is free software: you can redistribute it and/or modify it
 # under the terms of the GNU General Public License as published by the Free
@@ -30,16 +30,21 @@ ls(all.names = TRUE)
 #   gDir = graphics/gdxChoice
 # The metadata file in the results directory provides details on files and file locations used in the analysis
 options(warn = 2) # converts all warnings to errors
-ptm <- proc.time()
+sourceFile <- "automate.R"
 
+ptm <- proc.time()
+sourcer <- function(sourceFile){
+  cat("\n\nRunning ", sourceFile)
+  source(sourceFile)
+}
 #install needed packages
 list.of.packages <- c("data.table", "openxlsx", "dplyr", "dtplyr", "utils", "ggplot2", "stringi", "tidyr", "splitstackshape",
                       "gridExtra","gplots", "RColorBrewer", "RODBC")
 new.packages <- list.of.packages[!(list.of.packages %in% installed.packages()[,"Package"])]
 if (length(new.packages)) install.packages(new.packages)
 
-print("The packages below are needed and currently available on CRAN or by downloading from github")
-print(paste("This set of scripts needs version 1.9.7 or greater of the data.table package. Version", as.character(packageVersion("data.table")), "is currently being used."))
+cat("\nThe packages below are needed and currently available on CRAN or by downloading from github.\n")
+cat("\nThis set of scripts needs version 1.9.7 or greater of the data.table package. Version", as.character(packageVersion("data.table")), "is currently being used.\n")
 # print(paste("This set of scripts needs version 3.1.23 or greater of the openxlsx package. Version", as.character(packageVersion("openxlsx")), "is currently being used."))
 
 if (packageVersion("openxlsx") < "4.0.17") {
@@ -56,14 +61,16 @@ if (packageVersion("data.table") < "1.10.0") {
 
 # the source code needs to be below the install code so R doesn't have to restart
 # print(paste("start time is " , proc.time(), sep = ""))
-print("Running nutrientModFunctions.R")
+cat("Running nutrientModFunctions.R")
 source("R/nutrientModFunctions.R")
 
-print("Running workbookFunctions.R")
+cat("Running workbookFunctions.R")
 source("R/workbookFunctions.R")
 
-print("Running nutrientCalcFunctions.R")
+cat("Running nutrientCalcFunctions.R")
 source("R/nutrientCalcFunctions.R")
+
+createScriptMetaData()
 
 gdxrrwExistenceCheck() #checks if the gdxrrw package is installed; if not, prints directions on how to install and stops.
 #choose between 1 of 2 possible gdx files.
@@ -72,94 +79,84 @@ gdxrrwExistenceCheck() #checks if the gdxrrw package is installed; if not, print
 gdxCombo <- gdxFileNameChoice()
 gdxFileName <- gdxCombo[1]
 gdxChoice <- gdxCombo[2]
+sourceFile <- "R/automate.R"
 metadata() # - creates dt.metaData; holds some key file locations and variable names;
 # needs to come after identification of gdxFileName and before library location check
 gdxLibraryLocationCheck()
 
 # the gdxrrwSetup.R script needs to be separate because shiny can't deal with the gams package.
-source("R/gdxrrwSetup.R") # creates dt.scenarioListIMPACT and dt.IMPACTgdxParams
-cat("Running dataPrep.IMPACT.R\n\n")
-source("R/dataPrep.IMPACT.R")
+sourceFile <- "R/gdxrrwSetup.R"
+sourcer(sourceFile)
+
+sourceFile <- "R/dataPrep.IMPACT.R" # creates dt.scenarioListIMPACT and dt.IMPACTgdxParams
+sourcer(sourceFile)
 # - creates files in iData
 # dt.IMPACTmetaData
 # paste(dt,varName, sep = ".") - one file for each IMPACT variable, example is dt.PerCapKCAL.2016-06-21.rds
 # dt.CSEs
 
-cat("Running dataPrep.SSP.R\n\n")
-source("R/dataPrep.SSP.R")
+sourceFile <- "R/dataPrep.SSP.R"
+sourcer(sourceFile)
 # - creates files in mData
 # dt.SSPGDPClean - SSP GDP data
 # dt.SSP.pop.tot
 # dt.SSPPopClean - SSP population data including age and gender groups
 # dt.IMPACT159.pop.tot - total population by IMPACT 159 region from the SSP population data set; not any more
 
-cat("Running dataPrep.regions.R\n\n")
-source("R/dataPrep.regions.R") # - creates dt.regions.all and the list of scenarios
+sourceFile <- "R/dataPrep.regions.R"
+sourcer(sourceFile) # - creates dt.regions.all and the list of scenarios
 
-cat("Running dataPrep.FBS.R\n\n")
-source("R/dataPrep.FBS.R") # - creates dt.FBS, mData
+sourceFile <- "R/dataPrep.FBS.R"
+sourcer(sourceFile) # - creates dt.FBS, mData
 
-cat("Running dataManagement.fishnAlc.R\n\n")
-source("R/dataManagement.fishnAlc.R")
-# dt.fishIncElast, iData - to have a record of what fish income elasticities were used
+sourceFile <- "R/dataManagement.fishnAlc.R"
+sourcer(sourceFile) # dt.fishIncElast, iData - to have a record of what fish income elasticities were used
 # dt.fishScenarios, mData
 # dt.alcIncElast, iData - to have a record of what alcohol income elasticities were used
 # dt.alcScenarios, mData - alcohol consumption scenarios, for input into dataManagement.IMPACT.R
 
-cat("Running dataManagement.IMPACT.R\n\n")
-source("R/dataManagement.IMPACT.R")
-# adds fish and alcohol data, writes out IMPACT variables just for food items (names begin with c), and dt.IMPACTfood file
+sourceFile <- "R/dataManagement.IMPACT.R"
+sourcer(sourceFile) # adds fish and alcohol data, writes out IMPACT variables just for food items (names begin with c), and dt.IMPACTfood file
 #paste(fileShortName, "food, sep = "."), iData - just data for food commodities, example is dt.CSEs.food.2016-06-21.rds
 #dt.IMPACTfood, iData
 
-cat("Running dataPrepFishStat.R\n\n")
-source("R/dataPrepFishStat.R")
-# adds fish data for composite fish commodities, writes out IMPACT variables just for composite fish items (names begin with c),
+sourceFile <- "R/dataPrepFishStat.R"
+sourcer(sourceFile) # adds fish data for composite fish commodities, writes out IMPACT variables just for composite fish items (names begin with c),
 # destination is fileloc("iData")
 
-cat("Running dataPrep.ODBCaccess.R\n\n")
-source("R/dataPrep.ODBCaccess.R")
-# reads in nutrient data from the USDA nutrient composition access database
+sourceFile <- "R/dataPrep.ODBCaccess.R"
+sourcer(sourceFile) # reads in nutrient data from the USDA nutrient composition access database
 
 # replaced by dataPrepUSDANuts.R feb 25, 2018
 # cat("Running dataManagement.ODBCaccess.R\n\n")
 # source("R/dataManagement.ODBCaccess.R")
 #Manipulates the results of the ODBC_access script and prepares dt.nutrients for later scripts
 
-cat("Running dataPrepFortification.R\n\n")
-source("R/dataPrepFortification.R")
-# reads in data on where fortification occurs (not all types of fortification); writes out data file in appropriate format
+sourceFile <- "R/dataPrepFortification.R"
+sourcer(sourceFile) # reads in data on where fortification occurs (not all types of fortification); writes out data file in appropriate format
 # and also creates facet maps with this information
 
- cat("Running dataPrepUSDANuts.R\n\n")
-# source("R/dataManagement.ODBCaccess.R" \n\n")
- source("R/dataPrepUSDANuts.R")
+sourceFile <- "R/dataPrepUSDANuts.R"
+sourcer(sourceFile)
 
-cat("Running dataPrep.NutrientRequirements.R\n\n")
-source("R/dataPrep.NutrientRequirements.R")
-# newDFname, mData - nutrient requirements adjusted to SSP age and gender categories, example is req.RDA.macro.ssp.2016-06-22.rds
+sourceFile <- "R/dataPrep.NutrientRequirements.R"
+sourcer(sourceFile) # newDFname, mData - nutrient requirements adjusted to SSP age and gender categories, example is req.RDA.macro.ssp.2016-06-22.rds
 
-# print("Running bioavail.R")
-# source("R/bioavail.R")
-# # does adjustments to iron and zinc for bioavailability. Results are in files called PR.xxx. Calculation are now done in
-# nutrientCalcs.R
+sourceFile <- "R/dataManagement.SSPPop.R"
+sourcer(sourceFile) #paste(gsub(".ssp","",nutReqName),"percap",sep = "."), mData - Nutrient requirements adjusted for population distribution, example is req.EAR.percap.2016-06-24.rds
 
-cat("Running dataManagement.SSPPop.R\n\n")
-source("R/dataManagement.SSPPop.R")
-#paste(gsub(".ssp","",nutReqName),"percap",sep = "."), mData - Nutrient requirements adjusted for population distribution, example is req.EAR.percap.2016-06-24.rds
-cat("Running dataManagement.foodNnuts.R\n\n")
-source("R/dataManagement.foodNnuts.R")
-#resultsD - creates dt.foodNnuts, dt.nutrients.kcals, dt.nutrients.sum.all, dt.nutrients.sum.staples,
+sourceFile <- "R/dataManagement.foodNnuts.R"
+sourcer(sourceFile) #resultsD - creates dt.foodNnuts, dt.nutrients.kcals, dt.nutrients.sum.all, dt.nutrients.sum.staples,
 # dt.nutrients.nonstapleShare, dt.foodAvail.foodGroup
 
-cat("Running nutrientCalcs.R\n\n")
-source("R/nutrientCalcs.R")
+sourceFile <- "R/nutrientCalcs.R"
+sourcer(sourceFile)
 #writes
 # paste("food.agg.",reqShortName,sep = "") fileloc("resultsDir"), "csv")
 # "dt.nutrients.sum", fileloc("resultsDir"))
 
-cat("Running nutCalcsProcessing.R\n\n")
-source("R/nutCalcsProcessing.R") # should probably be rewritten so it doesn't take so long to run
+sourceFile <- "R/nutCalcsProcessing.R"
+sourcer(sourceFile) # should probably be rewritten so it doesn't take so long to run
 #writes
 # paste(reqShortName, "all.sum", sep = ".")
 # paste(reqShortName, "sum.req.ratio", sep = ".")
@@ -171,8 +168,8 @@ source("R/nutCalcsProcessing.R") # should probably be rewritten so it doesn't ta
 "all.req.ratio.cMin"
 # dt.energy.ratios - ratio of kcals from specific sources to total kcals
 
-cat("Running diversityMetrics.R\n\n")
-source("R/diversityMetrics.R")
+sourceFile <- "R/diversityMetrics.R"
+sourcer(sourceFile)
 
 #creating list of .rds files in results
 cat("create list of .rds files in data\n\n")
@@ -185,15 +182,23 @@ descriptionLookup <- fread(paste(fileloc("rawData"), "descriptionLookup.csv", se
 dt.resultsFiles <- merge(dt.resultsFiles,descriptionLookup, by = "reqTypeName", all.x = TRUE)
 inDT <- dt.resultsFiles
 outName <- "resultFileLookup"
-cleanup(inDT, outName, fileloc("mData"))
+desc <- " Description of contents of some files."
+cleanup(inDT, outName, fileloc("mData"), desc = desc)
 
-print("Copying files for shiny app")
-source("R/copyFilestoNutrientModeling.R") # move results needed for the shiny app.R in the nutrientModeling folder
+sourceFile <- "R/copyFilestoNutrientModeling.R"
+sourcer(sourceFile)  # move results needed for the shiny app.R in the nutrientModeling folder
 
 library(dtplyr)# generate graphs
-source("R/aggRun.R")
+sourceFile <- "R/aggRun.R"
+sourcer(sourceFile)
 
-source("R/finalGraphCreation.R")
+sourceFile <- "R/finalGraphCreation.R"
+sourcer(sourceFile)
+
+sourceFile <- "R/dataPrep.metadata.R"
+sourcer(sourceFile)
+
+finalizeScriptMetadata(metadataDT, sourceFile)
 
 # the code below here was for creating final graphs from the pdfs created in aggRun. This has been superceded by the
 #finalGraphCreation.R script. Preserving this for a while.

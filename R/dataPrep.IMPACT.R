@@ -3,11 +3,12 @@
 #' @title Import IMPACT data from a gdx file
 #' @name dataPrep.IMPACT.R
 #' @include nutrientModFunctions.R
-#if (!exists("getNewestVersion", mode = "function"))
 {source("R/nutrientModFunctions.R")
   source("R/workbookFunctions.R")
   source("R/nutrientCalcFunctions.R")}
 gdxrrw::igdx(gamsSysDir = fileNameList("R_GAMS_SYSDIR"), silent = TRUE)
+sourceFile <- "dataPrep.IMPACT.R"
+createScriptMetaData()
 
 # Intro -------------------------------------------------------------------
 
@@ -100,7 +101,8 @@ processIMPACT159Data <- function(gdxFileName, varName, catNames) {
   inDT <- dt.ptemp
   # this is where dt.FoodAvailability is written out, for example
   outName <- paste("dt", varName, sep = ".")
-  cleanup(inDT,outName,fileloc("iData"))
+  desc <- paste("Individual IMPACT variable", varName)
+  cleanup(inDT,outName,fileloc("iData"), desc = desc)
 }
 
 vars.land <- c("AREACTYX0", "YLDCTYX0", "ANMLNUMCTYX0")
@@ -139,3 +141,4 @@ generateResults(gdxFileName, vars.world, catNames.world)
 # cleanup(inDT,outName,fileloc("iData"))
 
 
+finalizeScriptMetadata(metadataDT, sourceFile)

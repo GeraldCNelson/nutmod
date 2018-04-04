@@ -1,4 +1,4 @@
-# code to produce output for the paper
+#' @title code to produce output for the paper
 
 #Copyright (C) 2016 Gerald C. Nelson, except where noted
 
@@ -11,7 +11,6 @@
 #   WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
 #   or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License
 #   for more details at http://www.gnu.org/licenses/.
-if (!exists("getNewestVersion", mode = "function"))
 {source("R/nutrientModFunctions.R")
   source("R/workbookFunctions.R")
   source("R/nutrientCalcFunctions.R")}
@@ -41,7 +40,9 @@ dt.shannonDiversity <- merge(dt.shannonDiversity, dt.regions.all, by = "region_c
 
 inDT <- dt.fishIncElast
 outName <- "dt.fishIncElast"
-cleanup(inDT,outName,fileloc("iData"))
+desc <- "Fish income elasticities"
+
+cleanup(inDT,outName,fileloc("iData"), desc = desc)
 
 
 

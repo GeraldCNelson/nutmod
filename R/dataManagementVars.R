@@ -21,6 +21,8 @@
   source("R/workbookFunctions.R")
   source("R/nutrientCalcFunctions.R")
   source("R/aggNorder.R")}
+sourceFile <- "dataPrepFortification.R" # would be better to figure out a way to get this automatically.
+createScriptMetaData()
 
 #get the country crop variety lookup data table
 library(readxl)
@@ -32,27 +34,16 @@ ctyWspecVarieties <- names(dt)[temp == FALSE]
 # get rid of the column names "IMPACT_code" "usda_code"
 ctyWspecVarieties <- ctyWspecVarieties[3:length(ctyWspecVarieties)]
 
-# dt.nutrients.sum.all <- getNewestVersion("dt.nutrients.sum.all", fileloc("resultsDir"))
-# dt.nutrients.sum.specVars <- dt.nutrients.sum.all[region_code.IMPACT159 %in% ctyWspecVarieties, ]
-# switch.vars <- keyVariable("switch.vars")
-# inDT <- dt.nutrients.sum.specVars
-# if (switch.vars == TRUE) {
-#   outname <- "dt.nutrients.sum.var"
-# }else{
-#   outname <- "dt.nutrients.sum.base"
-#   }
-# cleanup(inDT, outname, fileloc("resultsDir"))
-
-dt.nutrients.sum.all <- getNewestVersion("dt.nutrients.sum.all.base", fileloc("resultsDir"))
-dt.nutrients.sum.allVar <- getNewestVersion("dt.nutrients.sum.allVar", fileloc("resultsDir"))
-dt.nutrients.sum.allVarFort <- getNewestVersion("dt.nutrients.sum.allVarFort", fileloc("resultsDir"))
+dt.nutrients.sum.all.base <- getNewestVersion("dt.nutrients.sum.all.base", fileloc("resultsDir"))
+dt.nutrients.sum.all.var <- getNewestVersion("dt.nutrients.sum.all.var", fileloc("resultsDir"))
+dt.nutrients.sum.all.varFort <- getNewestVersion("dt.nutrients.sum.all.varFort", fileloc("resultsDir"))
 
 #' compare results with base and country-specific vars
-dt.nutrients.sumVar <- dt.nutrients.sum.allVar[region_code.IMPACT159 %in% ctyWspecVarieties]
-dt.nutrients.sum.base <- dt.nutrients.sum.all[region_code.IMPACT159 %in% ctyWspecVarieties]
-setnames(dt.nutrients.sumVar, old = "value", new = "valueVar")
+dt.nutrients.sum.var <- dt.nutrients.sum.all.var[region_code.IMPACT159 %in% ctyWspecVarieties]
+dt.nutrients.sum.base <- dt.nutrients.sum.all.base[region_code.IMPACT159 %in% ctyWspecVarieties]
+setnames(dt.nutrients.sum.var, old = "value", new = "valueVar")
 setnames(dt.nutrients.sum.base, old = "value", new = "valueBase")
-temp <- merge(dt.nutrients.sumVar, dt.nutrients.sum.base)
+temp <- merge(dt.nutrients.sum.var, dt.nutrients.sum.base)
 # delete irrelevant nutrients
 deleteListNuts <- c("kcalsPerDay.other", "ethanol_g", "kcalsPerDay.ethanol", "kcals.ethanol_g",
                     "kcalsPerDay.ft_acds_tot_sat", "kcalsPerDay.protein", "kcalsPerDay.sugar",
@@ -74,26 +65,25 @@ macronutrients <- keyVariable("macronutrients")
 vitamins <- keyVariable("vitamins")
 minerals <- keyVariable("minerals")
 
-
 for (i in c("macronutrients", "vitamins", "minerals")) {
   dt <- temp.small[nutrient %in% eval(parse(text = i)),]
-p <- ggplot(data = dt, aes(x = region_code.IMPACT159, y = diffRatio, group = nutrient, color = nutrient)) +
-  xlab("Country") +
-  ylab("(percent)") +
-#  scale_y_continuous() +
-  theme_bw() +
-  #  ggtitle(sprintf("%s\n egg %s", gasinTitle, eggName)) +
-  ggtitle("Difference between variety-specific and base results") +
-  theme(plot.title = element_text(hjust = 0.5)) + # center title
-  theme(legend.position = "bottom") +
-  guides(color = guide_legend(nrow = 3, byrow = TRUE))+
-  theme(legend.title=element_blank())+
-  geom_bar(aes(fill=nutrient),   # fill depends on cond2
-           stat="identity",
-           colour="black",    # Black outline for all
-           position=position_dodge()) # Put bars side-by-side instead of stacked)
-#   print(ggplotly(p, tooltip = c("timeStamp", i), dynamicTicks = TRUE))
-print(p)
+  p <- ggplot(data = dt, aes(x = region_code.IMPACT159, y = diffRatio, group = nutrient, color = nutrient)) +
+    xlab("Country") +
+    ylab("(percent)") +
+    #  scale_y_continuous() +
+    theme_bw() +
+    #  ggtitle(sprintf("%s\n egg %s", gasinTitle, eggName)) +
+    ggtitle("Difference between variety-specific and base results") +
+    theme(plot.title = element_text(hjust = 0.5)) + # center title
+    theme(legend.position = "bottom") +
+    guides(color = guide_legend(nrow = 3, byrow = TRUE))+
+    theme(legend.title=element_blank())+
+    geom_bar(aes(fill=nutrient),   # fill depends on cond2
+             stat="identity",
+             colour="black",    # Black outline for all
+             position=position_dodge()) # Put bars side-by-side instead of stacked)
+  #   print(ggplotly(p, tooltip = c("timeStamp", i), dynamicTicks = TRUE))
+  print(p)
 }
 
 #' compare results with country-specific vars with and without fortification
@@ -150,10 +140,4 @@ for (i in c("macronutrients", "vitamins", "minerals")) {
   print(p)
 }
 
-# misc code below
-
-dt.nutrients.adj <- getNewestVersion("dt.nutrients.adj", fileloc("resultsDir"))
-dt.nutrients.adjVar <- getNewestVersion("dt.nutrients.adjVar", fileloc("resultsDir"))
-dt.nutrients.adjVarFort <- getNewestVersion("dt.nutrients.adjVarFort", fileloc("resultsDir"))
-
-
+finalizeScriptMetadata(metadataDT, sourceFile)

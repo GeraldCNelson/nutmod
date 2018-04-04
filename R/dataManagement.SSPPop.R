@@ -1,5 +1,5 @@
 #' Copy files to shiny app directories
-#' title: "Management of SSP Population Data"
+#' @title "Management of SSP Population Data"
 #' @keywords data management, SSP, population data
 #' @name copyFilestoNutrientModeling.R
 #' @description
@@ -30,10 +30,12 @@
 
 #' @include nutrientModFunctions.R
 #' @include workBookFunctions.R
-# if (!exists("getNewestVersion", mode = "function"))
 {source("R/nutrientModFunctions.R")
   source("R/workbookFunctions.R")
   source("R/nutrientCalcFunctions.R")}
+sourceFile <- "dataManagement.SSPPop.R"
+createScriptMetaData()
+
 keepYearList <- keyVariable("keepYearList")
 
 # Read in the cleaned up SSP population data ----
@@ -179,7 +181,8 @@ repCons <- function(dt.pop, nutReqName, ageRowsToSum) {
   dt.temp.sum <- unique( dt.temp.sum)
   inDT <- dt.temp.sum
   outName <- paste(gsub("_ssp","",nutReqName),"percap",sep = "_")
-  cleanup(inDT,outName,fileloc("mData"))
+  desc <- paste0("Per capita availability of ", nutReqName, " by SSP-specific population")
+  cleanup(inDT,outName,fileloc("mData"), desc = desc)
 
   temp <- data.table::dcast(
     dt.temp.melt,
@@ -237,7 +240,7 @@ wbInfoGeneral[(nrow(wbInfoGeneral) + 1), ] <-
   c("Sheet names", "Description of sheet contents")
 
 #add a worksheet called IMPACTBaselist to the workbook wb = wbGeneral, with info on the commodities in the base set and their nutrients
-dt.nutrients <- getNewestVersion("dt.nutrients.baseVars", fileloc("iData"))
+dt.nutrients <- getNewestVersion("dt.nutrients.base", fileloc("iData"))
 
 openxlsx::addWorksheet(wb = wbGeneral, sheetName = "IMPACTBaselist")
 #commodityNames <- cbind(nutrients[c("Name","IMPACT_code")])
@@ -323,3 +326,5 @@ xcelOutFileName <-
   paste("results/",gdxChoice, "/nut.requirements.", Sys.Date(), ".xlsx", sep = "")
 openxlsx::saveWorkbook(wb = wbGeneral, xcelOutFileName, overwrite = TRUE)
 }
+
+finalizeScriptMetadata(metadataDT, sourceFile)

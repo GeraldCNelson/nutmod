@@ -1,3 +1,6 @@
+#' @title Functions to generate information for adding data to a spreadsheet
+#' @author Gerald C. Nelson, \email{nelson.gerald.c@@gmail.com}
+#' @keywords utilities, nutrient data, IMPACT food commodities nutrient lookup
 # Intro
 # -------------------------------------------------------------------
 # This script contains functions to generate openxlsx::spreadsheets of
@@ -13,12 +16,6 @@
 # the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
 # PURPOSE.  See the GNU General Public License for more details at
 # http://www.gnu.org/licenses/.
-
-#' @include nutrientModFunctions.R
-#if (!exists("getNewestVersion", mode = "function"))
-{source("R/nutrientModFunctions.R")
-#  source("R/workbookFunctions.R")
-  source("R/nutrientCalcFunctions.R")}
 
 numStyle <- openxlsx::createStyle(numFmt = "0.00", halign = "right")
 numStyle3 <- openxlsx::createStyle(numFmt = "0.000", halign = "right")

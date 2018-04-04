@@ -1,9 +1,8 @@
-# A 'subroutine' of nutrientCalcs.R
+#' @title A 'subroutine' of nutrientCalcs.R
 # Creates and populates several worksheets of an excel file that holds modeling results
 #create styles to format the worksheets
 #' @include nutrientModFunctions.R
 #' @include nutrientCalcFunctions.R
-if (!exists("getNewestVersion", mode = "function"))
 {source("R/nutrientModFunctions.R")
   source("R/workbookFunctions.R")
   source("R/nutrientCalcFunctions.R")}

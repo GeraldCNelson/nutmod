@@ -1,6 +1,8 @@
 # this script must be sourced. Best to do it as part of automate.R
 # choose gdx file
 source("R/nutrientModFunctions.R")
+sourceFile <- "gdxrrwSetup.R"
+createScriptMetaData()
 
 #IMPACTgdxfileName <- "Demand Results20150817.gdx" - old gdx
 #gdxFileName <- fileNameList("IMPACTgdxfileName")
@@ -16,8 +18,8 @@ gamsSetup <- function(gdxFileName) {
   dt.ptemp[scenario %in% c("SSP1-NoCC", "SSP2-GFDL", "SSP2-HGEM","SSP2-HGEM2", "SSP2-IPSL", "SSP2-IPSL2",
                            "SSP2-MIROC", "SSP2-NoCC", "SSP3-NoCC"),
            scenario := paste(scenario, "-REF", sep = "")]
-  keeplistCol <- "scenario"
-  dt.scenarioListIMPACT <- unique(dt.ptemp[, keeplistCol, with = FALSE])
+  keepListCol <- "scenario"
+  dt.scenarioListIMPACT <- unique(dt.ptemp[, (keepListCol), with = FALSE])
 
   #cleanup scenario names
   dt.scenarioListIMPACT <- cleanupScenarioNames(dt.scenarioListIMPACT) # replaces - with _ and removes 2 on a couple of USAID scenarios
@@ -34,7 +36,8 @@ gamsSetup <- function(gdxFileName) {
 #   dt.scenarioListIMPACT[, (deleteListCol) := NULL]
   inDT <- dt.scenarioListIMPACT
   outName <- "dt.scenarioListIMPACT"
-  cleanup(inDT, outName, fileloc("mData"), "csv")
+  desc <- "List of scenarios that can be used"
+  cleanup(inDT, outName, fileloc("mData"), "csv", desc = desc)
 
   # create list of IMPACT gdx params
   temp <- gdxrrw::gdxInfo(
@@ -47,9 +50,11 @@ gamsSetup <- function(gdxFileName) {
   data.table::setnames(dt.gdx.param,old = c("name","text"), new = c("catNames", "description"))
   inDT <- dt.gdx.param
   outName <- "dt.IMPACTgdxParams"
-  cleanup(inDT,outName,fileloc("iData"))
+  desc <- "Parameters from the gdx file with IMPACT results"
+  cleanup(inDT,outName,fileloc("iData"), desc = desc)
 }
 #getGDXmetaData(gdxFileName)
 gamsSetup(gdxFileName)
 
+finalizeScriptMetadata(metadataDT, sourceFile)
 

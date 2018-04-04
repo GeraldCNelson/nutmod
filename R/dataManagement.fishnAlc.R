@@ -17,11 +17,11 @@
 
 # options(warn=2)
 #' @include nutrientModFunctions.R
-#if (!exists("getNewestVersion", mode = "function"))
 {source("R/nutrientModFunctions.R")
   source("R/workbookFunctions.R")
   source("R/nutrientCalcFunctions.R")}
-
+sourceFile <- "dataManagement.fishnAlc.R"
+createScriptMetaData()
 # get the years over which the FBS data should be averaged to create starting values
 FBSyearsToAverage <- keyVariable("FBSyearsToAverage")
 
@@ -212,7 +212,8 @@ dt.fishIncElast <- data.table::melt(
 
 inDT <- dt.fishIncElast
 outName <- "dt.fishIncElast"
-cleanup(inDT,outName,fileloc("iData"))
+desc <- "Fish income elasticities"
+cleanup(inDT,outName,fileloc("iData"), desc = desc)
 
 # arc elasticity elasInc = [(Qn - Qn-1)/(Qn + Qn-1)/2] / [(Yn - Yn-1) /(Yn + Yn-1)/2)]
 # [(Qn - Qn-1)/(Qn + Qn-1)] = elasInc * [(Yn - Yn-1) /(Yn + Yn-1))]
@@ -305,7 +306,8 @@ for (scenarioChoice in scenarioListSSP.GDP) {
 
   inDT <- dt.final
   outName <- "dt.fishScenarios"
-  cleanup(inDT,outName,fileloc("mData"))
+  desc <- "Fish availability"
+  cleanup(inDT,outName,fileloc("mData"), desc = desc)
 
   # alcohol calculations -------
 
@@ -333,7 +335,8 @@ for (scenarioChoice in scenarioListSSP.GDP) {
   )
   inDT <- dt.elas.wide
   outName <- "dt.alcIncElast"
-  cleanup(inDT,outName, fileloc("iData"))
+  desc <- "Alcohol elasticities"
+  cleanup(inDT,outName, fileloc("iData"), desc = desc)
 
   # loop over scenarios and countries common to FBS and SSP  -----
   #' set up dt to hold the alcohol results
@@ -404,4 +407,6 @@ for (scenarioChoice in scenarioListSSP.GDP) {
 
     inDT <- dt.final
     outName <- "dt.alcScenarios"
-    cleanup(inDT,outName,fileloc("mData"))
+    desc <- "Alcoholic beverages availability"
+    cleanup(inDT,outName,fileloc("mData"), desc = desc)
+    finalizeScriptMetadata(metadataDT, sourceFile)

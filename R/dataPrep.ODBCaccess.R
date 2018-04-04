@@ -1,6 +1,8 @@
 #library(RODBC)
 library(data.table)
 source("R/nutrientModFunctions.R")
+sourceFile <- "dataPrep.ODBCaccess.R"
+createScriptMetaData()
 # as of Dec 21, 21017, the code below has been converted to reading in data from the ascii files.
 # some notes on setting RODBC up
 # 1.	Install homebrew. Grab the line of code at http://brew.sh/ and paste into a terminal prompt. Here’s what it looks like today but should be reviewed at website before use
@@ -88,12 +90,17 @@ NUTR_DEF[,(deleteListCol) := NULL][, Nutr_No := as.character(Nutr_No)]
 # odbcClose(con)
 inDT <- FOOD_DES
 outName <- "FOOD_DES"
-cleanup(inDT, outName, fileloc("mData"))
+desc <- "Food descriptive info from USDA FCT"
+cleanup(inDT, outName, fileloc("mData"), desc = desc)
 inDT <- NUT_DATA
 outName <- "NUT_DATA"
-cleanup(inDT, outName, fileloc("mData"))
+desc <- "Nutrient data from USDA FCT"
+cleanup(inDT, outName, fileloc("mData"), desc = desc)
 inDT <- NUTR_DEF
 outName <- "NUTR_DEF"
-cleanup(inDT, outName, fileloc("mData"))
+desc <- "Nutrient definitions from USDA FCT"
+cleanup(inDT, outName, fileloc("mData"), desc = desc)
+
+finalizeScriptMetadata(metadataDT, sourceFile)
 
 

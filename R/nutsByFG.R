@@ -12,10 +12,6 @@ for (i in nutChoice) {
   fileName <- paste("food_agg_RDA", i, sep = ".")
   dt <- getNewestVersion(fileName, fileloc("resultsDir"))
   nutList <- get(paste(i, "List", sep = ""))
-  # if (i %in% "dt.food_agg.minrls") nutList <- minrlsList
-  # if (i %in% "dt.food_agg.vits") nutList <- vitsList
-  # if (i %in% "dt.food_agg.macro") nutList <- macroList
-
 
   keepListNuts.fg <- paste(nutList, "sum.foodGroup", sep = ".")
   keepListCol <- c(prefix,keepListNuts.fg)

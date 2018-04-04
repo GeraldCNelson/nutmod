@@ -8,7 +8,8 @@
   source("R/workbookFunctions.R")
   source("R/nutrientCalcFunctions.R")
 }
-
+sourceFile <- "dataPrepFishStat.R"
+createScriptMetaData()
 fishcomposites <- c("c_Opelagic", "c_Milsc", "c_Odmsrl", "c_Opelag", "c_Crust", "c_Omarn", "c_FreshD")
 TS_FI_PRODUCTION <- fread("data-raw/FAOSTAT/FishStatData/GlobalProuction_2017.1.1/TS_FI_PRODUCTION.csv")
 # Area and source needed.
@@ -96,4 +97,6 @@ test <- unique(test)
 setnames(test, old = c("Species", "prodAveNew"), new = c("item_code", "prodAve"))
 inDT <- test
 outName <- "dt.fishStatData"
-cleanup(inDT, outName, fileloc("iData"))
+desc <- "Fish production and trade by country from FishStat"
+cleanup(inDT, outName, fileloc("iData"), desc = desc)
+finalizeScriptMetadata(metadataDT, sourceFile)

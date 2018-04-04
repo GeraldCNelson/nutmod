@@ -40,6 +40,9 @@
 {source("R/nutrientModFunctions.R")
   source("R/workbookFunctions.R")
   source("R/nutrientCalcFunctions.R")}
+sourceFile <- "dataPrep.regions.R"
+createScriptMetaData()
+
 # update Aug 28, 2016. Most of the code below has been superceded by the spreadsheet IMPACT regions update Aug 28, 2016
 # It is now mainly to be used to add new regions.
 #only run in the dataPrep.regions.R script
@@ -60,7 +63,10 @@ dt.regions.all <- data.table::as.data.table(regionsLookup)
 inDT <- dt.regions.all
 data.table::setorder(inDT, ISO_code)
 outName <- "dt.regions.all"
-cleanup(inDT,outName,fileloc("mData"))
+desc <- "A lookup table for all the ways countries can be classified"
+cleanup(inDT,outName,fileloc("mData"), desc = desc)
+finalizeScriptMetadata(metadataDT, sourceFile)
+
 #
 # # IMPACTfish <-     fileNameList("IMPACTfish")
 # # IMPACTstdRegions <- fileNameList("IMPACTstdRegions")

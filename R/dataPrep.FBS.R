@@ -1,3 +1,4 @@
+#' @title Manage FAO FBS data
 #' @author Gerald C. Nelson, \\email{nelson.gerald.c@@gmail.com}
 #' @keywords utilities, FAOSTAT, data management
 #'
@@ -5,11 +6,11 @@
 #' @source \url{http://faostat3.fao.org/download/FB/FBS/E}
 #'
 #' @include nutrientModFunctions.R
-#' if (!exists("getNewestVersion", mode = "function"))
 {source("R/nutrientModFunctions.R")
   source("R/workbookFunctions.R")
   source("R/nutrientCalcFunctions.R")}
-
+sourceFile <- "dataPrep.FBS.R"
+createScriptMetaData()
 # Intro -------------------------------------------------------------------
 #' \description{
 #' This script reads in the FAO Food Balance Sheet information from a zip file, does
@@ -45,9 +46,9 @@ FBSdataZip <- filelocFBS("FBSdataZip")
 FBScsv <- filelocFBS("FBScsv")
 temp <- unzip(paste(getwd(),FBSdataZip,sep = "/"), files = FBScsv)
 dt.FBS.rawData <- data.table::fread(temp, header = TRUE,
-                  colClasses = c(`Country Code` = "character",
-                                 `Item Code` = "character",
-                                 `Element Code` = "character"))
+                                    colClasses = c(`Country Code` = "character",
+                                                   `Item Code` = "character",
+                                                   `Element Code` = "character"))
 file.remove(temp)
 
 #temp <- read.csv("data-raw/FBSData/FoodBalanceSheets_E_All_Data.csv",nrows = 10)
@@ -58,18 +59,18 @@ file.remove(temp)
 # "element_group", "variable_code", "element","year", "unit", "value", "flag")
 
 colnames(dt.FBS.rawData) <- c("FAOSTAT_country_code", "country_name", "item_code", "item",
-                          "variable_code", "element","unit",
-                          "X1961","X1961F","X1962","X1962F","X1963","X1963F","X1964","X1964F","X1965","X1965F",
-                          "X1966","X1966F","X1967","X1967F","X1968","X1968F","X1969","X1969F","X1970","X1970F",
-                          "X1971","X1971F","X1972","X1972F","X1973","X1973F","X1974","X1974F","X1975","X1975F",
-                          "X1976","X1976F","X1977","X1977F","X1978","X1978F","X1979","X1979F","X1980","X1980F",
-                          "X1981","X1981F","X1982","X1982F","X1983","X1983F","X1984","X1984F","X1985","X1985F",
-                          "X1986","X1986F","X1987","X1987F","X1988","X1988F","X1989","X1989F","X1990","X1990F",
-                          "X1991","X1991F","X1992","X1992F","X1993","X1993F","X1994","X1994F","X1995","X1995F",
-                          "X1996","X1996F","X1997","X1997F","X1998","X1998F","X1999","X1999F","X2000","X2000F",
-                          "X2001","X2001F","X2002","X2002F","X2003","X2003F","X2004","X2004F","X2005","X2005F",
-                          "X2006","X2006F","X2007","X2007F","X2008","X2008F","X2009","X2009F","X2010","X2010F",
-                          "X2011","X2011F","X2012","X2012F","X2013","X2013F","X2014","X2014F","X2015","X2015F")
+                              "variable_code", "element","unit",
+                              "X1961","X1961F","X1962","X1962F","X1963","X1963F","X1964","X1964F","X1965","X1965F",
+                              "X1966","X1966F","X1967","X1967F","X1968","X1968F","X1969","X1969F","X1970","X1970F",
+                              "X1971","X1971F","X1972","X1972F","X1973","X1973F","X1974","X1974F","X1975","X1975F",
+                              "X1976","X1976F","X1977","X1977F","X1978","X1978F","X1979","X1979F","X1980","X1980F",
+                              "X1981","X1981F","X1982","X1982F","X1983","X1983F","X1984","X1984F","X1985","X1985F",
+                              "X1986","X1986F","X1987","X1987F","X1988","X1988F","X1989","X1989F","X1990","X1990F",
+                              "X1991","X1991F","X1992","X1992F","X1993","X1993F","X1994","X1994F","X1995","X1995F",
+                              "X1996","X1996F","X1997","X1997F","X1998","X1998F","X1999","X1999F","X2000","X2000F",
+                              "X2001","X2001F","X2002","X2002F","X2003","X2003F","X2004","X2004F","X2005","X2005F",
+                              "X2006","X2006F","X2007","X2007F","X2008","X2008F","X2009","X2009F","X2010","X2010F",
+                              "X2011","X2011F","X2012","X2012F","X2013","X2013F","X2014","X2014F","X2015","X2015F")
 
 #this drops all the ...F columns which provide information for each year on the data in that year
 colKeepList <- c("FAOSTAT_country_code", "country_name", "item_code", "item",
@@ -105,8 +106,8 @@ data.table::setnames(dt.FBS.raw,old = c("element","variable_code"),new = c("vari
 #keep just the years in keepYearList.FBS
 keepYearList.FBS  <- keyVariable("keepYearList.FBS")
 colKeepListYears <- c("FAOSTAT_country_code", "country_name", "item_code", "item",
-                 "variable_code", "variable","unit",
-                 keepYearList.FBS)
+                      "variable_code", "variable","unit",
+                      keepYearList.FBS)
 
 dt.FBS.raw <- dt.FBS.raw[,colKeepListYears, with = FALSE]
 
@@ -120,10 +121,10 @@ dt.FBS.raw[,(keepYearList.FBS) := lapply(.SD, as.numeric), .SDcols=keepYearList.
 # Read in a worksheet with the list of FBS food items by code, name, definition, and IMPACT commodity code
 FBSCommodityInfo <- filelocFBS("FBSCommodityInfo")
 dt.FBScommodLookup <- data.table::as.data.table(openxlsx::read.xlsx(FBSCommodityInfo,
-                             sheet = 1,
-                             startRow = 1,
-                             cols = 1:7,
-                             colNames = TRUE))
+                                                                    sheet = 1,
+                                                                    startRow = 1,
+                                                                    cols = 1:7,
+                                                                    colNames = TRUE))
 
 charConvertList <- c("item_code")
 for (col in charConvertList) data.table::set(dt.FBScommodLookup, j = col, value = as.character(dt.FBScommodLookup[[col]]))
@@ -137,9 +138,9 @@ dt.FBScommodLookup <- dt.FBScommodLookup[!item_name == "Miscellaneous",]
 FAOCountryNameCodeLookup <- filelocFBS("FAOCountryNameCodeLookup")
 # Read in the worksheet that has the FAO country code-ISO country name lookup
 dt.FBSNameLookup <- data.table::as.data.table(openxlsx::read.xlsx(FAOCountryNameCodeLookup,
-                  sheet = 1,
-                  startRow = 1,
-                  colNames = TRUE))
+                                                                  sheet = 1,
+                                                                  startRow = 1,
+                                                                  colNames = TRUE))
 
 #convert to character and leave just ISO code and FAOSTAT code
 charConvertList <- c("ISO3","FAOSTAT")
@@ -207,13 +208,13 @@ deleteListCol <- c("FAOSTAT_country_code","IMPACT_missing_code","fish","alcohol"
 temp[,(deleteListCol) := NULL]
 
 idVars <- c( "country_name","item_code","item",
-"variable_code","variable","unit","ISO_code","item_name","definition",
-"IMPACT_code")
+             "variable_code","variable","unit","ISO_code","item_name","definition",
+             "IMPACT_code")
 dt.FBS.commods.melt <- data.table::melt(temp,
-                       id.vars = idVars,
-                       variable.name = "year",
-                       measure.vars = keepYearList.FBS,
-                       variable.factor = FALSE)
+                                        id.vars = idVars,
+                                        variable.name = "year",
+                                        measure.vars = keepYearList.FBS,
+                                        variable.factor = FALSE)
 
 # need to sum individual FBS commodities to the IMPACT commodity they are in
 dt.FBS.commods.melt[,value.sum := sum(value), by = list(ISO_code,variable, IMPACT_code,year)]
@@ -221,14 +222,16 @@ dt.FBS.commods.melt[,value.sum := sum(value), by = list(ISO_code,variable, IMPAC
 
 #now get rid of info that is not needed
 keepListCol <- c("country_name", "variable_code", "variable", "unit", "ISO_code",
-"IMPACT_code", "year", "value.sum")
+                 "IMPACT_code", "year", "value.sum")
 dt.temp <- dt.FBS.commods.melt[,keepListCol, with = FALSE]
 data.table::setkey(dt.temp)
 dt.FBS.commods.final <-
-#  unique(dt.temp[, c(eval(data.table::key(dt.temp)), keepListCol), with = FALSE])
-unique(dt.temp[, (keepListCol), with = FALSE])
+  #  unique(dt.temp[, c(eval(data.table::key(dt.temp)), keepListCol), with = FALSE])
+  unique(dt.temp[, (keepListCol), with = FALSE])
 data.table::setnames(dt.FBS.commods.final,old = "value.sum", new = "value")
 data.table::setorder(dt.FBS.commods.final, ISO_code)
 inDT <- dt.FBS.commods.final
 outName <- "dt.FBS"
-cleanup(inDT,outName,fileloc("mData"))
+desc <- "Sum FBS commodities to the IMPACT commodity they are included in"
+cleanup(inDT,outName,fileloc("mData"), desc = desc)
+finalizeScriptMetadata(metadataDT, sourceFile)

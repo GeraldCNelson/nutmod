@@ -1,5 +1,4 @@
-#' Copy files to shiny app directories
-#' title: "Copy files needed to make the nutrientModeling shiny app work"
+#' @title "Copy files needed to make the nutrientModeling shiny app work"
 #' @keywords utilities, copy files, nutrient modeling shiny app
 #' @name copyFilestoNutrientModeling.R
 #' @author Gerald C. Nelson, \\email{nelson.gerald.c@@gmail.com}
@@ -41,7 +40,6 @@
 #' @include nutrientModFunctions.R
 #' @include workbookFunctions.R
 #' @include nutrientCalcFunctions.R
-#if (!exists("getNewestVersion", mode = "function"))
 {source("R/nutrientModFunctions.R")
   source("R/workbookFunctions.R")
   source("R/nutrientCalcFunctions.R")
@@ -65,59 +63,53 @@ copyFile <- function(fileShortName, sourceDir, destDir, fileType) {
   print(oldVersionList)
   file.copy(from = paste(sourceDir, oldVersionList, sep = "/"), to = destDir, overwrite = TRUE)
 }
-loadSwitchValues()
-if (switch.vars == FALSE & switch.fortification == FALSE) dt.nutrients.adj <- getNewestVersion("dt.nutrients.adj.base", fileloc("resultsDir"))
-if (switch.vars <- TRUE & switch.fortification == FALSE) dt.nutrients.adj <-  getNewestVersion("dt.nutrients.adj.var", fileloc("resultsDir"))
-if (switch.vars == TRUE & switch.fortification == TRUE) dt.nutrients.adj <-  getNewestVersion("dt.nutrients.adj.varFort", fileloc("resultsDir"))
 
-if (switch.vars == FALSE & switch.fortification == FALSE) dt.foodNnuts <- getNewestVersion("dt.foodNnuts.base", fileloc("resultsDir"))
-if (switch.vars == TRUE & switch.fortification == FALSE) dt.foodNnuts <-  getNewestVersion("dt.foodNnuts.var", fileloc("resultsDir"))
-if (switch.vars == TRUE & switch.fortification == TRUE) dt.foodNnuts <-  getNewestVersion("dt.foodNnuts.varFort", fileloc("resultsDir"))
+for (switchloop in 1:3) {
+  switch.useCookingRetnValues <- keyVariable("switch.useCookingRetnValues")
+  switch.fixFish <- keyVariable("switch.fixFish") #get rid of nutrient info for shrimp, tuna, and salmon because they are not currently in the FBS data
+  if (switchloop == 1) {switch.vars <- FALSE;  switch.fortification <- FALSE; suffix = "base"}
+  if (switchloop == 2) {switch.vars <- TRUE;  switch.fortification <- FALSE; suffix = "var"}
+  if (switchloop == 3) {switch.vars <- TRUE;  switch.fortification <- TRUE; suffix = "varFort"}
+  #  dt.nutrients.adj <- getNewestVersion(paste("dt.nutrients.sum.all", suffix, sep = "."), fileloc("resultsDir"))
+  # dt.foodNnuts <- getNewestVersion("dt.foodNnuts", suffix, fileloc("resultsDir"))
+  # dt.nutrients.sum.FG <- getNewestVersion("dt.nutrients.sum.FG", suffix, fileloc("resultsDir"))
+  # dt.foodAvail.foodGroup <- getNewestVersion("dt.foodAvail.foodGroup", suffix, fileloc("resultsDir"))
 
-if (switch.vars == FALSE & switch.fortification == FALSE) dt.nutrients.sum.FG <- getNewestVersion("dt.nutrients.sum.FG.base", fileloc("resultsDir"))
-if (switch.vars == TRUE & switch.fortification == FALSE) dt.nutrients.sum.FG <-  getNewestVersion("dt.nutrients.sum.FG.var", fileloc("resultsDir"))
-if (switch.vars == TRUE & switch.fortification == TRUE) dt.nutrients.sum.FG <-  getNewestVersion("dt.nutrients.sum.FG.varFort", fileloc("resultsDir"))
+  copyListFromSpecificResults <- paste(c("dt.budgetShare", "dt.compDI", "dt.foodAvail.foodGroup", "dt.KcalShare.nonstaple",
+                                         "dt.MRVRatios", "dt.nutBalScore", "dt.nutrients.sum.all", "dt.nutrients.kcals", #changed dt.nutrients.adj to .sum.all
+                                         "dt.nutrients.sum.all", "dt.nutrients.sum.FG", "dt.RAOqe", "dt.shannonDiversity",
+                                         "food_agg_AMDR_hi", "RDA.macro_sum_reqRatio", "RDA.minrls_sum_reqRatio",
+                                         "RDA.vits_sum_reqRatio"), suffix, sep = ".")
+  copyListFromSpecificResultsNoSuffix <-c("dt.metadata")
+  copyListFromiData <- c("dt.IMPACTgdxParams")
 
-if (switch.vars == FALSE & switch.fortification == FALSE) dt.nutrients.sum.FG <- getNewestVersion("dt.nutrients.sum.FG.base", fileloc("resultsDir"))
-if (switch.vars == TRUE & switch.fortification == FALSE) dt.nutrients.sum.FG <-  getNewestVersion("dt.nutrients.sum.FG.var", fileloc("resultsDir"))
-if (switch.vars == TRUE & switch.fortification == TRUE) dt.nutrients.sum.FG <-  getNewestVersion("dt.nutrients.sum.FG.varFort", fileloc("resultsDir"))
+  #' special copy for the gdxInfo file which is just below results
+  invisible(file.copy("results/gdxInfo.csv", "nutrientModeling/data"))
 
-if (switch.vars == FALSE & switch.fortification == FALSE) dt.foodAvail.foodGroup <- getNewestVersion("dt.foodAvail.foodGroup.base", fileloc("resultsDir"))
-if (switch.vars == TRUE & switch.fortification == FALSE) dt.foodAvail.foodGroup <-  getNewestVersion("dt.foodAvail.foodGroup.var", fileloc("resultsDir"))
-if (switch.vars == TRUE & switch.fortification == TRUE) dt.foodAvail.foodGroup <-  getNewestVersion("dt.foodAvail.foodGroup.varFort", fileloc("resultsDir"))
+  #' copy from results/gdxname
+  for (i in copyListFromSpecificResults) {
+    print(sprintf("copying file %s from results to %s", i, destDir))
+    copyFile(i, fileloc("resultsDir"), destDir, "rds")
+  }
 
-copyListFromSpecificResults <- c( "dt.budgetShare",
-                         "RDA.macro_sum_reqRatio", "RDA.vits_sum_reqRatio", "RDA.minrls_sum_reqRatio", "food_agg_AMDR_hi",
-                         "dt.nutrients.sum.all", "dt.nutrients.kcals",
-                         "dt.KcalShare.nonstaple","dt.RAOqe", "dt.compDI", "dt.nutBalScore", "dt.metadata",
-                         "dt.nutrients.sum.all", "dt.foodAvail.foodGroup",
-                         "dt.shannonDiversity", "dt.MRVRatios", "dt.nutrients.sum.FG", "dt.nutrients.adj")
-copyListFromData <- c("dt.regions.all", "dt.foodGroupsInfo", "resultFileLookup", "dt.scenarioListIMPACT")
-copyListFromiData <- c("dt.IMPACTgdxParams")
+  #' copy from from results without suffix
+  for (i in copyListFromSpecificResultsNoSuffix) {
+    print(sprintf("copying file %s from results to %s", i, destDir))
+    copyFile(i, fileloc("resultsDir"), destDir, "rds")
+  }
 
-#' special copy for the gdxInfo file which is just below results
-invisible(file.copy("results/gdxInfo.csv", "nutrientModeling/data"))
-
-#' copy from results/gdxname
-for (i in copyListFromSpecificResults) {
-  print(sprintf("copying file %s from results to %s", i, destDir))
-  copyFile(i, fileloc("resultsDir"), destDir, "rds")
-}
-
-for (i in copyListFromData) {
-  print(sprintf("copying file %s from %s to nutrientModeling/data", i, fileloc("mData")))
-  copyFile(i, fileloc("mData"), destDir, "rds")
 }
 for (i in copyListFromiData) {
+  print(sprintf("copying file %s from %s to nutrientModeling/data", i, fileloc("iData")))
   copyFile(i, fileloc("iData"), destDir, "rds")
 }
 
-#' next line commented out because global.R diverges from nutrientModFunctions.R
-#file.copy("R/nutrientModFunctions.R", "nutrientModeling/global.R", overwrite = TRUE)
+  #' next line commented out because global.R diverges from nutrientModFunctions.R
+  #file.copy("R/nutrientModFunctions.R", "nutrientModeling/global.R", overwrite = TRUE)
 
-# zip up csv files in the results directory
-zipFileName <- paste("results/resultsCSVzip", Sys.Date(), "zip", sep = "_" )
-regExp <- paste("(?=^", ")(?=.*csv$)", sep = "")
-zipList <-     grep(regExp, list.files(fileloc("resultsDir")), value = TRUE,  perl = TRUE)
-zipList <- paste("results", zipList, sep = "/")
+  # # zip up csv files in the results directory. commented out March 11, 2018
+  # zipFileName <- paste("results/resultsCSVzip", suffix, Sys.Date(), "zip", sep = "_" )
+  # regExp <- paste("(?=^", ")(?=.*csv$)", sep = "")
+  # zipList <-     grep(regExp, list.files(fileloc("resultsDir")), value = TRUE,  perl = TRUE)
+  # zipList <- paste("results", zipList, sep = "/")
 

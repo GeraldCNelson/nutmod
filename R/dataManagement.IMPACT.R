@@ -3,10 +3,11 @@
 #' @title Import IMPACT data from a gdx file
 #' @name dataPrep.IMPACT.R
 #' @include nutrientModFunctions.R
-#if (!exists("getNewestVersion", mode = "function"))
 {source("R/nutrientModFunctions.R")
   source("R/workbookFunctions.R")
   source("R/nutrientCalcFunctions.R")}
+sourceFile <- "dataManagementIMPACT.R"
+createScriptMetaData()
 
 library(data.table)
 
@@ -35,7 +36,8 @@ createFood <- function(fileShortName) {
   dt.temp.food <- dt.temp.food[year %in% keepYearList]
   inDT <- dt.temp.food
   outName <- paste(fileShortName, "food", sep = "_")
-  cleanup(inDT, outName, fileloc("iData"))
+  desc <- "Seems to be used just for creating dt.PWX0.food and dt.PCX0.food"
+  cleanup(inDT, outName, fileloc("iData"), desc = desc)
   return(dt.temp.food)
 }
 
@@ -172,7 +174,7 @@ combineIMPACTData <- function() {
   data.table::setkeyv(dt.pcGDPX0,   c("scenario", "region_code.IMPACT159",                "year"))
   data.table::setkeyv(dt.PWX0.food, c("scenario",                          "IMPACT_code", "year"))
   dtlist <- list(dt.FoodAvail, dt.pcGDPX0, dt.PCX0.food, dt.PWX0.food)
-  dt.IMPACTfood <- plyr::join_all(dtlist)
+  dt.IMPACTfood <- suppressMessages(plyr::join_all(dtlist))
   # an alternative to above that might not work. Might work but can't figure it out now.
   # dtlist <- c("dt.FoodAvail", "dt.pcGDPX0", "dt.PCX0.food", "dt.PWX0.food")
   # testList <- mget(dtlist)
@@ -191,10 +193,12 @@ combineIMPACTData <- function() {
   dt.IMPACTfood <- unique(dt.IMPACTfood)
   inDT <- dt.IMPACTfood
   outName <- "dt.IMPACTfood"
-  cleanup(inDT, outName, fileloc("iData"))
+  desc <- "Annual and daily availability of each food item, per capita GDP and domestic and world prices."
+  cleanup(inDT, outName, fileloc("iData"), desc = desc)
 }
 
 #region <- keyVariable("region")
 
 combineIMPACTData()
 
+finalizeScriptMetadata(metadataDT, sourceFile)

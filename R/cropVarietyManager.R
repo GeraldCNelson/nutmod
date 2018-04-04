@@ -7,17 +7,13 @@ NUT_DATA <- getNewestVersion("NUT_DATA")
 NUTR_DEF <- getNewestVersion("NUTR_DEF")
 
 # lists needed in final data file assembly
-macroNutrients <- c("protein_g", "fat_g", "carbohydrate_g",  "totalfiber_g", "energy_kcal")
-vitamins <- c("vit_c_mg", "thiamin_mg", "riboflavin_mg", "niacin_mg",
-              "vit_b6_mg", "folate_µg", "vit_b12_µg", "vit_a_rae_µg",
-              "vit_e_mg",  "vit_d_µg", "vit_k_µg")
-minerals <- c("calcium_mg",  "iron_mg", "magnesium_mg", "phosphorus_mg",
-              "potassium_g", "zinc_mg")
-kcals <- c("kcals.fat_g", "kcals.protein_g", "kcals.sugar_g", "kcals.carbohydrate_g", "kcals.ethanol_g")
-addedSugar <- c("sugar_g")
-fattyAcids <- c("ft_acds_tot_sat_g", "ft_acds_mono_unsat_g", "ft_acds_plyunst_g",
-                "ft_acds_tot_trans_g")
-other <- c("ethanol_g", "caffeine_mg", "cholesterol_mg")
+macroNutrients <- c(keyVariable("macronutrients"), "energy_kcal")
+vitamins <- keyVariable("vitamins")
+minerals <- keyVariable("minerals")
+kcals <- keyVariable("energy") # includes "kcals.ft_acds_tot_sat_g"
+addedSugar <- keyVariable("addedSugar")
+fattyAcids <- keyVariable("fattyAcids")
+other <- keyVariable("other")
 
 #' load in a LU table that includes nutCode, which later becomes the variable name for the nutrient
 dt.nutcodeLU <- data.table::as.data.table(openxlsx::read.xlsx("data-raw/NutrientData/NutrientCodeLookup.xlsx"))
@@ -138,7 +134,7 @@ dt.wide[, retfactor_desc := NULL]
 #' change total fat in ctea to be the sum of the fat constituents
 dt.wide["cteas", fat_g := ft_acds_mono_unsat_g + ft_acds_plyunst_g + ft_acds_tot_sat_g + ft_acds_tot_trans_g]
 #' the requirement for potassium is expressed in grams; the Access data are in mg. We convert it here to g
-dt.wide[ ,potassium_g := potassium_g/1000]
+#dt.wide[ ,potassium_g := potassium_g/1000]. Moved to dataPrepUSDANuts.R April 2, 2018
 inDT <- merge(dt.wide, dt.cookingRetn.wide, by.x = c("retentioncode_aus"), by.y = c("Retn_Code"), all.x = TRUE)
 
 oldOrder <- names(inDT)
@@ -152,4 +148,5 @@ data.table::setcolorder(inDT,     c(head, extran, macroNutrients, minerals, vita
 inDT[, 6:length(inDT)][is.na(inDT[, 6:length(inDT)])] <- 0
 
 outName <- "dt.nutVarieties_sr28"
-cleanup(inDT, outName, fileloc("mData"), "xlsx")
+desc <- "USDA varieties used for specific countries"
+cleanup(inDT, outName, fileloc("mData"), "xlsx", desc = desc)

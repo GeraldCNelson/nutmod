@@ -3,9 +3,7 @@
 #' @title Calculate nutrient deltas across scenarios
 #' @name aggRun.R
 #' @include nutrientModFunctions.R
-#if (!exists("getNewestVersion", mode = "function"))
-{source("R/nutrientModFunctions.R")
-  source("R/workbookFunctions.R")
+{source("R/workbookFunctions.R")
   source("R/nutrientCalcFunctions.R")
   source("R/aggNorder.R")}
 library(data.table)
@@ -21,11 +19,11 @@ dt.IMPACTfood <- getNewestVersionIMPACT("dt.IMPACTfood")
 
 # keep just one country, one year, and one scenario
 dt.IMPACTfood <- dt.IMPACTfood[scenario %in% "SSP2-NoCC-REF" & region_code.IMPACT159 %in% "ARG" & year %in% "X2010", ]
- # switch.useCookingRetnValues <- keyVariable("switch.useCookingRetnValues")
- # switch.fixFish <- keyVariable("switch.fixFish") #get rid of nutrient info for shrimp, tuna, and salmon because they are not currently in the FBS data
+# switch.useCookingRetnValues <- keyVariable("switch.useCookingRetnValues")
+# switch.fixFish <- keyVariable("switch.fixFish") #get rid of nutrient info for shrimp, tuna, and salmon because they are not currently in the FBS data
 
- loadSwitchValues()
- #' dt.nutrients.adj is per kg of the raw product after IMPACT conversion and edible portion adjustments applied)
+# loadSwitchValues()
+#' dt.nutrients.adj is per kg of the raw product after IMPACT conversion and edible portion adjustments applied)
 dt.nutrients.adj <- switches() # used only for disqualifying nutrients
 
 reqsListPercap <- keyVariable("reqsListPercap")

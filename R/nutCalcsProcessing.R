@@ -1,3 +1,4 @@
+#' @title Nutrient calcs processing
 #' @author Gerald C. Nelson, \email{nelson.gerald.c@@gmail.com}
 #' @keywords utilities, nutrient data, IMPACT food commodities nutrient lookup
 # Intro ---------------------------------------------------------------
@@ -17,10 +18,11 @@
 
 #' @include nutrientModFunctions.R
 #' @include nutrientCalcFunctions.R
-#if (!exists("getNewestVersion", mode = "function"))
 {source("R/nutrientModFunctions.R")
   source("R/workbookFunctions.R")
   source("R/nutrientCalcFunctions.R")}
+sourceFile <- "nutrientCalcsProcessing.R"
+createScriptMetaData()
 
 reqList <- keyVariable("reqsList")
 #reqsToDelete <- c( "req.EAR", "req.UL.vits", "req.UL.minrls", "req.AMDR_hi", "req.AMDR_lo")
@@ -29,13 +31,15 @@ reqList <- reqList[!reqList %in% reqsToDelete]
 AMDRs <-  c("req.AMDR_hi", "req.AMDR_lo")
 
 for (switchloop in 1:3) {
+  switch.useCookingRetnValues <- keyVariable("switch.useCookingRetnValues")
+  switch.fixFish <- keyVariable("switch.fixFish") #get rid of nutrient info for shrimp, tuna, and salmon because they are not currently in the FBS data
   if (switchloop == 1) {switch.vars <- FALSE;  switch.fortification <- FALSE; suffix = "base"}
   if (switchloop == 2) {switch.vars <- TRUE;  switch.fortification <- FALSE; suffix = "var"}
   if (switchloop == 3) {switch.vars <- TRUE;  switch.fortification <- TRUE; suffix = "varFort"}
 
   #do AMDRs as a special case
   for (i in AMDRs) {
-    print(paste0("------ working on ", i))
+    cat("\n------ working on ", i)
     reqShortName <- gsub("req.", "", i)
     temp <- paste("food_agg_", reqShortName, ".", suffix, sep = "")
     DT <- getNewestVersion(temp, fileloc("resultsDir"))
@@ -50,10 +54,12 @@ for (switchloop in 1:3) {
     DT.long[, nutrient := gsub(".reqRatio.all", "",nutrient)]
     inDT <- unique(DT.long)
     outName <- paste(reqShortName, "_sum_reqRatio", ".", suffix, sep = "")
-    cleanup(inDT, outName, fileloc("resultsDir"), "csv")
+    desc <- paste0("Adequacy ratios for ", reqShortName)
+    cleanup(inDT, outName, fileloc("resultsDir"),  desc = desc)
   }
 
   # individual food function -----
+  # This is called from a for loop down about 200 lines of code
   req <- "req.RDA.vits" # - for testing purposes
   f.ratios.all <- function(){
     keepListCol <- c(mainCols, cols.all)
@@ -139,24 +145,28 @@ for (switchloop in 1:3) {
 
     inDT <- unique(dt.all.sum.long)
     outName <- paste(reqShortName, "_all_sum", ".", suffix, sep = "")
-    cleanup(inDT, outName, fileloc("resultsDir"), "csv")
+    desc <- paste0("All sum for ", reqShortName)
+    cleanup(inDT, outName, fileloc("resultsDir"),  desc = desc)
 
     inDT <- dt.sum_reqRatio_long
     inDT[, nutrient := gsub("_reqRatio", "", nutrient)]
     inDT <- unique(inDT)
-    print(paste0("dt.sum_reqRatio_long"))
     outName <- paste(reqShortName, "_sum_reqRatio", ".", suffix, sep = "")
-    cleanup(inDT, outName, fileloc("resultsDir"), "csv")
+    desc <- paste0("Adequacy ratios by country for ", reqShortName)
+    cleanup(inDT, outName, fileloc("resultsDir"),  desc = desc)
 
+# used in dt.diversityMetrics.R
     inDT <- unique(dt.all.ratio.long)
     outName <- paste(reqShortName, "_all_ratio", ".", suffix, sep = "")
-    cleanup(inDT, outName, fileloc("resultsDir"), "csv")
+    desc <- paste0("'All ratios by food item for ", reqShortName)
+    cleanup(inDT, outName, fileloc("resultsDir"),  desc = desc)
 
     inDT <- dt.all_reqRatio_long
     inDT[, nutrient := gsub("_reqRatio_all", "", nutrient)]
     inDT <- unique(inDT)
     outName <- paste(reqShortName, "_all_reqRatio", ".", suffix, sep = "")
-    cleanup(inDT, outName, fileloc("resultsDir"), "csv")
+    desc <- paste0("Adequacy ratios by food item for ", reqShortName)
+    cleanup(inDT, outName, fileloc("resultsDir"),  desc = desc)
   }
 
   # foodGroup function -----
@@ -196,13 +206,16 @@ for (switchloop in 1:3) {
 
     reqShortName <- gsub("req.", "", req)
 
-    inDT <- unique(dt.foodGroup.ratio.long)
-    outName <- paste(reqShortName, "_FGratio", ".", suffix, sep = "")
-    cleanup(inDT, outName, fileloc("resultsDir"), "csv")
+    # commented out March 27, 2018 because not used elsewhere
+    # inDT <- unique(dt.foodGroup.ratio.long)
+    # outName <- paste(reqShortName, "_FGratio", ".", suffix, sep = "")
+    # desc <- paste0("Food group ratio for ", reqShortName)
+    # cleanup(inDT, outName, fileloc("resultsDir"),  desc = desc)
 
     inDT <- unique(dt.foodGroup_reqRatio_long)
     outName <- paste(reqShortName, "_FG_reqRatio", ".", suffix, sep = "")
-    cleanup(inDT, outName, fileloc("resultsDir"), "csv")
+    desc <- paste0("Food group adequacy ratio for ", reqShortName)
+    cleanup(inDT, outName, fileloc("resultsDir"),  desc = desc)
   }
 
   # staples function
@@ -260,23 +273,28 @@ for (switchloop in 1:3) {
       variable.factor = FALSE
     )
 
-    reqShortName <- gsub("req.", "", req)
-    inDT <- unique(dt.staples.sum.long)
-    outName <- paste(reqShortName, "_staples_sum", ".", suffix, sep = "")
-    cleanup(inDT, outName, fileloc("resultsDir"), "csv")
-
-    inDT <- unique(dt.staples.ratio.long)
-    outName <- paste(reqShortName, "_staples_ratio", ".", suffix, sep = "")
-    cleanup(inDT, outName, fileloc("resultsDir"), "csv")
+     reqShortName <- gsub("req.", "", req)
+     # commented out March 27, 2018 because not used elsewhere
+    # inDT <- unique(dt.staples.sum.long)
+    # outName <- paste(reqShortName, "_staples_sum", ".", suffix, sep = "")
+    # desc <- paste0("Staples sum for ", reqShortName)
+    # cleanup(inDT, outName, fileloc("resultsDir"),  desc = desc)
+    #
+    # inDT <- unique(dt.staples.ratio.long)
+    # outName <- paste(reqShortName, "_staples_ratio", ".", suffix, sep = "")
+    # desc <- paste0("Staples ratio for ", reqShortName)
+    # cleanup(inDT, outName, fileloc("resultsDir"),  desc = desc)
 
     #  inDT <- dt.staples_reqRatio_wide
     inDT <- unique(dt.staples_reqRatio_long)
     outName <- paste(reqShortName, "_staples_reqRatio", ".", suffix, sep = "")
-    cleanup(inDT, outName, fileloc("resultsDir"), "csv")
+    desc <- paste0("Staples adequacy ratio for ", reqShortName)
+    cleanup(inDT, outName, fileloc("resultsDir"),  desc = desc)
   }
+  cat("\n", suffix, "data")
 
   for (req in reqList) {
-    print(paste0("------ working on ", req))
+    cat("\n------ working on ", req)
     reqShortName <- gsub("req.", "", req)
     temp <- paste("food_agg_", reqShortName, ".", suffix, sep = "")
     dt.food_agg.master <- getNewestVersion(temp, fileloc("resultsDir"))
@@ -297,6 +315,8 @@ for (switchloop in 1:3) {
     f.ratios.FG()
   }
 }
+
+finalizeScriptMetadata(metadataDT, sourceFile)
 # kcals calculations -----
 # print("------ working on kcals")
 # # fats, etc share of total kcals ------

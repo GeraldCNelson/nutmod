@@ -1,5 +1,5 @@
 #' Nutrient calculations
-#' title: "First round of calculations to generate final results"
+#' @title "First round of calculations to generate final results"
 #' @keywords results calculations
 #' @name nutrientCalcs.R
 #' @author Gerald C. Nelson, \email{nelson.gerald.c@@gmail.com}
@@ -20,12 +20,11 @@
 #' @include nutrientModFunctions.R
 #' @include workbookFunctions.R
 #' @include nutrientCalcFunctions.R
-#if (!exists("getNewestVersion", mode = "function"))
-{
-  source("R/nutrientModFunctions.R")
+{ source("R/nutrientModFunctions.R")
   source("R/workbookFunctions.R")
-  source("R/nutrientCalcFunctions.R")
-}
+  source("R/nutrientCalcFunctions.R")}
+sourceFile <- "nutrientCalcs.R"
+createScriptMetaData()
 
 #' Read in all data first and standardize variable names -----
 # Read in IMPACT food data ----------
@@ -35,15 +34,16 @@
 dt.scenarioListIMPACT <- getNewestVersion("dt.scenarioListIMPACT", fileloc("mData"))
 scenarioListIMPACT <- unique(dt.scenarioListIMPACT$scenario)
 
-switch.useCookingRetnValues <- keyVariable("switch.useCookingRetnValues")
-switch.fixFish <- keyVariable("switch.fixFish") #get rid of nutrient info for shrimp, tuna, and salmon because they are not currently in the FBS data
-
 for (switchloop in 1:3) {
+  switch.useCookingRetnValues <- keyVariable("switch.useCookingRetnValues")
+  switch.fixFish <- keyVariable("switch.fixFish") #get rid of nutrient info for shrimp, tuna, and salmon because they are not currently in the FBS data
   if (switchloop == 1) {switch.vars <- FALSE;  switch.fortification <- FALSE; suffix = "base"}
   if (switchloop == 2) {switch.vars <- TRUE;  switch.fortification <- FALSE; suffix = "var"}
   if (switchloop == 3) {switch.vars <- TRUE;  switch.fortification <- TRUE; suffix = "varFort"}
-
+  cat("\nWorking on ", suffix, "-----\n")
   dt.foodNnuts <- getNewestVersion(paste("dt.foodNnuts", suffix, sep = "."), fileloc("resultsDir"))
+  dt.foodNnuts <- dt.foodNnuts[scenario %in% scenarioListIMPACT,]
+
   dt.nutrients.sum.all <- getNewestVersion(paste("dt.nutrients.sum.all", suffix, sep = "."), fileloc("resultsDir"))
 
   #' reqsListPercap is a list of the requirements types. Each has a different set of nutrients. These are a subset
@@ -54,13 +54,12 @@ for (switchloop in 1:3) {
   reqsListPercap <- keyVariable("reqsListPercap")
   #reqPercap <- reqsListPercap[4] # just for testing!!! XXX
   #scenarioListIMPACT <- "SSP2-MIROC" # just for testing!!! XXX
-  req <- "req.RDA.minrls_percap" # just for testing!!! XXX
+  #req <- "req.RDA.minrls_percap" # just for testing!!! XXX
 
   generateResults.dataPrep <- function(req, dt.foodNnuts, scenarioListIMPACT) {
     #' use dt.food only in the function
-    dt.food <- data.table::copy(dt.foodNnuts)
-    print(paste("loading dt.foodNnuts for ", req, sep = ""))
-    dt.food <- dt.food[scenario %in% scenarioListIMPACT,]
+    #    dt.food <- data.table::copy(dt.foodNnuts) - commented out Mar 13, 2018. Doesn't appear to be used.
+    #    cat("\nLoading dt.foodNnuts for ", req, " for ", suffix, sep = "")
 
     #' read in nutrient requirements data for a representative consumer -----
     #' Note that these are for SSP age group and gender categories and thus vary by SSP category and year for each region
@@ -70,7 +69,7 @@ for (switchloop in 1:3) {
     nutListReq <- names(dt.nutsReqPerCap)[4:length(names( dt.nutsReqPerCap))]
 
     #' list of names for the product of daily availability by nutrient content for each commodity
-    nutListReq.Q <- paste(nutListReq, "Q", sep = ".") # note that these are in percent of total daily kcals for AMDRs
+    nutListReq.Q <- nutListReq # xxx if this works replace nutListReq.Q with nutListReq
 
     #nutListReq <- nutListReq[3:4] # Here just for testing. !!! be sure to comment out!!!XXX
 
@@ -103,6 +102,7 @@ for (switchloop in 1:3) {
     keepListCol <- c("scenario", "region_code.IMPACT159", "year", nutListReq)
     dt.nutsReqPerCap <- dt.temp[,keepListCol, with = FALSE][scenario %in% scenarioListIMPACT,]
 
+    #' zinc and iron adjustments moved to dataManagementFoodNnts - Mar 30, 2018
     #' reduce calculations to just the nutrients in nutListReq
     #' plus those needed for iron and zinc bioavailability,
     #' "phytate_mg", "vit_c_mg", "energy_kcal", "protein_g".
@@ -110,8 +110,8 @@ for (switchloop in 1:3) {
     keepListCol <- c("IMPACT_code","food_group_code","staple_code",nutListReq)
 
     #' keep extra columns around for iron and zinc bioavailability calculations
-    if ("req.RDA.minrls_percap" %in% req) keepListCol <-
-      c(keepListCol, "phytate_mg", "energy_kcal", "vit_c_mg", "protein_g")
+    # if ("req.RDA.minrls_percap" %in% req) keepListCol <-
+    #   c(keepListCol, "phytate_mg", "energy_kcal", "vit_c_mg", "protein_g")
 
     #' #' use the data table dt.nuts only in the function
     #' dt.nuts <- data.table::copy(dt.nutrients.adj)
@@ -124,186 +124,192 @@ for (switchloop in 1:3) {
 
     #' multiply the food item by the nutrients it contains and copy into a table called dt.food.agg
     #' dt.food.agg.[req] is what eventually gets stored and used later
-    dt.food.agg <- data.table::copy(dt.foodNnuts[, (nutListReq.Q) := lapply(.SD, function(x)
-      (x * dt.foodNnuts[['foodAvailpDay']])), .SDcols = nutListReq])
+    #' # Next step not necessary now because the nutrients in foodNnuts are already multiplied by foodAvailpDay. March 29, 2018
+    # dt.food.agg <- data.table::copy(dt.foodNnuts[, (nutListReq.Q) := lapply(.SD, function(x)
+    #   (x * dt.foodNnuts[['foodAvailpDay']])), .SDcols = nutListReq])
+    dt.food.agg <- data.table::copy(dt.foodNnuts)
     leadingCols <- c("scenario", "region_code.IMPACT159",
                      "year", "IMPACT_code", "foodAvailpDay", "food_group_code", "staple_code")
     laggingCols <- names(dt.food.agg)[!names(dt.food.agg) %in% leadingCols]
     data.table::setcolorder(dt.food.agg, c(leadingCols, laggingCols))
-    # iron and zinc stuff
+    # iron and zinc stuff. Commented out March 30, 2018 because bioavailability adjustments moved to dataManagementFoodNnuts.R
     {
-      #' adjust iron and zinc  bioavailability amounts to food.agg.minrls
-      if ("req.RDA.minrls_percap" %in% req | "req.EAR.percap"  %in% req ) {
-        #' add phytate(for zinc calculations), vit c, energy_kcal, and protein_g (for iron calculations) to the list of nutrients
-        nutListReq.bio <- c(nutListReq, "phytate_mg", "vit_c_mg", "energy_kcal", "protein_g")
-        nutListReq.Q.bio <- paste(nutListReq.bio, "Q", sep = ".")
-        dt.bioavail <- data.table::copy(dt.foodNnuts)
-        #' create dt.bioavail and use it instead of food.agg. It is merged back into food agg with just iron or zinc
-        dt.bioavail <- dt.bioavail[, (nutListReq.Q.bio) := lapply(.SD, function(x)
-          (x * dt.foodNnuts[['foodAvailpDay']])), .SDcols = nutListReq.bio]
-
-        # iron bioavailability -----
-        #' initialize a data table to hold the bioavailable iron results
-        dt.bioavail.iron <- data.table::copy(dt.bioavail)
-        dt.bioavail.iron[, `:=`(kcal.avail = energy_kcal.Q,
-                                kcal.cereals_legumes = 0,
-                                vit_c.avail_mg = vit_c_mg.Q,
-                                iron.raw_mg = iron_mg.Q,
-                                iron.heme_mg = 0,
-                                iron.nonheme_mg = 0,
-                                protein.animal.avail_g = 0,
-                                stimsFactor = 0
-        )]
-
-        #' constants of iron calcs
-        hemeIronshare <- 0.4 # Heme iron = sum of iron from meats, poultry and fish x 0.40
-        hemeIronBioavail <- 0.25 # bioavailability of heme iron = Heme iron * 25%
-        nonhemeIronShare <- 0.60  #' Nonheme iron = sum of all remaining iron (including iron from MPF x 0.60)
-
-        #' get iron and protein from fish and meats and calculate bioavailable heme iron
-        fishNmeats <- c("fish", "meats")
-        dt.bioavail.iron[food_group_code %in% fishNmeats, `:=`(
-          iron.heme_mg = foodAvailpDay * iron_mg * hemeIronshare * hemeIronBioavail,
-          iron.nonheme_mg = foodAvailpDay * iron_mg * nonhemeIronShare,
-          protein.animal.avail_g = foodAvailpDay * protein_g)]
-
-        #' get non heme iron from items other than fish and meats (! means not in)
-        dt.bioavail.iron[!food_group_code %in% fishNmeats, `:=`(
-          iron.nonheme_mg = foodAvailpDay * iron_mg)]
-
-        #' get kcals from cereals and legumes
-        dt.bioavail.iron[food_group_code %in% c("cereals", "legumes"), `:=`(
-          kcal.cereals_legumes = foodAvailpDay * energy_kcal)]
-
-        #' converted below Tea factor = [100% - {((tea intake (kg/d) * 1L/0.00792 kg) + (coffee intake (kg/d) * 1L/0.0442 kg * 1/1.5)) x 1/0.6L * 60%}]
-        #' dt.food.agg[IMPACT_code == "ccafe", stimsFactor := 100 - (foodAvailpDay * (1/0.00792) * (1/0.6) * 60)]
-        #' dt.food.agg[IMPACT_code == "cteas", stimsFactor := 100 - (foodAvailpDay * (1/0.0442) * (1/1.5) * (1/0.6) * 60)]
-        teaFactor <- 0.00792
-        coffeeFactor <- 0.0442
-        #' units of stimsFactor are
-        dt.bioavail.iron[IMPACT_code == "cteas", stimsFactor := foodAvailpDay * (1/teaFactor)]
-        dt.bioavail.iron[IMPACT_code == "ccafs", stimsFactor := foodAvailpDay * (1/coffeeFactor) * (1/1.5)]
-
-        keepListCol <- c("IMPACT_code", "scenario", "region_code.IMPACT159", "year", "iron.raw_mg",
-                         "iron.heme_mg", "iron.nonheme_mg", "kcal.avail", "kcal.cereals_legumes", "vit_c.avail_mg", "protein.animal.avail_g", "stimsFactor")
-        dt.bioavail.iron <- dt.bioavail.iron[, (keepListCol), with = FALSE]
-        dt.bioavail.iron[,`:=`(
-          sum.iron.raw_mg = sum(iron.raw_mg),
-          sum.iron.heme_mg = sum(iron.heme_mg),
-          sum.iron.nonheme_mg = sum(iron.nonheme_mg),
-          sum.kcal.avail = sum(kcal.avail),
-          sum.kcal.cereals_legumes = sum(kcal.cereals_legumes),
-          sum.protein.animal.avail_g = sum(protein.animal.avail_g),
-          sum.stimsFactor = (100 - sum(stimsFactor) * (1/0.6) * 60),
-          sum.vit_c.avail_mg = sum(vit_c.avail_mg)),
-          by = .(scenario, region_code.IMPACT159, year)]
-
-        dt.bioavail.iron[sum.stimsFactor < 40, sum.stimsFactor := 40]
-        deleteListCol <- c("IMPACT_code", "iron.raw_mg", "iron.heme_mg", "iron.nonheme_mg", "kcal.avail", "kcal.cereals_legumes",
-                           "protein.animal.avail_g", "stimsFactor", "vit_c.avail_mg")
-        dt.bioavail.iron[, (deleteListCol) := NULL]
-        dt.bioavail.iron <- unique(dt.bioavail.iron)
-
-        #' adjust non heme iron for interactions with vitamin c and protein. These values from Table 2 in Murphy et al, 1992.
-        #' Note: for protein_g_per_1000kcal > 27, nonhemeBioavail is 15 %
-        #' for protein_g_per_1000kcal 9- 27, nonhemeBioavail is 15, unless vit_c__mg_per_1000kcal >35
-
-        dt.bioavail.iron[,`:=`(
-          vit_c__mg_per_1000kcal = 1000 * sum.vit_c.avail_mg/sum.kcal.avail,
-          protein_g_per_1000kcal = 1000 * sum.protein.animal.avail_g/sum.kcal.avail)
-          ]
-
-        #' units for nonhemeBioavail are percent
-        dt.bioavail.iron[,nonhemeBioavail := 15] # starting value; now adjust down
-        dt.bioavail.iron[protein_g_per_1000kcal < 9 & vit_c__mg_per_1000kcal < 35,
-                         nonhemeBioavail := 5]
-        dt.bioavail.iron[protein_g_per_1000kcal < 9 & vit_c__mg_per_1000kcal >= 35 & vit_c__mg_per_1000kcal <= 105,
-                         nonhemeBioavail := 10]
-        dt.bioavail.iron[protein_g_per_1000kcal >= 9 & protein_g_per_1000kcal <= 27 & vit_c__mg_per_1000kcal < 35,
-                         nonhemeBioavail := 10]
-
-        dt.bioavail.iron[, iron_mg := sum.iron.heme_mg + (sum.iron.nonheme_mg*(nonhemeBioavail/100) * (sum.stimsFactor/100))]
-        dt.bioavail.iron[, bioavailability.iron := 100 * iron_mg/sum.iron.raw_mg]
-        dt.bioavail.iron <- unique(dt.bioavail.iron)
-        inDT <- dt.bioavail.iron
-        outName <- "dt.bioavail_iron" # not sure the suffix is needed here
-        cleanup(inDT, outName, fileloc("resultsDir"), "csv")
-        keepListCol <- c("scenario","region_code.IMPACT159", "year", "bioavailability.iron")
-        dt.bioavail.iron <- dt.bioavail.iron[, (keepListCol), with = FALSE]
-
-        #' adjust iron in dt.food.agg
-        temp <- merge(dt.food.agg, dt.bioavail.iron, by = c("scenario", "region_code.IMPACT159", "year"))
-        dt.food.agg <- temp[,iron_mg.Q := iron_mg.Q * bioavailability.iron/100][,c("bioavailability.iron") := NULL]
-
-        #' zinc bioavailability -----
-        dt.bioavail_zinc <- data.table::copy(dt.bioavail)
-        dt.bioavail_zinc[, `:=`(zinc.raw_mg = zinc_mg.Q,
-                                phytate_mg = phytate_mg.Q
-        )]
-        keepListCol <- c("IMPACT_code", "scenario", "region_code.IMPACT159", "year", "zinc.raw_mg", "phytate_mg")
-        dt.bioavail_zinc <-  dt.bioavail_zinc[, (keepListCol), with = FALSE]
-        dt.bioavail_zinc[,`:=`(
-          sum.zinc.raw_mg = sum(zinc.raw_mg),
-          sum.phytate_mg = sum(phytate_mg)),
-          by = .(scenario, region_code.IMPACT159, year)]
-        deleteListCol <- c("IMPACT_code", "phytate_mg")
-        dt.bioavail_zinc[, (deleteListCol) := NULL]
-        dt.bioavail_zinc <- unique( dt.bioavail_zinc)
-        #' This is based on equation 11 of 1. L. V. Miller, N. F. Krebs, K. M. Hambidge,
-        #' A mathematical model of zinc absorption in humans as a function of dietary zinc and phytate.
-        #' J. Nutr. 137, 135–41 (2007).
-        #' amax - maximal absorption of zinc
-        #' taz - total daily absorbed zinc
-        #' tdz - total daily dietary zinc
-        #' tdp - total daily dietary phytate
-        #' units of above are millimoles per day
-        #' - kp and kr are the equilibrium dissociation constants of zinc-phytate and zinc-receptor binding, respectively
-        zincAtomMass <- 65.38
-        phytMolecMass <- 660
-
-        #' Three parameters have been updated in a 2010 paper.
-        amax2010 = .091; kr2010 = .033; kp2010 = .68 # updated parameters from
-        #' Reference : Hambidge KM, Miller LV, Westcott JE, Sheng X, Krebs NF. Zinc bioavailability and homeostasis.
-        #' Am J Clin Nutr. 2010;91:1478S-83S.
-        dt.bioavail_zinc[, tdp := sum.phytate_mg/phytMolecMass][, tdz := sum.zinc.raw_mg/zincAtomMass]
-        dt.bioavail_zinc[, millernum2010 := amax2010 + tdz + kr2010 * (1 + (tdp / kp2010))]
-        dt.bioavail_zinc[, taz := 0.5 * (millernum2010 - sqrt(millernum2010^2 - 4 * amax2010 * tdz))]
-        dt.bioavail_zinc[, zinc_mg := taz * zincAtomMass]
-        dt.bioavail_zinc[, bioavailability.zinc := 100 * zinc_mg/sum.zinc.raw_mg]
-        dt.bioavail_zinc <- unique( dt.bioavail_zinc)
-        inDT <-  dt.bioavail_zinc
-        outName <- "dt.bioavail_zinc" # not sure the suffix is needed here
-        cleanup(inDT, outName, fileloc("resultsDir"), "csv")
-        keepListCol <- c("scenario","region_code.IMPACT159", "year", "sum.zinc.raw_mg", "sum.phytate_mg", "bioavailability.zinc")
-        dt.bioavail_zinc <-  dt.bioavail_zinc[, (keepListCol), with = FALSE]
-
-        #' do some graphing
-        dt.regions <- regionAgg("WB")
-        scenChoice <- "SSP1-NoCC-REF"
-        gyear <- "X2010"
-        mainTitle <- paste("Dietary zinc vs dietary phytate;\n ", "scenario - ", scenChoice, ", year - ", gyear, sep = "")
-        temp.all <- merge( dt.bioavail_zinc, dt.regions, by = "region_code.IMPACT159")
-        pdf(paste(fileloc("gDir"), "/phytatePlot",gyear,".pdf", sep = ""))
-        par(mai = c(.8,1,0.8,.5),oma = c(1,1,2,1), mfrow = c(2,2))
-        for (i in unique(temp.all$region_code)) {
-          gTitle <- paste("Income group - ", i, sep = "")
-          temp <- temp.all[region_code %in% i & scenario %in% "SSP1-NoCC-REF" & year %in% "X2050",]
-          plot(temp$sum.zinc.raw_mg, temp$sum.phytate_mg, type = "p", main = gTitle,
-               xlab = "Dietary zinc (mg)", ylab = "Dietary phytate (mg)", ylim = c(800,8000),
-               xlim = c(0,30), pch = 16, cex = .7)
-        }
-        mtext(mainTitle, outer = TRUE, cex = 1)
-        dev.off()
-        #' get rid of dietary zinc and phytate in dt.bioavail_zinc. Only needed for graphing above
-        dt.bioavail_zinc[, c("sum.phytate_mg", "sum.zinc.raw_mg") := NULL]
-        dt.bioavail_zinc <- unique(dt.bioavail_zinc)
-
-        #' adjust zinc in dt.food.agg
-        temp <- merge(dt.food.agg,  dt.bioavail_zinc, by = c("scenario", "region_code.IMPACT159", "year"))
-        dt.food.agg <- temp[,zinc_mg.Q := zinc_mg.Q * bioavailability.zinc/100]
-        dt.food.agg[,c("bioavailability.zinc") := NULL]
+      #'       #' adjust iron and zinc  bioavailability amounts to food.agg.minrls
+      #'        if(req %in% c("req.RDA.minrls_percap", "req.EAR.percap")) {
+      #' #      if ("req.RDA.minrls_percap" %in% req | "req.EAR.percap"  %in% req ) {
+      #'         #' add phytate(for zinc calculations), vit c, energy_kcal, and protein_g (for iron calculations) to the list of nutrients
+      #'         nutListReq.bio <- c(nutListReq, "phytate_mg", "vit_c_mg", "energy_kcal", "protein_g")
+      #'         cat("\nnutListReq.bio", nutListReq.bio, "\n")
+      #'         nutListReq.Q.bio <- paste(nutListReq.bio, "Q", sep = ".")
+      #'         dt.bioavail <- data.table::copy(dt.foodNnuts)
+      #'         #' create dt.bioavail and use it instead of food.agg. It is merged back into food agg with just iron or zinc
+      #'         dt.bioavail <- dt.bioavail[, (nutListReq.Q.bio) := lapply(.SD, function(x)
+      #'           (x * dt.foodNnuts[['foodAvailpDay']])), .SDcols = nutListReq.bio]
+      #'
+      #'         # iron bioavailability -----
+      #'         #' initialize a data table to hold the bioavailable iron results
+      #'         dt.bioavail.iron <- data.table::copy(dt.bioavail)
+      #'         dt.bioavail.iron[, `:=`(kcal.avail = energy_kcal.Q,
+      #'                                 kcal.cereals_legumes = 0,
+      #'                                 vit_c.avail_mg = vit_c_mg.Q,
+      #'                                 iron.raw_mg = iron_mg.Q,
+      #'                                 iron.heme_mg = 0,
+      #'                                 iron.nonheme_mg = 0,
+      #'                                 protein.animal.avail_g = 0,
+      #'                                 stimsFactor = 0
+      #'         )]
+      #'
+      #'         #' constants of iron calcs
+      #'         hemeIronshare <- 0.4 # Heme iron = sum of iron from meats, poultry and fish x 0.40
+      #'         hemeIronBioavail <- 0.25 # bioavailability of heme iron = Heme iron * 25%
+      #'         nonhemeIronShare <- 0.60  #' Nonheme iron = sum of all remaining iron (including iron from MPF x 0.60)
+      #'
+      #'         #' get iron and protein from fish and meats and calculate bioavailable heme iron
+      #'         fishNmeats <- c("fish", "meats")
+      #'         dt.bioavail.iron[food_group_code %in% fishNmeats, `:=`(
+      #'           iron.heme_mg = foodAvailpDay * iron_mg * hemeIronshare * hemeIronBioavail,
+      #'           iron.nonheme_mg = foodAvailpDay * iron_mg * nonhemeIronShare,
+      #'           protein.animal.avail_g = foodAvailpDay * protein_g)]
+      #'
+      #'         #' get non heme iron from items other than fish and meats (! means not in)
+      #'         dt.bioavail.iron[!food_group_code %in% fishNmeats, `:=`(
+      #'           iron.nonheme_mg = foodAvailpDay * iron_mg)]
+      #'
+      #'         #' get kcals from cereals and legumes
+      #'         dt.bioavail.iron[food_group_code %in% c("cereals", "legumes"), `:=`(
+      #'           kcal.cereals_legumes = foodAvailpDay * energy_kcal)]
+      #'
+      #'         #' converted below Tea factor = [100% - {((tea intake (kg/d) * 1L/0.00792 kg) + (coffee intake (kg/d) * 1L/0.0442 kg * 1/1.5)) x 1/0.6L * 60%}]
+      #'         #' dt.food.agg[IMPACT_code == "ccafe", stimsFactor := 100 - (foodAvailpDay * (1/0.00792) * (1/0.6) * 60)]
+      #'         #' dt.food.agg[IMPACT_code == "cteas", stimsFactor := 100 - (foodAvailpDay * (1/0.0442) * (1/1.5) * (1/0.6) * 60)]
+      #'         teaFactor <- 0.00792
+      #'         coffeeFactor <- 0.0442
+      #'         #' units of stimsFactor are
+      #'         dt.bioavail.iron[IMPACT_code == "cteas", stimsFactor := foodAvailpDay * (1/teaFactor)]
+      #'         dt.bioavail.iron[IMPACT_code == "ccafs", stimsFactor := foodAvailpDay * (1/coffeeFactor) * (1/1.5)]
+      #'
+      #'         keepListCol <- c("IMPACT_code", "scenario", "region_code.IMPACT159", "year", "iron.raw_mg",
+      #'                          "iron.heme_mg", "iron.nonheme_mg", "kcal.avail", "kcal.cereals_legumes", "vit_c.avail_mg", "protein.animal.avail_g", "stimsFactor")
+      #'         dt.bioavail.iron <- dt.bioavail.iron[, (keepListCol), with = FALSE]
+      #'         dt.bioavail.iron[,`:=`(
+      #'           sum.iron.raw_mg = sum(iron.raw_mg),
+      #'           sum.iron.heme_mg = sum(iron.heme_mg),
+      #'           sum.iron.nonheme_mg = sum(iron.nonheme_mg),
+      #'           sum.kcal.avail = sum(kcal.avail),
+      #'           sum.kcal.cereals_legumes = sum(kcal.cereals_legumes),
+      #'           sum.protein.animal.avail_g = sum(protein.animal.avail_g),
+      #'           sum.stimsFactor = (100 - sum(stimsFactor) * (1/0.6) * 60),
+      #'           sum.vit_c.avail_mg = sum(vit_c.avail_mg)),
+      #'           by = .(scenario, region_code.IMPACT159, year)]
+      #'
+      #'         dt.bioavail.iron[sum.stimsFactor < 40, sum.stimsFactor := 40]
+      #'         deleteListCol <- c("IMPACT_code", "iron.raw_mg", "iron.heme_mg", "iron.nonheme_mg", "kcal.avail", "kcal.cereals_legumes",
+      #'                            "protein.animal.avail_g", "stimsFactor", "vit_c.avail_mg")
+      #'         dt.bioavail.iron[, (deleteListCol) := NULL]
+      #'         dt.bioavail.iron <- unique(dt.bioavail.iron)
+      #'
+      #'         #' adjust non heme iron for interactions with vitamin c and protein. These values from Table 2 in Murphy et al, 1992.
+      #'         #' Note: for protein_g_per_1000kcal > 27, nonhemeBioavail is 15 %
+      #'         #' for protein_g_per_1000kcal 9- 27, nonhemeBioavail is 15, unless vit_c__mg_per_1000kcal >35
+      #'
+      #'         dt.bioavail.iron[,`:=`(
+      #'           vit_c__mg_per_1000kcal = 1000 * sum.vit_c.avail_mg/sum.kcal.avail,
+      #'           protein_g_per_1000kcal = 1000 * sum.protein.animal.avail_g/sum.kcal.avail)
+      #'           ]
+      #'
+      #'         #' units for nonhemeBioavail are percent
+      #'         dt.bioavail.iron[,nonhemeBioavail := 15] # starting value; now adjust down
+      #'         dt.bioavail.iron[protein_g_per_1000kcal < 9 & vit_c__mg_per_1000kcal < 35,
+      #'                          nonhemeBioavail := 5]
+      #'         dt.bioavail.iron[protein_g_per_1000kcal < 9 & vit_c__mg_per_1000kcal >= 35 & vit_c__mg_per_1000kcal <= 105,
+      #'                          nonhemeBioavail := 10]
+      #'         dt.bioavail.iron[protein_g_per_1000kcal >= 9 & protein_g_per_1000kcal <= 27 & vit_c__mg_per_1000kcal < 35,
+      #'                          nonhemeBioavail := 10]
+      #'
+      #'         dt.bioavail.iron[, iron_mg := sum.iron.heme_mg + (sum.iron.nonheme_mg*(nonhemeBioavail/100) * (sum.stimsFactor/100))]
+      #'         dt.bioavail.iron[, bioavailability.iron := 100 * iron_mg/sum.iron.raw_mg]
+      #'         dt.bioavail.iron <- unique(dt.bioavail.iron)
+      #'         inDT <- dt.bioavail.iron
+      #'         outName <- paste("dt.bioavail_iron", suffix, sep = ".")
+      #'         desc <- "Bioavailable iron"
+      #'         cleanup(inDT, outName, fileloc("resultsDir"),  desc = desc)
+      #'         keepListCol <- c("scenario","region_code.IMPACT159", "year", "bioavailability.iron")
+      #'         dt.bioavail.iron <- dt.bioavail.iron[, (keepListCol), with = FALSE]
+      #'
+      #'         #' adjust iron in dt.food.agg
+      #'         temp <- merge(dt.food.agg, dt.bioavail.iron, by = c("scenario", "region_code.IMPACT159", "year"))
+      #'         dt.food.agg <- temp[,iron_mg.Q := iron_mg.Q * bioavailability.iron/100][,c("bioavailability.iron") := NULL]
+      #'
+      #'         #' zinc bioavailability -----
+      #'         dt.bioavail_zinc <- data.table::copy(dt.bioavail)
+      #'         dt.bioavail_zinc[, `:=`(zinc.raw_mg = zinc_mg.Q,
+      #'                                 phytate_mg = phytate_mg.Q
+      #'         )]
+      #'         keepListCol <- c("IMPACT_code", "scenario", "region_code.IMPACT159", "year", "zinc.raw_mg", "phytate_mg")
+      #'         dt.bioavail_zinc <-  dt.bioavail_zinc[, (keepListCol), with = FALSE]
+      #'         dt.bioavail_zinc[,`:=`(
+      #'           sum.zinc.raw_mg = sum(zinc.raw_mg),
+      #'           sum.phytate_mg = sum(phytate_mg)),
+      #'           by = .(scenario, region_code.IMPACT159, year)]
+      #'         deleteListCol <- c("IMPACT_code", "phytate_mg")
+      #'         dt.bioavail_zinc[, (deleteListCol) := NULL]
+      #'         dt.bioavail_zinc <- unique( dt.bioavail_zinc)
+      #'         #' This is based on equation 11 of 1. L. V. Miller, N. F. Krebs, K. M. Hambidge,
+      #'         #' A mathematical model of zinc absorption in humans as a function of dietary zinc and phytate.
+      #'         #' J. Nutr. 137, 135–41 (2007).
+      #'         #' amax - maximal absorption of zinc
+      #'         #' taz - total daily absorbed zinc
+      #'         #' tdz - total daily dietary zinc
+      #'         #' tdp - total daily dietary phytate
+      #'         #' units of above are millimoles per day
+      #'         #' - kp and kr are the equilibrium dissociation constants of zinc-phytate and zinc-receptor binding, respectively
+      #'         zincAtomMass <- 65.38
+      #'         phytMolecMass <- 660
+      #'
+      #'         #' Three parameters have been updated in a 2010 paper.
+      #'         amax2010 = .091; kr2010 = .033; kp2010 = .68 # updated parameters from
+      #'         #' Reference : Hambidge KM, Miller LV, Westcott JE, Sheng X, Krebs NF. Zinc bioavailability and homeostasis.
+      #'         #' Am J Clin Nutr. 2010;91:1478S-83S.
+      #'         dt.bioavail_zinc[, tdp := sum.phytate_mg/phytMolecMass][, tdz := sum.zinc.raw_mg/zincAtomMass]
+      #'         dt.bioavail_zinc[, millernum2010 := amax2010 + tdz + kr2010 * (1 + (tdp / kp2010))]
+      #'         dt.bioavail_zinc[, taz := 0.5 * (millernum2010 - sqrt(millernum2010^2 - 4 * amax2010 * tdz))]
+      #'         dt.bioavail_zinc[, zinc_mg := taz * zincAtomMass]
+      #'         dt.bioavail_zinc[, bioavailability.zinc := 100 * zinc_mg/sum.zinc.raw_mg]
+      #'         dt.bioavail_zinc <- unique( dt.bioavail_zinc)
+      #'         inDT <-  dt.bioavail_zinc
+      #'         outName <- paste("dt.bioavail_zinc", suffix, sep = ".")
+      #'         desc <- "bioavailable zinc"
+      #'         cleanup(inDT, outName, fileloc("resultsDir"),  desc = desc)
+      #'         keepListCol <- c("scenario","region_code.IMPACT159", "year", "sum.zinc.raw_mg", "sum.phytate_mg", "bioavailability.zinc")
+      #'         dt.bioavail_zinc <-  dt.bioavail_zinc[, (keepListCol), with = FALSE]
+      #'
+      #'         #' do some graphing
+      #'         dt.regions <- regionAgg("WB")
+      #'         scenChoice <- "SSP1-NoCC-REF"
+      #'         gyear <- "X2010"
+      #'         mainTitle <- paste("Dietary zinc vs dietary phytate;\n ", "scenario - ", scenChoice, ", year - ", gyear, sep = "")
+      #'         temp.all <- merge( dt.bioavail_zinc, dt.regions, by = "region_code.IMPACT159")
+      #'         pdf(paste(fileloc("gDir"), "/phytatePlot",gyear,".pdf", sep = ""))
+      #'         par(mai = c(.8,1,0.8,.5),oma = c(1,1,2,1), mfrow = c(2,2))
+      #'         for (i in unique(temp.all$region_code)) {
+      #'           gTitle <- paste("Income group - ", i, sep = "")
+      #'           temp <- temp.all[region_code %in% i & scenario %in% "SSP1-NoCC-REF" & year %in% "X2050",]
+      #'           plot(temp$sum.zinc.raw_mg, temp$sum.phytate_mg, type = "p", main = gTitle,
+      #'                xlab = "Dietary zinc (mg)", ylab = "Dietary phytate (mg)", ylim = c(800,8000),
+      #'                xlim = c(0,30), pch = 16, cex = .7)
+      #'         }
+      #'         mtext(mainTitle, outer = TRUE, cex = 1)
+      #'         dev.off()
+      #'         #' get rid of dietary zinc and phytate in dt.bioavail_zinc. Only needed for graphing above
+      #'         dt.bioavail_zinc[, c("sum.phytate_mg", "sum.zinc.raw_mg") := NULL]
+      #'         dt.bioavail_zinc <- unique(dt.bioavail_zinc)
+      #'
+      #'         #' adjust zinc in dt.food.agg
+      #'         temp <- merge(dt.food.agg,  dt.bioavail_zinc, by = c("scenario", "region_code.IMPACT159", "year"))
+      #'         dt.food.agg <- temp[,zinc_mg.Q := zinc_mg.Q * bioavailability.zinc/100]
+      #'         dt.food.agg[,c("bioavailability.zinc") := NULL]
+      #'       }
       }
-    }
     # end of iron and zinc bioavalability calculations -----
 
     # create name lists for use in operations below -----
@@ -346,7 +352,7 @@ for (switchloop in 1:3) {
       dt.food.agg <- dt.food.agg[, (nutListReq.sum.staples) := lapply(.SD, sum), .SDcols = nutListReq.Q,
                                  by = eval(data.table::key(dt.food.agg))]
 
-      print(paste("summing by staples ", req, sep = ""))
+      cat("\nSumming by staples ", req, sep = "")
 
       # individual nutrients by food group -----
       data.table::setkeyv(dt.food.agg,foodGroupKey)
@@ -359,9 +365,11 @@ for (switchloop in 1:3) {
       #' nutrient from each food item to the total
       #' dt.food.ratio <- data.table::copy(dt.all.sum[,(nutListreqRatio) := dt.all.sum[[nutListReq.Q]] / dt.all.sum[[nutListReq.sum]]])
 
-      print(paste("calculating nutrient share ratios ", req, sep = ""))
+      cat("\nCalculating nutrient share ratios for ", req, sep = "")
       #' ratio of nutrient from each food item to the total
       for (k in 1:length(nutListReq)) {
+        # cat("\nnutListReq.Q[k]: ", nutListReq.Q[k])
+
         dt.food.agg[,nutListreqRatio.all[k] := get(nutListReq.Q[k]) / get(nutListReq.sum.all[k])]
       }
       #' ratio of nutrient from each staple item to the total
@@ -384,38 +392,29 @@ for (switchloop in 1:3) {
       #' calculate ratio of kcals from nutrient to total kcals. Multiply by 100 so its in same units as the AMDR values
 
       #' use different source for dt.food.agg for AMDRs
-
-      # for (switchloop in 1:3) {
-      #   if (switchloop == 1) {switch.vars <- FALSE;  switch.fortification <- FALSE; suffix = "base"}
-      #   if (switchloop == 2) {switch.vars <- TRUE;  switch.fortification <- FALSE; suffix = "var"}
-      #   if (switchloop == 3) {switch.vars <- TRUE;  switch.fortification <- TRUE; suffix = "varFort"}
-
       dt.nutrients.kcals <- getNewestVersion(paste("dt.nutrients.kcals", suffix, sep = "."), fileloc("resultsDir"))
 
-
       dt.food.agg <- data.table::copy(dt.nutrients.kcals)
+      # next two lines added to potentially correct a 'length' problem. March 14, 2018
+      deleteListRows <- c("caffeine_mg", "cholesterol_mg", "ft_acds_tot_trans_g")
+      dt.food.agg <- dt.food.agg[!nutrient %in% deleteListRows]
       formula.wide <- paste("scenario + region_code.IMPACT159 + year ~nutrient")
-      dt.food.agg <-
-        temp <- data.table::dcast(
-          data = dt.food.agg,
-          formula = formula.wide,
-          value.var = "value"
-        )
-      # commented out on Jun 14, 2017 because dt.nutrients.kcals is now in long form
-      # keepListCol <- c("scenario", "region_code.IMPACT159", "year", "nutrient", "value")
-      #                  #"kcalsPerDay.fat", "kcalsPerDay.protein", "kcalsPerDay.carbohydrate", "kcalsPerDay.tot")
-      # dt.food.agg <- unique(dt.food.agg[, (keepListCol), with = FALSE])
+      dt.food.agg <- data.table::dcast(
+        data = dt.food.agg,
+        formula = formula.wide,
+        value.var = "value"
+      )
 
-      #' the .Q variables are the percent of the macronutrient kcals in total kcals
+      #' the .share variables are the percent of the macronutrient kcals in total kcals
       dt.food.agg[, `:=`(
-        fat_g.Q = 100 * kcalsPerDay.fat / kcalsPerDay.tot,
-        protein_g.Q = 100 * kcalsPerDay.protein / kcalsPerDay.tot,
-        carbohydrate_g.Q = 100 * kcalsPerDay.carbohydrate / kcalsPerDay.tot
+        fat_g.kcalpercent = 100 * kcalsPerDay.fat / kcalsPerDay.tot,
+        protein_g.kcalpercent = 100 * kcalsPerDay.protein / kcalsPerDay.tot,
+        carbohydrate_g.kcalpercent = 100 * kcalsPerDay.carbohydrate / kcalsPerDay.tot
       )]
+      macroKcalShare <- c("carbohydrate_g.kcalpercent", "fat_g.kcalpercent", "protein_g.kcalpercent")
       dt.food.agg[, c("kcalsPerDay.fat", "kcalsPerDay.protein", "kcalsPerDay.carbohydrate", "kcalsPerDay.tot") := NULL]
     }
     #' now do ratios with nutrient requirements
-    print(paste("calculating nutrient requirement ratios for ", req, sep = ""))
 
     #' change nutrient names in dt.nutsReqPerCap so they differ from those in nutListReq
     nutListReq.Req <- paste(nutListReq,"req", sep = ".")
@@ -434,44 +433,45 @@ for (switchloop in 1:3) {
 
     #' ratio of nutrient from each food item to the requirement
     for (k in 1:length(nutListReq)) {
-      dt.food.agg[,nutListReq.reqRatio.all[k] := get(nutListReq.Q[k]) / get(nutListReq.Req[k])]
+      # cat("\nnutlistreq: ", nutListReq) #xxx
+      # cat("\nk is  ", k)
+      # cat("\nNames dt.food.agg : ", sort(names(dt.food.agg)), "\n")
+
+      if (req %in% c("req.AMDR_hi_percap", "req.AMDR_lo_percap")) {
+        dt.food.agg[,nutListReq.reqRatio.all[k] := get(macroKcalShare[k]) / get(nutListReq.Req[k])]
+      }else{
+        dt.food.agg[,nutListReq.reqRatio.all[k] := get(nutListReq.Q[k]) / get(nutListReq.Req[k])]
+      }
+
     }
-    print(paste("finished with ratio for each food item ", req, sep = ""))
+    cat("\nFinished with ratio for each food item ", req, sep = "")
 
     if (!req %in% c("req.AMDR_hi_percap", "req.AMDR_lo_percap")) { #' because staples and food groups are not relevant for AMDR
       #' ratio of nutrient from each staple item to the requirement
       for (k in 1:length(nutListReq)) {
         dt.food.agg[,nutListReq.reqRatio.staples[k] := get(nutListReq.sum.staples[k]) / get(nutListReq.Req[k])]
       }
-      print(paste("finished with ratio for the staple/non staple categories ", req, sep = ""))
+      cat("\nFinished with ratio for the staple/non staple categories ", req, sep = "")
       #' ratio of nutrient from each food group item to the requirement
       for (k in 1:length(nutListReq)) {
         dt.food.agg[,nutListReq.reqRatio.foodGroup[k] := get(nutListReq.sum.foodGroup[k]) / get(nutListReq.Req[k])]
       }
-      print(paste("finished with requirement ratio for the food group categories ", req, sep = ""))
-      print(proc.time())
+      cat("\nFinished with requirement ratio for the food group categories ", req, sep = "")
     }
 
-    #' #' cap alcohol at 100 gm - commented out because dataManagement.foodNnuts.R already does this
-    #' if ("ethanol_g" %in% names(dt.food.agg)) {
-    #'   dt.food.agg[ethanol_g.sum.all > 100, ethanol_g.sum.all := 100]
-    #'   dt.food.agg[ethanol_g.sum.staple > 100, ethanol_g.sum.staple := 100]
-    #'   dt.food.agg[ethanol_g.sum.foodGroup > 100, ethanol_g.sum.foodGroup := 100]
-    #' }
     inDT <- dt.food.agg
     temp <- gsub("req.","",req)
     reqShortName <- gsub(".percap","",temp)
     outName <- paste("food_agg_",reqShortName, ".", suffix, sep = "")
-    print(outName)
-    cleanup(inDT, outName, fileloc("resultsDir"), "csv")
-    # }
-  }
+    desc <- paste("adequacy ratios - all, by food groups, and by staples", reqShortName)
+    cleanup(inDT, outName, fileloc("resultsDir"), desc = desc)
+    }
   # end of generateResults function
 
   #' run generateResults script -----
   for (i in 1:length(reqsListPercap)) {
     generateResults.dataPrep(reqsListPercap[i],dt.foodNnuts, scenarioListIMPACT)
-    print(paste("Done with ", reqsListPercap[i], ". ", length(reqsListPercap) - i," sets of requirements to go.", sep = ""))
+    cat("\nDone with ", reqsListPercap[i], ". ", length(reqsListPercap) - i," sets of requirements to go.\n", sep = "")
   }
-}
-
+  }
+finalizeScriptMetadata(metadataDT, sourceFile)

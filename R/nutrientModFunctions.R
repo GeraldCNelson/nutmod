@@ -1,7 +1,7 @@
 #' Nutrient Modeling Functions
 #'
 #' @keywords utilities, nutrient data management functions
-#' title: "Functions to facilitate management of nutrient data"
+#' @title "Functions to facilitate management of nutrient data"
 #' @name nutrientModFunctions.R
 #' @author Gerald C. Nelson, \\email{nelson.gerald.c@@gmail.com}
 library(data.table) # this is needed everywhere and currently some scripts don't call it
@@ -104,8 +104,11 @@ getNewestVersion <- function(fileShortName, directory, fileType) {
   # if (fileType == "xlsx") tailLength <- 16 # for xlsx files
   # fillIn <- paste('.{', tailLength, '}$', sep = "")
   fileShortNameTest <- paste(fileShortName,"_2", sep = "") # this should get rid of the multiple files problem
+  # cat("\nfileShortNameTest ", fileShortNameTest)
   filesofFileType <- list.files(mData)[grep(fileType,list.files(mData))]
+  #  cat("\nfilesofFileType ", filesofFileType)
   fileLongName <- filesofFileType[grep(fileShortNameTest, filesofFileType, fixed = TRUE)]
+  #  cat("\nfileLongName ", fileLongName)
   #  temp <- gsub(fillIn, "", list.files(mData))
   # filesList <-
   #   grep(regExp,
@@ -117,7 +120,7 @@ getNewestVersion <- function(fileShortName, directory, fileType) {
 
   #  if (length(newestFile) == 0) {
   # check to see if the short file name is in the list from the relevant directory
-  # print(paste("fileShortName is ", fileShortName))
+  # cat("\nfileShortName is ", fileShortName))
   #  print(fileLongName)
   if (length(fileLongName) == 0) {
     stop(sprintf("There is no file  '%s' in directory %s", fileShortName, mData))
@@ -186,12 +189,29 @@ removeOldVersions <- function(fileShortName,dir) {
 #   }
 # }
 
+createScriptMetaData <- function(sourceFile) {
+  metadataDT <<- data.table(outName = character(0), sourcecode = character(0), destDir = character(0), desc = character(0), colNames = character(0))
+}
+
+finalizeScriptMetadata <- function(metadataDT, sourceFile) {
+  write.csv(metadataDT, file = paste("data/metadata", sourceFile, "csv", sep = "."), row.names = FALSE)
+}
+
 #' Title cleanup - remove old versions and save rds and xlsx versions of the file
 #' @param inDT - name of the data table or frame to be written out
 #' @param outName - short name of the file to be written out
-#' @param dir - directory where the cleanup takes place
-cleanup <- function(inDT, outName, destDir, writeFiles) {
-  sprintf("start cleanup for %s", outName)
+#' @param destDir - directory where the cleanup takes place
+#' @param writeFiles - format to use for writing output in addition to RDS
+#' @desc brief description of the contents of the file
+cleanup <- function(inDT, outName, destDir, writeFiles, desc) {
+  sourceFile <- get("sourceFile", envir = .GlobalEnv)
+  if (missing(writeFiles)) {writeFiles = "xlsx"}
+  if (missing(destDir)) {destDir = fileloc("mData")}
+
+  colNames <- paste(colnames(inDT), collapse = ", ")
+  outInfo <- list(outName, sourceFile, destDir, desc, colNames)
+  metadataDT <<- rbind(metadataDT, outInfo)
+  #  cat("\n", "Outfilename: ", outName, " Destination: ", Destination," Script: ", sourceFile," Desc: ", desc," Col. names: ", colNames, "\n")
   #convert to a standard order
   oldOrder <- names(inDT)
   startOrder <- c("scenario",keyVariable("region"),"year")
@@ -202,7 +222,7 @@ cleanup <- function(inDT, outName, destDir, writeFiles) {
   }
 
   removeOldVersions(outName, destDir)
-  sprintf("writing the rds for %s to %s ", outName, destDir)
+  sprintf("\nWriting the rds for %s to %s ", outName, destDir)
   # print(proc.time())
   # next line removes any key left in the inDT data table; this may be an issue if a df is used
   data.table::setkey(inDT, NULL)
@@ -221,15 +241,15 @@ cleanup <- function(inDT, outName, destDir, writeFiles) {
   # #print(proc.time())
   if (missing(writeFiles)) {writeFiles = "xlsx"}
   if (nrow(inDT) > 50000) {
-    sprintf("number of rows in the data, %s, greater than 50,000. Not writing xlsx or csv", nrow(inDT))
+    sprintf("\nThe number of rows in the data, %s, is greater than 50,000. Not writing xlsx or csv", nrow(inDT))
     writeFiles <- writeFiles[!writeFiles %in% c("xlsx")]
   }
   if ("csv"  %in% writeFiles) {
-    print(paste("writing the csv for ", outName, " to ", destDir, sep = ""))
+    sprintf("\nWriting the csv for %s to %s ", outName, destDir)
     write.csv(inDT,file = paste(destDir, "/", outName, "_", Sys.Date(), ".csv", sep = ""), row.names = FALSE)
   }
   if ("xlsx"  %in% writeFiles) {
-    #    print(paste("writing the xlsx for ", outName, " to ", dir, sep = ""))
+    #    cat("\nwriting the xlsx for ", outName, " to ", dir, sep = ""))
     wbGeneral <- openxlsx::createWorkbook()
     outName <- strtrim(outName, c(31))
     openxlsx::addWorksheet(wb = wbGeneral, sheetName = outName)
@@ -249,15 +269,22 @@ cleanup <- function(inDT, outName, destDir, writeFiles) {
 
     xcelOutFileName = paste(destDir, "/", outName, "_", Sys.Date(), ".xlsx", sep = "")
     openxlsx::saveWorkbook(wbGeneral, xcelOutFileName, overwrite = TRUE)
-    #   print(paste("done writing the xlsx for ", outName, sep = ""))
+    #   cat("\nDone writing the xlsx for ", outName, sep = "")
     #  print(proc.time())
   }
 }
 
-cleanupGraphFiles <- function(inGraphFile, outName, destDir) {
+cleanupGraphFiles <- function(inGraphFile, outName, destDir, desc) {
   sprintf("start cleanup for %s", outName)
+  sourceFile <- get("sourceFile", envir = .GlobalEnv)
   removeOldVersions(outName, destDir)
-  sprintf("writing the rds for %s to %s ", outName, destDir)
+  if (missing(destDir)) {destDir = fileloc("mData")}
+
+  colNames <- paste(inDT$names, collapse = ", ")
+  outInfo <- list(outName, sourceFile, destDir, desc, colNames)
+  metadataDT <<- rbind(metadataDT, outInfo)
+
+  sprintf("\nWriting the rds for %s to %s ", outName, destDir)
   # print(proc.time())
   # next line removes any key left in the inDT data table; this may be an issue if a df is used
   data.table::setkey(inDT, NULL)
@@ -522,7 +549,8 @@ metadata <- function() {
 
   inDT <- data.table::as.data.table(metadata)
   outName <- "dt.metadata"
-  cleanup(inDT,outName, fileloc("resultsDir"))
+  desc <- "Metadata of various kinds"
+  cleanup(inDT,outName, fileloc("resultsDir"), desc = desc)
 }
 
 #' Title fileNameList returns a list of filenames, with or without complete paths
@@ -750,8 +778,8 @@ flagMissingFiles <- function() {
       grep(shortNameList$name[i], list.files(mData), value = TRUE)
     if (length(filesList) == 0) {
       rowNumber <- which(grepl(shortNameList$name[i], shortNameList$name))
-      print(paste("Missing data file ", shortNameList$name[i]))
-      print(paste(" run R/", shortNameList$script[rowNumber], sep = ""))
+      cat("\nMissing data file ", shortNameList$name[i])
+      cat("\n run R/", shortNameList$script[rowNumber], sep = "")
       return()
     }
   }
@@ -1125,15 +1153,16 @@ gdxLibraryLocationCheck <- function() {
   gdxLibLoc <- dt.metadata[file_description %in%
                              "Location and name of GAMS program; needed for the gdx data import process", file_name_location]
   if (gdxrrw::igdx(gamsSysDir = gdxLibLoc, silent = TRUE) %in% 0L) {
-    print(paste("The nutrient modeling software thinks your GAMS liberary path is", gdxLibLoc, " R can't find it there."))
+    cat("\nThe nutrient modeling software thinks your GAMS liberary path is", gdxLibLoc, " R can't find it there.")
     if (choice %in% "n") {
-      cat("Type the correct path in the console; e.g. C:\\GAMS\\win32\24.7 ")
+      cat("\nType the correct path in the console; e.g. C:\\GAMS\\win32\24.7 ")
       GAMSlibloc <- readline()
       dt.metadata[file_description %in% "Location and name of GAMS program; needed for the gdx data import process", file_name_location := GAMSlibloc]
-      print(paste("The nutrient modeling software now thinks your GAMS liberary path is", gdxLibLoc))
+      cat("\nThe nutrient modeling software now thinks your GAMS liberary path is", gdxLibLoc)
       inDT <- dt.metadata
-      outName <- dt.metadata
-      cleanup(inDT, outName, fileloc("resultsDir"))
+      outName <- dt.metadata.gdx
+      desc <- "Metadata on the gdx file with IMPACT result"
+      cleanup(inDT, outName, fileloc("resultsDir"), desc = desc)
     }
   }
 }
@@ -1153,7 +1182,7 @@ gdxFileNameChoice <- function() {
     gdxFileName <- "Micronutrient-Inputs-USAID.gdx"  #-  gdx for the USAID results
     gdxChoice <- "USAID"
   }
-  cat("Your gdx file name choice is ", gdxFileName)
+  cat("\nYour gdx file name choice is ", gdxFileName)
   gdxCombo <- cbind(gdxFileName, gdxChoice)
   write.csv(gdxCombo, file = paste0(getwd(), "/results/gdxInfo.csv"), row.names = FALSE)
   return(gdxCombo)
@@ -1263,6 +1292,7 @@ generateWorldMaps <- function(spData, scenOrder, titleText, legendText, lowColor
 
 # store world map dataframe -----
 storeWorldMapDF <- function(){
+  # check to see if worldMap already exists
   # naturalearth world map geojson
   # updated source of data is http://www.naturalearthdata.com/downloads/50m-cultural-vectors/
 
@@ -1272,25 +1302,32 @@ storeWorldMapDF <- function(){
 
   fileloc <- "data-raw/spatialData"
   fn <- file.path(fileloc, "ne_50m_admin_0_countries.zip")
-  download.file("http://www.naturalearthdata.com/http//www.naturalearthdata.com/download/50m/cultural/ne_50m_admin_0_countries.zip", fn)
-  unzip(fn, exdir = fileloc)
-  world.raw <- rgdal::readOGR(dsn = fileloc)
+  cat("\n") # so the output from download.file starts on a new line
 
-  # remove antarctica and some other small countries
-  world <- world.raw[!world.raw$ISO_A3 %in% c("ATA"),]
-  othersToRemove <- c("ABW", "AIA", "ALA", "AND", "ASM", "AFT")
-  world <- world[!world$ISO_A3 %in% othersToRemove,]
-  # world <- world[world$TYPE %in% "SOVEREIGNT"]
-  world <- sp::spTransform(world, CRSobj="+proj=longlat")
-  saveRDS(world, file = paste(fileloc, "worldFile.RDS", sep = "/"))
-  #world.simp <- gSimplify(world, tol = .1, topologyPreserve = TRUE)
-  # alternative would be CRS("+proj=longlat")) for WGS 84
-  # dat_url <- getURL("https://gist.githubusercontent.com/hrbrmstr/7a0ddc5c0bb986314af3/raw/6a07913aded24c611a468d951af3ab3488c5b702/pop.csv")
-  # pop <- read.csv(text=dat_url, stringsAsFactors=FALSE, header=TRUE)
-  worldMap <- broom::tidy(world, region = "ISO_A3")
-  inDT <- worldMap
-  outName <- "worldMap"
-  cleanup(inDT, outName, fileloc("mData"))
+  temp <- list.files(fileloc("mData"))
+
+  if (length(grep("worldMap", temp)) == 0) {
+    suppressMessages(download.file("http://www.naturalearthdata.com/http//www.naturalearthdata.com/download/50m/cultural/ne_50m_admin_0_countries.zip", fn))
+    unzip(fn, exdir = fileloc)
+    world.raw <- rgdal::readOGR(dsn = fileloc)
+
+    # remove antarctica and some other small countries
+    world <- world.raw[!world.raw$ISO_A3 %in% c("ATA"),]
+    othersToRemove <- c("ABW", "AIA", "ALA", "AND", "ASM", "AFT")
+    world <- world[!world$ISO_A3 %in% othersToRemove,]
+    # world <- world[world$TYPE %in% "SOVEREIGNT"]
+    world <- sp::spTransform(world, CRSobj="+proj=longlat")
+    saveRDS(world, file = paste(fileloc, "worldFile.RDS", sep = "/"))
+    #world.simp <- gSimplify(world, tol = .1, topologyPreserve = TRUE)
+    # alternative would be CRS("+proj=longlat")) for WGS 84
+    # dat_url <- getURL("https://gist.githubusercontent.com/hrbrmstr/7a0ddc5c0bb986314af3/raw/6a07913aded24c611a468d951af3ab3488c5b702/pop.csv")
+    # pop <- read.csv(text=dat_url, stringsAsFactors=FALSE, header=TRUE)
+    worldMap <- broom::tidy(world, region = "ISO_A3")
+    inDT <- worldMap
+    outName <- "worldMap"
+    desc <- "World map file used to create facet maps of the world"
+    cleanup(inDT, outName, fileloc("mData"), desc = desc)
+  }
 }
 
 facetMaps <- function(worldMap, DT, fileName, legendText, fillLimits, palette, facetColName, graphsListHolder, breakValues, displayOrder) {
@@ -1334,4 +1371,9 @@ g_legend <- function(plot.in) {
 
 fmt_dcimals <- function(decimals=0){
   function(x) format(x,nsmall = decimals,scientific = FALSE)
+}
+
+sourcer <- function(sourceFile){
+  cat("\n\nRunning ", sourceFile)
+  source(sourceFile)
 }
