@@ -385,7 +385,8 @@ keyVariable <- function(variableName) {
   keepYearList <- c("X2010", "X2015", "X2020", "X2025", "X2030", "X2035", "X2040", "X2045", "X2050")
   keepYearList.FBS <- c("X2000", "X2001", "X2002", "X2003", "X2004", "X2005",
                         "X2006", "X2007", "X2008", "X2009", "X2010", "X2011")
-  FBSyearsToAverage <- c("X2004", "X2005", "X2006")
+  FBSyearsToAverage.baseyear <- c("X2004", "X2005", "X2006")
+  FBSyearsToAverage.startyear <- c("X2009", "X2010", "X2011")
 
   keepListYears.composites <- c("Y2011", "Y2012", "Y2013")
   #' note shrimp, tuna, and salmon are removed in dataManagement.fish.R
