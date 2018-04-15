@@ -192,16 +192,14 @@ dt.FBS.commods.melt[,value.sum := sum(value), by = list(ISO_code, variable, IMPA
 #now get rid of info that is not needed
 keepListCol <- c("country_name", "variable_code", "variable", "unit", "ISO_code",
                  "IMPACT_code", "year", "value.sum")
-dt.temp <- dt.FBS.commods.melt[,keepListCol, with = FALSE]
-data.table::setkey(dt.temp)
-dt.FBS.commods.final <-
-  #  unique(dt.temp[, c(eval(data.table::key(dt.temp)), keepListCol), with = FALSE])
-  unique(dt.temp[, (keepListCol), with = FALSE])
+
+dt.FBS.commods.melt[,setdiff(names(dt.FBS.commods.melt), keepListCol) := NULL]
+dt.FBS.commods.final <- unique(dt.FBS.commods.melt)
 data.table::setnames(dt.FBS.commods.final,old = "value.sum", new = "value")
 data.table::setorder(dt.FBS.commods.final, ISO_code)
 dt.FBS.commods.final <- dt.FBS.commods.final[!is.na(country_name)]
+dt.FBS.commods.final[is.na(dt.FBS.commods.final)] <- 0
 inDT <- dt.FBS.commods.final
-
 outName <- "dt.FBS"
 desc <- "Sum FBS commodities to the IMPACT commodity they are included in"
 cleanup(inDT,outName,fileloc("mData"), desc = desc)
