@@ -2,11 +2,8 @@
 #' @keywords nutrient data,
 #' @title Calculate nutrient deltas across scenarios
 #' @name aggRun.R
-#' @include nutrientModFunctions.R
-{source("R/workbookFunctions.R")
-  source("R/nutrientCalcFunctions.R")
-  source("R/aggNorder.R")}
-library(data.table)
+source("R/nutrientModFunctions.R")
+
 library(optimx)
 library(lpSolveAPI)
 # see http://lpsolve.sourceforge.net/5.5/R.htm for using lpsolve

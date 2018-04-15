@@ -17,13 +17,9 @@
 #' @description Does all the calculations combining food availability with nutrient content.
 
 #' @include nutrientModFunctions.R
-#' @include workbookFunctions.R
-#' @include nutrientCalcFunctions.R
-{
+
   source("R/nutrientModFunctions.R")
-  source("R/workbookFunctions.R")
-  source("R/nutrientCalcFunctions.R")
-}
+
 sourceFile <- "dataManagement.foodNnuts.R"
 createScriptMetaData()
 
@@ -116,7 +112,6 @@ for (switchloop in 1:3) {
 
   #' dt.nutrients.kcals -----
   dt.nutrients.kcals <- data.table::copy(dt.foodNnuts)
-  # deleteListCol <- c("pcGDPX0", "PCX0", "PWX0",  "foodAvailpDay", "foodQ.sum", "Long_Desc", "retentioncode_aus", "RetnDesc", "ft_acds_tot_sat_g", "ft_acds_tot_trans_g"
   deleteListCol <- c( "foodAvailpDay", "foodQ.sum", "ft_acds_tot_sat_g",
                      "ft_acds_mono_unsat_g", "ft_acds_plyunst_g",
                      keyVariable("minerals"), keyVariable("vitamins"), keyVariable("macronutrients"),
@@ -130,7 +125,6 @@ for (switchloop in 1:3) {
   dt.nutrients.kcals[, (kcalsShare) := lapply(.SD, "/", kcalsPerDay.tot/100), .SDcols =  (kcalsSources)] # divide by 100 to get to percent
 
   #' keep only results that are for the country, ie, not for individual commodities
-  #deleteListCol <- c( "IMPACT_code", "foodAvailpDay", "food_group_code", "staple_code", "kcalsPerCommod",
   deleteListCol <- c( "IMPACT_code", "kcalsPerCommod",
                       "kcals.fat_g", "kcals.carbohydrate_g", "kcals.protein_g", "kcals.ethanol_g", "kcals.sugar_g", "kcals.ft_acds_tot_sat_g")
   dt.nutrients.kcals[, (deleteListCol) := NULL]
@@ -155,21 +149,6 @@ for (switchloop in 1:3) {
   deleteListCol <- c("energy_kcal")
   dt.nutrients.sum[, (deleteListCol) := NULL]
 
-  # commented out March 28, 2018 because this adjustment is done in nutrient calcs
-  # dt.bioavail_zinc <- getNewestVersion(paste("dt.bioavail_zinc", suffix, sep = "."), fileloc("resultsDir"))
-  # dt.bioavail_iron <- getNewestVersion(paste("dt.bioavail_iron", suffix, sep = "."), fileloc("resultsDir"))
-  # keepListCol.zinc <- c("scenario", "region_code.IMPACT159", "year", "bioavailability.zinc")
-  # keepListCol.iron <- c("scenario", "region_code.IMPACT159", "year", "bioavailability.iron")
-  # dt.bioavail_zinc <- dt.bioavail_zinc[,(keepListCol.zinc), with = FALSE]
-  # dt.bioavail_zinc <- unique(dt.bioavail_zinc)
-  # dt.bioavail_iron <- dt.bioavail_iron[,(keepListCol.iron), with = FALSE]
-  # dt.bioavail_iron <- unique(dt.bioavail_iron)
-  # dt.nutrients.sum <- merge(dt.nutrients.sum, dt.bioavail_zinc, by = c("scenario","region_code.IMPACT159", "year" ))
-  # dt.nutrients.sum[, zinc_mg := zinc_mg * bioavailability.zinc / 100]
-  # dt.nutrients.sum <- merge(dt.nutrients.sum, dt.bioavail_iron, by = c("scenario","region_code.IMPACT159", "year" ))
-  # dt.nutrients.sum[, iron_mg := iron_mg * bioavailability.iron / 100]
-  # dt.nutrients.sum[, c("bioavailability.zinc", "bioavailability.iron") := NULL]
-
   #' use dt.nutrient.sum for all three sum files, all, staple, FG
   dt.nutrients.sum.all <- data.table::copy(dt.nutrients.sum)
   dt.nutrients.sum.all[, (list.tot) := lapply(.SD, sum), .SDcols = (list.tot),
@@ -192,8 +171,7 @@ for (switchloop in 1:3) {
   dt.KcalShare.nonstaple <- data.table::copy(dt.foodNnuts)
   keepListCol <- c("scenario", "region_code.IMPACT159", "year", "IMPACT_code", "kcalsPerCommod", "kcalsPerDay.tot", "staple_code",
                    "kcalsPerDay.carbohydrate", "kcalsPerDay.fat", "kcalsPerDay.protein", "kcalsPerDay.other", "kcalsPerDay.ethanol", "kcalsPerDay.sugar", "kcalsPerDay.ft_acds_tot_sat")
-  deleteListCol <- names(dt.KcalShare.nonstaple)[!names(dt.KcalShare.nonstaple) %in% keepListCol]
-  dt.KcalShare.nonstaple[,(deleteListCol) := NULL]
+  dt.KcalShare.nonstaple[, setdiff(names(dt.KcalShare.nonstaple), keepListCol) := NULL]
   dt.KcalShare.nonstaple <- unique(dt.KcalShare.nonstaple)
   dt.KcalShare.nonstaple[,value := sum(kcalsPerCommod) / kcalsPerDay.tot, by = c("scenario", "region_code.IMPACT159", "year", "staple_code")]
   deleteListCol <- c("IMPACT_code", "kcalsPerCommod", "kcalsPerDay.tot")
@@ -202,7 +180,8 @@ for (switchloop in 1:3) {
   dt.KcalShare.nonstaple <- dt.KcalShare.nonstaple[staple_code %in% "nonstaple",]
   dt.KcalShare.nonstaple <- unique(dt.KcalShare.nonstaple)
   keepListCol <- c("scenario", "region_code.IMPACT159", "year", "value")
-  dt.KcalShare.nonstaple <- dt.KcalShare.nonstaple[, (keepListCol), with = FALSE]
+  dt.KcalShare.nonstaple[, setdiff(names(dt.KcalShare.nonstaple), keepListCol) := NULL]
+
   # convert to percent
   dt.KcalShare.nonstaple[,value := value * 100]
   inDT <- dt.KcalShare.nonstaple

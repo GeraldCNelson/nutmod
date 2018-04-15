@@ -3,10 +3,8 @@ library(shiny)
 library(data.table)
 library(fmsb) # for the spider charts
 library(gdata) # to reorder the scenario names
-source("R/nutrientModFunctions.R")
-source("R/workbookFunctions.R")
-source("R/nutrientCalcFunctions.R")
 library(shinythemes)
+source("R/nutrientModFunctions.R")
 
 years <- c("X2010", "X2030", "X2050")
 scenarioName <- "SSP2-NoCC-REF"

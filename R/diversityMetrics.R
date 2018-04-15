@@ -21,11 +21,7 @@ library(data.table)
 #' @include nutrientModFunctions.R
 #' @include workbookFunctions.R
 #' @include nutrientCalcFunctions.R
-{
-  source("R/nutrientModFunctions.R")
-  source("R/workbookFunctions.R")
-  source("R/nutrientCalcFunctions.R")
-}
+source("R/nutrientModFunctions.R")
 sourceFile <- "diversityMetrics.R"
 createScriptMetaData()
 

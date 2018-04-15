@@ -33,13 +33,13 @@ options(warn = 2) # converts all warnings to errors
 sourceFile <- "automate.R"
 
 ptm <- proc.time()
-sourcer <- function(sourceFile){
-  cat("\n\nRunning ", sourceFile)
-  source(sourceFile)
-}
+
 #install needed packages
-list.of.packages <- c("data.table", "openxlsx", "dplyr", "dtplyr", "utils", "ggplot2", "stringi", "tidyr", "splitstackshape",
-                      "gridExtra","gplots", "RColorBrewer", "RODBC")
+# replaced ggplot2 and readr with tidyverse which includes both. April 12, 2018
+# list.of.packages <- c("data.table", "openxlsx", "dplyr", "dtplyr", "utils", "ggplot2", "stringi", "tidyr", "splitstackshape",
+#                       "gridExtra","gplots", "RColorBrewer", "RODBC")
+list.of.packages <- c("data.table", "openxlsx", "dplyr", "dtplyr", "utils",  "stringi", "splitstackshape",
+                      "gridExtra","gplots", "RColorBrewer", "RODBC", "tidyverse")
 new.packages <- list.of.packages[!(list.of.packages %in% installed.packages()[,"Package"])]
 if (length(new.packages)) install.packages(new.packages)
 
@@ -63,12 +63,6 @@ if (packageVersion("data.table") < "1.10.0") {
 # print(paste("start time is " , proc.time(), sep = ""))
 cat("Running nutrientModFunctions.R")
 source("R/nutrientModFunctions.R")
-
-cat("Running workbookFunctions.R")
-source("R/workbookFunctions.R")
-
-cat("Running nutrientCalcFunctions.R")
-source("R/nutrientCalcFunctions.R")
 
 createScriptMetaData()
 

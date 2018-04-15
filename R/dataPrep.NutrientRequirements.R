@@ -1,4 +1,4 @@
-#' @title alculate nutrient requirements for SSP age group categories
+#' @title calculate nutrient requirements for SSP age group categories
 #' @author Gerald C. Nelson, \email{nelson.gerald.c@@gmail.com}
 #' @keywords utilities, IMPACT data, gdx
 # Intro -------------------------------------------------------------------
@@ -24,13 +24,10 @@
 #' The requirements are imported in dataManagement.ODBCaccess.R. Not now; March 5, 2018. ODBCaccess renamed to old
 
 #' @include nutrientModFunctions.R
-{
-  source("R/nutrientModFunctions.R")
-  source("R/workbookFunctions.R")
-  source("R/nutrientCalcFunctions.R")
-}
+source("R/nutrientModFunctions.R")
+
 sourceFile <- "dataPrep.NutrientRequirements.R"
- createScriptMetaData()
+createScriptMetaData()
 
 options(encoding = "UTF-8")
 

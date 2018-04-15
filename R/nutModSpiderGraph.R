@@ -3,9 +3,7 @@
 #' @title Draw spider diagrams
 #' @name xxx
 #' @include nutrientModFunctions.R
-{source("R/nutrientModFunctions.R")
-  source("R/workbookFunctions.R")
-  source("R/nutrientCalcFunctions.R")}
+source("R/nutrientModFunctions.R")
 
 #library(fmsb)
 # region <- keyVariable("region")

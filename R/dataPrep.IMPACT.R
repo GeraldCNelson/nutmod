@@ -3,9 +3,8 @@
 #' @title Import IMPACT data from a gdx file
 #' @name dataPrep.IMPACT.R
 #' @include nutrientModFunctions.R
-{source("R/nutrientModFunctions.R")
-  source("R/workbookFunctions.R")
-  source("R/nutrientCalcFunctions.R")}
+source("R/nutrientModFunctions.R")
+
 gdxrrw::igdx(gamsSysDir = fileNameList("R_GAMS_SYSDIR"), silent = TRUE)
 sourceFile <- "dataPrep.IMPACT.R"
 createScriptMetaData()

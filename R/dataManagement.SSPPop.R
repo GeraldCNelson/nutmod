@@ -30,9 +30,8 @@
 
 #' @include nutrientModFunctions.R
 #' @include workBookFunctions.R
-{source("R/nutrientModFunctions.R")
-  source("R/workbookFunctions.R")
-  source("R/nutrientCalcFunctions.R")}
+source("R/nutrientModFunctions.R")
+
 sourceFile <- "dataManagement.SSPPop.R"
 createScriptMetaData()
 
@@ -53,7 +52,7 @@ dt.SSPPop <-  merge(dt.SSPPop, dt.regions.all, by = "ISO_code", all.y = TRUE)
 
 # Read in the region to aggregate to -----
 keepListCol <- c("scenario","ageGenderCode","year", "value", "region_code.IMPACT159")
-dt.SSPPop <- dt.SSPPop[, keepListCol, with = FALSE]
+dt.SSPPop[, setdiff(names(dt.SSPPop), keepListCol) := NULL]
 dt.SSPPop <- dt.SSPPop[!is.na(scenario),]
 
 # aggregation of the SSP data to the regions is done here
@@ -181,7 +180,7 @@ repCons <- function(dt.pop, nutReqName, ageRowsToSum) {
   dt.temp.sum <- unique( dt.temp.sum)
   inDT <- dt.temp.sum
   outName <- paste(gsub("_ssp","",nutReqName),"percap",sep = "_")
-  desc <- paste0("Per capita availability of ", nutReqName, " by SSP-specific population")
+  desc <- paste0("Per capita requirement of ", nutReqName, " by SSP-specific population info")
   cleanup(inDT,outName,fileloc("mData"), desc = desc)
 
   temp <- data.table::dcast(

@@ -37,9 +37,8 @@
 #     but WITHOUT ANY WARRANTY; without even the implied warranty of
 #     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE, See the
 #     GNU General Public License for more details at http://www.gnu.org/licenses/.
-{source("R/nutrientModFunctions.R")
-  source("R/workbookFunctions.R")
-  source("R/nutrientCalcFunctions.R")}
+source("R/nutrientModFunctions.R")
+
 sourceFile <- "dataPrep.regions.R"
 createScriptMetaData()
 

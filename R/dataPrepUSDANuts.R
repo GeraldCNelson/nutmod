@@ -30,15 +30,9 @@ FOOD_DES <- getNewestVersion("FOOD_DES", fileloc("mData"))
 NUT_DATA <- getNewestVersion("NUT_DATA", fileloc("mData"))
 NUTR_DEF <- getNewestVersion("NUTR_DEF", fileloc("mData"))
 
-#' the requirement for potassium (code 306) is expressed in grams; the NUT_DATA data are in mg. We convert it here to g
-NUT_DATA[ Nutr_No %in% "306", Nutr_Val := Nutr_Val/1000]
-
 # load various lookup tables
 dt.IMPACTcodeLU <- data.table::as.data.table(openxlsx::read.xlsx("data-raw/NutrientData/nutrientDetails/IMPACTCodeLookup.xlsx"))
 dt.singleCodeLU <- dt.IMPACTcodeLU[is.na(IMPACT_conversion), IMPACT_conversion := 100] # as of Feb 18, 2018, dt.IMPACTcodeLU is only single commodities and the
-
-# #remove "c_Salmon", "c_Shrimp", "c_Tuna" from the single code information Tbis is done by  switch.fixFish = TRUE
-# dt.singleCodeLU <- dt.singleCodeLU[!IMPACT_code %in% c("c_Salmon", "c_Shrimp", "c_Tuna")]
 
 # USDA codes from the initial results. It includes conversion from FAOSTAT to retail prduct.
 dt.compositesLU <- data.table::as.data.table(openxlsx::read.xlsx("data-raw/NutrientData/nutrientDetails/composites.Lookup.xlsx", cols = 1:7))
@@ -49,7 +43,7 @@ dt.countryCropVariety <- as.data.table(read_excel("data-raw/NutrientData/country
 dt <- dt.countryCropVariety[,c("IMPACT_code", "usda_code") := NULL]
 dt <- dt[-1]
 dt <-  unique(unlist(dt))
-usdaCodes.vars <- dt[!is.na(dt)]
+usdaCodes.var <- dt[!is.na(dt)]
 
 #' phytate information
 dt.phytateLU <- data.table::as.data.table(openxlsx::read.xlsx("data-raw/NutrientData/nutrientDetails/phytateSourcesWOedibleshare.xlsx"))
@@ -69,7 +63,7 @@ usdaCodes.single <- sort(unique(dt.singleCodeLU$usda_code))
 dt.compositesLU <- dt.compositesLU[remove %in% "0", ]
 dt.compositesLU[, c("include", "remove") := NULL]
 usdaCodes.composites <- sort(unique(dt.compositesLU$usda_code))
-usdaCodes <- unique(c(usdaCodes.single, usdaCodes.composites, usdaCodes.vars))
+usdaCodes <- unique(c(usdaCodes.single, usdaCodes.composites, usdaCodes.var))
 # keep just the USDA codes from the single and composite commodity lists. Moved to after files are merged.March 16, 2018
 #food_des <- FOOD_DES[usda_code %in% usdaCodes,]
 #nut_data <- nut_data[usda_code %in% usdaCodes]
@@ -80,9 +74,9 @@ dt <- merge(dt, dt.phytateLU, by = "usda_code", all.x = TRUE) #add phytate info 
 #dt <- merge(dt, dt.singleCodeLU, by = c("usda_code"), all.y = TRUE, allow.cartesian = TRUE) #combine IMPACT code info and phytate info
 dt <- merge(dt, dt.nutcodeLU, by = c("NutrDesc", "Nutr_No", "unit"), all.x = TRUE)
 dt <- dt[usda_code %in% usdaCodes,]
+
 formula.wide <- paste("usda_code  + Long_Desc + Ref_Desc +
                       edible_share + phytate_mg + phytate_source  ~ nutCode")
-
 dt.USDAnutrients <- data.table::dcast(
   data = dt,
   formula = formula.wide,
@@ -94,8 +88,12 @@ dt.USDAnutrients[is.na(phytate_mg), phytate_mg := 0]
 
 #fix some of the missing values in the USDA fct with imputed values
 library(readxl)
+# Some food items didn't have all nutrients so we imputed them from other sources, described in sources.
+# This meant that the correction for potassium was over written.
 USDANutrientImputedValues <- as.data.table(read_excel("data-raw/NutrientData/nutrientDetails/USDANutrientImputedValues.xlsx"))
 USDANutrientImputedValues[, notes := NULL]
+# The next line of code corrects the problem with potassium
+USDANutrientImputedValues[, potassium_g := potassium_g / 1000] # fixed April 5, 2018
 usdaCodeUpdate <- unique(USDANutrientImputedValues$usda_code)
 dt.USDAnutrients <- dt.USDAnutrients[!usda_code %in% usdaCodeUpdate]
 dt.USDAnutrients <- rbind(dt.USDAnutrients, USDANutrientImputedValues)
@@ -112,7 +110,8 @@ dt.USDAnutrients.fish <- dt.USDAnutrients[usda_code %in% usda_codes.fish,]
 dt.USDAnutrients.fish[, c("edible_share") := NULL]
 dt.USDAnutrients.fish <- merge(dt.USDAnutrients.fish, dt.fishStatData, by = "usda_code")
 setnames(dt.USDAnutrients.fish, old = "prodAve", new = "foodAvail") # so it matches with the crops that can do prod + imp - exp
-
+dt.USDAnutrients.fish[is.na(dt.USDAnutrients.fish)] <- 0
+dt.USDAnutrients.fish[, ft_acds_tot_trans_g := as.numeric(ft_acds_tot_trans_g)]
 # prepare other composites data, average over 3 years
 
 #' FAOSTAT (crop and animal production and trade) data are (currently) used only for the composite categories, to get nutrient availability by weighting the nutrient composition of composite items
@@ -153,25 +152,29 @@ FAOSTATcombined.wide <- data.table::dcast(
   value.var = "itemSum")
 
 FAOSTATcombined.wide[is.na(FAOSTATcombined.wide)] <- 0
-FAOSTATcombined.wide[, foodAvail := (Production + importQ - exportQ)/3] # average annual food availability for the 3 years
+FAOSTATcombined.wide[, foodAvail := (Production + importQ - exportQ)/3] # average annual food availability for the 3 years. Summation done above.
 deleteListCol <- c("Production", "importQ", "exportQ")
 FAOSTATcombined.wide[, (deleteListCol) := NULL]
 FAOSTATcombined.wide[foodAvail <0, foodAvail := 0]
 
-test <- merge(FAOSTATcombined.wide, dt.compositesLU, by = c("item_code", "item_name"))
-test[, c("FAOSTAT_code", "usda_desc") := NULL]
-test2 <- merge(test, dt.USDAnutrients, by = "usda_code")
+composites.temp <- merge(FAOSTATcombined.wide, dt.compositesLU, by = c("item_code", "item_name"))
+composites.temp[, c("FAOSTAT_code", "usda_desc") := NULL]
+compositesHolder <- merge(composites.temp, dt.USDAnutrients, by = "usda_code")
 
 # cleanup some missing values
-NAfixList <- c("ethanol_g", "caffeine_mg", "ft_acds_tot_trans_g")
-test2[, (NAfixList) := lapply(.SD, function(x){x[is.na(x)] <- 0; x}), .SDcols = NAfixList]
-dt.composites <- rbind(test2, dt.USDAnutrients.fish)
+# NAfixList <- c("ethanol_g", "caffeine_mg", "ft_acds_tot_trans_g")
+# compositesHolder[, (NAfixList) := lapply(.SD, function(x){x[is.na(x)] <- 0; x}), .SDcols = NAfixList]
+compositesHolder[is.na(compositesHolder)] <- 0
+compositesHolder[, ft_acds_tot_trans_g := as.numeric(ft_acds_tot_trans_g)]
+
+# combine fish with other composites
+dt.composites <- rbind(compositesHolder, dt.USDAnutrients.fish)
 
 dt.composites[, c("item_code", "item_name") := NULL]
 dt.composites[, foodAvail := foodAvail * (edible_share/100)/keyVariable("DinY")] # reduce food avail quantity by the edible share ratio and divide by days in year to get average daily availability
 
 # get weighted share of nutrients for each composite
-id.vars <- c("usda_code", "region_code.IMPACT159", "composite",  "foodAvail", "Long_Desc") #, "Ref_Desc", "phytate_source"
+id.var <- c("usda_code", "region_code.IMPACT159", "composite",  "foodAvail", "Long_Desc") #, "Ref_Desc", "phytate_source"
 nuts <- c("phytate_mg", "caffeine_mg", "calcium_mg", "carbohydrate_g", "cholesterol_mg", "energy_kcal", "ethanol_g", "fat_g",
           "folate_µg", "ft_acds_mono_unsat_g", "ft_acds_plyunst_g", "ft_acds_tot_sat_g", "ft_acds_tot_trans_g",
           "iron_mg", "magnesium_mg", "niacin_mg", "phosphorus_mg", "potassium_g", "protein_g", "riboflavin_mg",
@@ -180,33 +183,33 @@ nuts <- c("phytate_mg", "caffeine_mg", "calcium_mg", "carbohydrate_g", "choleste
 edible_share <- "edible_share"
 
 dt.composites.long <- data.table::melt(dt.composites,
-                                       id.vars = id.vars,
+                                       id.var = id.var,
                                        variable.name = "nutrient",
-                                       measure.vars = c(nuts, edible_share),
+                                       measure.var = c(nuts, edible_share),
                                        value.name = "value",
                                        variable.factor = FALSE)
 setnames(dt.composites.long, old = "composite", new = "IMPACT_code")
 
-dt.composites.long.cty <- copy(dt.composites.long)
+dt.composites.long.var <- copy(dt.composites.long)
 dt.composites.long.wld <- copy(dt.composites.long)
-dt.composites.long.cty <- dt.composites.long.cty[, value.weighted.cty := weighted.mean(value, foodAvail), by = c( "region_code.IMPACT159", "IMPACT_code", "nutrient")]
+dt.composites.long.var <- dt.composites.long.var[, value.weighted.var := weighted.mean(value, foodAvail), by = c( "region_code.IMPACT159", "IMPACT_code", "nutrient")]
 dt.composites.long.wld <- dt.composites.long.wld[, value.weighted.wld := weighted.mean(value, foodAvail), by = c( "IMPACT_code", "nutrient")]
-deleteListCol.cty <- c( "usda_code", "foodAvail", "Long_Desc",  "value")
+deleteListCol.var <- c( "usda_code", "foodAvail", "Long_Desc",  "value")
 deleteListCol.wld <- c( "region_code.IMPACT159", "usda_code", "foodAvail", "Long_Desc",  "value")
-dt.composites.long.cty[, (deleteListCol.cty) := NULL]
-dt.composites.long.cty[nutrient %in% "edible_share" & is.na(value.weighted.cty), value.weighted.cty := 100]
-dt.composites.long.cty[is.na(value.weighted.cty), value.weighted.cty := 0]
-dt.composites.long.cty <- unique(dt.composites.long.cty)
+dt.composites.long.var[, (deleteListCol.var) := NULL]
+dt.composites.long.var[nutrient %in% "edible_share" & is.na(value.weighted.var), value.weighted.var := 100]
+dt.composites.long.var[is.na(value.weighted.var), value.weighted.var := 0]
+dt.composites.long.var <- unique(dt.composites.long.var)
 dt.composites.long.wld[, (deleteListCol.wld) := NULL]
 dt.composites.long.wld[is.na(edible_share), edible_share := 100]
 dt.composites.long.wld[is.na(value.weighted.wld), value.weighted.wld := 0]
 dt.composites.long.wld <- unique(dt.composites.long.wld)
 
 formula.wide <- "region_code.IMPACT159 + IMPACT_code  ~ nutrient"
-dt.composites.cty.wide <- data.table::dcast(
-  data = dt.composites.long.cty,
+dt.composites.var.wide <- data.table::dcast(
+  data = dt.composites.long.var,
   formula = formula.wide,
-  value.var = "value.weighted.cty")
+  value.var = "value.weighted.var")
 
 formula.wide <- "IMPACT_code  ~ nutrient"
 dt.composites.wld.wide <- data.table::dcast(
@@ -295,14 +298,14 @@ inDT[is.na(inDT)] <- 0
 outName <- "dt.composites.wld"
 desc <- "Nutrient composition for composite food items, identical for all countries"
 cleanup(inDT, outName, fileloc("iData"), desc = desc)
-#- cty
-dt.cookingRetn.cty.composites <- dt.cookingRetn.wide[IMPACT_code %in% unique(dt.composites.cty.wide$IMPACT_code)]
-dt.composites.cty <- merge(dt.composites.cty.wide, dt.cookingRetn.wide.composites, by = "IMPACT_code")
+# - var (country specific VARieties)
+dt.cookingRetn.var.composites <- dt.cookingRetn.wide[IMPACT_code %in% unique(dt.composites.var.wide$IMPACT_code)]
+dt.composites.var <- merge(dt.composites.var.wide, dt.cookingRetn.wide.composites, by = "IMPACT_code")
 startCols <- c( "region_code.IMPACT159","IMPACT_code", "IMPACT_conversion", "edible_share")
-setcolorder(dt.composites.cty, c( startCols, nuts, cols.cookingRet))
-inDT <- dt.composites.cty
+setcolorder(dt.composites.var, c( startCols, nuts, cols.cookingRet))
+inDT <- dt.composites.var
 inDT[is.na(inDT)] <- 0
-outName <- "dt.composites.cty"
+outName <- "dt.composites.var"
 desc <- "Nutrient composition for composite food items, country-specific information"
 cleanup(inDT, outName, fileloc("iData"), desc = desc)
 
@@ -400,22 +403,22 @@ dt.countryCropVariety[, (ctyNames) := lapply(.SD, function(x) ifelse(is.na(x), u
 dt.countryCropVariety <- dt.countryCropVariety[-1,] # remove country names
 dt.countryCropVariety.long <- data.table::melt(
   data = dt.countryCropVariety,
-  id.vars = c("IMPACT_code", "usda_code"),
-  measure.vars = ctyNames ,
+  id.var = c("IMPACT_code", "usda_code"),
+  measure.var = ctyNames ,
   variable.name = "region_code.IMPACT159",
-  value.name = "usda_code.cty",
+  value.name = "usda_code.var",
   variable.factor = FALSE
 )
 dt.countryCropVariety.long[, usda_code := NULL]
-setnames(dt.countryCropVariety.long, old = "usda_code.cty", new = "usda_code")
+setnames(dt.countryCropVariety.long, old = "usda_code.var", new = "usda_code")
 dt.nutrients.var <- dt.USDAnutrients[usda_code %in% unique(dt.countryCropVariety.long$usda_code),]
 dt.nutrients.var <- merge(dt.countryCropVariety.long, dt.nutrients.var, by = "usda_code")
 
-dt.cookingRetn.wide.ctyVars <- dt.cookingRetn.wide[IMPACT_code %in% unique(dt.nutrients.var$IMPACT_code)]
-dt.nutrients.var <- merge(dt.nutrients.var, dt.cookingRetn.wide.ctyVars, by = c("IMPACT_code"))
+dt.cookingRetn.wide.var <- dt.cookingRetn.wide[IMPACT_code %in% unique(dt.nutrients.var$IMPACT_code)]
+dt.nutrients.var <- merge(dt.nutrients.var, dt.cookingRetn.wide.var, by = c("IMPACT_code"))
 deleteListCol <- c(  "usda_code", "Long_Desc", "Ref_Desc", "phytate_source")
 dt.nutrients.var[, (deleteListCol) := NULL]
-dt.nutrients.var <- rbind(dt.nutrients.var, dt.composites.cty)
+dt.nutrients.var <- rbind(dt.nutrients.var, dt.composites.var)
 startCols <- c("region_code.IMPACT159", "IMPACT_code", "IMPACT_conversion", "edible_share")
 setcolorder(dt.nutrients.var, c( startCols, nuts, cols.cookingRet))
 
@@ -474,9 +477,12 @@ dt.fortValues.wide <- data.table::dcast(
   formula = formula.wide,
   value.var = "value")
 
-for (j in names(dt.fortValues.wide)) set(dt.fortValues.wide,which(is.na(dt.fortValues.wide[[j]])),j,0)
+dt.fortValues.wide[is.na(dt.fortValues.wide)] <- 0
+# for (j in names(dt.fortValues.wide)) set(dt.fortValues.wide,which(is.na(dt.fortValues.wide[[j]])),j,0)
 dt.nutrients.varFort <- merge(dt.fortValues.wide, dt.nutrients.var, by = c("IMPACT_code", "region_code.IMPACT159"), all.y = TRUE)
-for (j in names(dt.nutrients.varFort)) set(dt.nutrients.varFort,which(is.na(dt.nutrients.varFort[[j]])),j,0)
+dt.nutrients.varFort[is.na(dt.nutrients.varFort)] <- 0
+
+#for (j in names(dt.nutrients.varFort)) set(dt.nutrients.varFort,which(is.na(dt.nutrients.varFort[[j]])),j,0)
 
 dt.nutrients.varFort[, `:=`(
   calcium_mg = calcium_mg + calcium_mg.fort,
@@ -496,7 +502,7 @@ deleteListCol <- c("calcium_mg.fort", "folate_µg.fort", "iron_mg.fort", "niacin
                    "vit_b6_mg.fort", "vit_d_µg.fort", "vit_e_mg.fort", "zinc_mg.fort")
 dt.nutrients.varFort[, (deleteListCol) := NULL]
 
-#add kcals info. Not needed for .fort values because already added to .cty values
+#add kcals info. Not needed for .fort values because already added to .var values
 # dt.nutrients.varFort[, `:=`(
 #   kcals.fat_g = fat_g * kcals.fat_per_g,
 #   kcals.protein_g = protein_g * kcals.protein_per_g,
@@ -555,7 +561,7 @@ data.table::setnames(dt.nutrientNames_Units, old = names(dt.nutrientNames_Units)
 # add kcals to the dt.nutrients table -----
 # add six new columns to dt.nutrientNames_Units - kcals.fat_g, kcals.protein, kcals.carbs, kcals.ethanol,
 # kcals.sugar, kcals.ft_acds_tot_sat_g
-tempDT <- data.table::data.table(
+compositesKcals <- data.table::data.table(
   kcals.ethanol_g      = c("Ethanol", "kcals"),
   kcals.fat_g          = c("Fat", "kcals"),
   kcals.carbohydrate_g = c("Carbohydrate, by difference", "kcals"),
@@ -564,7 +570,7 @@ tempDT <- data.table::data.table(
   kcals.ft_acds_tot_sat_g        = c("Fatty acids, total saturated", "kcals")
 )
 
-dt.nutrientNames_Units <- cbind(dt.nutrientNames_Units, tempDT)
+dt.nutrientNames_Units <- cbind(dt.nutrientNames_Units, compositesKcals)
 #write this out to an rds file
 inDT <- dt.nutrientNames_Units
 outName <- "dt.nutrientNames_Units"

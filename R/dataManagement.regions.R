@@ -3,9 +3,7 @@
 #' @title Align data to the current region, identified in nutrentModFunctions.R
 #' @name dataManagement.regions.R
 #' @include nutrientModFunctions.R
-{source("R/nutrientModFunctions.R")
-  source("R/workbookFunctions.R")
-  source("R/nutrientCalcFunctions.R")}
+source("R/nutrientModFunctions.R")
 
 # Intro -------------------------------------------------------------------
 

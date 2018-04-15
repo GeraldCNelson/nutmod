@@ -1,13 +1,9 @@
-library(data.table)
 library(gridExtra)
 library(gplots)
-library(ggplot2)
 library(RColorBrewer)
 
-{source("R/nutrientModFunctions.R")
-  source("R/workbookFunctions.R")
-  source("R/nutrientCalcFunctions.R")
-  source("R/renameUSAIDscenarios.R")}
+source("R/nutrientModFunctions.R")
+  source("R/renameUSAIDscenarios.R")
 
 dt.IMPACTfood <- getNewestVersionIMPACT("dt.IMPACTfood")
 dt.IMPACTfood[ , `:=`( COUNT = .N ) , by = c("scenario", "year", "region_code.IMPACT159") ]

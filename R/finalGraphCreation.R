@@ -1,5 +1,5 @@
 #' @author Gerald C. Nelson, \email{nelson.gerald.c@@gmail.com}
-#' @keywords nutrient data,
+#' @keywords final graphs
 #' @title Calculate final graph combinations for the nutrient modeling paper
 #' @name aggRun.R
 #' @include nutrientModFunctions.R
@@ -23,18 +23,14 @@
 #     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE, See the
 #     GNU General Public License for more details at http://www.gnu.org/licenses/.
 
-{source("R/nutrientModFunctions.R")
-  source("R/workbookFunctions.R")
-  source("R/nutrientCalcFunctions.R")
-  source("R/aggNorder.R")}
+source("R/nutrientModFunctions.R")
+source("R/aggNorder.R")
 library(data.table)
 library(grid)
 sourceFile <- "finalGraphCreation.R"
-createScriptMetaData()
 
 #' gdxChoice values are either SSPs or USAID
-dt.metadata <- getNewestVersion("dt.metadata", fileloc("resultsDir"))
-gdxChoice <- dt.metadata[file_description %in% "project source of gdx-based demand data", file_name_location]
+gdxChoice <- getGdxChoice()
 # delete all files in gDir/final
 graphicsPath <- paste(fileloc("gDir"), "final", sep = "/")
 graphicsFileList <- list.files(graphicsPath, all.files = TRUE)
@@ -88,8 +84,9 @@ macroList.AMDR <- macroList[!macroList %in% "totalfiber_g"]
 # figs definitions are below. Some combine different aggregation choices. All use the different suffixes.
 
 for (switchloop in 1:3) {
-  switch.useCookingRetnValues <- keyVariable("switch.useCookingRetnValues")
-  switch.fixFish <- keyVariable("switch.fixFish") #get rid of nutrient info for shrimp, tuna, and salmon because they are not currently in the FBS data
+  # These cooking retention and fixFish switches are not needed here because this code only write out graphs files.
+  # switch.useCookingRetnValues <- keyVariable("switch.useCookingRetnValues")
+  # switch.fixFish <- keyVariable("switch.fixFish") #get rid of nutrient info for shrimp, tuna, and salmon because they are not currently in the FBS data
   if (switchloop == 1) {switch.vars <- FALSE;  switch.fortification <- FALSE; suffix = "base"}
   if (switchloop == 2) {switch.vars <- TRUE;  switch.fortification <- FALSE; suffix = "var"}
   if (switchloop == 3) {switch.vars <- TRUE;  switch.fortification <- TRUE; suffix = "varFort"}
@@ -259,7 +256,6 @@ for (switchloop in 1:3) {
     g.out <- layoutPlots(figchoice, aggChoice, prefix, rowNum, legendNum, layout, height, colWidths, suffix)
   }
 }
-  finalizeScriptMetadata(metadataDT, sourceFile)
 
   # how to get rid of x axis labels for the first graph in listHolder
   # temp <- graphsListHolder[[1]]

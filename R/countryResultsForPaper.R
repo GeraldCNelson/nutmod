@@ -11,9 +11,7 @@
 #   WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
 #   or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License
 #   for more details at http://www.gnu.org/licenses/.
-{source("R/nutrientModFunctions.R")
-  source("R/workbookFunctions.R")
-  source("R/nutrientCalcFunctions.R")}
+source("R/nutrientModFunctions.R")
 
 ctyList <- c("NIC", "BRA", "CHM", "ETH", "IND", "GHA","TZA", "FRP", "VNM", "USA", "ZAF")
 yearList <- c("X2010", "X2050")
@@ -30,8 +28,9 @@ dt.shannonDiversity <- dt.shannonDiversity[region_code.IMPACT159 %in% ctyList & 
                                              year %in% yearList,]
 
 keepListCol <-  c("scenario", "region_code.IMPACT159", "year", "pcGDPX0", "budget.PCX0", "incShare.PCX0")
+dt.budgetShare[, setdiff(names(dt.budgetShare), keepListCol) := NULL]
 dt.budgetShare <- dt.budgetShare[region_code.IMPACT159 %in% ctyList & scenario %in% scenarioList &
-                                   year %in% yearList,keepListCol, with = FALSE]
+                                   year %in% yearList]
 
 dt.regions.all <- unique(dt.regions.all[region_code.IMPACT159 %in% ctyList,c("region_code.IMPACT159", "region_name.IMPACT159"), with = FALSE])
 dt.regions.all <- dt.regions.all[,region_name.IMPACT159 := gsub(" plus", "", dt.regions.all$region_name.IMPACT159)]

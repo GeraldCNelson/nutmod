@@ -40,10 +40,8 @@
 #' @include nutrientModFunctions.R
 #' @include workbookFunctions.R
 #' @include nutrientCalcFunctions.R
-{source("R/nutrientModFunctions.R")
-  source("R/workbookFunctions.R")
-  source("R/nutrientCalcFunctions.R")
-}
+source("R/nutrientModFunctions.R")
+
 #for testing
 fileShortName <- "RDA.macro_sum_reqRatio"
 sourceDir <- fileloc("resultsDir")
@@ -65,8 +63,9 @@ copyFile <- function(fileShortName, sourceDir, destDir, fileType) {
 }
 
 for (switchloop in 1:3) {
-  switch.useCookingRetnValues <- keyVariable("switch.useCookingRetnValues")
-  switch.fixFish <- keyVariable("switch.fixFish") #get rid of nutrient info for shrimp, tuna, and salmon because they are not currently in the FBS data
+  # next two lines not needed here.
+  # switch.useCookingRetnValues <- keyVariable("switch.useCookingRetnValues")
+  # switch.fixFish <- keyVariable("switch.fixFish") #get rid of nutrient info for shrimp, tuna, and salmon because they are not currently in the FBS data
   if (switchloop == 1) {switch.vars <- FALSE;  switch.fortification <- FALSE; suffix = "base"}
   if (switchloop == 2) {switch.vars <- TRUE;  switch.fortification <- FALSE; suffix = "var"}
   if (switchloop == 3) {switch.vars <- TRUE;  switch.fortification <- TRUE; suffix = "varFort"}
@@ -104,12 +103,12 @@ for (i in copyListFromiData) {
   copyFile(i, fileloc("iData"), destDir, "rds")
 }
 
-  #' next line commented out because global.R diverges from nutrientModFunctions.R
-  #file.copy("R/nutrientModFunctions.R", "nutrientModeling/global.R", overwrite = TRUE)
+#' next line commented out because global.R diverges from nutrientModFunctions.R
+#file.copy("R/nutrientModFunctions.R", "nutrientModeling/global.R", overwrite = TRUE)
 
-  # # zip up csv files in the results directory. commented out March 11, 2018
-  # zipFileName <- paste("results/resultsCSVzip", suffix, Sys.Date(), "zip", sep = "_" )
-  # regExp <- paste("(?=^", ")(?=.*csv$)", sep = "")
-  # zipList <-     grep(regExp, list.files(fileloc("resultsDir")), value = TRUE,  perl = TRUE)
-  # zipList <- paste("results", zipList, sep = "/")
+# # zip up csv files in the results directory. commented out March 11, 2018
+# zipFileName <- paste("results/resultsCSVzip", suffix, Sys.Date(), "zip", sep = "_" )
+# regExp <- paste("(?=^", ")(?=.*csv$)", sep = "")
+# zipList <-     grep(regExp, list.files(fileloc("resultsDir")), value = TRUE,  perl = TRUE)
+# zipList <- paste("results", zipList, sep = "/")
 

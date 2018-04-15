@@ -17,33 +17,37 @@
 #   but WITHOUT ANY WARRANTY; without even the implied warranty of
 #   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE, See the
 #   GNU General Public License for more details at http://www.gnu.org/licenses/.
-{source("R/nutrientModFunctions.R")
-  source("R/workbookFunctions.R")
-  source("R/nutrientCalcFunctions.R")}
+source("R/nutrientModFunctions.R")
 sourceFile <- "dataPrep.SSP.R"
 createScriptMetaData()
 
 SSPcsv <-     fileNameList("SSPcsv")
 SSPdataZip <-   fileNameList("SSPdataZip")
 keepYearList <-  keyVariable("keepYearList")
-#' need to include the n-1 year for the elasticity calculations
+#' need to include the n-1 year for the elasticity calculations for fish and alcohol
 year1 <- as.numeric(substr(keepYearList[1], 2, 5)); year2 <- as.numeric(substr(keepYearList[2], 2, 5))
 year0 <- year1 - (year2 - year1)
 year0 <- paste("X",year0,sep = "")
 keepYearList <- c(year0,keepYearList)
 modelListGDP <-  fileNameList("modelListGDP")
 modelListPop <-   fileNameList("modelListPop")
-temp <- utils::unzip(SSPdataZip, files = SSPcsv)
-dt.SSP <-
-  data.table::fread(temp, header = TRUE, stringsAsFactors = FALSE)
-file.remove(temp)
+
+dt.SSP <- as.data.table(readr::read_csv(unz(SSPdataZip, filename = SSPcsv), col_names = TRUE, guess_max = 2000, cols(
+  `2000` = col_double(),
+  `2005` = col_double()
+)))
+
+# old code below; new code above, added Apri 12, 2018
+# temp <- utils::unzip(SSPdataZip, files = SSPcsv)
+# dt.SSP <- data.table::fread(temp, header = TRUE, stringsAsFactors = FALSE)
+# file.remove(temp)
+
 #' add X to the year column name so R is happy with years as column names
 data.table::setnames(dt.SSP, make.names(names(dt.SSP)))
 
 #' drop all years except those in keepYearList, created in dataPrep.setup.R
-keepListCol <-
-  c("MODEL", "SCENARIO", "REGION", "VARIABLE", "UNIT", keepYearList)
-dt.SSP <- dt.SSP[, keepListCol, with = FALSE]
+keepListCol <- c("MODEL", "SCENARIO", "REGION", "VARIABLE", "UNIT", keepYearList)
+dt.SSP[, setdiff(names(dt.SSP), keepListCol) := NULL]
 #make all names lower case and change region to ISO_code
 oldNameList <- names(dt.SSP)
 newNameList <- c("model", "scenario", "ISO_code", "variable", "unit", keepYearList)
@@ -64,19 +68,19 @@ data.table::setnames(dt.SSP, oldNameList, newNameList)
 #'  the lists of pop and GDP models are defined in nutrientModFunctions.R
 #'  Note: the different models don't have results for the same set of countries
 #'  The OECD Env-GrowthP population data set is only total but does include 2005.
-#'  The IIASA-WiC POP data set includes age and gender distributions but doesn't includr 2005.
+#'  The IIASA-WiC POP data set includes age and gender distributions but doesn't include 2005.
 
 # create cleaned up GDP SSP data -------
-dt.SSP.GDP <- dt.SSP[model == modelListGDP,]
+
+dt.SSP.GDP <- dt.SSP[model %in% modelListGDP & !variable %in% "Population",]
 deleteListCol <- "model"
 dt.SSP.GDP[, (deleteListCol) := NULL]
-deleteListRow <- "Population"
-dt.SSP.GDP <- dt.SSP.GDP[!variable %in% deleteListRow, ]
 idVars <- c("scenario", "ISO_code", "variable", "unit")
 dt.SSP.GDP.melt <- data.table::melt(
   dt.SSP.GDP,
   id.vars = idVars,
   variable.name = "year",
+  value.name = "value.GDP",
   measure.vars = keepYearList,
   variable.factor = FALSE
 )
@@ -122,13 +126,12 @@ dt.SSP.pop.2005[, scenario := substr(scenario, 1, 4)]
 dt.SSP.pop.tot[, scenario := substr(scenario, 1, 4)]
 dt.SSP.pop.tot <- merge(dt.SSP.pop.tot, dt.SSP.pop.2005, by = c("scenario", "ISO_code"))
 idVars <- c("scenario", "ISO_code")
-measure.vars = keepYearList
 dt.SSP.pop.tot.melt <- data.table::melt(
   dt.SSP.pop.tot,
   id.vars = idVars,
   variable.name = "year",
-  value.name = "pop",
-  measure.vars = measure.vars,
+  value.name = "value.pop",
+  measure.vars = keepYearList,
   variable.factor = FALSE
 )
 

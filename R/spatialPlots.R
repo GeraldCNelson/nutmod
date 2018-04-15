@@ -14,15 +14,11 @@
 # for more details at http://www.gnu.org/licenses/.
 #' @description A script to hold functions used for graphing in aggRun.R.
 
-{source("R/nutrientModFunctions.R")
-  source("R/workbookFunctions.R")
-  source("R/nutrientCalcFunctions.R")
-  source("R/renameUSAIDscenarios.R")}
+source("R/nutrientModFunctions.R")
+  source("R/renameUSAIDscenarios.R")
 # GDP setup -----
-library(data.table)
 library(gridExtra)
 library(gplots)
-library(ggplot2)
 
 # get gdxChoice
 gdxChoice <- getGdxChoice()

@@ -49,7 +49,6 @@ for (i in 1:length(GENuS.fct.files)) {
 }
 
 #' Import Latam from csv so font encoding is not a problem
-library(readr)
 dt.GENuS.LatAm <- as.data.table(read_csv("data-raw/NutrientData/GENus_FCTs/FCT_GENuS_LATINFoods.csv", col_names = TRUE, cols(
   .default = col_double(),
   `#` = col_integer(),
@@ -87,7 +86,7 @@ commonNuts.IMPACT <- c("energy_kcal", "protein_g", "fat_g", "carbohydrate_g", "v
 setnames(GENuS.FCT, old = commonNuts.genus, new = commonNuts.IMPACT)
 
 # unit differences - potassium is mg in genus, g in IMPACT
-GENuS.FCT[, potassium_g := potassium_g * 1000]
+GENuS.FCT[, potassium_g := potassium_g / 1000]
 oldOrder <- names(GENuS.FCT)
 newOrder <- c("GENuS_region", oldOrder[!oldOrder %in% "GENuS_region"])
 setcolorder(GENuS.FCT, newOrder)

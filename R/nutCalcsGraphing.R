@@ -17,9 +17,7 @@
 
 #' @include nutrientModFunctions.R
 #' @include nutrientCalcFunctions.R
-{source("R/nutrientModFunctions.R")
-  source("R/workbookFunctions.R")
-  source("R/nutrientCalcFunctions.R")}
+source("R/nutrientModFunctions.R")
 
 # region <- keyVariable("region")
 reqsList <- keyVariable("reqsListPercap")

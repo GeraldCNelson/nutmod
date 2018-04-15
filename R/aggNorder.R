@@ -23,7 +23,6 @@
 # GDP setup -----
 library(gridExtra)
 library(gplots)
-library(ggplot2)
 
 source("R/renameUSAIDscenarios.R")
 
@@ -216,8 +215,9 @@ plotByRegionBar <- function(dt, fileName, plotTitle, yLab, yRange, aggChoice, su
   # adjust font size for bars by aggchoice
   if (aggChoice %in% "tenregions") fontsize <- 1.8
   if (aggChoice %in% "WB") fontsize <- 3
-  # adjust y location for graph type
-  if (yLab %in% "(Adequacy Ratio)") {yval = 0.01} else {yval = 0.25}
+
+   # adjust location of bar label in the bar (yval) for graph type
+  if (yLab %in% "(Adequacy ratio)") {yval <- 0.01; roundVal = 2} else {yval <- 0.25; roundVal = 1}
 
     #' draw bars
   # pdf(paste(fileloc("gDir"),"/", fileName, ".pdf", sep = ""), width = 7, height = 5.2,)
@@ -229,7 +229,8 @@ plotByRegionBar <- function(dt, fileName, plotTitle, yLab, yRange, aggChoice, su
     theme(axis.text.x = element_text(angle = 45, hjust = 1, family = "Times", face = "plain")) +
     theme(axis.title.y = element_text(family = "Times", face = "plain")) +
   #   geom_text(aes(label = value, y = 1.25), position = position_dodge(0.9), size = 2.25, angle = 90,  color = "white", vjust = "bottom") +
-  geom_text(aes(label = formatC( round(value, 1), format='f', digits=1), x = factor(region_name), y = yval), position = position_dodge(0.9), size = fontsize, angle = 90,  vjust = "bottom", hjust = 'left', color = "white") +
+    geom_text(aes(label = formatC( round(value, roundVal), format='f', digits = roundVal), x = factor(region_name), y = yval), position = position_dodge(0.9),
+              size = fontsize, angle = 90,   color = "white") + #vjust = "bottom", hjust = 'left', removed April 8, 2018
     scale_fill_manual(values = colorList) +
     theme(plot.title = element_text(hjust = 0.5, size = 11, family = "Times", face = "plain")) +
     ggtitle(plotTitle)

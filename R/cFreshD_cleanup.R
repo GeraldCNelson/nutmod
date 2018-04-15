@@ -1,16 +1,13 @@
 # match up item name and item codes. The item names are in the comp recalc spreadsheets but item code is not.
 # Just need to do this for Fresh fish. c_FreshD.
+# This script is something that might be needed before running dataPrepFishStat.R but I'm not sure April 11, 2018
 
 # source of the data - http://www.fao.org/fishery/statistics/global-production/en, downloaded Feb 13, 2018 and
 # stored as data-raw/FAOSTAT/FishStatData/GlobalProuction_2017.1.1.zip`
 
-{
-  source("R/nutrientModFunctions.R")
-  source("R/workbookFunctions.R")
-  source("R/nutrientCalcFunctions.R")
-}
+source("R/nutrientModFunctions.R")
 
-fishcomposites <- c("c_Opelagic", "c_Milsc", "c_Odmsrl", "c_Opelag", "c_Crust", "c_Omarn", "c_FreshD")
+fishcomposites <- c("c_Milsc", "c_Odmsrl", "c_Opelag", "c_Crust", "c_Omarn", "c_FreshD")
 TS_FI_PRODUCTION <- fread("data-raw/FAOSTAT/FishStatData/GlobalProuction_2017.1.1/TS_FI_PRODUCTION.csv")
 # Area and source needed.
 # Area is where a country fishes. E.g. Japan fishes in multiple places. There are 29 potential places where fishing occurs.

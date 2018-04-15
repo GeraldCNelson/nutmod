@@ -3,3 +3,15 @@
 .RData
 .Ruserdata
 packrat/lib*/
+.gitignore
+.Rbuildignore
+.Rprofile
+references/
+man/
+share/
+data-raw/NutrientData/nutrientDetails/old
+graphics/
+R/oldR/
+gdxrrw/
+data/
+results/

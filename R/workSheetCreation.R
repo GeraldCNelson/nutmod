@@ -3,9 +3,7 @@
 #create styles to format the worksheets
 #' @include nutrientModFunctions.R
 #' @include nutrientCalcFunctions.R
-{source("R/nutrientModFunctions.R")
-  source("R/workbookFunctions.R")
-  source("R/nutrientCalcFunctions.R")}
+source("R/nutrientModFunctions.R")
 
 #spreadsheet to output budget share
 tmp <- f.createGeneralWorksheet()

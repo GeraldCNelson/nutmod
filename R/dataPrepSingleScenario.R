@@ -18,11 +18,9 @@
 #' calculates the effects on the food budget share.
 #' @name dataPrep.SingleScenario.R
 #' @include nutrientModFunctions.R
-{source("R/nutrientModFunctions.R")
-  source("R/workbookFunctions.R")
-  source("R/nutrientCalcFunctions.R")}
+source("R/nutrientModFunctions.R")
+
 library(gdxrrw)
-library(ggplot2)
 library(RColorBrewer)
 gdxrrw::igdx(gamsSysDir = fileNameList("R_GAMS_SYSDIR"), silent = TRUE)
 

@@ -149,8 +149,8 @@ budgetShareNpriceGrowth <- function(dt.foodNnuts, suffix) {
   #' 'FoodAvailability' variable is in kgs/person/year. DinY is days in year
   dt.budget <- data.table::copy(dt.foodNnuts)
   keepListCol <- c("FoodAvailability", "PWX0", "PCX0", "pcGDPX0", "scenario", "region_code.IMPACT159", "year")
-  deleteListCol <- names(dt.budget)[!names(dt.budget) %in% keepListCol]
-  dt.budget[, (deleteListCol) := NULL]
+  dt.budget[, setdiff(names(dt.budget), keepListCol) := NULL]
+
   # data.table::setkeyv(dt.temp, c("scenario", "region_code.IMPACT159", "year"))
   # budget is in 1000 2005 dollars
   # dt.temp[, budget.PWX0 := (sum(FoodAvailability * PWX0 / 1000 )) / 1000, by = eval(data.table::key(dt.temp))]
@@ -179,26 +179,24 @@ budgetShareNpriceGrowth <- function(dt.foodNnuts, suffix) {
   # dt.temp <- merge(dt.foodGroupsInfo, dt.temp, by = "IMPACT_code")
   dt.PriceGrowth <- data.table::copy(dt.foodNnuts)
   keepListCol <- c("IMPACT_code", "scenario", "region_code.IMPACT159", "year", "FoodAvailability", "food_group_code", "staple_code", "PWX0")
-  deleteListCol <- names(dt.PriceGrowth)[!names(dt.PriceGrowth) %in% keepListCol]
-  dt.PriceGrowth[, (deleteListCol) := NULL]
+  dt.PriceGrowth[, setdiff(names(dt.PriceGrowth), keepListCol) := NULL]
   deleteListRow <- c("c_aqan","c_aqpl", "c_beer", "c_Crust", "c_FrshD", "c_FshOil", "c_Mllsc", "c_ODmrsl", "c_OMarn",
                      "c_OPelag", "c_spirits", "c_wine")
   keepListYears <- c("X2010", "X2050")
   dt.PriceGrowth <- dt.PriceGrowth[!IMPACT_code %in% deleteListRow & year %in% keepListYears]
-  dt.PriceGrowth <- dt.PriceGrowth[,(keepListCol), with = FALSE]
+  dt.PriceGrowth[, setdiff(names(dt.PriceGrowth), keepListCol) := NULL]
   dt.PriceGrowth <- unique(dt.PriceGrowth)
   dt.PriceGrowth <- dt.PriceGrowth[, growthRatePW :=  lapply(.SD, function(x)((x/data.table::shift(x))^(1/(2050 - 2010)) - 1) * 100),
                                    .SDcols = "PWX0", by = c("scenario","IMPACT_code")]
-
   dt.PriceGrowth <- dt.PriceGrowth[year %in% "X2050"]
   dt.PriceGrowth[, c("year", "PWX0") := NULL]
 
-# Not used elsewhere. commented out March 22, 2018
-#     formula.wide.scen <- "IMPACT_code + FoodAvailability + food_group_code + staple_code ~ scenario"
-#   dt.PriceGrowth.wide.scen <- data.table::dcast(
-#     data = dt.PriceGrowth,
-#     formula = formula.wide.scen,
-#     value.var = "growthRatePW")
+  # Not used elsewhere. commented out March 22, 2018
+  #     formula.wide.scen <- "IMPACT_code + FoodAvailability + food_group_code + staple_code ~ scenario"
+  #   dt.PriceGrowth.wide.scen <- data.table::dcast(
+  #     data = dt.PriceGrowth,
+  #     formula = formula.wide.scen,
+  #     value.var = "growthRatePW")
 
   # formula.wide.FG <- "IMPACT_code + FoodAvailability + staple_code + scenario ~ food_group_code"
   # dt.PriceGrowth.wide.FG <- data.table::dcast(
@@ -299,7 +297,7 @@ adjustBioavailability <- function(dt.foodNnuts) {
 
   keepListCol <- c("IMPACT_code", "scenario", "region_code.IMPACT159", "year", "iron_mg",
                    "iron.heme_mg", "iron.nonheme_mg", "kcal.avail", "kcal.cereals_legumes", "vit_c_mg", "protein.animal.avail_g", "stimsFactor")
-  dt.bioavail_iron <- dt.bioavail_iron[, (keepListCol), with = FALSE]
+  dt.bioavail_iron[, setdiff(names(dt.bioavail_iron), keepListCol) := NULL]
   dt.bioavail_iron[,`:=`(
     sum.iron_mg = sum(iron_mg),
     sum.iron.heme_mg = sum(iron.heme_mg),
@@ -343,7 +341,7 @@ adjustBioavailability <- function(dt.foodNnuts) {
   desc <- "Bioavailable iron"
   cleanup(inDT, outName, fileloc("resultsDir"),  desc = desc)
   keepListCol <- c("scenario","region_code.IMPACT159", "year", "bioavailability.iron")
-  dt.bioavail_iron <- dt.bioavail_iron[, (keepListCol), with = FALSE]
+  inDT[, setdiff(names(inDT), keepListCol) := NULL]
 
   #' adjust iron in dt.food.agg. Moved to later. March 29 2018
   # temp <- merge(dt.food.agg, dt.bioavail_iron, by = c("scenario", "region_code.IMPACT159", "year"))
@@ -352,8 +350,7 @@ adjustBioavailability <- function(dt.foodNnuts) {
   #' zinc bioavailability -----
   dt.bioavail_zinc <- data.table::copy(dt.foodNnuts)
   keepListCol <- c("IMPACT_code", "scenario", "region_code.IMPACT159", "year", "zinc_mg", "phytate_mg")
-  deleteListCol <- names(dt.bioavail_zinc)[!names(dt.bioavail_zinc) %in% keepListCol]
-  dt.bioavail_zinc[, (deleteListCol) := NULL]
+  dt.bioavail_zinc[, setdiff(names(dt.bioavail_zinc), keepListCol) := NULL]
   dt.bioavail_zinc[,`:=`(
     sum.zinc_mg = sum(zinc_mg),
     sum.phytate_mg = sum(phytate_mg)),
@@ -388,8 +385,7 @@ adjustBioavailability <- function(dt.foodNnuts) {
   desc <- "bioavailable zinc"
   cleanup(inDT, outName, fileloc("resultsDir"),  desc = desc)
   keepListCol <- c("scenario","region_code.IMPACT159", "year", "sum.zinc_mg", "sum.phytate_mg", "bioavailability.zinc")
-  deleteListCol <- names(dt.bioavail_zinc)[!names(dt.bioavail_zinc) %in% keepListCol]
-  dt.bioavail_zinc[, (deleteListCol) := NULL]
+  dt.bioavail_zinc[, setdiff(names(dt.bioavail_zinc), keepListCol) := NULL]
 
   #' do some graphing
   dt.regions <- regionAgg("WB")

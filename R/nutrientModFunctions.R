@@ -4,6 +4,11 @@
 #' @title "Functions to facilitate management of nutrient data"
 #' @name nutrientModFunctions.R
 #' @author Gerald C. Nelson, \\email{nelson.gerald.c@@gmail.com}
+
+source("R/workbookFunctions.R")
+source("R/nutrientCalcFunctions.R")
+
+library(tidyverse) # includes ggplot2, tibble, tidyr, and readr
 library(data.table) # this is needed everywhere and currently some scripts don't call it
 # .onLoad <- function(libname, pkgname) {
 #   op <- options()
@@ -22,6 +27,12 @@ library(data.table) # this is needed everywhere and currently some scripts don't
 #     options(op.devtools[toset])
 #   invisible()
 # }
+
+# sourcer is currently only used in automate.R but could potentially be used elsewhere
+sourcer <- function(sourceFile){
+  cat("\n\nRunning ", sourceFile)
+  source(sourceFile)
+}
 
 #'fileloc directory locations for files
 #'
@@ -701,8 +712,7 @@ filelocFBS <- function(variableName) {
   FBSData <- fileloc("FBSData")
   rawData <- fileloc("rawData")
   #' FBS to ISO lookup table
-  FBSlookupTableLink <-
-    "http://www.fao.org/countryprofiles/iso3list/en/"
+  FBSlookupTableLink <- "http://www.fao.org/countryprofiles/iso3list/en/"
   FBSdataZipFile <- "FoodBalanceSheets_E_All_Data.zip"
   FBSdataZip <- paste(FBSData, FBSdataZipFile, sep = "/")
   list <- unzip(FBSdataZip, list = TRUE)

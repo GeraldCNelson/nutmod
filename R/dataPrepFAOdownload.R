@@ -1,7 +1,6 @@
 library(FAOSTAT)
-{source("R/nutrientModFunctions.R")
-  source("R/workbookFunctions.R")
-  source("R/nutrientCalcFunctions.R")}
+source("R/nutrientModFunctions.R")
+
 # FAOsearch(3)
 
 # group codes and names; production, trade, food balance, etc.

@@ -18,9 +18,8 @@
 
 #' @include nutrientModFunctions.R
 #' @include nutrientCalcFunctions.R
-{source("R/nutrientModFunctions.R")
-  source("R/workbookFunctions.R")
-  source("R/nutrientCalcFunctions.R")}
+source("R/nutrientModFunctions.R")
+
 sourceFile <- "nutrientCalcsProcessing.R"
 createScriptMetaData()
 
@@ -60,7 +59,7 @@ for (switchloop in 1:3) {
 
   # individual food function -----
   # This is called from a for loop down about 200 lines of code
-  req <- "req.RDA.vits" # - for testing purposes
+  req <- "req.RDA.minrls" # - for testing purposes
   f.ratios.all <- function(){
     keepListCol <- c(mainCols, cols.all)
     dt.food_agg <- dt.food_agg.master[, (keepListCol), with = FALSE]

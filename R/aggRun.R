@@ -21,10 +21,8 @@
 # or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License
 # for more details at http://www.gnu.org/licenses/.
 
-{source("R/nutrientModFunctions.R")
-  source("R/workbookFunctions.R")
-  source("R/nutrientCalcFunctions.R")}
-source("R/aggNorder.R")
+source("R/nutrientModFunctions.R")
+# source("R/aggNorder.R") Commented out April 11, 2018 as this may not be needed in aggRun
 
 library(data.table)
 library(RColorBrewer)
@@ -173,7 +171,6 @@ for (switchloop in 1:3) {
   #for testing
   #aggChoice <- "WB"; DTglobal <- "dt.shannonDiversity"
 
-  # dt.pop.2010.ref <- dt.pop[year ==  "X2010" & scenario == scenario.base,][,c("scenario","year") :=  NULL]
   dt.nutrientNames_Units <- getNewestVersion("dt.nutrientNames_Units", fileloc("mData"))
   mergedVals <- c("scenario", "region_code", "year")
 
@@ -327,10 +324,7 @@ for (switchloop in 1:3) {
 
       DTglobal <- getNewestVersion(paste("dt.foodAvail.foodGroup", suffix, sep = "."), fileloc("resultsDir"))
 
-      #    temp.in <- getNewestVersion("dt.foodAvail.foodGroup", fileloc("resultsDir"))
-      #  temp.in <- merge(temp.in, dt.pop, by = c("scenario","region_code.IMPACT159", "year"))
-
-       foodGroupList <- unique(DTglobal$food_group_code)
+      foodGroupList <- unique(DTglobal$food_group_code)
       plotErrorBars <- chooseErrorBars(aggChoice)
 
       for (fg in foodGroupList) {
@@ -391,7 +385,7 @@ for (switchloop in 1:3) {
             nutTitle <- nutshortName
             ylab = "(Adequacy ratio)"
             drawOneLine = 1
-            yRangeMinMax <- c(0,1.5)
+            yRangeMinMax <- c(0,3)
           }
           if (multipleNutsFileList[k] %in% paste("dt.MRVRatios", suffix, sep = "."))  {
             #        nutTitle <- paste("Ratio of ", nutshortName, " availability to MRV", sep = "")
@@ -422,7 +416,7 @@ for (switchloop in 1:3) {
           #   ylab = "(percent)"
           #   drawOneLine = FALSE
           # }
- #          if (ylab %in%  "(percent)") {yRangeMinMax <- c(0,103)} else {yRangeMinMax <- c(0, 1.5) }
+          #          if (ylab %in%  "(percent)") {yRangeMinMax <- c(0,103)} else {yRangeMinMax <- c(0, 1.5) }
 
           fileName = paste(gdxChoice, l, multipleNutsListShortName[k], nut, aggChoice, suffix, sep = "_")
           cat("\nfileName is ", fileName,"\n")
@@ -493,8 +487,7 @@ for (switchloop in 1:3) {
       plotErrorBars <- chooseErrorBars(aggChoice)
       DT <- data.table::copy(DT.master)
       keepListCol <- c("scenario", "region_code.IMPACT159", "year", macroNut)
-      deleteListCol <- names(DT)[!names(DT) %in% keepListCol]
-      DT[, (deleteListCol) := NULL]
+      DT[, setdiff(names(DT), keepListCol) := NULL]
       DT[, value := get(macroNut)]
       DT <- aggNorder(gdxChoice, DT, aggChoice, scenChoice = get(l), mergedVals, plotErrorBars)
 
@@ -902,7 +895,7 @@ for (switchloop in 1:3) {
     startRow = rowCounter
   )
   rowCounter <- rowCounter + 1
-cat("\nrowCounter: ", rowCounter)
+  cat("\nrowCounter: ", rowCounter)
   openxlsx::writeData(
     wb = figsData, sheet = "FigureData", rowNames = FALSE, colNames = FALSE, startCol = 1,
     x = fileIn,
@@ -935,15 +928,14 @@ cat("\nrowCounter: ", rowCounter)
     for (aggChoice in c("WB")) {
       #      for (aggChoice in c("AggReg1", "WB")) { commented out Mar 18, 2018
       DT <- getNewestVersion(paste(fname, suffix, sep = "."), fileloc("resultsDir"))
-      DT <- merge(DT, dt.pop, by = c("scenario","region_code.IMPACT159", "year"))
+      DT <- merge(DT, dt.pop, by = c("scenario","region_code.IMPACT159", "year")) ### where does dt.pop come from? XXX
       dt.regions <- regionAgg(aggChoice)
       # aggregate to and retain only the relevant regions; region code is the code for the region
       merged <- merge(DT, dt.regions, by = "region_code.IMPACT159")
 
       merged <- merged[, value := weighted.mean(value, PopX0), by = c("scenario", "region_code", "year", "nutrient")]
       keepListCol <- c("scenario", "region_code", "region_name", "year", "nutrient", "value")
-      deleteListCol <- names(merged)[!names(merged) %in% keepListCol]
-      merged[, (deleteListCol) := NULL]
+      merged[, setdiff(names(merged), keepListCol) := NULL]
       merged <- unique(merged)
       inDT <- merged
       outName <- paste(fname, aggChoice, suffix, sep = ".")
