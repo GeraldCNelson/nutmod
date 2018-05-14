@@ -160,7 +160,7 @@ for (switchloop in 1:3) {
     }
   }
 
-  #' Fig S3 availability -----
+  #' Fig S1 availability -----
   #' foodgroup availability ratio part 1 - 6 graphs
   figS1.foodavail.1 <- paste(c("foodAvail_foodGroup_alcohol", "foodAvail_foodGroup_beverages",
                                  "foodAvail_foodGroup_cereals", "foodAvail_foodGroup_dairy",
@@ -205,14 +205,14 @@ for (switchloop in 1:3) {
 
   # minrls candidates for removal - magnesium, phosphorus
 
-  #' Fig S5 composite DI and nutrient balance ------
-  figS5.compDINB <- paste(c("compDI", "NutBalScore"), aggChoice, suffix, sep = "_")
+  #' Fig 5 composite DI and nutrient balance ------
+  fig5.compDINB <- paste(c("compDI", "NutBalScore"), aggChoice, suffix, sep = "_")
 
-  #'  Fig 11 diversity metrics ------
-  figS14.RaoNenergyShareNonStaples <- paste(c("nonStapleShare", "RAOqe"), aggChoice, suffix, sep = "_")
+  #'  FigS4 x Rao and nonstaple share ------
+  figS4.RaoNenergyShareNonStaples <- paste(c("nonStapleShare", "RAOqe"), aggChoice, suffix, sep = "_")
 
-  #' FigsS7. Ratio of disqualifying nutrient to its MRV
-  figsS7 <- paste(c("badRatios_ethanol_g", "badRatios_ft_acds_tot_sat_g", "badRatios_sugar_g"), aggChoice, suffix, sep = "_")
+  #' FigsS6. Ratio of disqualifying nutrient to its MRV
+  figsS6 <- paste(c("badRatios_ethanol_g", "badRatios_ft_acds_tot_sat_g", "badRatios_sugar_g"), aggChoice, suffix, sep = "_")
 
   #' Figs with 6 plots -----
   for (figchoice in c("figS1.foodavail.1", "figS1.foodavail.2", "fig4.1.adequacy.vits", "fig4.3.adequacy.minrls")) {
@@ -239,7 +239,7 @@ for (switchloop in 1:3) {
   #' }
 
   #' Figs with 2 plots -----
-  for (figchoice in c("figS1.foodavail.3", "figS5.compDINB", "figS14.RaoNenergyShareNonStaples")) {
+  for (figchoice in c("figS1.foodavail.3", "fig5.compDINB", "figS4.RaoNenergyShareNonStaples")) {
     rowNum <- 2
     legendNum <- legendHorizontalNum
     layout <- layoutMatrix2
@@ -247,7 +247,7 @@ for (switchloop in 1:3) {
     g.out <- layoutPlots(figchoice, aggChoice, prefix, rowNum, legendNum, layout, height, colWidths, suffix)
   }
   #' Figs with 3 plots -----
-  for (figchoice in c("figsS7", "fig3.AMDRhiLo", "fig2.adequacy.macro")) {
+  for (figchoice in c("fig3.AMDRhiLo", "fig2.adequacy.macro")) {
     rowNum <- 2
     legendNum <- legendVerticalNum
     layout <- layoutMatrix3

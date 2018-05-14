@@ -47,9 +47,9 @@ for (switchloop in 1:3) {
   dt <- switches()
 
   if (switch.vars == "FALSE") {
-    dt.foodNnuts <- merge(dt.IMPACTfood, dt, by = "IMPACT_code") # , allow.cartesian=TRUE doesn't seem to be needed now
+    dt.foodNnuts <- merge(dt.IMPACTfood, dt, by = "IMPACT_code", allow.cartesian=TRUE) # , allow.cartesian=TRUE does seem to be needed now
   }else{ # for both var-specific and with or without fortification
-    dt.foodNnuts <- merge(dt.IMPACTfood, dt, by = c("IMPACT_code", "region_code.IMPACT159"))
+    dt.foodNnuts <- merge(dt.IMPACTfood, dt, by = c("IMPACT_code", "region_code.IMPACT159"), allow.cartesian=TRUE)
   }
   budgetShareNpriceGrowth(dt.foodNnuts, suffix)
   #gdp per cap and prices removed here.
@@ -74,6 +74,11 @@ for (switchloop in 1:3) {
   # set NAs to zero
   dt.foodNnuts[, (list.tot) := lapply(.SD, function(x){x[is.na(x)] <- 0; x}), .SDcols = list.tot]
 
+
+# calculate the total quantity of a nutrient available for each food item as the amount per 100 g * quantity of food available per day
+  # for Norway in 2010 average daily egg availability was 2.739431e-02, egg content of vitamin d is 17.6 micro grams per kg
+  # (converted from 100 grams by switches) so vit d availability (vit_d_µg.Q)
+  # is 2.739431e-02 * 17.6 = 0.482139798
   for (j in 1:length(list.tot)) {
     data.table::set(dt.foodNnuts, i = NULL, j = names.tot[j], value = dt.foodNnuts[[list.tot[j]]] * dt.foodNnuts[['foodAvailpDay']])
   }
@@ -102,6 +107,8 @@ for (switchloop in 1:3) {
   # deleteListCol <- list.tot[!list.tot %in% c("kcals.fat_g", "kcals.carbohydrate_g", "kcals.protein_g", "kcals.ethanol_g",
   #                                            "kcals.sugar_g", "kcals.ft_acds_tot_sat_g")]
   dt.foodNnuts[, (list.tot) := NULL]
+
+  # rename [nutrient].Q to just [nutrient]
   data.table::setnames(dt.foodNnuts, old = c(names.tot), new = c(list.tot))
   dt.foodNnuts <- adjustBioavailability(dt.foodNnuts)
   outName <- paste("dt.foodNnuts", suffix, sep = ".")
@@ -133,8 +140,8 @@ for (switchloop in 1:3) {
   idVars <- c("scenario", "region_code.IMPACT159", "year")
   measureVars <- names(dt.nutrients.kcals)[!names(dt.nutrients.kcals) %in% idVars &
                                              !names(dt.nutrients.kcals) %in% c("food_group_code", "staple_code")]
-  dt.nutrients.kcals <- data.table::melt(
-    dt.nutrients.kcals, id.vars = idVars,
+  dt.nutrients.kcals <- data.table::melt(dt.nutrients.kcals,
+                                         id.vars = idVars,
     measure.vars = measureVars,
     variable.name = "nutrient",
     value.name = "value",
@@ -205,8 +212,8 @@ for (switchloop in 1:3) {
   measureVars <- c(list.tot)
   dt.nutrients.sum.staples.long <- data.table::melt(dt.nutrients.sum.staples,
                                                     id.vars = c("scenario","region_code.IMPACT159", "year", "staple_code"),
-                                                    variable.name = "nutrient",
                                                     measure.vars = measureVars,
+                                                    variable.name = "nutrient",
                                                     value.name = "value",
                                                     variable.factor = FALSE)
   inDT <- unique(dt.nutrients.sum.staples.long)

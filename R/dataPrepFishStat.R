@@ -87,12 +87,15 @@ dt.prod.wide <- data.table::dcast(
   formula = formula.wide,
   value.var = "sourceTot")
 
+# areaTypes are numeric. As column names they should really have a X in front to make them legitimate column names
 areaTypes <- unique(areaUnits$Code)
 areaTypes <- areaTypes[!areaTypes %in% "08"] # 8 is Antarctica
-for (j in areaTypes)
-  set(dt.prod.wide,which(is.na(dt.prod.wide[[j]])),j,0)
-dt.prod.wide[, prodAve := rowSums(.SD), .SDcols = (areaTypes)]
-dt.prod.wide[, (areaTypes) := NULL]
+
+# set NA to 0
+NAlist <- names(dt.prod.wide)[!names(dt.prod.wide) %in% c("UNI_code", "Species")]
+dt.prod.wide[, (NAlist) := lapply(.SD, function(x){x[is.na(x)] <- 0; x}), .SDcols = NAlist]
+dt.prod.wide[, prodAve := rowSums(.SD), .SDcols = NAlist]
+dt.prod.wide[, (NAlist) := NULL]
 
 dt.regions <- getNewestVersion("dt.regions.all")
 keepListCol <- c("region_code.IMPACT159", "FAOSTAT_code", "UNI_code", "country_name.ISO")
@@ -122,7 +125,7 @@ dt <- dt[!remove %in% "1",]
 deleteListCol <- c("include", "remove", "Taxonomic_Code", "Major_Group", "ISSCAAP_Group",  "CPC_Group" , "CPCdiv_Group", "item_code", "Notes", "ratio_prod_live")
 dt[, (deleteListCol) := NULL]
 dt <- unique(dt)
-setnames(dt, old = c("Species", "prodAveNew"), new = c("item_code", "prodAve"))
+setnames(dt, old = c("Species", "prodAve"), new = c("item_code", "prodAve"))
 inDT <- dt
 outName <- "dt.fishStatData"
 desc <- "Production of fish species and which composite they are part of by country from FishStat"

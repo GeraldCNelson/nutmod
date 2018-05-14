@@ -9,7 +9,7 @@
 #' @description
 #' This script generates graphs of nutrient information aggregated to various levels.
 
-#Copyright (C) 2016, 2017 Gerald C. Nelson, except where noted
+#Copyright (C) 2016 - 2018 Gerald C. Nelson, except where noted
 
 # This program is free software: you can redistribute it and/or modify it
 # under the terms of the GNU General Public License as published by the Free
@@ -22,7 +22,7 @@
 # for more details at http://www.gnu.org/licenses/.
 
 source("R/nutrientModFunctions.R")
-# source("R/aggNorder.R") Commented out April 11, 2018 as this may not be needed in aggRun
+ source("R/aggNorder.R") # needed to load function updateLegendGrobs. Could move this function elsewhere April 30, 2018
 
 library(data.table)
 library(RColorBrewer)
@@ -58,7 +58,6 @@ graphicsPath <- paste(fileloc("gDir"), "final", sep = "/")
 graphicsFileList <- list.files(graphicsPath, all.files = TRUE)
 graphicsFileList <- paste(graphicsPath, graphicsFileList, sep = "/")
 invisible(unlink(graphicsFileList, recursive = FALSE))
-
 
 # function to choose whether errorbars are displayed
 chooseErrorBars <- function(aggChoice) {
@@ -214,7 +213,7 @@ for (switchloop in 1:3) {
       # Budget share -----
       cat("\nWorking on bar chart for budget share for", suffix, "for", aggChoice)
       DTglobal <- getNewestVersion(paste("dt.budgetShare", suffix, sep = "."), fileloc("resultsDir"))
-      DT <- aggNorder(gdxChoice, DTglobal, aggChoice, scenChoice = get(l), mergedVals, plotErrorBars)
+      DT <- aggNorder(gdxChoice, DTaggNorder = DTglobal, aggChoice, scenChoice = get(l), mergedVals, plotErrorBars)
       ylab <- "(percent)"
       fileName <- paste(gdxChoice, l, "budgetShare", aggChoice, suffix, sep = "_")
       if (ylab %in%  "(percent)") {yRangeMinMax <- c(0,100)} else {yRangeMinMax <- c(0, max(DT$value) )}
@@ -239,7 +238,7 @@ for (switchloop in 1:3) {
       # RAOqe -----
       cat("\nWorking on bar chart for Rao's QE for", aggChoice)
       DTglobal <- getNewestVersion(paste("dt.RAOqe", suffix, sep = "."), fileloc("resultsDir"))
-      DT <- aggNorder(gdxChoice, DTglobal, aggChoice, scenChoice = get(l), mergedVals, plotErrorBars)
+      DT <- aggNorder(gdxChoice, DTaggNorder = DTglobal, aggChoice, scenChoice = get(l), mergedVals, plotErrorBars)
       ylab <- ""
       if (ylab %in%  "(percent)") {yRangeMinMax <- c(0,100)} else {yRangeMinMax <- c(0, max(DT$value) )}
       fileName <- paste(gdxChoice, l, "RAOqe", aggChoice, suffix, sep = "_")
@@ -260,7 +259,7 @@ for (switchloop in 1:3) {
       #   DTglobal <- getNewestVersion("dt.KcalShare.nonstaple", fileloc("resultsDir"))
       DTglobal <- getNewestVersion(paste("dt.KcalShare.nonstaple", suffix, sep = "."), fileloc("resultsDir"))
 
-      DT <- aggNorder(gdxChoice, DTglobal, aggChoice, scenChoice = get(l),
+      DT <- aggNorder(gdxChoice, DTaggNorder = DTglobal, aggChoice, scenChoice = get(l),
                       mergedVals =  c("scenario", "region_code", "year"), plotErrorBars)
       ylab <- "(percent)"
       if (ylab %in%  "(percent)") {yRangeMinMax <- c(0,100)} else {yRangeMinMax <- c(0, max(DT$value) )}
@@ -273,7 +272,7 @@ for (switchloop in 1:3) {
       # nutrition benefit score -----
       cat("\nWorking on bar chart for the NBS for", suffix, "for", aggChoice)
       DTglobal <- getNewestVersion(paste("dt.nutBalScore", suffix, sep = "."), fileloc("resultsDir"))
-      DT <- aggNorder(gdxChoice, DTglobal, aggChoice, scenChoice = get(l), mergedVals, plotErrorBars)
+      DT <- aggNorder(gdxChoice, DTaggNorder = DTglobal, aggChoice, scenChoice = get(l), mergedVals, plotErrorBars)
       ylab <- "" # this creates the ylab variable and leaves it empty. NULL deletes it!
       if (ylab %in%  "(percent)") {yRangeMinMax <- c(0,100)} else {yRangeMinMax <- c(0, max(DT$value) )}
       fileName <- paste(gdxChoice, l, "NutBalScore", aggChoice, suffix,  sep = "_")
@@ -295,7 +294,7 @@ for (switchloop in 1:3) {
       cat("\nWorking on bar chart for disqualifying nutrients for", suffix, "for", aggChoice)
       fileName = paste(gdxChoice, l, "compDI", aggChoice, suffix,  sep = "_")
       DTglobal <- getNewestVersion(paste("dt.compDI", suffix, sep = "."), fileloc("resultsDir")) # don't put aggChoice in here
-      DT <- aggNorder(gdxChoice, DTglobal, aggChoice, scenChoice = get(l), mergedVals, plotErrorBars)
+      DT <- aggNorder(gdxChoice, DTaggNorder = DTglobal, aggChoice, scenChoice = get(l), mergedVals, plotErrorBars)
       ylab <- ""
       if (ylab %in%  "(percent)") {yRangeMinMax <- c(0,100)} else {yRangeMinMax <- c(0, max(DT$value) )}
       plotByRegionBar(dt = DT, fileName, plotTitle = "Composite disqualifying index",
@@ -308,14 +307,14 @@ for (switchloop in 1:3) {
 
       DTglobal <- getNewestVersion(paste("dt.nutrients.kcals", suffix, sep = "."), fileloc("resultsDir"))
       #   DTglobal <- getNewestVersion("dt.nutrients.kcals", fileloc("resultsDir"))
-      DT <- aggNorder(gdxChoice, DTglobal, aggChoice, scenChoice = get(l),
+      DT <- aggNorder(gdxChoice, DTaggNorder = DTglobal, aggChoice, scenChoice = get(l),
                       mergedVals =  c("scenario", "region_code", "year", "nutrient"), plotErrorBars)
       DT <- DT[nutrient %in% c("kcalsPerDay.carbohydrate", "kcalsPerDay.fat", "kcalsPerDay.other", "kcalsPerDay.protein"), ]
       #    DT <- DT[nutrient %in% c("kcalsPerDay.tot"), ]
       DT[, nutrient := gsub("kcalsPerDay.", "", nutrient)]
       yLab <- "(Kcals)"
       if (yLab %in%  "(percent)") {yRangeMinMax <- c(0,100)} else {yRangeMinMax <- c(0, round(max(DT$value)) )}
-      fileName = paste(gdxChoice, l, "kcals.values", aggChoice, suffix, sep = "_")
+      fileName = paste(gdxChoice, l, "kcals.values.bySource", aggChoice, suffix, sep = "_")
       plotByRegionStackedBar(dt = DT, fileName, plotTitle = "Average daily dietary energy by source",
                              yLab, yRange = yRangeMinMax, aggChoice, suffix, scenOrder = get(l), oneLine = FALSE, colorList)
 
@@ -332,7 +331,7 @@ for (switchloop in 1:3) {
         DT <- data.table::copy(DTglobal)
         DT <- DT[food_group_code %in% fg,]
         DT[, food_group_code := NULL]
-        DT <- aggNorder(gdxChoice, DTglobal = DT, aggChoice, scenChoice = get(l), mergedVals, plotErrorBars)
+        DT <- aggNorder(gdxChoice, DTaggNorder = DT, aggChoice, scenChoice = get(l), mergedVals, plotErrorBars)
 
         fg.longName <- cleanupNutrientNames(fg)
         nutTitle <- paste(tolower(fg.longName), sep = "")
@@ -367,7 +366,7 @@ for (switchloop in 1:3) {
           if (units %in% "g") units <- "grams"
           DT <- temp.in[nutrient %in% nut,]
           DT[, nutrient := NULL]
-          DT <- aggNorder(gdxChoice, DTglobal = DT, aggChoice, scenChoice = get(l), mergedVals, plotErrorBars)
+          DT <- aggNorder(gdxChoice, DTaggNorder = DT, aggChoice, scenChoice = get(l), mergedVals, plotErrorBars)
           DTmax <- max(DT$value)
           # cat("\nDTmax:", DTmax)
 
@@ -385,7 +384,7 @@ for (switchloop in 1:3) {
             nutTitle <- nutshortName
             ylab = "(Adequacy ratio)"
             drawOneLine = 1
-            yRangeMinMax <- c(0,3)
+            yRangeMinMax <- c(0, 3.0) # maximum is 3
           }
           if (multipleNutsFileList[k] %in% paste("dt.MRVRatios", suffix, sep = "."))  {
             #        nutTitle <- paste("Ratio of ", nutshortName, " availability to MRV", sep = "")
@@ -393,7 +392,6 @@ for (switchloop in 1:3) {
             #          ylab = "(Maximal reference value)"
             ylab = ""
             yRangeMinMax <- c(0, max(DT$value) + 0.02 * DTmax )
-
             drawOneLine = FALSE
           }
           if (multipleNutsFileList[k] %in% paste("AMDR_hi_sum_reqRatio", suffix, sep = "."))  {
@@ -443,7 +441,7 @@ for (switchloop in 1:3) {
   plottitle = "Food budget share of 2050 per capita income"
   #' statement below excludes tenregions, which is not relevant for a box plot
   for (aggChoice in aggChoiceListBarChart[!aggChoiceListBarChart %in% "tenregions"]) {
-    DT <- aggNorder(gdxChoice, DT, aggChoice, scenChoice, mergedVals, plotErrorBars)
+    DT <- aggNorder(gdxChoice, DTaggNorder = DT, aggChoice, scenChoice, mergedVals, plotErrorBars)
     plotErrorBars = FALSE # not relevant for a boxplot
     #' aggregate to and retain only the relevant regions
     fileName <- paste(gdxChoice, l, "budgetShareBoxPlot_2050", aggChoice, suffix,  sep = "_")
@@ -489,7 +487,7 @@ for (switchloop in 1:3) {
       keepListCol <- c("scenario", "region_code.IMPACT159", "year", macroNut)
       DT[, setdiff(names(DT), keepListCol) := NULL]
       DT[, value := get(macroNut)]
-      DT <- aggNorder(gdxChoice, DT, aggChoice, scenChoice = get(l), mergedVals, plotErrorBars)
+      DT <- aggNorder(gdxChoice, DTaggNorder = DT, aggChoice, scenChoice = get(l), mergedVals, plotErrorBars)
 
       # units <- "percent"
       ylab = paste("(",units,")",sep = "")
@@ -881,6 +879,7 @@ for (switchloop in 1:3) {
   }
 
   fileIn <- data.table::fread(paste(fileloc("gDir"), "/", filename, ".csv", sep = ""), select = 2:6)
+
   for (j in scen2050list) {
     for (k in 1:length(incCats)) {
       baseVal <- fileIn[scenario == gsub("-REF", "", scenario.base), get(incCats[k])]

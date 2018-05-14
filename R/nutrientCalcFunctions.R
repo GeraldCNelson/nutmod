@@ -184,7 +184,6 @@ budgetShareNpriceGrowth <- function(dt.foodNnuts, suffix) {
                      "c_OPelag", "c_spirits", "c_wine")
   keepListYears <- c("X2010", "X2050")
   dt.PriceGrowth <- dt.PriceGrowth[!IMPACT_code %in% deleteListRow & year %in% keepListYears]
-  dt.PriceGrowth[, setdiff(names(dt.PriceGrowth), keepListCol) := NULL]
   dt.PriceGrowth <- unique(dt.PriceGrowth)
   dt.PriceGrowth <- dt.PriceGrowth[, growthRatePW :=  lapply(.SD, function(x)((x/data.table::shift(x))^(1/(2050 - 2010)) - 1) * 100),
                                    .SDcols = "PWX0", by = c("scenario","IMPACT_code")]

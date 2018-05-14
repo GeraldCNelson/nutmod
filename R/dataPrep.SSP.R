@@ -87,6 +87,7 @@ dt.SSP.GDP.melt <- data.table::melt(
 #' change GDP|PPP to GDP because R doesn't like | to be used in a variable name
 dt.SSP.GDP.melt[, variable := "GDP"]
 data.table::setorder(dt.SSP.GDP.melt, scenario, ISO_code)
+dt.SSP.GDP.melt <- dt.SSP.GDP.melt[!ISO_code %in% keyVariable("dropListCty"),]
 inDT <- dt.SSP.GDP.melt
 outName <- "dt.SSPGDPClean"
 desc <- "GDP information by country and scenario with cleaned up column names"
@@ -136,7 +137,7 @@ dt.SSP.pop.tot.melt <- data.table::melt(
 )
 
 data.table::setnames(dt.SSP.pop.tot.melt, old = "ISO_code", new = "region_code.SSP")
-
+dt.SSP.pop.tot.melt <- dt.SSP.pop.tot.melt[!region_code.SSP %in% keyVariable("dropListCty"),]
 inDT <- dt.SSP.pop.tot.melt
 outName <- "dt.SSP.pop.tot"
 desc <- "Population information by country and scenario with cleaned up column names"
@@ -203,6 +204,7 @@ dt.SSP.pop.step2.melt <- data.table::melt(
   measure.vars = keepYearList,
   variable.factor = FALSE
 )
+dt.SSP.pop.step2.melt <- dt.SSP.pop.step2.melt[!ISO_code %in% keyVariable("dropListCty"),]
 inDT <- dt.SSP.pop.step2.melt
 outName <- "dt.SSPPopClean"
 desc <- "Population information by country and scenario and age and gender with cleaned up column names"

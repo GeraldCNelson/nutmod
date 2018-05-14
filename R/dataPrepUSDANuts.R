@@ -30,11 +30,13 @@ FOOD_DES <- getNewestVersion("FOOD_DES", fileloc("mData"))
 NUT_DATA <- getNewestVersion("NUT_DATA", fileloc("mData"))
 NUTR_DEF <- getNewestVersion("NUTR_DEF", fileloc("mData"))
 
+# Important note: USDA nutrient values are for 100 gm of edible portion of a food item
+
 # load various lookup tables
 dt.IMPACTcodeLU <- data.table::as.data.table(openxlsx::read.xlsx("data-raw/NutrientData/nutrientDetails/IMPACTCodeLookup.xlsx"))
 dt.singleCodeLU <- dt.IMPACTcodeLU[is.na(IMPACT_conversion), IMPACT_conversion := 100] # as of Feb 18, 2018, dt.IMPACTcodeLU is only single commodities and the
 
-# USDA codes from the initial results. It includes conversion from FAOSTAT to retail prduct.
+# USDA codes from the initial results. It includes conversion from FAOSTAT to retail product.
 dt.compositesLU <- data.table::as.data.table(openxlsx::read.xlsx("data-raw/NutrientData/nutrientDetails/composites.Lookup.xlsx", cols = 1:7))
 
 # get usda codes from the variety specific spreadsheet
@@ -123,9 +125,12 @@ dt.regions <- dt.regions.all[,(keepListCol), with = FALSE][, FAOSTAT_code := as.
 # read in FAOSTAT data; fish data have a different format so are handled elsewhere
 keepListYears.composites <- keyVariable("keepListYears.composites") # years used to average
 keepListCol <- c("Country Code", "Item Code", "Item", "Element", "Unit", keepListYears.composites)
-dt.FAOSTAT.prod.crops <- fread('unzip -cq data-raw/FAOSTAT/Production_Crops_E_All_Data.zip', select = keepListCol)
-dt.FAOSTAT.prod.animals <- fread('unzip -cq data-raw/FAOSTAT/Production_LivestockPrimary_E_All_Data.zip', select = keepListCol)
-dt.FAOSTAT.trade <- fread('unzip -cq data-raw/FAOSTAT/Trade_Crops_Livestock_E_All_Data.zip', select = keepListCol)
+dt.FAOSTAT.prod.crops <- fread('unzip -cq data-raw/FAOSTAT/Production_Crops_E_All_Data.zip', select = keepListCol,
+                               colClasses = c(`Country Code` = "character", `Item Code` = "character"))
+dt.FAOSTAT.prod.animals <- fread('unzip -cq data-raw/FAOSTAT/Production_LivestockPrimary_E_All_Data.zip', select = keepListCol,
+                                 colClasses = c(`Country Code` = "character", `Item Code` = "character" ))
+dt.FAOSTAT.trade <- fread('unzip -cq data-raw/FAOSTAT/Trade_Crops_Livestock_E_All_Data.zip', select = keepListCol,
+                          colClasses = c(`Country Code` = "character", `Item Code` = "character" ))
 FAOSTATcombined <- rbindlist(list(dt.FAOSTAT.prod.crops, dt.FAOSTAT.prod.animals, dt.FAOSTAT.trade), use.names = TRUE)
 data.table::setnames(FAOSTATcombined, old = c("Country Code", "Item Code", "Item", "Element", "Unit"),
                      new = c("FAOSTAT_code", "item_code", "item_name", "element", "unit"))
@@ -196,10 +201,12 @@ dt.composites.long.var <- dt.composites.long.var[, value.weighted.var := weighte
 dt.composites.long.wld <- dt.composites.long.wld[, value.weighted.wld := weighted.mean(value, foodAvail), by = c( "IMPACT_code", "nutrient")]
 deleteListCol.var <- c( "usda_code", "foodAvail", "Long_Desc",  "value")
 deleteListCol.wld <- c( "region_code.IMPACT159", "usda_code", "foodAvail", "Long_Desc",  "value")
+
 dt.composites.long.var[, (deleteListCol.var) := NULL]
 dt.composites.long.var[nutrient %in% "edible_share" & is.na(value.weighted.var), value.weighted.var := 100]
 dt.composites.long.var[is.na(value.weighted.var), value.weighted.var := 0]
 dt.composites.long.var <- unique(dt.composites.long.var)
+
 dt.composites.long.wld[, (deleteListCol.wld) := NULL]
 dt.composites.long.wld[is.na(edible_share), edible_share := 100]
 dt.composites.long.wld[is.na(value.weighted.wld), value.weighted.wld := 0]
@@ -298,6 +305,7 @@ inDT[is.na(inDT)] <- 0
 outName <- "dt.composites.wld"
 desc <- "Nutrient composition for composite food items, identical for all countries"
 cleanup(inDT, outName, fileloc("iData"), desc = desc)
+
 # - var (country specific VARieties)
 dt.cookingRetn.var.composites <- dt.cookingRetn.wide[IMPACT_code %in% unique(dt.composites.var.wide$IMPACT_code)]
 dt.composites.var <- merge(dt.composites.var.wide, dt.cookingRetn.wide.composites, by = "IMPACT_code")
@@ -351,6 +359,9 @@ dt.nutrients.base <- rbind(dt.nutrients.base, dt.composites.wld)
 startCols <- c( "IMPACT_code", "IMPACT_conversion", "edible_share")
 setcolorder(dt.nutrients.base, c( startCols, nuts, cols.cookingRet))
 
+# add composites to nutrients base
+dt.nutrients.base <- rbind(dt.nutrients.base, dt.composites.wld)
+
 # add kcals info
 dt.nutrients.base[, `:=`(
   kcals.fat_g = fat_g * kcals.fat_per_g,
@@ -387,9 +398,7 @@ dt.nutrients.base[is.na(kcals.ethanol_g), kcals.ethanol_g := 0]
 
 # add staple and food group codes
 dt.nutrients.base <- merge(dt.nutrients.base, dt.foodGroupsInfo, by = "IMPACT_code")
-# dt.nutrients.var[IMPACT_code %in% composites, Long_Desc := "composite"]
-# dt.nutrients.var[IMPACT_code %in% composites, usda_code := paste0("comp_", IMPACT_code)]
-
+dt.nutrients.base <- unique(dt.nutrients.base)
 inDT <- dt.nutrients.base
 inDT[is.na(inDT)] <- 0
 outName <- "dt.nutrients.base"
@@ -421,6 +430,9 @@ dt.nutrients.var[, (deleteListCol) := NULL]
 dt.nutrients.var <- rbind(dt.nutrients.var, dt.composites.var)
 startCols <- c("region_code.IMPACT159", "IMPACT_code", "IMPACT_conversion", "edible_share")
 setcolorder(dt.nutrients.var, c( startCols, nuts, cols.cookingRet))
+
+# add composites to nutrients base
+dt.nutrients.var <- rbind(dt.nutrients.var, dt.composites.var)
 
 #add kcals info
 dt.nutrients.var[, `:=`(
@@ -458,9 +470,7 @@ dt.nutrients.var[is.na(kcals.ethanol_g), kcals.ethanol_g := 0]
 
 # add staple and food group codes
 dt.nutrients.var <- merge(dt.nutrients.var, dt.foodGroupsInfo, by = "IMPACT_code")
-# dt.nutrients.var[IMPACT_code %in% composites, Long_Desc := "composite"]
-# dt.nutrients.var[IMPACT_code %in% composites, usda_code := paste0("comp_", IMPACT_code)]
-
+dt.nutrients.var <- unique(dt.nutrients.var)
 inDT <- dt.nutrients.var
 inDT[is.na(inDT)] <- 0
 outName <- "dt.nutrients.var"
@@ -501,45 +511,7 @@ deleteListCol <- c("calcium_mg.fort", "folate_µg.fort", "iron_mg.fort", "niacin
                    "riboflavin_mg.fort", "thiamin_mg.fort", "vit_a_rae_µg.fort", "vit_b12_µg.fort",
                    "vit_b6_mg.fort", "vit_d_µg.fort", "vit_e_mg.fort", "zinc_mg.fort")
 dt.nutrients.varFort[, (deleteListCol) := NULL]
-
-#add kcals info. Not needed for .fort values because already added to .var values
-# dt.nutrients.varFort[, `:=`(
-#   kcals.fat_g = fat_g * kcals.fat_per_g,
-#   kcals.protein_g = protein_g * kcals.protein_per_g,
-#   kcals.carbohydrate_g = carbohydrate_g * kcals.carbs_per_g,
-#   kcals.sugar_g = sugar_g * kcals.carbs_per_g,
-#   kcals.ft_acds_tot_sat_g = ft_acds_tot_sat_g * kcals.fat_per_g
-# )]
-# kcalsList <- c("kcals.fat_g", "kcals.protein_g", "kcals.carbohydrate_g", "kcals.sugar_g", "kcals.ft_acds_tot_sat_g")
-# dt.nutrients.varFort[, (kcalsList) := lapply(.SD, function(x){x[is.na(x)] <- 0; x}), .SDcols = kcalsList]
-#
-# # add kcals.ethanol_g column
-# dt.nutrients.varFort[, kcals.ethanol_g := 0]
-#
-# # beer
-# dt.nutrients.varFort[IMPACT_code == "c_beer", `:=`(
-#   kcals.ethanol_g = kcals.ethanol_per_g * ethanol.share.beer * 100,
-#   kcals.carbohydrate_g = kcals.carbohydrate_g + kcals.ethanol_g
-# )]
-#
-# # wine
-# dt.nutrients.varFort[IMPACT_code == "c_wine", `:=`(
-#   kcals.ethanol_g = kcals.ethanol_per_g * ethanol.share.wine * 100,
-#   kcals.carbohydrate_g = kcals.carbohydrate_g + kcals.ethanol_g
-# )]
-#
-# # spirits
-# dt.nutrients.varFort[IMPACT_code == "c_spirits", `:=`(
-#   kcals.ethanol_g = kcals.ethanol_per_g * ethanol.share.spirits * 100,
-#   kcals.carbohydrate_g = kcals.carbohydrate_g + kcals.ethanol_g
-# )]
-#
-# dt.nutrients.varFort[is.na(kcals.ethanol_g), kcals.ethanol_g := 0]
-
-# add staple and food group codes. Already added above
-# dt.nutrients.varFort <- merge(dt.nutrients.varFort, dt.foodGroupsInfo, by = "IMPACT_code")
-# dt.nutrients.var[IMPACT_code %in% composites, Long_Desc := "composite"]
-# dt.nutrients.var[IMPACT_code %in% composites, usda_code := paste0("comp_", IMPACT_code)]
+dt.nutrients.varFort <- unique(dt.nutrients.varFort)
 
 inDT <- dt.nutrients.varFort
 inDT[is.na(inDT)] <- 0

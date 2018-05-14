@@ -201,7 +201,9 @@ removeOldVersions <- function(fileShortName,dir) {
 # }
 
 createScriptMetaData <- function(sourceFile) {
-  metadataDT <<- data.table(outName = character(0), sourcecode = character(0), destDir = character(0), desc = character(0), colNames = character(0))
+  if (!exists("metadataDT")){
+    metadataDT <<- data.table(outName = character(0), sourcecode = character(0), destDir = character(0), desc = character(0), colNames = character(0))
+  }
 }
 
 finalizeScriptMetadata <- function(metadataDT, sourceFile) {
@@ -390,8 +392,8 @@ keyVariable <- function(variableName) {
 
   keepListYears.composites <- c("Y2011", "Y2012", "Y2013")
   #' note shrimp, tuna, and salmon are removed in dataManagement.fish.R
-  IMPACTfish_code <- c("c_Shrimp", "c_Crust", "c_Mllsc", "c_Salmon", "c_FrshD",
-                       "c_Tuna", "c_OPelag", "c_ODmrsl", "c_OMarn", "c_FshOil", "c_aqan",
+  IMPACTfish_code <- c("c_Shrimp", "c_Crust", "c_Salmon", "c_FrshD", "c_ODmrsl",
+                       "c_Tuna",  "c_OMarn",  "c_Mllsc", "c_OPelag", "c_FshOil", "c_aqan",
                        "c_aqpl")
   IMPACTalcohol_code <- c("c_wine", "c_beer", "c_spirits")
   IMPACTfoodCommodList <- sort(c("cbeef", "cpork", "clamb", "cpoul", "ceggs", "cmilk", "cbarl", "cmaiz",
@@ -427,6 +429,7 @@ keyVariable <- function(variableName) {
   #' FSM - Micronesia, Federated States of
   #' GRD - Grenada
   #' PRK - Korea, Democratic People's Republic of
+  #' GRL - has no data in FAO's FBS
   reqsList <-
     c(
       "req.EAR",
@@ -1136,8 +1139,8 @@ gdxrrwExistenceCheck <- function(){
   # the GAMS gdxrrw package is needed to import data from IMPACT (in R scripts gdxrrwSetup.R, dataPrep.IMPACT.R and dataManagement.IMPACT.R)
   gdxrrwText <- 'The gdxrrw package is needed to run this. It is not available from CRAN; use this url:
 https://support.gams.com/gdxrrw:interfacing_gams_and_r. Download the relevant file and use the following command to install
-- install.packages("gdxrrw_1.0.2.tgz",repos = NULL). Replace gdxrrw_1.0.2.tgz with the
-name of the file you downloaded. Note that if you need the source version, download and install gdxrrw_1.0.2.tar.gz If you put it in the main directory of your project, the install.packages command will find it.
+- install.packages("gdxrrw_1.0.4.tgz",repos = NULL). Replace gdxrrw_1.0.4.tgz with the
+name of the file you downloaded. Note that if you need the source version, download and install gdxrrw_1.0.4.tar.gz If you put it in the main directory of your project, the install.packages command will find it.
 After GAMS is installed you need to tell R where the GAMS library is located. Here are some examples
 - mac installation - /Applications/GAMS/gams24.5_osx_x64_64_sfx
 - linux installation - /opt/gams/gams24.3_linux_x64_64_sfx
@@ -1382,9 +1385,4 @@ g_legend <- function(plot.in) {
 
 fmt_dcimals <- function(decimals=0){
   function(x) format(x,nsmall = decimals,scientific = FALSE)
-}
-
-sourcer <- function(sourceFile){
-  cat("\n\nRunning ", sourceFile)
-  source(sourceFile)
 }

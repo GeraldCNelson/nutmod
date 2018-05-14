@@ -86,11 +86,11 @@ orderRegions <- function(DT, aggChoice) {
   return(DT)
 }
 
-aggNorder <- function(gdxChoice, DTglobal, aggChoice, scenChoice, mergedVals, plotErrorBars) {
-  setkey(DTglobal, NULL)
+aggNorder <- function(gdxChoice, DTaggNorder, aggChoice, scenChoice, mergedVals, plotErrorBars) {
+  setkey(DTaggNorder, NULL)
   dt.regions <- regionAgg(aggChoice)
   # aggregate to and retain only the relevant regions
-  temp <- merge(DTglobal, dt.regions, by = "region_code.IMPACT159")
+  temp <- merge(DTaggNorder, dt.regions, by = "region_code.IMPACT159")
   merged <- merge(temp, dt.pop, by = c("scenario","region_code.IMPACT159","year"))
   #' deal with the budget data
   if ("incShare.PCX0" %in% names(merged)) {
@@ -136,7 +136,7 @@ aggNorder <- function(gdxChoice, DTglobal, aggChoice, scenChoice, mergedVals, pl
     nutOrder <- c("kcalsPerDay.carbohydrate", "kcalsPerDay.fat", "kcalsPerDay.protein", "kcalsPerDay.other")
     keepListCol <- c(mergedVals, "region_name", "value")
   }
-  merged <- merged[, (keepListCol), with = FALSE]
+  merged[, setdiff(names(merged), keepListCol) := NULL]
   data.table::setkey(merged, NULL)
   DT <- unique(merged)
   #' keep just the scenario.base scenario for 2010 and rename the scenario to 2010, then delete year column
@@ -202,7 +202,7 @@ plotByRegionBar <- function(dt, fileName, plotTitle, yLab, yRange, aggChoice, su
   temp[, scenario := factor(scenario, levels = scenarioNameOrder)]
   if (gdxChoice %in% "USAID")  temp <- renameUSAIDscenarios(temp)
 
-   if (round(max(temp$value)) - max(temp$value) > 0.08) yRange[2] <- round(max(temp$value) + 1, digits = 1) # will hopefully deal with rare situation
+  # if (round(max(temp$value)) - max(temp$value) > 0.08) yRange[2] <- round(max(temp$value) + 1, digits = 1) # will hopefully deal with rare situation. Commented out May 13, 2018
   #' use the standard deviation value to define ymax. Commented out April 3, 2018 because yminmax is now calculated in aggRun.
   # if (plotErrorBars == TRUE) {
   #   yRange[2] <- max(yRange[2], round(max(temp$sd.region + temp$value), digits = 1))
@@ -217,7 +217,7 @@ plotByRegionBar <- function(dt, fileName, plotTitle, yLab, yRange, aggChoice, su
   if (aggChoice %in% "WB") fontsize <- 3
 
    # adjust location of bar label in the bar (yval) for graph type
-  if (yLab %in% "(Adequacy ratio)") {yval <- 0.01; roundVal = 2} else {yval <- 0.25; roundVal = 1}
+  if (yLab %in% "(Adequacy ratio)") {yval <- 0.15; roundVal = 2} else {yval <- 0.25; roundVal = 1}
 
     #' draw bars
   # pdf(paste(fileloc("gDir"),"/", fileName, ".pdf", sep = ""), width = 7, height = 5.2,)
@@ -234,24 +234,6 @@ plotByRegionBar <- function(dt, fileName, plotTitle, yLab, yRange, aggChoice, su
     scale_fill_manual(values = colorList) +
     theme(plot.title = element_text(hjust = 0.5, size = 11, family = "Times", face = "plain")) +
     ggtitle(plotTitle)
-
-  #
-  #     p <- ggplot(temp, aes(x = factor(region_name), y = value,  fill = scenario, order = c("region_name") )) +
-  #       geom_bar(stat = "identity", position = "dodge", color = "black") +
-  #       #   theme(legend.position = "bottom") +
-  #       theme(legend.position = "none") +
-  #       labs(x = NULL, y = yLab) +
-  #       theme(axis.text.x = element_text(angle = 45, hjust = 1, family = "Times", face = "plain")) +
-  #       theme(axis.title.y = element_text(family = "Times", face = "plain")) +
-  #  #     scale_y_continuous(name = yLab, limits = yRange, labels = fmt_dcimals(0)) + # fmt_dcimals sets number of digits to right of decimal
-  #       coord_cartesian(ylim = yRange) +
-  # #      geom_text(aes(label=value), position = position_fill(vjust = 0.5)) +
-  # #      geom_text(label = temp$value) +
-  # #      geom_text(aes(label = value, y = value, color = "gray", vjust = "center"), position=position_dodge(width = 1), size = 2.5) +
-  #       geom_text(aes(label = temp$value), color = "white", position = position_dodge(width = 1), vjust = 0, size = 2.5) +
-  #       scale_fill_manual(values = colorList) +
-  #       theme(plot.title = element_text(hjust = 0.5, size = 11, family = "Times", face = "plain")) +
-  #       ggtitle(plotTitle)
 
   #' the 'or' part of the if statement means don't draw the line if it's greater than ymax
   if (oneLine == FALSE | oneLine > yRange[2]) {} else {
@@ -500,9 +482,11 @@ plotByRegionBarAMDR <- function(dt, fileName, plotTitle, yLab, yRange, aggChoice
     ggtitle(plotTitle) +
     labs(y = yLab, x = NULL) +
     geom_hline(aes(yintercept = AMDR_lo,  color = "green")) +
-    geom_text( aes(.75, AMDR_lo + 2, label = "Low", color = "green")) +
+    geom_text( aes(.5, AMDR_lo + .75, label = "Low", color = "green")) +
     geom_hline(aes(yintercept = AMDR_hi,  color = "dark red")) +
-    geom_text( aes(.75, AMDR_hi + 2, label = "High", color = "green"))
+    geom_text( aes(.5, AMDR_hi + .75, label = "High", color = "green")) +
+    geom_text(aes(x = factor(region_name),  y=0.25, label = round(value, 1)), position = position_dodge(0.9), size = 2.25, angle = 90,  color = "white", hjust = 'left')
+
    ggsave(filename = paste0(fileloc("gDir"),"/",fileName,".pdf"), plot = p,
          width = 7, height = 6)
  # # dev.off()
