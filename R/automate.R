@@ -87,7 +87,7 @@ sourcer(sourceFile)
 # - creates files in iData
 # dt.IMPACTmetaData
 # paste(dt,varName, sep = ".") - one file for each IMPACT variable, example is dt.PerCapKCAL.2016-06-21.rds
-# dt.CSEs
+# dt.foodAvailability is created here. Just has food availability from gdx. dt.IMPACTfood adds the fish and alcoholic beverages
 
 sourceFile <- "R/dataPrep.SSP.R"
 sourcer(sourceFile)
@@ -111,8 +111,12 @@ sourcer(sourceFile) # dt.fishIncElast, iData - to have a record of what fish inc
 
 sourceFile <- "R/dataManagement.IMPACT.R"
 sourcer(sourceFile) # adds fish and alcohol data, writes out IMPACT variables just for food items (names begin with c), and dt.IMPACTfood file
-#paste(fileShortName, "food, sep = "."), iData - just data for food commodities, example is dt.CSEs.food.2016-06-21.rds
+# Key output is dt.IMPACTfood
 #dt.IMPACTfood, iData
+
+# sourceFile <- "R/cFreshD_cleanup.R"
+# sourcer(sourceFile) ## match up item name and item codes. The item names are in the comp recalc spreadsheets but item code is not.
+# Just need to do this for Fresh fish. c_FreshD. Not needed because results already recorded in dt.compositesLU file.
 
 sourceFile <- "R/dataPrepFishStat.R"
 sourcer(sourceFile) # adds fish data for composite fish commodities, writes out IMPACT variables just for composite fish items (names begin with c),

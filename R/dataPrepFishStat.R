@@ -117,17 +117,19 @@ fishprod <- unique(fishprod)
 fishprod <- merge(fishprod, CL_FI_SPECIES_GROUPS, by.x = "Species", by.y = "3Alpha_Code", all.x = TRUE)
 
 # read in info that aligns species names with composite fish items
-dt.composites.fish.LU <- data.table::as.data.table(openxlsx::read.xlsx("data-raw/NutrientData/nutrientDetails/composites.fish.Lookup.xlsx"))
-dt.composites.fish.LU[, usda_code := as.character(usda_code)]
-dt.composites.fish.LU <- dt.composites.fish.LU[composite %in% fishcomposites]
-dt <- merge(dt.composites.fish.LU, fishprod, by.x = "item_name", by.y = "Name_en")
+library(readxl)
+dt.compositesLU.fish <- data.table::as.data.table(read_excel("data-raw/NutrientData/nutrientDetails/composites.lookup.fish.xlsx",
+                                                             col_types = c("text", "text", "numeric",
+                                                                           "numeric", "numeric", "text", "numeric",
+                                                                           "text", "skip")))
+dt <- merge(dt.compositesLU.fish, fishprod, by.x = "item_name", by.y = "Name_en")
 dt <- dt[!remove %in% "1",]
-deleteListCol <- c("include", "remove", "Taxonomic_Code", "Major_Group", "ISSCAAP_Group",  "CPC_Group" , "CPCdiv_Group", "item_code", "Notes", "ratio_prod_live")
+deleteListCol <- c("include", "remove", "Taxonomic_Code", "Major_Group", "ISSCAAP_Group",  "CPC_Group" , "CPCdiv_Group", "item_code", "ratio_prod_live")
 dt[, (deleteListCol) := NULL]
 dt <- unique(dt)
 setnames(dt, old = c("Species", "prodAve"), new = c("item_code", "prodAve"))
 inDT <- dt
 outName <- "dt.fishStatData"
-desc <- "Production of fish species and which composite they are part of by country from FishStat"
+desc <- "Production and edible share of fish species and which composite they are part of by country from FishStat"
 cleanup(inDT, outName, fileloc("iData"), desc = desc)
 finalizeScriptMetadata(metadataDT, sourceFile)

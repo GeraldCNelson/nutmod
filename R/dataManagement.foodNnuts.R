@@ -33,7 +33,7 @@ dt.IMPACTfood <- getNewestVersionIMPACT("dt.IMPACTfood")
 dt.scenarioListIMPACT <- getNewestVersion("dt.scenarioListIMPACT", fileloc("mData"))
 scenarioListIMPACT <- unique(dt.scenarioListIMPACT$scenario)
 
-# read in nutrients data. switch variable determine which nutrient info to include -----
+# read in nutrients data. switch variable determines which nutrient info to include -----
 
 for (switchloop in 1:3) {
   switch.useCookingRetnValues <- keyVariable("switch.useCookingRetnValues")
@@ -157,7 +157,7 @@ for (switchloop in 1:3) {
   dt.nutrients.sum[, (deleteListCol) := NULL]
 
   #' use dt.nutrient.sum for all three sum files, all, staple, FG
-  dt.nutrients.sum.all <- data.table::copy(dt.nutrients.sum)
+  dt.nutrients.sum.all <- data.table::copy(dt.nutrients.sum) # the list.tot values are supposed to be average daily availability
   dt.nutrients.sum.all[, (list.tot) := lapply(.SD, sum), .SDcols = (list.tot),
                        by =  c("scenario", "region_code.IMPACT159", "year")]
   dt.nutrients.sum.all <- unique(dt.nutrients.sum.all)
@@ -169,7 +169,8 @@ for (switchloop in 1:3) {
                                            measure.vars = measureVars,
                                            value.name = "value",
                                            variable.factor = FALSE)
-  inDT <- unique(dt.nutrients.sum.all)
+  dt.nutrients.sum.all <- unique(dt.nutrients.sum.all)
+  inDT <- dt.nutrients.sum.all
   outName <- paste("dt.nutrients.sum.all", suffix, sep = ".") #this includes phytate. Might want to remove later.
   desc <- "Sum of each nutrient from each of the food items"
   cleanup(inDT,outName, fileloc("resultsDir"), desc = desc)

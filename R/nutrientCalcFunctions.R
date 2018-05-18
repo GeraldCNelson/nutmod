@@ -180,6 +180,8 @@ budgetShareNpriceGrowth <- function(dt.foodNnuts, suffix) {
   dt.PriceGrowth <- data.table::copy(dt.foodNnuts)
   keepListCol <- c("IMPACT_code", "scenario", "region_code.IMPACT159", "year", "FoodAvailability", "food_group_code", "staple_code", "PWX0")
   dt.PriceGrowth[, setdiff(names(dt.PriceGrowth), keepListCol) := NULL]
+
+  # because these have no prices
   deleteListRow <- c("c_aqan","c_aqpl", "c_beer", "c_Crust", "c_FrshD", "c_FshOil", "c_Mllsc", "c_ODmrsl", "c_OMarn",
                      "c_OPelag", "c_spirits", "c_wine")
   keepListYears <- c("X2010", "X2050")

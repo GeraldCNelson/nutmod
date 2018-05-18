@@ -335,16 +335,44 @@ dt.GDPFBSelas[, (Qn) := Map(f.cumprod,  mget(Qn), mget(xRatio)), by = .(region_c
 keepListCol <- c("scenario", "region_code.IMPACT159", "year", fishNalcNames)
 dt.GDPFBSelas[, setdiff(names(dt.GDPFBSelas), keepListCol) := NULL]
 
-#keep only years in keepYearList
-dt.final <- dt.GDPFBSelas[year %in% keyVariable("keepYearList"),]
+# add the climModel and experiment on to the scenario name
+
+# some kludging follows - May 12, 2018
+dt.GDPFBSelas[, scenario := gsub("SSP1", "SSP1-NoCC-REF", scenario)]  # because the current set of scenarios only has SSP1 and SSP3 with noCC
+dt.GDPFBSelas[, scenario := gsub("SSP3", "SSP3-NoCC-REF", scenario)]  # because the current set of scenarios only has SSP1 and SSP3 with noCC
+temp.SSP2 <- dt.GDPFBSelas[scenario %in% "SSP2"]
+temp.SSP2.NoCC <- copy(temp.SSP2)
+temp.SSP2.GFDL <- copy(temp.SSP2)
+temp.SSP2.HGEM <- copy(temp.SSP2)
+temp.SSP2.IPSL <- copy(temp.SSP2)
+temp.SSP2.GFDL[ , scenario := gsub("SSP2", "SSP2-GFDL-REF", scenario)]
+temp.SSP2.HGEM[ , scenario := gsub("SSP2", "SSP2-HGEM-REF", scenario)]
+temp.SSP2.IPSL[ , scenario := gsub("SSP2", "SSP2-IPSL-REF", scenario)]
+temp.SSP2.NoCC[ , scenario := gsub("SSP2", "SSP2-NoCC-REF", scenario)]
+dt.GDPFBSelas <- rbind(temp.SSP2.NoCC, temp.SSP2.GFDL, temp.SSP2.HGEM, temp.SSP2.IPSL, dt.GDPFBSelas)
+
+# dt.GDPFBSelas units are kgs per person per day. To align with dt.foodAvailability they need to be per year.
 daysinyear <- keyVariable("DinY")
-dt.final[, (fishNalcNames) := lapply(.SD, "*", daysinyear), .SDcols = (fishNalcNames)]
-dt.final[is.na(dt.final)] <- 0 # some countries have no consumption of the fish or alcoholic beverage items
-inDT <- dt.final
+dt.GDPFBSelas[, (fishNalcNames) := lapply(.SD, "*", daysinyear), .SDcols = (fishNalcNames)]
+dt.GDPFBSelas[is.na(dt.GDPFBSelas)] <- 0 # some countries have no consumption of the fish or alcoholic beverage items
+
+idVarsFishnAlc <- c("scenario", "region_code.IMPACT159", "year")
+#' #' get the names of the fish and alcoholic beverages that are included in dt.fishScenario
+measureVarsFishnAlc <- names(dt.GDPFBSelas)[!names(dt.GDPFBSelas) %in% idVarsFishnAlc]
+dt.GDPFBSelas.melt <- data.table::melt(dt.GDPFBSelas,
+                                              id.vars = idVarsFishnAlc,
+                                              variable.name = "IMPACT_code",
+                                              measure.vars = measureVarsFishnAlc,
+                                              value.name = "FoodAvailability",
+                                              variable.factor = FALSE)
+
+dt.GDPFBSelas.melt <- unique(dt.GDPFBSelas.melt) # added May 15, 2018, not sure why it is needed.
+
+inDT <- dt.GDPFBSelas.melt
 outName <- "dt.fishnAlcScenarios"
 desc <- "Scenarios of fish and alcoholic beverages availability by fish composite and country. Average availability, kgs per person per year"
-cleanup(inDT,outName, fileloc("mData"), desc = desc)
+cleanup(inDT,outName, fileloc("iData"), desc = desc)
 
 # testing of data
-dt.final[, fishCons := rowSums(.SD), .SDcols = fishNalcNames[!fishNalcNames %in% IMPACTalcohol_code]]
+dt.GDPFBSelas.melt[, fishCons := rowSums(.SD), by = c("scenario", "region_code.IMPACT159", "year", "IMPACT_code")]
 

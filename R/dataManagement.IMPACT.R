@@ -25,81 +25,39 @@ library(data.table)
 #' @description This script reads in the IMPACT rds files prepared in dataPrep.IMPACT.R and
 #' creates the IMPACTfood data table for use in nutrientCalcs.R. It reads in dt.FoodAvail,
 #' adds the fish and alcohol data, and pcGDPX0, PCX0 PWX0, and CSV and writes out dt.IMPACTfood.
+#' The FoodAvailability variable in the data table dt.FoodAvail is in kgs/person/year.
 
-#' create data table with just food items
+#' create data table with just food items, relevant years and scenarios
+IMPACTfoodCommodList <- keyVariable("IMPACTfoodCommodList")
+scenarioListIMPACT <- getNewestVersion("dt.scenarioListIMPACT", fileloc("mData"))[,scenario]
+keepYearList  <- keyVariable("keepYearList")
+dt.regions.all <- getNewestVersion("dt.regions.all")
+
 createFood <- function(fileShortName) {
-  IMPACTfoodCommodList <- keyVariable("IMPACTfoodCommodList")
-  keepYearList  <- keyVariable("keepYearList")
-  dt.temp <- getNewestVersionIMPACT(fileShortName)
-  dt.temp.food <- dt.temp[IMPACT_code %in% IMPACTfoodCommodList]
-  dt.temp.food <- dt.temp.food[year %in% keepYearList]
-  # files produced here not used elsewhere so commented out April 8, 2018
-  # inDT <- dt.temp.food
-  # outName <- paste(fileShortName, "food", sep = "_")
-  # desc <- "Seems to be used just for creating dt.PWX0.food and dt.PCX0.food"
-  # cleanup(inDT, outName, fileloc("iData"), desc = desc)
-  return(dt.temp.food)
+  # files need to be in fileloc("iData")
+  dt <- getNewestVersion(fileShortName, fileloc("iData"))
+  dt <- dt[IMPACT_code %in% IMPACTfoodCommodList &
+                            year %in% keepYearList &
+                            scenario %in% scenarioListIMPACT,]
+  return(dt)
 }
 
 #' combine all relevant data tables for analysis
 combineIMPACTData <- function() {
-  keepYearList <- keyVariable("keepYearList")
-  dt.FoodAvail <- getNewestVersionIMPACT("dt.FoodAvailability") # created in dataPrep.IMPACT
-  dt.FoodAvail <- dt.FoodAvail[year %in% keepYearList, ]
-  # next 2 lines are mainly to get rid of ctoml for ZMB
-  IMPACTfoodCommodList <- keyVariable("IMPACTfoodCommodList")
-  dt.FoodAvail <- dt.FoodAvail[IMPACT_code %in% IMPACTfoodCommodList, ]
-  dt.regions.all <- getNewestVersion("dt.regions.all")
-
-  # get the list of scenarios in the IMPACT data for use below
-  dt.scenarioListIMPACT <- getNewestVersion("dt.scenarioListIMPACT", fileloc("mData"))
-  scenarioListIMPACT <- unique(dt.scenarioListIMPACT$scenario)
-  dt.FoodAvail <- dt.FoodAvail[scenario %in% scenarioListIMPACT,]
-  data.table::setkey(dt.FoodAvail, "scenario", "year", "region_code.IMPACT159", "IMPACT_code")
+   dt.FoodAvail <- createFood("dt.FoodAvailability") # created in dataPrep.IMPACT
+  # data.table::setkey(dt.FoodAvail, "scenario", "year", "region_code.IMPACT159", "IMPACT_code")
 
   # add fish and alcoholic beverages
-  dt.fishnAlcScenarios <- getNewestVersion("dt.fishnAlcScenarios")
-  dt.fishnAlcScenarios <- dt.fishnAlcScenarios[year %in% keepYearList, ]
-
-  idVarsFishnAlc <- c("scenario", "region_code.IMPACT159", "year")
-  #' #' get the names of the fish and alcoholic beverages that are included in dt.fishScenario
-  measureVarsFishnAlc <- names(dt.fishnAlcScenarios)[!names(dt.fishnAlcScenarios) %in% idVarsFishnAlc]
-  dt.fishnAlcScenarios.melt <- data.table::melt(dt.fishnAlcScenarios,
-                                                id.vars = idVarsFishnAlc,
-                                                variable.name = "IMPACT_code",
-                                                measure.vars = measureVarsFishnAlc,
-                                                value.name = "FoodAvailability",
-                                                variable.factor = FALSE)
-
-  #' # create alcohol and fish data sets for all the IMPACT scenarios -----
-  dt.scenarioListIMPACT <- getNewestVersion("dt.scenarioListIMPACT", fileloc("mData"))
-  scenarioListIMPACT <- unique(dt.scenarioListIMPACT$scenario)
-
-  # add the climModel and experiment on to the scenario name
-
-  # some kludging follows - May 12, 2018
-  dt.fishnAlcScenarios.melt[, scenario := gsub("SSP1", "SSP1-NoCC-REF", scenario)]  # because the current set of scenarios only has SSP1 and SSP3 with noCC
-  dt.fishnAlcScenarios.melt[, scenario := gsub("SSP3", "SSP3-NoCC-REF", scenario)]  # because the current set of scenarios only has SSP1 and SSP3 with noCC
-  temp.SSP2 <- dt.fishnAlcScenarios.melt[scenario %in% "SSP2"]
-  temp.SSP2.NoCC <- copy(temp.SSP2)
-  temp.SSP2.GFDL <- copy(temp.SSP2)
-  temp.SSP2.HGEM <- copy(temp.SSP2)
-  temp.SSP2.IPSL <- copy(temp.SSP2)
-  temp.SSP2.GFDL[ , scenario := gsub("SSP2", "SSP2-GFDL-REF", scenario)]
-  temp.SSP2.HGEM[ , scenario := gsub("SSP2", "SSP2-HGEM-REF", scenario)]
-  temp.SSP2.IPSL[ , scenario := gsub("SSP2", "SSP2-IPSL-REF", scenario)]
-  temp.SSP2.NoCC[ , scenario := gsub("SSP2", "SSP2-NoCC-REF", scenario)]
-  dt.fishnAlcScenarios.melt <- dt.fishnAlcScenarios.melt[!scenario %in% c("SSP2", "SSP4", "SSP5")]
-  dt.fishnAlcScenarios.melt <- rbind(temp.SSP2.NoCC, temp.SSP2.GFDL, temp.SSP2.HGEM, temp.SSP2.IPSL, dt.fishnAlcScenarios.melt)
-
-  #' add fish and alcohol via dt.fishnAlcScenarios.melt to dt.FoodAvail, which has all the other commodities
-  dtList <- list(dt.FoodAvail, dt.fishnAlcScenarios.melt)
+  dt.fishnAlcScenarios <- createFood("dt.fishnAlcScenarios") # added May 14, 2018 to parallel dt.FoodAvail
+  #' add fish and alcohol via dt.fishnAlcScenarios to dt.FoodAvail, which has all the other commodities
+  dtList <- list(dt.FoodAvail, dt.fishnAlcScenarios)
   dt.FoodAvail <- data.table::rbindlist(dtList, use.names = TRUE)
-  dt.FoodAvail <- unique(dt.FoodAvail) # not sure why this is needed. Added April 8, 2018
   #' now add the other variables
   dt.PWX0.food <- createFood("dt.PWX0")
   dt.PCX0.food <- createFood("dt.PCX0")
+ # dt.pcGDPX0 <- createFood("dt.pcGDPX0") can't do this because dt.pcGDPX0 doesn't include IMPACT_code
   dt.pcGDPX0 <- getNewestVersionIMPACT("dt.pcGDPX0")
+  dt.pcGDPX0 <- dt.pcGDPX0[year %in% keepYearList & scenario %in% scenarioListIMPACT,]
 
   data.table::setkeyv(dt.PCX0.food, c("scenario", "region_code.IMPACT159", "IMPACT_code", "year"))
   data.table::setkeyv(dt.FoodAvail, c("scenario", "region_code.IMPACT159", "IMPACT_code", "year"))
@@ -124,11 +82,11 @@ combineIMPACTData <- function() {
   dt.IMPACTfood[, foodAvailpDay := FoodAvailability / keyVariable("DinY")]
   dt.IMPACTfood <- unique(dt.IMPACTfood)
 
-  # at the moment dt.IMPACTfood has a MIROC scenario. I'm going to get rid of it for now. May 12, 2018
+  # at the moment dt.IMPACTfood has a MIROC scenario because the scenario list includes it. I'm going to get rid of it for now. May 12, 2018
   dt.IMPACTfood <- dt.IMPACTfood[!scenario %in% "SSP2-MIROC-REF"]
   inDT <- dt.IMPACTfood
   outName <- "dt.IMPACTfood"
-  desc <- "Annual and daily availability of each food item, per capita GDP and domestic and world prices."
+  desc <- "Annual (FoodAvailability) and daily availability (foodAvailpDay) of each food item in kgs, per capita GDP and domestic and world prices."
   cleanup(inDT, outName, fileloc("iData"), desc = desc)
 }
 

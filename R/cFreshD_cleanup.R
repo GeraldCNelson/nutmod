@@ -1,6 +1,7 @@
 # match up item name and item codes. The item names are in the comp recalc spreadsheets but item code is not.
 # Just need to do this for Fresh fish. c_FreshD.
 # This script is something that might be needed before running dataPrepFishStat.R but I'm not sure April 11, 2018
+# the dt.compositesLU file contains the results of this script so I don't think it is necessary to run it anymore. May 15, 2108
 
 # source of the data - http://www.fao.org/fishery/statistics/global-production/en, downloaded Feb 13, 2018 and
 # stored as data-raw/FAOSTAT/FishStatData/GlobalProuction_2017.1.1.zip`

@@ -53,11 +53,6 @@ gdxFileLoc <- paste(fileloc("IMPACTRawData"),gdxFileName, sep = "/")
 #'
 #' @return
 #' @export
-generateResults <- function(gdxFileName, vars, catNames){
-  for (i in vars) {
-    processIMPACT159Data(gdxFileName, varName = i, catNames = catNames)
-  }
-}
 
 #' Title processIMPACT159Data - read in from an IMPACT gdx file and write out rds and excel files for a single param
 #' @param gdxFileName - name of the IMPACT gdx file
@@ -117,6 +112,12 @@ catNames.region <- c("scenario", "region_code.IMPACT159", "year", "value")
 #' @param worldVars - parameters for data at the world level
 vars.world <- "PWX0"
 catNames.world <- c("scenario", "IMPACT_code", "year", "value")
+
+generateResults <- function(gdxFileName, vars, catNames){
+  for (i in vars) {
+    processIMPACT159Data(gdxFileName, varName = i, catNames = catNames)
+  }
+}
 
 # comment out lines below to speed up data crunching.
 # generateResults(vars.land,catNames.land)
