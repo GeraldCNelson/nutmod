@@ -8,7 +8,7 @@
 
 source("R/nutrientModFunctions.R")
 
-fishcomposites <- c("c_Milsc", "c_Odmsrl", "c_Opelag", "c_Crust", "c_Omarn", "c_FreshD")
+fishcomposites <- c("c_Mllsc", "c_ODmsrl", "c_OPelag", "c_Crust", "c_OMarn", "c_FreshD")
 TS_FI_PRODUCTION <- fread("data-raw/FAOSTAT/FishStatData/GlobalProuction_2017.1.1/TS_FI_PRODUCTION.csv")
 # Area and source needed.
 # Area is where a country fishes. E.g. Japan fishes in multiple places. There are 29 potential places where fishing occurs.

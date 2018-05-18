@@ -945,7 +945,7 @@ for (switchloop in 1:3) {
 
   # save graph files for future use
   inDT <- graphsListHolder
-  outName <- paste("graphsListHolder", suffix, sep = ".")
+  outName <- paste("graphsListHolder", suffix, sep = "_")
   desc <- paste0("File with graphics created for presentation for ", suffix )
   cleanupGraphFiles(inDT, outName, fileloc("gDir"), desc = desc)
 }

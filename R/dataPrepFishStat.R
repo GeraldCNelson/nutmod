@@ -30,7 +30,7 @@ source("R/nutrientModFunctions.R")
 sourceFile <- "dataPrepFishStat.R"
 createScriptMetaData()
 # aquatic plants used as food not included in FishStat so "c_aqpl not included in this code
-fishcomposites <- c("c_Milsc", "c_Odmsrl", "c_Opelag", "c_Crust", "c_Omarn", "c_FreshD")
+fishcomposites <- c("c_Milsc", "c_ODmsrl", "c_OPelag", "c_Crust", "c_OMarn", "c_FreshD")
 #TS_FI_PRODUCTION <- fread("data-raw/FAOSTAT/FishStatData/GlobalProuction_2017.1.1/TS_FI_PRODUCTION.csv")
 TS_FI_PRODUCTION <- as.data.table(read_csv("data-raw/FAOSTAT/FishStatData/GlobalProuction_2017.1.1/TS_FI_PRODUCTION.csv", col_names = TRUE, cols(
   Country = col_character(),

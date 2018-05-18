@@ -220,8 +220,8 @@ dt.compositesLU.fish.c_OMarn <- data.table::as.data.table(read_excel("data-raw/N
                                                                                    "numeric", "numeric", "numeric",
                                                                                    "numeric", "numeric", "numeric",
                                                                                    "numeric", "numeric", "text", "text")))
-# get the availability data for c_Omarn
-c_OMarnData <- dt.fishStatData[composite %in% "c_Omarn"]
+# get the availability data for c_OMarn
+c_OMarnData <- dt.fishStatData[composite %in% "c_OMarn"]
 setnames(c_OMarnData, old = c("prodAve"), new = c("foodAvail"))
 c_OMarnData[, c("edible_share", "usda_code", "composite") := NULL]
 # c_OMarnData[, value := sum(prodAve), by = "region_code.IMPACT159"][, c("item_code", "item_name", "prodAve") := NULL]
@@ -230,7 +230,7 @@ dt.OMarnNutData <- cbind(c_OMarnData, dt.compositesLU.fish.c_OMarn)
 dt.OMarnNutData[, foodAvailpDay := foodAvail * (edible_share/100)/keyVariable("DinY")] # reduce food avail quantity by the edible share ratio and divide by days in year to get average daily availability
 keepListCol <- names(dt.composites)
 dt.OMarnNutData[, setdiff(names(dt.OMarnNutData), keepListCol) := NULL]
-dt.OMarnNutData[, composite := "c_Omarn"][, Long_Desc := "Other marine fish"][, phytate_mg := 0][, phytate_source := "None"]
+dt.OMarnNutData[, composite := "c_OMarn"][, Long_Desc := "Other marine fish"][, phytate_mg := 0][, phytate_source := "None"]
 dt.composites <- rbind(dt.composites, dt.OMarnNutData)
 
 # get weighted share of nutrients for each composite
@@ -280,7 +280,7 @@ dt.composites.wld.wide <- data.table::dcast(
   value.var = "value.weighted.wld")
 
 #  set up cooking retention information; organized by IMPACT code, not by USDA code
-{
+
   dt.retentionLU <- data.table::as.data.table(openxlsx::read.xlsx("data-raw/NutrientData/nutrientDetails/retentionLookup.xlsx"))
   dt.retentionLU[, retentioncode_aus := as.character(retentioncode_aus)]
   dt.cookingRetn <- data.table::as.data.table(openxlsx::read.xlsx("data-raw/NutrientData/nutrientDetails/USDAcookingretn06.xlsx", colNames = FALSE))
@@ -347,7 +347,7 @@ dt.composites.wld.wide <- data.table::dcast(
   outName <- "dt.cookingRetn"
   desc <- "Cooking retention for selected nutrients for each food item"
   cleanup(inDT, outName, fileloc("iData"), desc = desc)
-}
+
 
 # add cooking retention to composites
 # - wld

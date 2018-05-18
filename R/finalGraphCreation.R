@@ -91,7 +91,7 @@ for (switchloop in 1:3) {
   if (switchloop == 2) {switch.vars <- TRUE;  switch.fortification <- FALSE; suffix = "var"}
   if (switchloop == 3) {switch.vars <- TRUE;  switch.fortification <- TRUE; suffix = "varFort"}
   # get the file that holds all the graphs produced for suffix
-  graphsListHolder <- getNewestVersion(paste("graphsListHolder", suffix, sep = "."), fileloc("gDir"))
+  graphsListHolder <- getNewestVersion(paste("graphsListHolder", suffix, sep = "_"), fileloc("gDir"))
   finalDir <- paste0(fileloc("gDir"),"/final/")
  # get the names of all the graphs in the graphsListerHolder file
    graphNames <- names(graphsListHolder)
