@@ -1,5 +1,5 @@
 # match up item name and item codes. The item names are in the comp recalc spreadsheets but item code is not.
-# Just need to do this for Fresh fish. c_FreshD.
+# Just need to do this for Fresh fish. c_FrshD.
 # This script is something that might be needed before running dataPrepFishStat.R but I'm not sure April 11, 2018
 # the dt.compositesLU file contains the results of this script so I don't think it is necessary to run it anymore. May 15, 2108
 
@@ -8,7 +8,7 @@
 
 source("R/nutrientModFunctions.R")
 
-fishcomposites <- c("c_Mllsc", "c_ODmsrl", "c_OPelag", "c_Crust", "c_OMarn", "c_FreshD")
+fishComposites <- keyVariable("fishComposites")
 TS_FI_PRODUCTION <- fread("data-raw/FAOSTAT/FishStatData/GlobalProuction_2017.1.1/TS_FI_PRODUCTION.csv")
 # Area and source needed.
 # Area is where a country fishes. E.g. Japan fishes in multiple places. There are 29 potential places where fishing occurs.

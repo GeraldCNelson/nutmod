@@ -24,7 +24,7 @@ dt.IMPACTfood <- dt.IMPACTfood[scenario %in% "SSP2-NoCC-REF" & region_code.IMPAC
 dt.nutrients.adj <- switches() # used only for disqualifying nutrients
 
 reqsListPercap <- keyVariable("reqsListPercap")
-deleteListReqs <- c("req.UL.vits_percap", "req.UL.minrls_percap",  "req.AMDR_hi_percap", "req.AMDR_lo_percap", "req.MRVs_percap")
+deleteListReqs <- c("req_UL_vits_percap", "req_UL_minrls_percap",  "req_AMDR_hi_percap", "req_AMDR_lo_percap", "req_MRVs_percap")
 dt.nutsReqPerCap <- getNewestVersion(req)
 
 

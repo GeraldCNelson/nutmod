@@ -10,7 +10,7 @@
 #' Species data are assigned to seven fish categories.
 #' The output is a data set with nutrient composition that is
 
-#Copyright (C) 2018 Gerald C,Nelson, except where noted
+#Copyright (C) 2018 Gerald C. Nelson, except where noted
 
 #     This program is free software: you can redistribute it and/or modify
 #     it under the terms of the GNU General Public License as published by
@@ -30,7 +30,7 @@ source("R/nutrientModFunctions.R")
 sourceFile <- "dataPrepFishStat.R"
 createScriptMetaData()
 # aquatic plants used as food not included in FishStat so "c_aqpl not included in this code
-fishcomposites <- c("c_Milsc", "c_ODmsrl", "c_OPelag", "c_Crust", "c_OMarn", "c_FreshD")
+fishComposites <- keyVariable("fishComposites")
 #TS_FI_PRODUCTION <- fread("data-raw/FAOSTAT/FishStatData/GlobalProuction_2017.1.1/TS_FI_PRODUCTION.csv")
 TS_FI_PRODUCTION <- as.data.table(read_csv("data-raw/FAOSTAT/FishStatData/GlobalProuction_2017.1.1/TS_FI_PRODUCTION.csv", col_names = TRUE, cols(
   Country = col_character(),
@@ -63,7 +63,8 @@ formula.wide <- "UNI_code + Area + Source + Species  ~ Year"
      data = dt.prod,
      formula = formula.wide,
      value.var = "Quantity")
- dt.prod.wide[is.na(dt.prod.wide)] <- 0
+dt.prod.wide[, (names(dt.prod.wide)) := lapply(.SD, function(x){x[is.na(x)] <- 0; x}), .SDcols = names(dt.prod.wide)]
+
 dt.prod.wide[, yearAve := rowMeans(.SD), .SDcols = keepListYears.composites]
 dt.prod.wide[, (keepListYears.composites) := NULL]
 
@@ -72,7 +73,8 @@ dt.prod.wide <- data.table::dcast(
   data = dt.prod.wide,
   formula = formula.wide,
   value.var = "yearAve")
-dt.prod.wide[is.na(dt.prod.wide)] <- 0 # added April 6, 2018
+dt.prod.wide[, (names(dt.prod.wide)) := lapply(.SD, function(x){x[is.na(x)] <- 0; x}), .SDcols = names(dt.prod.wide)]
+
 sourceTypes <- c("1", "2", "3", "4")
 setnames(dt.prod.wide, old = sourceTypes, new = paste0("S", sourceTypes))
 # sum production over source types here

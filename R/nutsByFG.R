@@ -1,5 +1,5 @@
 nutChoice <- c("minrls", "vits", "macro")
-# fileList <- paste("dt.food_agg", nutChoice, sep = ".")
+# fileList <- paste("dt.food_agg", nutChoice, sep = "_")
 minrlsList <- c("calcium_mg", "iron_mg", "magnesium_mg", "phosphorus_mg", "potassium_g", "zinc_mg")
 vitsList <- c("folate_µg", "niacin_mg", "riboflavin_mg",
               "thiamin_mg", "vit_a_rae_µg", "vit_b6_mg",
@@ -9,11 +9,11 @@ fatList <- "fat_g"
 prefix <- c("scenario", "region_code.IMPACT159", "year", "food_group_code" )
 
 for (i in nutChoice) {
-  fileName <- paste("food_agg_RDA", i, sep = ".")
+  fileName <- paste("food_agg_RDA", i, sep = "_")
   dt <- getNewestVersion(fileName, fileloc("resultsDir"))
   nutList <- get(paste(i, "List", sep = ""))
 
-  keepListNuts.fg <- paste(nutList, "sum.foodGroup", sep = ".")
+  keepListNuts.fg <- paste(nutList, "sum.foodGroup", sep = "_")
   keepListCol <- c(prefix,keepListNuts.fg)
   dt <- dt[, (keepListCol), with = FALSE]
   dt <- unique(dt)

@@ -6,7 +6,7 @@ ls(all.names = TRUE)
 #' @title "Functions needed to make the nutrientModeling shiny app work"
 #' @author Gerald C. Nelson, \email{nelson.gerald.c@@gmail.com}
 #' @keywords utilities, nutrient data, IMPACT food commodities nutrient lookup, automation
-# Intro ---------------------------------------------------------------
+# Intro ---------------------------------------------------3------------
 #Copyright (C) 2016-2018 Gerald C. Nelson, except where noted
 
 # This program is free software: you can redistribute it and/or modify it
@@ -114,9 +114,9 @@ sourcer(sourceFile) # adds fish and alcohol data, writes out IMPACT variables ju
 # Key output is dt.IMPACTfood
 #dt.IMPACTfood, iData
 
-# sourceFile <- "R/cFreshD_cleanup.R"
+# sourceFile <- "R/c_FrshD_cleanup.R"
 # sourcer(sourceFile) ## match up item name and item codes. The item names are in the comp recalc spreadsheets but item code is not.
-# Just need to do this for Fresh fish. c_FreshD. Not needed because results already recorded in dt.compositesLU file.
+# Just need to do this for Fresh fish. c_FrshD. Not needed because results already recorded in dt.compositesLU file.
 
 sourceFile <- "R/dataPrepFishStat.R"
 sourcer(sourceFile) # adds fish data for composite fish commodities, writes out IMPACT variables just for composite fish items (names begin with c),
@@ -141,7 +141,7 @@ sourceFile <- "R/dataPrep.NutrientRequirements.R"
 sourcer(sourceFile) # newDFname, mData - nutrient requirements adjusted to SSP age and gender categories, example is req.RDA.macro.ssp.2016-06-22.rds
 
 sourceFile <- "R/dataManagement.SSPPop.R"
-sourcer(sourceFile) #paste(gsub(".ssp","",nutReqName),"percap",sep = "."), mData - Nutrient requirements adjusted for population distribution, example is req.EAR.percap.2016-06-24.rds
+sourcer(sourceFile) #paste(gsub("_ssp","",nutReqName),"percap",sep = "_"), mData - Nutrient requirements adjusted for population distribution, example is req.EAR.percap.2016-06-24.rds
 
 sourceFile <- "R/dataManagement.foodNnuts.R"
 sourcer(sourceFile) #resultsD - creates dt.foodNnuts, dt.nutrients.kcals, dt.nutrients.sum.all, dt.nutrients.sum.staples,
@@ -195,5 +195,4 @@ sourcer(sourceFile)
 
 sourceFile <- "R/dataPrep.metadata.R"
 sourcer(sourceFile)
-
 

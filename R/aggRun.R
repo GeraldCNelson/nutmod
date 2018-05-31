@@ -39,7 +39,7 @@ gdxChoice <- getGdxChoice()
 # with one output
 # - dt.budgetShare, dt.shannonDiversity
 # with multiple nutrients
-# - dt.nutrients.sum.all, RDA.macro_sum_reqRatio, RDA.minrls_sum_reqRatio, RDA.vits_sum_reqRatio
+# - dt.nutrients.sum.all, reqRatio_sum_RDA_macro, reqRatio_sum_RDA_minrls, reqRatio_sum_RDA_vits
 # - dt.nutrients.nonstapleShare, dt.foodGroupsInfo, dt.energy.ratios
 # aggChoices are I3regions, tenregions, AggReg1, AggReg2, twoEconGroup, WB
 
@@ -67,7 +67,7 @@ chooseErrorBars <- function(aggChoice) {
   return(plotErrorBars)
 }
 # start of code that works with the switches
-for (switchloop in 1:3) {
+for (switchloop in getSwitchChoice()) {
   switch.useCookingRetnValues <- keyVariable("switch.useCookingRetnValues")
   switch.fixFish <- keyVariable("switch.fixFish") #get rid of nutrient info for shrimp, tuna, and salmon because they are not currently in the FBS data
   if (switchloop == 1) {switch.vars <- FALSE;  switch.fortification <- FALSE; suffix = "base"}
@@ -75,29 +75,29 @@ for (switchloop in 1:3) {
   if (switchloop == 3) {switch.vars <- TRUE;  switch.fortification <- TRUE; suffix = "varFort"}
 
   # at the moment temp is here to remind me that the names in multipleNutsFileList need to correspond with those in multipleNutsListShortName
-  temp <-  c("dt.nutrients.sum.all", "nutrients.avail",
-             "RDA.macro_sum_reqRatio", "macro_reqRatio",
-             "RDA.minrls_sum_reqRatio", "minrls_reqRatio",
-             "RDA.vits_sum_reqRatio", "vits_reqRatio",
-             #    "dt.nutrients.nonstapleShare", "dt.nutrients.nonstapleShare", commented out Mar 9 2018
-             "dt.MRVRatios", "badRatios",
-             "AMDR_hi_sum_reqRatio", "AMDR_hi",
-             "AMDR_lo_sum_reqRatio", "AMDR_lo",
-             "dt.foodAvail.foodGroup", "foodAvail.foodGroup")
+  temp <-  c("dt.nutrients_sum_all", "nutrients_avail",
+             "reqRatio_sum_RDA_macro", "reqRatio_macro",
+             "reqRatio_sum_RDA_minrls", "reqRatio_minrls",
+             "reqRatio_sum_RDA_vits", "reqRatio_vits",
+             #    "dt,nutrients_nonstapleShare", "dt,nutrients_nonstapleShare", commented out Mar 9 2018
+             "dt_MRVRatios", "badRatios",
+             "reqRatio_sum_AMDR_hi", "AMDR_hi",
+             "reqRatio_sum_AMDR_lo", "AMDR_lo",
+             "dt.foodAvail_foodGroup", "foodAvail_foodGroup")
 
-  multipleNutsFileList <- c(paste("dt.nutrients.sum.all", suffix, sep = "."),
-                            paste("RDA.macro_sum_reqRatio", suffix, sep = "."),
-                            paste("RDA.minrls_sum_reqRatio", suffix, sep = "."),
-                            paste("RDA.vits_sum_reqRatio", suffix, sep = "."),
-                            # paste("dt.nutrients.nonstapleShare", suffix, sep = "."), commented out Mar 9 2018
+  multipleNutsFileList <- c(paste("dt.nutrients_sum_all", suffix, sep = "."),
+                            paste("reqRatio_sum_RDA_macro", suffix, sep = "."),
+                            paste("reqRatio_sum_RDA_minrls", suffix, sep = "."),
+                            paste("reqRatio_sum_RDA_vits", suffix, sep = "."),
+                            # paste("dt.nutrients_nonstapleShare", suffix, sep = "."), commented out Mar 9 2018
                             paste("dt.MRVRatios", suffix, sep = "."),
-                            paste("AMDR_hi_sum_reqRatio", suffix, sep = "."),
-                            paste("AMDR_lo_sum_reqRatio", suffix, sep = "."),
-                            paste("dt.foodAvail.foodGroup", suffix, sep = "."))
+                            paste("reqRatio_sum_AMDR_hi", suffix, sep = "."),
+                            paste("reqRatio_sum_AMDR_lo", suffix, sep = "."),
+                            paste("dt.foodAvail_foodGroup", suffix, sep = "."))
   multipleNutsListShortName <- c("nutrients.avail",
-                                 "macro_reqRatio",
-                                 "minrls_reqRatio",
-                                 "vits_reqRatio",
+                                 "reqRatio_macro",
+                                 "reqRatio_minrls",
+                                 "reqRatio_vits",
                                  # "nutrients.nonstaples.share", commented out Mar 9 2018
                                  # "zinc_bioavail_reqRatio",suffix,sep = ".",
                                  # "iron_bioavail_reqRatio",suffix, sep = ".",
@@ -107,6 +107,8 @@ for (switchloop in 1:3) {
                                  "AMDR_lo",
                                  "foodAvail.foodGroup"
   )
+
+
   #nutrients grouping
   macroNutrients <- keyVariable("macronutrients")
   vitamins <- keyVariable("vitamins")
@@ -125,6 +127,18 @@ for (switchloop in 1:3) {
     scenChoiceList <- "scenOrderSSP"
     scenChoice.name <- gdxChoice
     aggChoiceListBarChart <- c("tenregions", "WB") # missing AggReg2 and  "2EconGroup
+  }
+
+  if (gdxChoice == "USAIDPriorities") {
+    dt.scenarioListIMPACT <- getNewestVersion("dt.scenarioListIMPACT", fileloc("mData"))
+    scenarioListIMPACT <- unique(dt.scenarioListIMPACT$scenario)
+    scenario.base <-  "GLOBE_SSP2-HGEM-f"
+    scenChoiceList <- "scenarioListIMPACT"
+    # scenarioListIMPACT has to many scenarios. I'm going to try a few.
+    scenOrderUSAIDPriorities <- c("GLOBE_SSP2-HGEM-f", "GLOBE_SSP2-HGEM-barl-SG-25-f", "GLOBE_SSP2-HGEM-mill-SG-25-f",  "GLOBE_SSP2-HGEM-pigp-SG-25-f")
+    scenChoiceList <- scenOrderUSAIDPriorities
+    scenChoice.name <- gdxChoice
+    aggChoiceListBarChart <- c("tenregions", "WB")
   }
 
   if (gdxChoice == "USAID") {
@@ -181,15 +195,16 @@ for (switchloop in 1:3) {
       #put here so its easy to see alignment of colors and bars
       #    colorList <- c("black", "red", "green4", "red3", "red4")
       colorsNeeded <- 4
-      colorList <- c("#000000", brewer.pal(colorsNeeded, paletteChoice))
+      colorList <- c("darkgray", brewer.pal(colorsNeeded, paletteChoice)) # change 2010 color to darkgray from #000000, May 29, 2018
 
       # a kludge to make the climate scenario green (#2ca25f)
       colorList[3] <- "#2CA25F"
 
     } else {
       colorsNeeded <- length(get(l))
+      cat("colorsNeeded: ", colorsNeeded)
       #    colorList <- c("black", rainbow(10)[1:length(get(l))])
-      colorList <- c("#000000", brewer.pal(colorsNeeded, paletteChoice))
+      colorList <- c("darkgray", brewer.pal(colorsNeeded, paletteChoice)) # change 2010 color to darkgray from #000000, May 29, 2018
     }
 
     for (aggChoice in aggChoiceListBarChart) {
@@ -197,7 +212,7 @@ for (switchloop in 1:3) {
       #   generate the legends -----
       #' needs to be inside l and aggChoice loop -----
       for (legendOrient in c("bottom", "right")) {
-        legendname <- paste("legend", legendOrient, gdxChoice, l, aggChoice, sep = "_")
+        legendname <- paste("legend", legendOrient, gdxChoice, "_", l, "_",  aggChoice, sep = "")
         graphsListHolder[[legendname]] <- updateLegendGrobs(l, aggChoice, legendLoc = legendOrient, mergedVals)
       }
       #    # Shannon Diversity -----
@@ -211,11 +226,11 @@ for (switchloop in 1:3) {
       # #   yRange = c(0, 80), aggChoice, oneLine = FALSE)
 
       # Budget share -----
-      cat("\nWorking on bar chart for budget share for", suffix, "for", aggChoice)
-      DTglobal <- getNewestVersion(paste("dt.budgetShare", suffix, sep = "."), fileloc("resultsDir"))
+      cat("\nWorking on bar chart for budget share (Identical for all suffixes) for", aggChoice, "\n")
+      DTglobal <- getNewestVersion(paste("dt.budgetShare", sep = "."), fileloc("resultsDir"))
       DT <- aggNorder(gdxChoice, DTaggNorder = DTglobal, aggChoice, scenChoice = get(l), mergedVals, plotErrorBars)
       ylab <- "(percent)"
-      fileName <- paste(gdxChoice, l, "budgetShare", aggChoice, suffix, sep = "_")
+      fileName <- paste(gdxChoice, "_", l, "_",  "budgetShare", "_", aggChoice, ".", suffix, sep = "")
       if (ylab %in%  "(percent)") {yRangeMinMax <- c(0,100)} else {yRangeMinMax <- c(0, max(DT$value) )}
       yRangeMinMax <- c(0,60) #custom for budgetShare
       plotErrorBars <- chooseErrorBars(suffix)
@@ -224,7 +239,7 @@ for (switchloop in 1:3) {
                       graphsListHolder, plotErrorBars)
       #  yLab = "(percent)", yRange = c(0, 50), aggChoice, oneLine = FALSE)
 
-      cat("\nDone with bar chart for budget share for", aggChoice)
+      cat("\nDone with bar chart for budget share for", aggChoice, "\n")
       #     # MFAD -----
       #     cat("\nWorking on bar chart for MFAD for", i)
       #     DT <- aggNorder(gdxChoice, DTglobal = "dt.MFAD", aggChoice, scenChoice = get(l), mergedVals)
@@ -236,12 +251,12 @@ for (switchloop in 1:3) {
       # print(paste("Done with bar chart for MFAD for", i))
 
       # RAOqe -----
-      cat("\nWorking on bar chart for Rao's QE for", aggChoice)
+      cat("\nWorking on bar chart for Rao's QE for", aggChoice, "\n")
       DTglobal <- getNewestVersion(paste("dt.RAOqe", suffix, sep = "."), fileloc("resultsDir"))
       DT <- aggNorder(gdxChoice, DTaggNorder = DTglobal, aggChoice, scenChoice = get(l), mergedVals, plotErrorBars)
       ylab <- ""
       if (ylab %in%  "(percent)") {yRangeMinMax <- c(0,100)} else {yRangeMinMax <- c(0, max(DT$value) )}
-      fileName <- paste(gdxChoice, l, "RAOqe", aggChoice, suffix, sep = "_")
+      fileName <- paste(gdxChoice, "_", l, "_",  "RAOqe", "_", aggChoice, ".", suffix, sep = "")
       plotByRegionBar(dt = DT, fileName, plotTitle = "Rao's quadratic entropy",
                       yLab = ylab, yRange = yRangeMinMax, aggChoice, suffix, scenOrder = get(l), oneLine = FALSE,
                       colorList, graphsListHolder, plotErrorBars)
@@ -256,14 +271,13 @@ for (switchloop in 1:3) {
       # nonstaple share of kcals ------
       cat("\nWorking on bar chart for the nonstaple share of kcals for", suffix, "for", aggChoice)
 
-      #   DTglobal <- getNewestVersion("dt.KcalShare.nonstaple", fileloc("resultsDir"))
-      DTglobal <- getNewestVersion(paste("dt.KcalShare.nonstaple", suffix, sep = "."), fileloc("resultsDir"))
+      DTglobal <- getNewestVersion(paste("dt.KcalShare_nonstaple", suffix, sep = "."), fileloc("resultsDir"))
 
       DT <- aggNorder(gdxChoice, DTaggNorder = DTglobal, aggChoice, scenChoice = get(l),
                       mergedVals =  c("scenario", "region_code", "year"), plotErrorBars)
       ylab <- "(percent)"
       if (ylab %in%  "(percent)") {yRangeMinMax <- c(0,100)} else {yRangeMinMax <- c(0, max(DT$value) )}
-      fileName = paste(gdxChoice, l, "nonStapleShare", aggChoice, suffix, sep = "_")
+      fileName = paste(gdxChoice, "_", l, "_",  "nonStapleShare", "_", aggChoice, ".", suffix, sep = "")
       plotByRegionBar(dt = DT, fileName, plotTitle = "Non-staple share of energy",
                       yLab = ylab, yRange = yRangeMinMax, aggChoice, suffix, scenOrder = get(l), oneLine = FALSE,
                       colorList, graphsListHolder, plotErrorBars)
@@ -275,7 +289,7 @@ for (switchloop in 1:3) {
       DT <- aggNorder(gdxChoice, DTaggNorder = DTglobal, aggChoice, scenChoice = get(l), mergedVals, plotErrorBars)
       ylab <- "" # this creates the ylab variable and leaves it empty. NULL deletes it!
       if (ylab %in%  "(percent)") {yRangeMinMax <- c(0,100)} else {yRangeMinMax <- c(0, max(DT$value) )}
-      fileName <- paste(gdxChoice, l, "NutBalScore", aggChoice, suffix,  sep = "_")
+      fileName <- paste(gdxChoice, "_", l, "_",  "NutBalScore", "_", aggChoice, ".", suffix,  sep = "")
       plotByRegionBar(dt = DT, fileName, plotTitle = "Nutrient balance score",
                       yLab = ylab, yRange = yRangeMinMax, aggChoice, suffix, scenOrder = get(l), oneLine = FALSE, colorList,
                       graphsListHolder, plotErrorBars)
@@ -292,7 +306,7 @@ for (switchloop in 1:3) {
 
       # composite DI score ----- xxxx why doesn't DTglobal include aggChoice
       cat("\nWorking on bar chart for disqualifying nutrients for", suffix, "for", aggChoice)
-      fileName = paste(gdxChoice, l, "compDI", aggChoice, suffix,  sep = "_")
+      fileName = paste(gdxChoice, "_", l, "_",  "compDI", "_", aggChoice, ".", suffix,  sep = "")
       DTglobal <- getNewestVersion(paste("dt.compDI", suffix, sep = "."), fileloc("resultsDir")) # don't put aggChoice in here
       DT <- aggNorder(gdxChoice, DTaggNorder = DTglobal, aggChoice, scenChoice = get(l), mergedVals, plotErrorBars)
       ylab <- ""
@@ -305,25 +319,23 @@ for (switchloop in 1:3) {
       # total kcal bar chart ----
       cat("\nWorking on stacked kcal bar chart for", suffix, "for", aggChoice)
 
-      DTglobal <- getNewestVersion(paste("dt.nutrients.kcals", suffix, sep = "."), fileloc("resultsDir"))
-      #   DTglobal <- getNewestVersion("dt.nutrients.kcals", fileloc("resultsDir"))
+      DTglobal <- getNewestVersion(paste("dt.nutrients_kcals", suffix, sep = "."), fileloc("resultsDir"))
       DT <- aggNorder(gdxChoice, DTaggNorder = DTglobal, aggChoice, scenChoice = get(l),
                       mergedVals =  c("scenario", "region_code", "year", "nutrient"), plotErrorBars)
-      DT <- DT[nutrient %in% c("kcalsPerDay.carbohydrate", "kcalsPerDay.fat", "kcalsPerDay.other", "kcalsPerDay.protein"), ]
-      #    DT <- DT[nutrient %in% c("kcalsPerDay.tot"), ]
-      DT[, nutrient := gsub("kcalsPerDay.", "", nutrient)]
+      DT <- DT[nutrient %in% c("kcalsPerDay_carbohydrate", "kcalsPerDay_fat", "kcalsPerDay_other", "kcalsPerDay_protein"), ]
+      DT[, nutrient := gsub("kcalsPerDay_", "", nutrient)]
       yLab <- "(Kcals)"
       if (yLab %in%  "(percent)") {yRangeMinMax <- c(0,100)} else {yRangeMinMax <- c(0, round(max(DT$value)) )}
-      fileName = paste(gdxChoice, l, "kcals.values.bySource", aggChoice, suffix, sep = "_")
+      fileName = paste(gdxChoice, "_", l, "_",  "kcals.values.bySource", "_", aggChoice, ".", suffix, sep = "")
       plotByRegionStackedBar(dt = DT, fileName, plotTitle = "Average daily dietary energy by source",
                              yLab, yRange = yRangeMinMax, aggChoice, suffix, scenOrder = get(l), oneLine = FALSE, colorList)
 
       # food groups -----
       cat("\nWorking on bar chart for dt.foodAvail.foodGroup for", suffix, "for", aggChoice)
 
-      DTglobal <- getNewestVersion(paste("dt.foodAvail.foodGroup", suffix, sep = "."), fileloc("resultsDir"))
+      DTglobal <- getNewestVersion(paste("dt.foodAvail_foodGroup", suffix, sep = "."), fileloc("resultsDir"))
 
-      foodGroupList <- unique(DTglobal$food_group_code)
+      foodGroupList <- sort(unique(DTglobal$food_group_code))
       plotErrorBars <- chooseErrorBars(aggChoice)
 
       for (fg in foodGroupList) {
@@ -337,7 +349,7 @@ for (switchloop in 1:3) {
         nutTitle <- paste(tolower(fg.longName), sep = "")
         ylab = paste("(",units,")",sep = "")
         if (ylab %in%  "(percent)") {yRangeMinMax <- c(0,100)} else {yRangeMinMax <- c(0, max(DT$value) )}
-        fileName = paste(gdxChoice, l, "foodAvail_foodGroup", fg, aggChoice, suffix, sep = "_")
+        fileName = paste(gdxChoice, "_", l, "_",  "foodAvail_foodGroup", "_", fg, "_", aggChoice, ".", suffix, sep = "")
         plotByRegionBar(dt = DT, fileName, plotTitle = nutTitle,
                         yLab = ylab, yRange = yRangeMinMax, aggChoice, suffix, scenOrder = get(l), oneLine = FALSE, colorList,
                         graphsListHolder, plotErrorBars)
@@ -356,9 +368,9 @@ for (switchloop in 1:3) {
 
         nutsToKeep <- unique(temp.in$nutrient)[!unique(temp.in$nutrient) %in%
                                                  c("caffeine_mg", "cholesterol_mg", "ft_acds_mono_unsat_g", "ft_acds_plyunst_g", "ft_acds_tot_trans_g",
-                                                   "kcals.ft_acds_tot_sat_g", "kcals.protein_g", "kcals.sugar_g", "kcalsPerDay.carbohydrate", "kcalsPerDay.ethanol",
-                                                   "kcalsPerDay.fat", "kcalsPerDay.ft_acds_tot_sat",
-                                                   "kcalsPerDay.other", "kcalsPerDay.protein", "kcalsPerDay.sugar", "kcalsPerDay.tot")]
+                                                   "kcals.ft_acds_tot_sat_g", "kcals.protein_g", "kcals.sugar_g", "kcalsPerDay_carbohydrate", "kcalsPerDay_ethanol",
+                                                   "kcalsPerDay_fat", "kcalsPerDay_ft_acds_tot_sat",
+                                                   "kcalsPerDay_other", "kcalsPerDay_protein", "kcalsPerDay_sugar", "kcalsPerDay_tot")]
         for (nut in nutsToKeep) {
           nutshortName <- cleanupNutrientNames(nut)
           nutlongName <- dt.nutrientNames_Units[1, (nut)]
@@ -371,16 +383,16 @@ for (switchloop in 1:3) {
           # cat("\nDTmax:", DTmax)
 
           #' create file specific name and related info
-          if (multipleNutsFileList[k] %in% paste("dt.nutrients.sum.all", suffix, sep = "."))  {
+          if (multipleNutsFileList[k] %in% paste("dt.nutrients_sum_all", suffix, sep = "."))  {
             #         nutTitle <- paste("Average daily availability of ", tolower(nutlongName), sep = "")
             nutTitle <- paste(tolower(nutlongName), sep = "")
             ylab = paste("(",units,")",sep = "")
             drawOneLine = FALSE
             yRangeMinMax <- c(0, max(DT$value) + 0.02 * DTmax )
           }
-          if (multipleNutsFileList[k] %in% c(paste("RDA.macro_sum_reqRatio", suffix, sep = "."),
-                                             paste("RDA.minrls_sum_reqRatio", suffix, sep = "."),
-                                             paste("RDA.vits_sum_reqRatio", suffix, sep = ".")))  {
+          if (multipleNutsFileList[k] %in% c(paste("reqRatio_sum_RDA_macro", suffix, sep = "."),
+                                             paste("reqRatio_sum_RDA_minrls", suffix, sep = "."),
+                                             paste("reqRatio_sum_RDA_vits", suffix, sep = ".")))  {
             nutTitle <- nutshortName
             ylab = "(Adequacy ratio)"
             drawOneLine = 1
@@ -394,14 +406,14 @@ for (switchloop in 1:3) {
             yRangeMinMax <- c(0, max(DT$value) + 0.02 * DTmax )
             drawOneLine = FALSE
           }
-          if (multipleNutsFileList[k] %in% paste("AMDR_hi_sum_reqRatio", suffix, sep = "."))  {
+          if (multipleNutsFileList[k] %in% paste("reqRatio_sum_AMDR_hi", suffix, sep = "."))  {
             nutTitle <- paste("AMDR high, ", nutshortName, sep = "")
             ylab = "(AMDR, high)"
             drawOneLine = 1
             yRangeMinMax <- c(0, max(DT$value) + 0.02 * DTmax )
 
           }
-          if (multipleNutsFileList[k] %in% paste("AMDR_lo_sum_reqRatio", suffix, sep = "."))  {
+          if (multipleNutsFileList[k] %in% paste("reqRatio_sum_AMDR_lo", suffix, sep = "."))  {
             nutTitle <- paste("AMDR low, ", nutshortName, sep = "")
             ylab = "(AMDR, low)"
             drawOneLine = 1
@@ -416,7 +428,7 @@ for (switchloop in 1:3) {
           # }
           #          if (ylab %in%  "(percent)") {yRangeMinMax <- c(0,103)} else {yRangeMinMax <- c(0, 1.5) }
 
-          fileName = paste(gdxChoice, l, multipleNutsListShortName[k], nut, aggChoice, suffix, sep = "_")
+          fileName = paste(gdxChoice, "_", l, "_",  multipleNutsListShortName[k], "_", nut, "_", aggChoice, ".", suffix, sep = "")
           cat("\nfileName is ", fileName,"\n")
           #         print(summary(DT))
           plotByRegionBar(dt = DT, fileName,
@@ -431,7 +443,7 @@ for (switchloop in 1:3) {
   cat("\nDone with scenChoiceList loop ----------")
 
   #' box plot of budget share in 2050  ----
-  DTglobal <- getNewestVersion(paste("dt.budgetShare", suffix, sep = "."), fileloc("resultsDir"))
+  DTglobal <- getNewestVersion(paste("dt.budgetShare", sep = "."), fileloc("resultsDir"))
   #' get rid of Somalia because it's budget share is 500 * per cap income
   DTglobal <- DTglobal[!region_code.IMPACT159 == "SOM",]
   DT <- data.table::copy(DTglobal)
@@ -444,7 +456,7 @@ for (switchloop in 1:3) {
     DT <- aggNorder(gdxChoice, DTaggNorder = DT, aggChoice, scenChoice, mergedVals, plotErrorBars)
     plotErrorBars = FALSE # not relevant for a boxplot
     #' aggregate to and retain only the relevant regions
-    fileName <- paste(gdxChoice, l, "budgetShareBoxPlot_2050", aggChoice, suffix,  sep = "_")
+    fileName <- paste(gdxChoice, "_", l, "_",  "budgetShareBoxPlot_2050", "_", aggChoice, ".", suffix,  sep = "")
     # dt.regions <- regionAgg(aggChoice)
     # DT <- merge(dt.budgetShare, dt.regions, by = "region_code.IMPACT159")
     # keepListCol.incShare <- c("scenario" ,"year", "region_code.IMPACT159", "region_code", "region_name", "incShare.PCX0")
@@ -475,11 +487,11 @@ for (switchloop in 1:3) {
 
   # construct graphs for ratios ------
   DT.master <- getNewestVersion(paste("food_agg_AMDR_hi", suffix, sep = "."), fileloc("resultsDir")) # both hi and lo have the same values
-  for (macroNut in c("kcalsPerDay.fat_share", "kcalsPerDay.protein_share", "kcalsPerDay.carbohydrate_share")) {
+  for (macroNut in c("kcalsPerDay_fat_share", "kcalsPerDay_protein_share", "kcalsPerDay_carbohydrate_share")) {
     cat("\nWorking on AMDR for", suffix, "for", macroNut)
-    if (macroNut %in%  "kcalsPerDay.fat_share") nutName <- "fat_g"
-    if (macroNut %in%  "kcalsPerDay.protein_share") nutName <- "protein_g"
-    if (macroNut %in%  "kcalsPerDay.carbohydrate_share") nutName <- "carbohydrate_g"
+    if (macroNut %in%  "kcalsPerDay_fat_share") nutName <- "fat_g"
+    if (macroNut %in%  "kcalsPerDay_protein_share") nutName <- "protein_g"
+    if (macroNut %in%  "kcalsPerDay_carbohydrate_share") nutName <- "carbohydrate_g"
 
     for (aggChoice in aggChoiceListBarChart) {
       plotErrorBars <- chooseErrorBars(aggChoice)
@@ -502,7 +514,7 @@ for (switchloop in 1:3) {
       if (nutName %in% "carbohydrate_g") AMDR_hi = 65
       if (nutName %in% "protein_g") AMDR_hi = 35
       yRangeMinMax <- c(0,70)
-      fileName = paste(gdxChoice, l, "AMDRShare", nutName, aggChoice, suffix, sep = "_")
+      fileName = paste(gdxChoice, "_", l, "_",  "AMDRShare", "_", nutName, "_", aggChoice, ".", suffix, sep = "")
       nutTitle <- capwords(cleanupNutrientNames(nutName))
       plotByRegionBarAMDR(dt = DT, fileName,
                           plotTitle = nutTitle, yLab = ylab, yRange = yRangeMinMax, aggChoice, suffix,
@@ -513,9 +525,7 @@ for (switchloop in 1:3) {
   # facet maps, food availability by food groups  -----
   cat("\nWorking on facet maps for", suffix)
   worldMap <- getNewestVersion("worldMap", fileloc("mData")) # run storeWorldMapDF() if this is not available
-  #DT <- getNewestVersion("dt.foodAvail.foodGroup", fileloc("resultsDir"))
-
-  DT <- getNewestVersion(paste("dt.foodAvail.foodGroup", suffix, sep = "."), fileloc("resultsDir"))
+  DT <- getNewestVersion(paste("dt.foodAvail_foodGroup", suffix, sep = "."), fileloc("resultsDir"))
 
   deleteFoodGroups <- c("alcohol", "beverages", "fish", "meats", "oils", "dairy", "eggs", "nutsNseeds")
   DT <- DT[!food_group_code %in% deleteFoodGroups,]
@@ -533,13 +543,12 @@ for (switchloop in 1:3) {
   # availability in quantity terms 2050, no CC -----
   legendText <- "Grams per day, 2050, \nno climate change"
   fillLimits <- c(0, 500)
+  breakValues <- generateBreakValues(fillLimits = fillLimits, decimals = 0)
+  # breakValues <- scales::rescale(c(breakValue.low, breakValue.low + fillRange/3, breakValue.low + fillRange/1.5, breakValue.high))
   myPalette <- colorRampPalette(rev(brewer.pal(11, "Spectral")))
   palette <- myPalette(4)
-  #' middle two values shift the palette gradient; the code below give a smooth change
-  fillRange <- fillLimits[2] - fillLimits[1]
-  breakValues <- scales::rescale(c(fillLimits[1], fillLimits[1] + fillRange/3, fillLimits[1] + fillRange/1.5, fillLimits[2]))
   displayOrder <- sort(unique(DT[, get(facetColName)])) # default - alphabetically sorted
-  fileName <- paste(gdxChoice, l, "facetmap", "FGAvail", "2050", "noCC", suffix, sep = "_")
+  fileName <- paste(gdxChoice, "_", l, "_", "facetmap", "_", "FGAvail", "_", "2050", "_", "noCC", ".", suffix, sep = "")
   facetMaps(worldMap, DT, fileName, legendText, fillLimits, palette, facetColName, graphsListHolder, breakValues, displayOrder)
 
   #facet map, climate change effect on availability -----
@@ -554,35 +563,34 @@ for (switchloop in 1:3) {
   DT.wide[, delta.inc := 100 * (SSP2_NoCC_REF - X2010) / X2010]
 
   fillLimits.cc <- c(-14, 1)
+  breakValues <- generateBreakValues(fillLimits = fillLimits.cc, decimals = 0)
+  #  breakValues <- scales::rescale(c(breakValue.low, breakValue.low + fillRange/3, breakValue.low + fillRange/1.5, breakValue.high))
   DT.wide[, value := delta.cc]
+  # truncate range, upper and lower
   DT.wide[value < fillLimits.cc[1], value := fillLimits.cc[1]]
   DT.wide[value > fillLimits.cc[2], value := fillLimits.cc[2]]
-  legendText <- "Climate Change Effect, 2050, \n(percent)"
+  legendText <- "Climate Change Effect on Availability in 2050, \n(percent)"
   myPalette <- colorRampPalette(rev(brewer.pal(9, "Reds")))
   palette <- myPalette(4)
-  #' middle two values shift the palette gradient; the code below gives a smooth change
-  fillRange <- fillLimits[2] - fillLimits[1]
-  breakValues <- scales::rescale(c(fillLimits[1], fillLimits[1] + fillRange/3, fillLimits[1] + fillRange/1.5, fillLimits[2]))
   displayOrder <- sort(unique(DT[, get(facetColName)])) # default - alphabetically sorted
-  fileName <- paste(gdxChoice, l, "facetmap", "FGAvailChange", "climate", suffix, sep = "_")
+  fileName <- paste(gdxChoice, "_", l, "_", "facetmap", "_", "FGAvailChange", "_", "climate", ".", suffix, sep = "")
   facetMaps(worldMap, DT, fileName, legendText, fillLimits, palette, facetColName, graphsListHolder, breakValues, displayOrder)
 
   # increase in availability due to income growth
   DT.wide[, value := delta.inc]
 
-  legendText <- "Income Growth Effect, \n2010-2050, (percent)"
+  legendText <- "Income Growth Effect on Availability, \n2010-2050, (percent)"
   fillLimits.inc <- c(-30, 100)
+  breakValues <- generateBreakValues(fillLimits = fillLimits.inc, decimals = 0)
+  #  breakValues <- scales::rescale(c(breakValue.low, breakValue.low + fillRange/3, breakValue.low + fillRange/1.5, breakValue.high))
   DT.wide[, value := delta.inc]
   DT.wide[value < fillLimits.inc[1], value := fillLimits.inc[1]]
   DT.wide[value > fillLimits.inc[2], value := fillLimits.inc[2]]
   myPalette <- colorRampPalette(rev(brewer.pal(11, "Spectral")))
   palette <- myPalette(4)
   facetColName <- "food_group_code"
-  #' middle two values shift the palette gradient; the code below gives a smooth change
-  fillRange <- fillLimits[2] - fillLimits[1]
-  breakValues <- scales::rescale(c(fillLimits[1], fillLimits[1] + fillRange/3, fillLimits[1] + fillRange/1.5, fillLimits[2]))
   displayOrder <- sort(unique(DT[, get(facetColName)])) # default - alphabetically sorted
-  fileName <- paste(gdxChoice, l, "facetmap", "FGAvailChange", "income", suffix, sep = "_")
+  fileName <- paste(gdxChoice, "_", l, "_", "facetmap", "_", "FGAvailChange", "_", "income", ".", suffix, sep = "")
   facetMaps(worldMap, DT, fileName, legendText, fillLimits, palette, facetColName, graphsListHolder, breakValues, displayOrder)
 
   #' facet maps, req ratio results ------
@@ -591,9 +599,9 @@ for (switchloop in 1:3) {
                     "vit_d_µg", "vit_e_mg", "vit_b12_µg")
 
   # adequacy ratios by suffix (base, var, varFort)
-  DT.macro <- getNewestVersion(paste("RDA.macro_sum_reqRatio", suffix, sep = "."), fileloc("resultsDir"))
-  DT.vits <- getNewestVersion(paste("RDA.vits_sum_reqRatio", suffix, sep = "."), fileloc("resultsDir"))
-  DT.minrls <- getNewestVersion(paste("RDA.minrls_sum_reqRatio", suffix, sep = "."), fileloc("resultsDir"))
+  DT.macro <- getNewestVersion(paste("reqRatio_sum_RDA_macro", suffix, sep = "."), fileloc("resultsDir"))
+  DT.vits <- getNewestVersion(paste("reqRatio_sum_RDA_vits", suffix, sep = "."), fileloc("resultsDir"))
+  DT.minrls <- getNewestVersion(paste("reqRatio_sum_RDA_minrls", suffix, sep = "."), fileloc("resultsDir"))
   DT <- do.call("rbind", list(DT.macro, DT.vits, DT.minrls))
 
   DT <- DT[nutrient %in% keepListNuts,]
@@ -609,32 +617,29 @@ for (switchloop in 1:3) {
 
   #' adequacy 2010 -----
   legendText <- "adequacy ratio, 2010"
-  fillLimits <- c(0, 5)
+  fillLimits <- c(0, 3) # changed from 5 May 29, 2018
+  breakValues <- generateBreakValues(fillLimits = fillLimits, decimals = 0)
+#  breakValues <- scales::rescale(c(breakValue.low, 1, 2, breakValue.high))
   myPalette <- colorRampPalette(brewer.pal(11, "Spectral"))
   palette <- myPalette(4)
 
-  #' middle two values shift the palette gradient;
-  fillRange <- fillLimits[2] - fillLimits[1]
-  breakValues <- scales::rescale(c(fillLimits[1], 1, 2, fillLimits[2]))
   temp <- data.table::copy(DT)
   temp <- temp[scenario %in% "X2010",]
   displayOrder <- capwords(cleanupNutrientNames(keepListNuts))
-  fileName <- paste(gdxChoice, l, "facetmap", "nutReqRatio", "2010", suffix, sep = "_")
+  fileName <- paste(gdxChoice, "_", l, "_", "facetmap", "_", "nutReqRatio", "_", "2010", ".", suffix, sep = "")
   facetMaps(worldMap, DT = temp, fileName, legendText, fillLimits, palette, facetColName, graphsListHolder, breakValues, displayOrder)
 
   # adequacy 2050, no CC -----
   legendText <- "adequacy ratio, 2050, \nno climate change"
-  fillLimits <- c(0, 5)
+  fillLimits <- c(0, 3) # changed from 5 May 29, 2018
+  breakValues <- generateBreakValues(fillLimits = fillLimits, decimals = 0)
+  #  breakValues <- scales::rescale(c(breakValue.low, 1, 2, breakValue.high))
   myPalette <- colorRampPalette(brewer.pal(11, "Spectral"))
   palette <- myPalette(4)
-
-  #' middle two values shift the palette gradient;
-  fillRange <- fillLimits[2] - fillLimits[1]
-  breakValues <- scales::rescale(c(fillLimits[1], 1, 2, fillLimits[2]))
   temp <- data.table::copy(DT)
   temp <- temp[scenario %in% "SSP2_NoCC_REF",]
   displayOrder <- capwords(cleanupNutrientNames(keepListNuts))
-  fileName <- paste(gdxChoice, l, "facetmap", "nutReqRatio", "2050", "noCC", suffix, sep = "_")
+  fileName <- paste(gdxChoice, "_", l, "_", "facetmap", "_", "nutReqRatio", "_", "2050", "_", "noCC", ".", suffix, sep = "")
   facetMaps(worldMap, DT = temp, fileName, legendText, fillLimits, palette, facetColName, graphsListHolder, breakValues, displayOrder)
 
   # convert to wide to do operations aross scenarios
@@ -648,7 +653,7 @@ for (switchloop in 1:3) {
   DT.wide[, delta.inc := 100 * (SSP2_NoCC_REF - X2010) / X2010]
 
   #facet map, climate change effect on adequacy -----
-  legendText <- "Climate Change Effect, 2050, \n(percent)"
+  legendText <- "Climate Change Effect on adequacy, 2050, \n(percent)"
   fillLimits.cc <- c(-10, 2)
   DT.wide[, value := delta.cc]
   DT.wide[value < fillLimits.cc[1], value := fillLimits.cc[1]]
@@ -657,12 +662,10 @@ for (switchloop in 1:3) {
   #myPalette <- colorRampPalette(rev(brewer.pal(9, "Blues")))
   myPalette <- colorRampPalette(brewer.pal(11, "Spectral"))
   palette <- myPalette(4)
-  #' middle two values shift the palette gradient; the code below gives a smooth change
-  fillRange <- fillLimits.cc[2] - fillLimits.cc[1]
-  breakValues <- scales::rescale(c(fillLimits.cc[1], fillLimits.cc[1] + fillRange/3, fillLimits.cc[1] + fillRange/1.5, fillLimits.cc[2]))
-  #breakValues <- scales::rescale(c(fillLimits.cc[1], fillLimits.cc[1], -2, -1 , fillLimits.cc[2]))
-  displayOrder <- capwords(cleanupNutrientNames(keepListNuts))
-  fileName <- paste(gdxChoice, l, "facetmap", "nutReqRatioChange",  "climate", suffix, sep = "_")
+ #  breakValues <- scales::rescale(c(breakValue.low, breakValue.low + fillRange/3, breakValue.low + fillRange/1.5, breakValue.high))
+  breakValues <- generateBreakValues(fillLimits = fillLimits.cc, decimals = 0)
+   displayOrder <- capwords(cleanupNutrientNames(keepListNuts))
+  fileName <- paste(gdxChoice, "_", l, "_", "facetmap", "_", "nutReqRatioChange", "_", "climate", ".", suffix, sep = "")
   facetMaps(worldMap, DT = DT.wide, fileName, legendText, fillLimits = fillLimits.cc, palette, facetColName, graphsListHolder, breakValues, displayOrder)
 
   # increase in adequacy due to income growth
@@ -676,10 +679,10 @@ for (switchloop in 1:3) {
   myPalette <- colorRampPalette(brewer.pal(9, "Blues"))
   palette <- myPalette(4)
   #' middle two values shift the palette gradient; the code below gives a smooth change
-  fillRange <- fillLimits.inc[2] - fillLimits.inc[1]
-  breakValues <- scales::rescale(c(fillLimits.inc[1], fillLimits.inc[1] + fillRange/3, fillLimits.inc[1] + fillRange/1.5, fillLimits.inc[2]))
+  breakValues <- generateBreakValues(fillLimits = fillLimits.inc, decimals = 0)
+#  breakValues <- scales::rescale(c(breakValue.low, breakValue.low + fillRange/3, breakValue.low + fillRange/1.5, breakValue.high))
   displayOrder <- capwords(cleanupNutrientNames(keepListNuts))
-  fileName <- paste(gdxChoice, l, "facetmap", "nutReqRatioChange", "income", suffix, sep = "_")
+  fileName <- paste(gdxChoice, "_", l, "_", "facetmap", "_", "nutReqRatioChange", "_", "income", ".", suffix, sep = "")
   facetMaps(worldMap, DT = DT.wide, fileName, legendText, fillLimits = fillLimits.inc, palette, facetColName, graphsListHolder, breakValues, displayOrder)
 
   # facet map, MRV ratio results -----
@@ -700,31 +703,27 @@ for (switchloop in 1:3) {
   #' disqualifying index ratio 2010 -----
   legendText <- "disqualifying index ratio, 2010"
   fillLimits <- c(0, 4)
+  breakValues <- generateBreakValues(fillLimits = fillLimits, decimals = 0)
+  #  breakValues <- scales::rescale(c(breakValue.low, 1, 2, breakValue.high))
   myPalette <- colorRampPalette(rev(brewer.pal(11, "Spectral")))
   palette <- myPalette(4)
-
-  #' middle two values shift the palette gradient;
-  fillRange <- fillLimits[2] - fillLimits[1]
-  breakValues <- scales::rescale(c(fillLimits[1], 1, 2, fillLimits[2]))
   temp <- data.table::copy(DT)
   temp <- temp[scenario %in% "X2010",]
   displayOrder <- capwords(cleanupNutrientNames(keepListNuts))
-  fileName <- paste(gdxChoice, l, "facetmap", "MRVRatio", "2010", suffix, sep = "_")
+  fileName <- paste(gdxChoice, "_", l, "_", "facetmap", "_", "MRVRatio", "_", "2010", ".", suffix, sep = "")
   facetMaps(worldMap, DT = temp, fileName, legendText, fillLimits, palette, facetColName, graphsListHolder, breakValues, displayOrder)
 
   # disqualifying index ratio 2050, no CC -----
   legendText <- "disqualifying index ratio, \nno climate change"
   fillLimits <- c(0, 4)
+  breakValues <- generateBreakValues(fillLimits = fillLimits, decimals = 0)
+  #  breakValues <- scales::rescale(c(breakValue.low, 1, 2, breakValue.high))
   myPalette <- colorRampPalette(brewer.pal(11, "Spectral"))
   palette <- myPalette(4)
-
-  #' middle two values shift the palette gradient;
-  fillRange <- fillLimits[2] - fillLimits[1]
-  breakValues <- scales::rescale(c(fillLimits[1], 1, 2, fillLimits[2]))
   temp <- data.table::copy(DT)
   temp <- temp[scenario %in% "SSP2_NoCC_REF",]
   displayOrder <- capwords(cleanupNutrientNames(keepListNuts))
-  fileName <- paste(gdxChoice, l, "facetmap", "MRVRatio", "2050", "noCC", suffix, sep = "_")
+  fileName <- paste(gdxChoice, "_", l, "_", "facetmap", "_", "MRVRatio", "_","2050", "_", "noCC", ".", suffix, sep = "")
   facetMaps(worldMap, DT = temp, fileName, legendText, fillLimits, palette, facetColName, graphsListHolder, breakValues, displayOrder)
 
   # convert to wide to do operations aross scenarios
@@ -740,6 +739,8 @@ for (switchloop in 1:3) {
   #facet map, climate change effect on disqualifying index ratio -----
   legendText <- "Climate Change Effect, 2050, \n(percent)"
   fillLimits.cc <- c(-3, 6)
+  breakValues <- generateBreakValues(fillLimits = fillLimits.cc, decimals = 0)
+  #  breakValues <- scales::rescale(c(breakValue.low, breakValue.low + fillRange/3, breakValue.low + fillRange/1.5, breakValue.high))
   DT.wide[, value := delta.cc]
   DT.wide[value < fillLimits.cc[1], value := fillLimits.cc[1]]
   DT.wide[value > fillLimits.cc[2], value := fillLimits.cc[2]]
@@ -747,17 +748,16 @@ for (switchloop in 1:3) {
   #myPalette <- colorRampPalette(rev(brewer.pal(9, "Reds")))
   myPalette <- colorRampPalette(rev(brewer.pal(11, "Spectral")))
   palette <- myPalette(4)
-  #' middle two values shift the palette gradient; the code below gives a smooth change
-  fillRange <- fillLimits[2] - fillLimits[1]
-  breakValues <- scales::rescale(c(fillLimits[1], fillLimits[1] + fillRange/3, fillLimits[1] + fillRange/1.5, fillLimits[2]))
   DT <- DT.wide
   displayOrder <- capwords(cleanupNutrientNames(keepListNuts))
-  fileName <- paste(gdxChoice, l, "facetmap", "MRVRatioChange", "climate", suffix, sep = "_")
+  fileName <- paste(gdxChoice, "_", l, "_", "facetmap", "_", "MRVRatioChange", "_", "climate", ".", suffix, sep = "")
   facetMaps(worldMap, DT = DT.wide, fileName, legendText, fillLimits = fillLimits.cc, palette, facetColName, graphsListHolder, breakValues, displayOrder)
 
   # increase in adequacy due to income growth
-  legendText <- "Income Growth Effect, \n2010-2050, (percent)"
+  legendText <- "Income Growth Effect on adequacy, \n2010-2050, (percent)"
   fillLimits.inc <- c(-20, 75)
+  breakValues <- generateBreakValues(fillLimits = fillLimits.inc, decimals = 0)
+  #  breakValues <- scales::rescale(c(breakValue.low, breakValue.low + fillRange/3, breakValue.low + fillRange/1.5, breakValue.high))
   DT.wide[, value := delta.inc]
   DT.wide[value < fillLimits.inc[1], value := fillLimits.inc[1]]
   DT.wide[value > fillLimits.inc[2], value := fillLimits.inc[2]]
@@ -765,12 +765,9 @@ for (switchloop in 1:3) {
   # myPalette <- colorRampPalette(rev(brewer.pal(11, "Spectral")))
   myPalette <- colorRampPalette(brewer.pal(9, "Reds"))
   palette <- myPalette(4)
-  #' middle two values shift the palette gradient; the code below gives a smooth change
-  fillRange <- fillLimits[2] - fillLimits[1]
-  breakValues <- scales::rescale(c(fillLimits[1], fillLimits[1] + fillRange/3, fillLimits[1] + fillRange/1.5, fillLimits[2]))
   DT <- DT.wide
   displayOrder <- capwords(cleanupNutrientNames(keepListNuts))
-  fileName <- paste(gdxChoice, l, "facetmap", "MRVRatioChange", "income", suffix, sep = "_")
+  fileName <- paste(gdxChoice, "_", l, "_facetmap_", "MRVRatioChange", "_", "income", ".", suffix, sep = "")
   facetMaps(worldMap, DT = DT.wide, fileName, legendText, fillLimits = fillLimits.inc, palette, facetColName, graphsListHolder, breakValues, displayOrder)
 
   # filenames.pdf <- list.files(path = paste(fileloc("gDir"), sep = "/"), pattern = ".pdf")
@@ -838,43 +835,43 @@ for (switchloop in 1:3) {
                     vitamins, minerals, nutBal, diversity)) {
     #   if (i %in% c(budgetShare, boxStats)) {
     if (figtype %in% c(budgetShare)) {
-      filename <- paste(gdxChoice, l, figtype, "WB", suffix, sep = "_")
+      filename <- paste(gdxChoice, "_", l, "_", figtype, "_", "WB", ".", suffix, sep = "")
       figInfo <- "4, affordability,"
     }
 
     # if (figtype %in% nutlistmacro) {
-    filename <- paste(gdxChoice, l, "macro_reqRatio", figtype, aggChoice, suffix, sep = "_")
+    filename <- paste(gdxChoice, "_", l, "_", "reqRatio_macro", "_", figtype, "_", aggChoice, ".", suffix, sep = "")
     figInfo <- "5, adequacy, macro nutrients, "
   }
   if (figtype %in% nutlistmacroAMDRShare) {
-    filename <- paste(gdxChoice, l, figtype, aggChoice, suffix, sep = "_")
+    filename <- paste(gdxChoice, "_", l, "_", figtype, "_", aggChoice, ".", suffix, sep = "")
     #       filename <- gsub("AMDRShare", "_", filename) # a kludge to deal with the fact that these are macronutrients
     figInfo <- "6, Share of total kilocalories, "
   }
   if (figtype %in% minerals) {
-    filename <- paste(gdxChoice, l, "minrls_reqRatio", figtype, aggChoice, suffix, sep = "_")
+    filename <- paste(gdxChoice, "_", l, "_", "reqRatio_minrls", figtype, "_", aggChoice, ".", suffix, sep = "")
     figInfo <- "7, adequacy, minerals, "
   }
   if (figtype %in% vitamins) {
-    filename <- paste(gdxChoice, l, "vits_reqRatio", figtype, aggChoice, suffix, sep = "_")
+    filename <- paste(gdxChoice, "_", l, "_",  "reqRatio_vits", figtype, "_", aggChoice, ".", suffix, sep = "")
     figInfo <- "7, adequacy, vitamins, "
   }
   if (figtype %in% nutBal) {
-    filename <- paste(gdxChoice, l, figtype, aggChoice, suffix, sep = "_")
+    filename <- paste(gdxChoice, "_", l, "_",  figtype, "_", aggChoice, ".", suffix, sep = "")
     figInfo <- "8, Nutrient balance metrics, "
   }
   if (figtype %in% diversity) {
-    filename <- paste(gdxChoice, l, figtype, aggChoice, suffix, sep = "_")
+    filename <- paste(gdxChoice, "_", l, "_",  figtype, "_", aggChoice, ".", suffix, sep = "")
     figInfo <- "9, diversity metrics, "
   }
   # moved to supplementary information
   if (figtype %in% dailyAvail.foodgroup) {
-    filename <- paste(gdxChoice, l, "foodAvail_foodGroup", figtype, aggChoice, suffix, sep = "_")
+    filename <- paste(gdxChoice, "_", l, "_",  "foodAvail_foodGroup",  "_", figtype, "_", aggChoice, ".", suffix, sep = "")
     figInfo <- "S1, food group daily availability (g), "
   }
   # moved to supplementary information
   if (figtype %in% energy) {
-    filename <- paste(gdxChoice, l, "kcals.values", aggChoice, suffix, sep = "_")
+    filename <- paste(gdxChoice, "_", l, "_",  "kcals.values",  "_", aggChoice, ".", suffix, sep = "")
     figInfo <- "S2, average daily availability dietary energy (kcals), "
   }
 
@@ -917,12 +914,12 @@ for (switchloop in 1:3) {
     wb = figsData, sheet = "FigureData", style = numStyle, cols = 2:length(csvHolder), rows = 2:nrow(csvHolder),
     gridExpand = TRUE)
 
-  openxlsx::saveWorkbook(wb = figsData, file = paste(fileloc("gDir"), "/", gdxChoice, "_", "reqTable_", aggChoice, "_", suffix, ".xlsx", sep = ""),
+  openxlsx::saveWorkbook(wb = figsData, file = paste(fileloc("gDir"), "/", gdxChoice, "_", "reqTable_", aggChoice, ".", suffix, ".xlsx", sep = ""),
                          overwrite = TRUE)
-  data.table::fwrite(csvHolder, file = paste(fileloc("gDir"), "/", gdxChoice, "_", "reqTable_", aggChoice, ".csv", sep = ""), na = "", row.names = FALSE)
+  data.table::fwrite(csvHolder, file = paste(fileloc("gDir"), "/", gdxChoice, "_", "reqTable_", aggChoice, ".", suffix, ".csv", sep = ""), na = "", row.names = FALSE)
 
   # aggregate RDA reqRatios to regions -----
-  filesToAgg <- c("RDA.macro_sum_reqRatio", "RDA.minrls_sum_reqRatio", "RDA.vits_sum_reqRatio")
+  filesToAgg <- c("reqRatio_sum_RDA_macro", "reqRatio_sum_RDA_minrls", "reqRatio_sum_RDA_vits")
   for (fname in filesToAgg) {
     for (aggChoice in c("WB")) {
       #      for (aggChoice in c("AggReg1", "WB")) { commented out Mar 18, 2018
@@ -945,8 +942,8 @@ for (switchloop in 1:3) {
 
   # save graph files for future use
   inDT <- graphsListHolder
-  outName <- paste("graphsListHolder", suffix, sep = "_")
-  desc <- paste0("File with graphics created for presentation for ", suffix )
+  outName <- paste("graphsListHolder", suffix, sep = ".")
+  desc <- paste0("File with graphics created for presentation with ", suffix, " nutrient data" )
   cleanupGraphFiles(inDT, outName, fileloc("gDir"), desc = desc)
 }
 finalizeScriptMetadata(metadataDT, sourceFile)

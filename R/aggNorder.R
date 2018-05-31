@@ -35,10 +35,10 @@ dt.pop <- getNewestVersion("dt.PopX0", fileloc("iData"))
 #' create legend grobs for use in multiple graph files -----
 updateLegendGrobs <- function(l, aggChoice, legendLoc, mergedVals) {
   # use an arbitrary file to construct the grob. This code modified from aggRun.R
-  DTglobal <- getNewestVersion("dt.budgetShare.base", fileloc("resultsDir"))
+  DTglobal <- getNewestVersion("dt.budgetShare", fileloc("resultsDir"))
   DT <- aggNorder(gdxChoice, DTglobal, aggChoice, scenChoice = get(l), mergedVals, plotErrorBars)
   ylab <- "(percent)"
-  cat("\nCreating legend grob for ", aggChoice, ",", l, "and", legendLoc)
+  cat("\nCreating legend grob for ", aggChoice, ",", l, "and", legendLoc, "\n")
   regionCodes <- unique(DT$region_code)
   regionNames <- unique(DT$region_name)
   scenarios <- unique(DT$scenario)
@@ -131,9 +131,9 @@ aggNorder <- function(gdxChoice, DTaggNorder, aggChoice, scenChoice, mergedVals,
   keepListCol <- c(mergedVals, "region_name", "value", "min.region", "max.region", "sd.region")
   if(aggChoice %in% "tenregions") keepListCol <- c(mergedVals, "region_name", "value")
   if ("nutrient" %in% names(merged))  {
-    # set kcalsPerDay.other to zero if it is less than zero.
-    merged[nutrient %in% "kcalsPerDay.other" & value < 0, value := 0]
-    nutOrder <- c("kcalsPerDay.carbohydrate", "kcalsPerDay.fat", "kcalsPerDay.protein", "kcalsPerDay.other")
+    # set kcalsPerDay_other to zero if it is less than zero.
+    merged[nutrient %in% "kcalsPerDay_other" & value < 0, value := 0]
+    nutOrder <- c("kcalsPerDay_carbohydrate", "kcalsPerDay_fat", "kcalsPerDay_protein", "kcalsPerDay_other")
     keepListCol <- c(mergedVals, "region_name", "value")
   }
   merged[, setdiff(names(merged), keepListCol) := NULL]
@@ -184,7 +184,7 @@ aggNorder <- function(gdxChoice, DTaggNorder, aggChoice, scenChoice, mergedVals,
 }
 
 plotByRegionBar <- function(dt, fileName, plotTitle, yLab, yRange, aggChoice, suffix, scenOrder, oneLine, colorList, AMDR_hi = NULL, plotErrorBars) {
-  cat("\nPlotting bars by region", aggChoice, "for", plotTitle)
+  cat("\nPlotting bars by region", aggChoice, "for", plotTitle, "\n")
   plotTitle <- capwords(plotTitle)
   temp <- copy(dt)
   regionCodes <- unique(temp$region_code)
@@ -213,14 +213,14 @@ plotByRegionBar <- function(dt, fileName, plotTitle, yLab, yRange, aggChoice, su
   temp[, value := round(value, 2)]
 
   # adjust font size for bars by aggchoice
-  if (aggChoice %in% "tenregions") fontsize <- 1.8
-  if (aggChoice %in% "WB") fontsize <- 3
+  if (aggChoice %in% "tenregions") fontsize <- 1.5
+  if (aggChoice %in% "WB") fontsize <- 2.5
 
    # adjust location of bar label in the bar (yval) for graph type
   if (yLab %in% "(Adequacy ratio)") {yval <- 0.15; roundVal = 2} else {yval <- 0.25; roundVal = 1}
-
+# next line is supposed to put the label in the bar at 6.5 percent of the distance from the bottom to the top of the bar
+  yval <- (yRange[2] - yRange[1]) *.065
     #' draw bars
-  # pdf(paste(fileloc("gDir"),"/", fileName, ".pdf", sep = ""), width = 7, height = 5.2,)
   p = ggplot(data = temp, aes(x = factor(region_name), y = value, group = scenario)) +
     geom_col(aes(fill = scenario), position = "dodge", color = "black") +
     coord_cartesian(ylim = yRange) +
@@ -228,9 +228,6 @@ plotByRegionBar <- function(dt, fileName, plotTitle, yLab, yRange, aggChoice, su
     labs(x = NULL, y = yLab) +
     theme(axis.text.x = element_text(angle = 45, hjust = 1, family = "Times", face = "plain")) +
     theme(axis.title.y = element_text(family = "Times", face = "plain")) +
-  #   geom_text(aes(label = value, y = 1.25), position = position_dodge(0.9), size = 2.25, angle = 90,  color = "white", vjust = "bottom") +
-    geom_text(aes(label = formatC( round(value, roundVal), format='f', digits = roundVal), x = factor(region_name), y = yval), position = position_dodge(0.9),
-              size = fontsize, angle = 90,   color = "white") + #vjust = "bottom", hjust = 'left', removed April 8, 2018
     scale_fill_manual(values = colorList) +
     theme(plot.title = element_text(hjust = 0.5, size = 11, family = "Times", face = "plain")) +
     ggtitle(plotTitle)
@@ -245,6 +242,9 @@ plotByRegionBar <- function(dt, fileName, plotTitle, yLab, yRange, aggChoice, su
     p <- p + geom_errorbar(aes(ymin = yminValue, ymax = ymaxValue), width = .2,
                            position = position_dodge(.9), color = "grey")
   }
+  p <- p + geom_text(aes(label = formatC( round(value, roundVal), format='f', digits = roundVal), x = factor(region_name), y = yval), position = position_dodge(0.9),
+            size = fontsize, angle = 90, color = "black") + #vjust = "bottom", hjust = 'left', commented out April 8, 2018
+
   ggsave(file = paste0(fileloc("gDir"),"/",fileName,".pdf"), plot = p,
          width = 7, height = 6)
   # dev.off()
@@ -270,7 +270,7 @@ plotByRegionBar <- function(dt, fileName, plotTitle, yLab, yRange, aggChoice, su
 }
 
 plotByRegionStackedBar <- function(dt, fileName, plotTitle, yLab, yRange, aggChoice, suffix, scenOrder, oneLine, colorList) {
-  cat("\nPlotting stacked bars by region", aggChoice, "for", plotTitle)
+  cat("\nPlotting stacked bars by region", aggChoice, "for", plotTitle, "\n")
   plotTitle <- capwords(plotTitle)
   temp <- copy(dt)
   regionCodes <- unique(temp$region_code)
@@ -329,7 +329,7 @@ pdfFileName <- paste(fileloc("gDir"),"/", fileName, ".pdf", sep = "")
 }
 
 plotByBoxPlot2050 <- function(dt, fileName, plotTitle, yLab, yRange, aggChoice, suffix ){
-  cat("\nPlotting boxplot for 2050 by region", aggChoice)
+  cat("\nPlotting boxplot for 2050 by region", aggChoice, "\n")
   plotTitle <- capwords(plotTitle)
   temp <- copy(dt)
   regionCodes <- unique(temp$region_code)
@@ -451,7 +451,7 @@ plotByBoxPlot2050 <- function(dt, fileName, plotTitle, yLab, yRange, aggChoice, 
 #' }
 
 plotByRegionBarAMDR <- function(dt, fileName, plotTitle, yLab, yRange, aggChoice, suffix, scenOrder, colorList, AMDR_lo, AMDR_hi, graphsListHolder, plotErrorBars) {
-  cat("\nPlotting AMDR bars for region ", aggChoice, "for", plotTitle)
+  cat("\nPlotting AMDR bars for region ", aggChoice, "for", plotTitle, "\n")
   plotTitle <- capwords(plotTitle)
   temp <- copy(dt)
   regionCodes <- unique(temp$region_code)
@@ -467,6 +467,9 @@ plotByRegionBarAMDR <- function(dt, fileName, plotTitle, yLab, yRange, aggChoice
   temp[, region_name := factor(region_name, levels =  regionNameOrder)]
   temp[, scenario := factor(scenario, levels = scenarioNameOrder)]
   if (gdxChoice %in% "USAID")  temp <- renameUSAIDscenarios(temp)
+  if (yLab %in% "(Adequacy ratio)") {yval <- 0.15; roundVal = 2} else {yval <- 0.25; roundVal = 1}
+  # next line is supposed to put the label in the bar at 6.5 percent of the distance from the bottom to the top of the bar
+  yval <- (yRange[2] - yRange[1]) *.065
 
   #' draw bars
 #  pdf(paste(fileloc("gDir"),"/", fileName, ".pdf", sep = ""), width = 7, height = 5.2)
@@ -481,11 +484,11 @@ plotByRegionBarAMDR <- function(dt, fileName, plotTitle, yLab, yRange, aggChoice
     theme(plot.title = element_text(hjust = 0.5, size = 11, family = "Times", face = "plain")) +
     ggtitle(plotTitle) +
     labs(y = yLab, x = NULL) +
-    geom_hline(aes(yintercept = AMDR_lo,  color = "green")) +
-    geom_text( aes(.5, AMDR_lo + .75, label = "Low", color = "green")) +
-    geom_hline(aes(yintercept = AMDR_hi,  color = "dark red")) +
-    geom_text( aes(.5, AMDR_hi + .75, label = "High", color = "green")) +
-    geom_text(aes(x = factor(region_name),  y=0.25, label = round(value, 1)), position = position_dodge(0.9), size = 2.25, angle = 90,  color = "white", hjust = 'left')
+    geom_hline(aes(yintercept = AMDR_lo), color = "darkgreen") +
+    geom_text( aes(.62, AMDR_lo + 2.5, label = "Low"), color = "black") + # value after AMDR_lo shifts the label up or down
+    geom_hline(aes(yintercept = AMDR_hi),  color = "dark red") +
+    geom_text( aes(.62, AMDR_hi + 2.5, label = "High"), color = "black") +
+    geom_text(aes(x = factor(region_name),  y=yval, label = round(value, 1)), position = position_dodge(0.9), size = 2.25, angle = 90,  color = "black", hjust = 'left')
 
    ggsave(filename = paste0(fileloc("gDir"),"/",fileName,".pdf"), plot = p,
          width = 7, height = 6)
@@ -510,4 +513,14 @@ plotByRegionBarAMDR <- function(dt, fileName, plotTitle, yLab, yRange, aggChoice
   data.table::setnames(temp.wide, old = names(temp.wide), new = c("scenario", regionCodes))
   #  textplot(temp.wide, cex = 0.6, valign = "top", show.rownames = FALSE, mai = c(.5, .5, .5, .5))
   write.csv(temp.wide, file = paste(fileloc("gDir"),"/", fileName, ".csv", sep = ""))
+}
+
+generateBreakValues <- function(fillLimits, decimals) {
+  fillRange <- fillLimits[2] - fillLimits[1]
+  breakValue.low <- round(fillLimits[1], digits = decimals)
+  breakValue.high <- round(fillLimits[2], digits = decimals)
+  #' middle two values shift the palette gradient
+#  breakValues <- scales::rescale(c(breakValue.low, breakValue.low + fillRange/3, breakValue.low + fillRange/1.5, breakValue.high))
+  breakValues <- c(breakValue.low, breakValue.low + fillRange/3, breakValue.low + fillRange/1.5, breakValue.high)
+  return(breakValues)
 }

@@ -1,6 +1,6 @@
-DT.macro <- getNewestVersion("RDA.macro_sum_reqRatio", fileloc("resultsDir"))
-DT.vits <- getNewestVersion("RDA.vits_sum_reqRatio", fileloc("resultsDir"))
-DT.minrls <- getNewestVersion("RDA.minrls_sum_reqRatio", fileloc("resultsDir"))
+DT.macro <- getNewestVersion("RDA_reqRatio_macro_sum", fileloc("resultsDir"))
+DT.vits <- getNewestVersion("RDA_reqRatio_vits_sum", fileloc("resultsDir"))
+DT.minrls <- getNewestVersion("RDA_reqRatio_minrls_sum", fileloc("resultsDir"))
 DT <- do.call("rbind", list(DT.macro, DT.vits, DT.minrls))
 DT <- DT[year %in% c("X2010", "X2050"),]
 

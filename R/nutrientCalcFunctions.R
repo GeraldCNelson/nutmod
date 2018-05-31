@@ -17,9 +17,10 @@
 #'
 
 switches <- function() {
-  dt.nutrients.base <- getNewestVersion("dt.nutrients.base", fileloc("iData"))
-  dt.nutrients.var <- getNewestVersion("dt.nutrients.var", fileloc("iData"))
-  dt.nutrients.varFort <- getNewestVersion("dt.nutrients.varFort", fileloc("iData"))
+
+  # dt.nutrients.base <- getNewestVersion("dt.nutrients.base", fileloc("iData"))
+  # dt.nutrients.var <- getNewestVersion("dt.nutrients.var", fileloc("iData"))
+  # dt.nutrients.varFort <- getNewestVersion("dt.nutrients.varFort", fileloc("iData"))
 
   if (switch.vars == FALSE) {
     # old code commented out
@@ -30,12 +31,12 @@ switches <- function() {
     #   deleteListCol <- c("Ref_Desc", "phytate_source","ft_acds_tot_trans_g", "caffeine_mg", "cholesterol_mg",
     #                      "retentioncode_aus", "RetnDesc")
     #   dt.nutrients[, (deleteListCol) := NULL]
-    dt.nutrients <- data.table::copy(dt.nutrients.base)
+    dt.nutrients <-  getNewestVersion("dt.nutrients.base", fileloc("iData"))
 
   } else {
-    dt.nutrients <- data.table::copy(dt.nutrients.var)
+    dt.nutrients <- getNewestVersion("dt.nutrients.var", fileloc("iData"))
     if (switch.fortification == TRUE) {
-      dt.nutrients <- data.table::copy(dt.nutrients.varFort)
+      dt.nutrients <- getNewestVersion("dt.nutrients.varFort", fileloc("iData"))
     }
   }
 
@@ -84,108 +85,34 @@ switches <- function() {
   return(dt.nutrients)
 }
 
-# not being used because the vars stuff is in function above. Can delete.
-# cookingRetFishCorrect.varieties <- function(switch.useCookingRetnValues, switch.fixFish) {
-#   dt.nutrients <- getNewestVersion("dt.nutVarieties_sr28", fileloc("mData"))
-#
-#   # dt.nutrients <- merge(dt.nutrients, dt.bioavail_iron, by = c("scenario", "region_code.IMPACT159", "year"))
-#   # dt.nutrients <- merge(dt.nutrients, dt.bioavail_zinc, by = c("scenario", "region_code.IMPACT159", "year"))
-#
-#   cols.cookretn <- names(dt.nutrients)[grep("_cr",names(dt.nutrients))]
-#   colsNotToMultiply <- c("IMPACT_code" ,"usda_code","Long_Desc", "food_group_code",
-#                          "staple_code", "Ref_Desc", "retentioncode_aus", "RetnDesc", cols.cookretn, "phytate_source",
-#                          "IMPACT_conversion", "edible_share", "food_group_code", "staple_code")
-#
-#   nutrients.list <- names(dt.nutrients)[!(names(dt.nutrients) %in% colsNotToMultiply)]
-#   # dt.nutrients is in nutrient per 100 grams of the edible portion
-#   # reduce nutrient amount by conversion of meat from carcass to boneless (IMPACT_conversion)
-#   dt.nutrients[ , (nutrients.list) := lapply(.SD, `*`, IMPACT_conversion / 100), .SDcols = nutrients.list]
-#   # reduce nutrient amount by conversion of all items to edible share
-#   dt.nutrients[ , (nutrients.list) := lapply(.SD, `*`, edible_share / 100), .SDcols = nutrients.list]
-#
-#   # drop columns that are not needed.
-#   deleteListCol <- c("edible_share", "IMPACT_conversion")
-#   dt.nutrients[, (deleteListCol) := NULL]
-#
-#   # use cooking retention values if TRUE -----
-#   if (switch.useCookingRetnValues == "TRUE") {
-#     # get cooking retention values. Update: commented out because dt.nutrients now has crs in it (11/25/2017)
-#     # dt.cookRetn <- getNewestVersion("dt.cookingRet")
-#     # data.table::setkey(dt.nutrients,IMPACT_code)
-#     # data.table::setkey(dt.cookRetn,IMPACT_code)
-#     # dt.temp <- dt.nutrients[dt.cookRetn]
-#
-#     for (i in 1:length(cols.cookretn)) {
-#       nutrientName <-
-#         substr(x = cols.cookretn[i], 1, nchar(cols.cookretn[i]) - 3)
-#       nutRetName <- cols.cookretn[i]
-#       # multiply amount of nutrient times the cooking retention value (in percent) and divide by 100 to get to share
-#       dt.nutrients[,(nutrientName) := eval(parse(text = nutrientName)) *
-#                      eval(parse(text = nutRetName)) / 100]
-#     }
-#     dt.nutrients <- dt.nutrients[,(c(cols.cookretn)) := NULL]
-#   }
-#   # fix fish if TRUE -----
-#   if (switch.fixFish == "TRUE")  {
-#     deleteListRow <- c("c_Shrimp", "c_Tuna", "c_Salmon")
-#     dt.nutrients <- dt.nutrients[!IMPACT_code %in% deleteListRow,]
-#   }
-#   # convert to nutrients per kg of food
-#   colsToMultiply <- names(dt.nutrients)[!names(dt.nutrients) %in% colsNotToMultiply]
-#   dt.nutrients[, (colsToMultiply) := lapply(.SD, function(x) (x * 10)), .SDcols = colsToMultiply]
-#   return(dt.nutrients)
-# }
-
-#' Title budgetShare
+#' Title priceGrowth
 #' calculate the share of per capita income spent on IMPACT commodities
 #' writes out data table to the results directory
 #' @param dt.IMPACTfood
 #' @param region - the grouping of countries to aggregate to
 #' @return null
 #' @export
-budgetShareNpriceGrowth <- function(dt.foodNnuts, suffix) {
+priceGrowth <- function(dt.IMPACTfood) {
   #' prices are in 2005 dollars per metric ton
   #' pcGDP is in 1000 2005 dollars.
   #' 'FoodAvailability' variable is in kgs/person/year. DinY is days in year
-  dt.budget <- data.table::copy(dt.foodNnuts)
-  keepListCol <- c("FoodAvailability", "PWX0", "PCX0", "pcGDPX0", "scenario", "region_code.IMPACT159", "year")
-  dt.budget[, setdiff(names(dt.budget), keepListCol) := NULL]
-
-  # data.table::setkeyv(dt.temp, c("scenario", "region_code.IMPACT159", "year"))
-  # budget is in 1000 2005 dollars
-  # dt.temp[, budget.PWX0 := (sum(FoodAvailability * PWX0 / 1000 )) / 1000, by = eval(data.table::key(dt.temp))]
-  # dt.temp[, budget.PCX0 := (sum(FoodAvailability * PCX0 / 1000 )) / 1000, by = eval(data.table::key(dt.temp))]
-  dt.budget[, budget.PWX0 := (sum(FoodAvailability * PWX0 / 1000 )) / 1000, by = c("scenario", "region_code.IMPACT159", "year")]
-  dt.budget[, budget.PCX0 := (sum(FoodAvailability * PCX0 / 1000 )) / 1000, by = c("scenario", "region_code.IMPACT159", "year")]
-  # data.table::setkey(dt.temp, budget.PWX0) is this necessary?
-  # dt.budget <- dt.temp[!duplicated(budget.PCX0),]
-  #  dt.budget <- data.table::copy(dt.temp)
-  deleteListCol <- c("FoodAvailability", "PCX0","PWX0")
-  dt.budget[,(deleteListCol) := NULL]
-  dt.budget <- unique(dt.budget)
-  # at world prices -----
-  dt.budget[, incShare.PWX0 := 100 * budget.PWX0 / pcGDPX0 ]
-  # at domestic prices -----
-  dt.budget[, incShare.PCX0 := 100 * budget.PCX0 / pcGDPX0 ]
-  data.table::setkeyv(dt.budget, c("scenario", "region_code.IMPACT159", "year"))
-  inDT <- dt.budget
-  outName <- paste("dt.budgetShare", suffix, sep = ".")
-  desc <- "share of food budget (domestic and world prices) in per capita GDP"
-  cleanup(inDT,outName,fileloc("resultsDir"), desc = desc)
-
   # get world price change from 2010 to 2050 by food groups
-  #  dt.foodGroupsInfo <- getNewestVersion("dt.foodGroupsInfo", fileloc("mData"))
-  #  dt.foodGroupsInfo[, c("description", "food_group_assignment", "food_groups", "food_group_codes", "staple_category") := NULL]
-  # dt.temp <- merge(dt.foodGroupsInfo, dt.temp, by = "IMPACT_code")
-  dt.PriceGrowth <- data.table::copy(dt.foodNnuts)
-  keepListCol <- c("IMPACT_code", "scenario", "region_code.IMPACT159", "year", "FoodAvailability", "food_group_code", "staple_code", "PWX0")
-  dt.PriceGrowth[, setdiff(names(dt.PriceGrowth), keepListCol) := NULL]
+  dt.PriceGrowth <- data.table::copy(dt.IMPACTfood)
 
   # because these have no prices
-  deleteListRow <- c("c_aqan","c_aqpl", "c_beer", "c_Crust", "c_FrshD", "c_FshOil", "c_Mllsc", "c_ODmrsl", "c_OMarn",
-                     "c_OPelag", "c_spirits", "c_wine")
+  deleteListRowNoPrices <- c("c_aqan","c_aqpl", "c_beer", "c_Crust", "c_FrshD", "c_FshOil", "c_Mllsc", "c_ODmrsl", "c_OMarn",
+                             "c_OPelag", "c_spirits", "c_wine")
+
+   dt.foodGroupsInfo <- getNewestVersion("dt.foodGroupsInfo", fileloc("mData"))
+   dt.foodGroupsInfo[, c("description", "food_group_assignment", "food_groups", "food_group_codes", "staple_category") := NULL]
+   dt.PriceGrowth <- merge(dt.foodGroupsInfo, dt.PriceGrowth, by = "IMPACT_code")
+
+  keepListCol <- c("IMPACT_code", "scenario", "region_code.IMPACT159", "year", "FoodAvailability", "food_group_code", "staple_code", "PWX0")
+  dt.PriceGrowth[, setdiff(names(dt.PriceGrowth), keepListCol) := NULL]
+  dt.PriceGrowth <- dt.PriceGrowth[!IMPACT_code %in% deleteListRowNoPrices, ]
+
   keepListYears <- c("X2010", "X2050")
-  dt.PriceGrowth <- dt.PriceGrowth[!IMPACT_code %in% deleteListRow & year %in% keepListYears]
+  dt.PriceGrowth <- dt.PriceGrowth[year %in% keepListYears]
   dt.PriceGrowth <- unique(dt.PriceGrowth)
   dt.PriceGrowth <- dt.PriceGrowth[, growthRatePW :=  lapply(.SD, function(x)((x/data.table::shift(x))^(1/(2050 - 2010)) - 1) * 100),
                                    .SDcols = "PWX0", by = c("scenario","IMPACT_code")]
@@ -245,6 +172,50 @@ budgetShareNpriceGrowth <- function(dt.foodNnuts, suffix) {
   desc <- "Growth in prices of food groups"
   cleanup(inDT, outName, fileloc("resultsDir"), "xlsx", desc = desc)
 }
+
+budgetShare <- function(dt.IMPACTfood) {
+  #' prices are in 2005 dollars per metric ton
+  #' pcGDP is in 1000 2005 dollars.
+  #' 'FoodAvailability' variable is in kgs/person/year. DinY is days in year
+  dt.budget <- data.table::copy(dt.IMPACTfood)
+  # because these have no prices
+  deleteListRowNoPrices <- c("c_aqan","c_aqpl", "c_beer", "c_Crust", "c_FrshD", "c_FshOil", "c_Mllsc", "c_ODmrsl", "c_OMarn",
+                             "c_OPelag", "c_spirits", "c_wine")
+  dt.budget <- dt.budget[!IMPACT_code %in% deleteListRowNoPrices, ]
+  keepListCol <- c("IMPACT_code", "FoodAvailability", "PWX0", "PCX0", "pcGDPX0", "scenario", "region_code.IMPACT159", "year")
+  dt.budget[, setdiff(names(dt.budget), keepListCol) := NULL]
+  # data.table::setkeyv(dt.temp, c("scenario", "region_code.IMPACT159", "year"))
+  # budget is in 1000 2005 dollars
+  # dt.temp[, budget.PWX0 := (sum(FoodAvailability * PWX0 / 1000 )) / 1000, by = eval(data.table::key(dt.temp))]
+  # dt.temp[, budget.PCX0 := (sum(FoodAvailability * PCX0 / 1000 )) / 1000, by = eval(data.table::key(dt.temp))]
+
+  dt.budget[, foodItemCost.PWX0 := FoodAvailability * PWX0 / 1000 ]
+  dt.budget[, foodItemCost.PCX0 := FoodAvailability * PCX0/ 1000]
+
+  dt.budget[, budget.PWX0 := sum(foodItemCost.PWX0), by = c("scenario", "year", "region_code.IMPACT159")]
+  dt.budget[, budget.PCX0 := sum(foodItemCost.PCX0), by = c("scenario", "year", "region_code.IMPACT159")]
+  dt.budget[, budget.PWX0 := budget.PWX0 / 1000]
+  dt.budget[, budget.PCX0 := budget.PCX0 / 1000]
+  # dt.budget[, budget.PWX0 := (sum(FoodAvailability * PWX0 / 1000 )) / 1000, by = c("scenario", "region_code.IMPACT159", "year")]
+  # dt.budget[, budget.PCX0 := (sum(FoodAvailability * PCX0 / 1000 )) / 1000, by = c("scenario", "region_code.IMPACT159", "year")]
+  # data.table::setkey(dt.temp, budget.PWX0) is this necessary?
+  # dt.budget <- dt.temp[!duplicated(budget.PCX0),]
+  #  dt.budget <- data.table::copy(dt.temp)
+  deleteListCol <- c("FoodAvailability", "PCX0","PWX0")
+
+  dt.budget[,(deleteListCol) := NULL]
+  dt.budget <- unique(dt.budget)
+  # at world prices -----
+  dt.budget[, incShare.PWX0 := 100 * budget.PWX0 / pcGDPX0 ]
+  # at domestic prices -----
+  dt.budget[, incShare.PCX0 := 100 * budget.PCX0 / pcGDPX0 ]
+  data.table::setkeyv(dt.budget, c("scenario", "region_code.IMPACT159", "year"))
+  inDT <- dt.budget
+  outName <- "dt.budgetShare"
+  desc <- "share of food budget (domestic and world prices) in per capita GDP"
+  cleanup(inDT,outName,fileloc("resultsDir"), desc = desc)
+}
+
 #' iron and zinc bioavailability adjustments
 adjustBioavailability <- function(dt.foodNnuts) {
   #  dt.nutsReqPerCap <- getNewestVersion(req)

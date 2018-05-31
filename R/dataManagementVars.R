@@ -43,9 +43,9 @@ setnames(dt.nutrients.sum.var, old = "value", new = "valueVar")
 setnames(dt.nutrients.sum.base, old = "value", new = "valueBase")
 temp <- merge(dt.nutrients.sum.var, dt.nutrients.sum.base)
 # delete irrelevant nutrients
-deleteListNuts <- c("kcalsPerDay.other", "ethanol_g", "kcalsPerDay.ethanol", "kcals.ethanol_g",
-                    "kcalsPerDay.ft_acds_tot_sat", "kcalsPerDay.protein", "kcalsPerDay.sugar",
-                    "kcals.protein_g", "kcals.sugar_g", "kcalsPerDay.carbohydrate", "kcalsPerDay.fat",
+deleteListNuts <- c("kcalsPerDay_other", "ethanol_g", "kcalsPerDay_ethanol", "kcals.ethanol_g",
+                    "kcalsPerDay_ft_acds_tot_sat", "kcalsPerDay_protein", "kcalsPerDay_sugar",
+                    "kcals.protein_g", "kcals.sugar_g", "kcalsPerDay_carbohydrate", "kcalsPerDay_fat",
                     "ft_acds_mono_unsat_g", "ft_acds_plyunst_g", "ft_acds_tot_sat_g",
                     "kcals.carbohydrate_g", "kcals.fat_g", "kcals.ft_acds_tot_sat_g")
 temp <- temp[!nutrient %in% deleteListNuts]
@@ -103,9 +103,9 @@ temp <- merge(dt.nutrients.sum.var, dt.nutrients.sum.base)
 # setnames(dt.nutrients.sum.base, old = "value", new = "valueBase")
 # temp <- merge(dt.nutrients.sumVar, dt.nutrients.sum.base)
 # # delete irrelevant nutrients
-# deleteListNuts <- c("kcalsPerDay.other", "ethanol_g", "kcalsPerDay.ethanol", "kcals.ethanol_g",
-#                     "kcalsPerDay.ft_acds_tot_sat", "kcalsPerDay.protein", "kcalsPerDay.sugar",
-#                     "kcals.protein_g", "kcals.sugar_g", "kcalsPerDay.carbohydrate", "kcalsPerDay.fat",
+# deleteListNuts <- c("kcalsPerDay_other", "ethanol_g", "kcalsPerDay_ethanol", "kcals.ethanol_g",
+#                     "kcalsPerDay_ft_acds_tot_sat", "kcalsPerDay_protein", "kcalsPerDay_sugar",
+#                     "kcals.protein_g", "kcals.sugar_g", "kcalsPerDay_carbohydrate", "kcalsPerDay_fat",
 #                     "ft_acds_mono_unsat_g", "ft_acds_plyunst_g", "ft_acds_tot_sat_g",
 #                     "kcals.carbohydrate_g", "kcals.fat_g", "kcals.ft_acds_tot_sat_g")
 temp <- temp[!nutrient %in% deleteListNuts]

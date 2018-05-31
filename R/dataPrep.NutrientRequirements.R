@@ -43,66 +43,66 @@ reqsFile <- fileNameList("DRIs")
 req.metadata <- openxlsx::read.xlsx(reqsFile, sheet = "Reference", colNames = FALSE)
 format(req.metadata, justify = c("left"))
 
-#' @param req.EAR - Estimated Average Requirements (EAR) data
-req.EAR <-
+#' @param req_EAR - Estimated Average Requirements (EAR) data
+req_EAR <-
   data.table::as.data.table(openxlsx::read.xlsx(reqsFile, startRow = 1,  colNames = TRUE, sheet = "EAR"))
-req.EAR[, c("status_group", "age_group") := NULL]
+req_EAR[, c("status_group", "age_group") := NULL]
 
-#' @param req.RDA.vits - Recommended Daily Allowance (RDA) data for vitamins
-req.RDA.vits <-
+#' @param req_RDA_vits - Recommended Daily Allowance (RDA) data for vitamins
+req_RDA_vits <-
   data.table::as.data.table(openxlsx::read.xlsx(reqsFile, startRow = 1,  colNames = TRUE, sheet = "RDAorAI_vitamins"))
-req.RDA.vits[, c("status_group", "age_group") := NULL]
+req_RDA_vits[, c("status_group", "age_group") := NULL]
 
-#' @param req.RDA.minrls - Recommended Daily Allowance (RDA) data for minerals
-req.RDA.minrls <-
+#' @param req_RDA_minrls - Recommended Daily Allowance (RDA) data for minerals
+req_RDA_minrls <-
   data.table::as.data.table(openxlsx::read.xlsx(reqsFile, startRow = 1,  colNames = TRUE, sheet = "RDAorAI_minerals"))
-req.RDA.minrls[, c("status_group", "age_group") := NULL]
+req_RDA_minrls[, c("status_group", "age_group") := NULL]
 
 #remove the requirements for iron and zinc that are not based on physiological requirements (PR)
-req.RDA.minrls[, c("iron_mg", "zinc_mg") := NULL]
+req_RDA_minrls[, c("iron_mg", "zinc_mg") := NULL]
 
 # add PR based iron and zinc requirements to the reqs data
-req.PR.iron <-
+req_PR_iron <-
   data.table::as.data.table(openxlsx::read.xlsx(reqsFile, startRow = 1,  colNames = TRUE, sheet = "PR_iron"))
-req.PR.iron[, c("status_group", "age_group") := NULL]
-req.PR.zinc <-
+req_PR_iron[, c("status_group", "age_group") := NULL]
+req_PR_zinc <-
   data.table::as.data.table(openxlsx::read.xlsx(reqsFile, startRow = 1,  colNames = TRUE, sheet = "PR_zinc"))
-req.PR.zinc[, c("status_group", "age_group") := NULL]
-req.RDA.minrls <- merge(req.RDA.minrls, req.PR.iron, by = c("ageGenderCode"))
-req.RDA.minrls <- merge(req.RDA.minrls, req.PR.zinc, by = c("ageGenderCode"))
+req_PR_zinc[, c("status_group", "age_group") := NULL]
+req_RDA_minrls <- merge(req_RDA_minrls, req_PR_iron, by = c("ageGenderCode"))
+req_RDA_minrls <- merge(req_RDA_minrls, req_PR_zinc, by = c("ageGenderCode"))
 
-#' @param req.RDA.macro - Recommended Daily Allowance (RDA) data for macro nutrients
-req.RDA.macro <-
+#' @param req_RDA_macro - Recommended Daily Allowance (RDA) data for macro nutrients
+req_RDA_macro <-
   data.table::as.data.table(openxlsx::read.xlsx(reqsFile, startRow = 1, colNames = TRUE, sheet = "RDAorAI_macro"))
-req.RDA.macro[, c("status_group", "age_group") := NULL]
+req_RDA_macro[, c("status_group", "age_group") := NULL]
 
-#' @param req.UL.vits - Recommended Upper Limit (UL) data for vitamins
-req.UL.vits <-
+#' @param req_UL.vits - Recommended Upper Limit (UL) data for vitamins
+req_UL_vits <-
   data.table::as.data.table(openxlsx::read.xlsx(reqsFile, startRow = 1,  colNames = TRUE, sheet = "UL_vitamins"))
-req.UL.vits[, c("status_group", "age_group") := NULL]
+req_UL_vits[, c("status_group", "age_group") := NULL]
 
-#' @param req.UL.minrls - Recommended Upper Limit (UL) data for minerals
-req.UL.minrls <-
+#' @param req_UL.minrls - Recommended Upper Limit (UL) data for minerals
+req_UL_minrls <-
   data.table::as.data.table(openxlsx::read.xlsx(reqsFile, startRow = 1,  colNames = TRUE, sheet = "UL_minerals"))
-req.UL.minrls[, c("status_group", "age_group") := NULL]
+req_UL_minrls[, c("status_group", "age_group") := NULL]
 
-#' @param req.AMDR_hi - Acceptable Macronutrient Distribution Range, high level
-req.AMDR_hi <-
+#' @param req_AMDR_hi - Acceptable Macronutrient Distribution Range, high level
+req_AMDR_hi <-
   data.table::as.data.table(openxlsx::read.xlsx(reqsFile, startRow = 1,  colNames = TRUE, sheet = "AMDR_hi"))
-req.AMDR_hi[, c("status_group", "age_group") := NULL]
+req_AMDR_hi[, c("status_group", "age_group") := NULL]
 
-#' @param req.AMDR_lo - Acceptable Macronutrient Distribution Range, low level
-req.AMDR_lo <-
+#' @param req_AMDR_lo - Acceptable Macronutrient Distribution Range, low level
+req_AMDR_lo <-
   data.table::as.data.table(openxlsx::read.xlsx(reqsFile, startRow = 1,  colNames = TRUE, sheet = "AMDR_lo"))
-req.AMDR_lo[, c("status_group", "age_group") := NULL]
+req_AMDR_lo[, c("status_group", "age_group") := NULL]
 
 #' @param req.MRV.alcohol - maximum recommended consumption of alcohol. The only MRV in the file is alcohol
-req.MRVs <-
+req_MRVs <-
   data.table::as.data.table(openxlsx::read.xlsx(reqsFile, startRow = 1, colNames = TRUE, sheet = "MRVs"))
-req.MRVs[, c("status_group", "age_group") := NULL]
+req_MRVs[, c("status_group", "age_group") := NULL]
 
-reqsList <- c("req.EAR","req.RDA.vits","req.RDA.minrls","req.RDA.macro","req.UL.vits","req.UL.minrls",
-              "req.AMDR_hi", "req.AMDR_lo","req.MRVs")
+reqsList <- c("req_EAR","req_RDA_vits","req_RDA_minrls","req_RDA_macro","req_UL_vits","req_UL_minrls",
+              "req_AMDR_hi", "req_AMDR_lo","req_MRVs")
 
 # create lists of nutrients common to the food nutrient and  requirements lists ------
 # keep only the common nutrients in the req list---

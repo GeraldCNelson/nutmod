@@ -29,12 +29,12 @@ keepYearList <- keyVariable("keepYearList")
 
 # Read IMPACT food and nutrient content data ------------------------------
 
-  for (switchloop in 1:3) {
-    switch.useCookingRetnValues <- keyVariable("switch.useCookingRetnValues")
-    switch.fixFish <- keyVariable("switch.fixFish") #get rid of nutrient info for shrimp, tuna, and salmon because they are not currently in the FBS data
-    if (switchloop == 1) {switch.vars <- FALSE;  switch.fortification <- FALSE; suffix = "base"}
-    if (switchloop == 2) {switch.vars <- TRUE;  switch.fortification <- FALSE; suffix = "var"}
-    if (switchloop == 3) {switch.vars <- TRUE;  switch.fortification <- TRUE; suffix = "varFort"}
+for (switchloop in getSwitchChoice()) {
+  switch.useCookingRetnValues <- keyVariable("switch.useCookingRetnValues")
+  switch.fixFish <- keyVariable("switch.fixFish") #get rid of nutrient info for shrimp, tuna, and salmon because they are not currently in the FBS data
+  if (switchloop == 1) {switch.vars <- FALSE;  switch.fortification <- FALSE; suffix = "base"}
+  if (switchloop == 2) {switch.vars <- TRUE;  switch.fortification <- FALSE; suffix = "var"}
+  if (switchloop == 3) {switch.vars <- TRUE;  switch.fortification <- TRUE; suffix = "varFort"}
 
     dt.foodNnuts <- getNewestVersion(paste("dt.foodNnuts", suffix, sep = "."), fileloc("resultsDir"))
 
@@ -99,14 +99,14 @@ keepYearList <- keyVariable("keepYearList")
     #' for nutrient distance measures such as in the MFAD, all nutrients must be divided by their RDA
     #' this is the adequacy ratio.
     #' get ratios for individual food items
-    dt.ratio.macro <- getNewestVersion(paste("RDA.macro_all_reqRatio", suffix, sep = "."), fileloc("resultsDir"))
-    dt.ratio.vits <- getNewestVersion(paste("RDA.vits_all_reqRatio", suffix, sep = "."), fileloc("resultsDir"))
-    dt.ratio.minrls <- getNewestVersion(paste("RDA.minrls_all_reqRatio", suffix, sep = "."), fileloc("resultsDir"))
+    dt.ratio.macro <- getNewestVersion(paste("reqRatio_all_RDA_macro", suffix, sep = "."), fileloc("resultsDir"))
+    dt.ratio.vits <- getNewestVersion(paste("reqRatio_all_RDA_vits", suffix, sep = "."), fileloc("resultsDir"))
+    dt.ratio.minrls <- getNewestVersion(paste("reqRatio_all_RDA_minrls", suffix, sep = "."), fileloc("resultsDir"))
 
     #' get ratios for sum of all food items
-    dt.ratio.macro.sum <- getNewestVersion(paste("RDA.macro_sum_reqRatio", suffix, sep = "."), fileloc("resultsDir"))
-    dt.ratio.vits.sum <- getNewestVersion(paste("RDA.vits_sum_reqRatio", suffix, sep = "."), fileloc("resultsDir"))
-    dt.ratio.minrls.sum <- getNewestVersion(paste("RDA.minrls_sum_reqRatio", suffix, sep = "."), fileloc("resultsDir"))
+    dt.ratio.macro.sum <- getNewestVersion(paste("reqRatio_sum_RDA_macro", suffix, sep = "."), fileloc("resultsDir"))
+    dt.ratio.vits.sum <- getNewestVersion(paste("reqRatio_sum_RDA_vits", suffix, sep = "."), fileloc("resultsDir"))
+    dt.ratio.minrls.sum <- getNewestVersion(paste("reqRatio_sum_RDA_minrls", suffix, sep = "."), fileloc("resultsDir"))
 
     #' combine the req ratios for all macro, vits, and minerals that have a req ratio
     dt.ratio <- data.table::rbindlist(list(dt.ratio.macro, dt.ratio.vits, dt.ratio.minrls))
@@ -125,7 +125,7 @@ keepYearList <- keyVariable("keepYearList")
       formula = formula.wide,
       value.var = "value"
     )
-    dt.adequateRatio.nuts[is.na(dt.adequateRatio.nuts)] <- 0
+    dt.adequateRatio.nuts[, (names(dt.adequateRatio.nuts)) := lapply(.SD, function(x){x[is.na(x)] <- 0; x}), .SDcols = names(dt.adequateRatio.nuts)]
 
     #' make columns for each of the nutrients at the country level
     formula.wide <- paste("scenario + region_code.IMPACT159 + year ~ nutrient")
@@ -134,7 +134,7 @@ keepYearList <- keyVariable("keepYearList")
       formula = formula.wide,
       value.var = "value"
     )
-    dt.adequateRatio.nuts.sum[is.na(dt.adequateRatio.nuts.sum)] <- 0
+    dt.adequateRatio.nuts.sum[, (names(dt.adequateRatio.nuts.sum)) := lapply(.SD, function(x){x[is.na(x)] <- 0; x}), .SDcols = names(dt.adequateRatio.nuts.sum)]
 
     #' make columns for each of the IMPACT commodities
     formula.wide <- paste("scenario + region_code.IMPACT159 + year + nutrient ~ IMPACT_code")
@@ -143,14 +143,14 @@ keepYearList <- keyVariable("keepYearList")
       formula = formula.wide,
       value.var = "value"
     )
-    dt.adequateRatio.commods[is.na(dt.adequateRatio.commods)] <- 0
+    dt.adequateRatio.commods[, (names(dt.adequateRatio.commods)) := lapply(.SD, function(x){x[is.na(x)] <- 0; x}), .SDcols = names(dt.adequateRatio.commods)]
 
     # do by nutrients
     # # MFAD is calculated on one of the triangles of the distance matrix. Since it is symmetrical, we can
     # # sum over the whole matrix and divide by 2. .N is the number of food items. It varies by country.
     dt.MFAD <- data.table::copy(dt.adequateRatio.nuts)
-    system.time(dt.MFAD[, `:=`(MFAD = sum(dist(.SD)) / (2 * .N)),
-                        by = c("scenario", "year", "region_code.IMPACT159"), .SDcols = nutList])
+  dt.MFAD[, `:=`(MFAD = sum(dist(.SD)) / (2 * .N)),
+                        by = c("scenario", "year", "region_code.IMPACT159"), .SDcols = nutList]
     keepListCol.MFAD <- c("scenario", "region_code.IMPACT159", "year", "MFAD" )
     dt.MFAD <- unique(dt.MFAD[, (keepListCol.MFAD), with = FALSE])
     data.table::setnames(dt.MFAD, old = "MFAD", new = "value")
@@ -256,8 +256,8 @@ keepYearList <- keyVariable("keepYearList")
     # dt.nutrients.kcals <- getNewestVersion("dt.nutrients.kcals", fileloc("resultsDir"))
     #
     # keepListCol <- c("IMPACT_code", "scenario", "region_code.IMPACT159",  "year", "kcalsPerCommod", "foodAvailpDay",
-    #                  "kcalsPerDay.tot", "kcalsPerDay.carbohydrate", "kcalsPerDay.fat", "kcalsPerDay.protein", "kcalsPerDay.other", "kcalsPerDay.ethanol",
-    #                  "kcalsPerDay.sugar", "kcalsPerDay.ft_acds_tot_sat")
+    #                  "kcalsPerDay_tot", "kcalsPerDay_carbohydrate", "kcalsPerDay_fat", "kcalsPerDay_protein", "kcalsPerDay_other", "kcalsPerDay_ethanol",
+    #                  "kcalsPerDay_sugar", "kcalsPerDay_ft_acds_tot_sat")
     # dt.nutrients.kcals <- dt.nutrients.kcals[year %in% keepYearList, (keepListCol), with = FALSE]
 
     # get rid of Somalia data in dt.nutrients.kcals
@@ -265,13 +265,13 @@ keepYearList <- keyVariable("keepYearList")
 
     # create food group share of kcals ---------------
     dt.foodGroupLookUp <- data.table::copy(dt.foodNnuts)
-    keepListCol <- c("scenario", "region_code.IMPACT159", "year", "IMPACT_code", "kcalsPerCommod", "kcalsPerDay.tot", "food_group_code",
-                     "kcalsPerDay.carbohydrate", "kcalsPerDay.fat", "kcalsPerDay.protein", "kcalsPerDay.other", "kcalsPerDay.ethanol", "kcalsPerDay.sugar", "kcalsPerDay.ft_acds_tot_sat")
+    keepListCol <- c("scenario", "region_code.IMPACT159", "year", "IMPACT_code", "kcalsPerCommod", "kcalsPerDay_tot", "food_group_code",
+                     "kcalsPerDay_carbohydrate", "kcalsPerDay_fat", "kcalsPerDay_protein", "kcalsPerDay_other", "kcalsPerDay_ethanol", "kcalsPerDay_sugar", "kcalsPerDay_ft_acds_tot_sat")
     deleteListCol <- names(dt.foodGroupLookUp)[!names(dt.foodGroupLookUp) %in% keepListCol]
     dt.foodGroupLookUp[,(deleteListCol) := NULL]
     dt.foodGroupLookUp <- unique(dt.foodGroupLookUp)
-    dt.foodGroupLookUp[,value := sum(kcalsPerCommod) / kcalsPerDay.tot, by = c("scenario", "region_code.IMPACT159", "year", "food_group_code")]
-    dt.foodGroupLookUp[, c("IMPACT_code", "kcalsPerCommod", "kcalsPerDay.tot") := NULL]
+    dt.foodGroupLookUp[,value := sum(kcalsPerCommod) / kcalsPerDay_tot, by = c("scenario", "region_code.IMPACT159", "year", "food_group_code")]
+    dt.foodGroupLookUp[, c("IMPACT_code", "kcalsPerCommod", "kcalsPerDay_tot") := NULL]
     dt.foodGroupLookUp <- unique(dt.foodGroupLookUp)
 
     # convert to percent
@@ -286,7 +286,7 @@ keepYearList <- keyVariable("keepYearList")
     dt.qi <- merge(dt.ratio.adj, dt.foodNnuts, by = c("IMPACT_code", "scenario", "region_code.IMPACT159", "year" ))
 
     # get just kcals per day for each country -----
-    dt.kcalsInfo.region <- dt.foodNnuts[, c("scenario", "region_code.IMPACT159", "year", "kcalsPerDay.tot"), with = FALSE]
+    dt.kcalsInfo.region <- dt.foodNnuts[, c("scenario", "region_code.IMPACT159", "year", "kcalsPerDay_tot"), with = FALSE]
     dt.kcalsInfo.region <- unique(dt.kcalsInfo.region)
 
     # combine the qi ratio for each nutrient from all food items with the kcals
@@ -309,7 +309,7 @@ keepYearList <- keyVariable("keepYearList")
     cleanup(inDT, outName, fileloc("resultsDir"), desc = desc)
 
     # # calculate QIcomposite ---------------
-    # dt.qi[, QI.comp := sum(QI * kcalsPerCommod / kcalsPerDay.tot), by = c("scenario", "year", "region_code.IMPACT159")]
+    # dt.qi[, QI.comp := sum(QI * kcalsPerCommod / kcalsPerDay_tot), by = c("scenario", "year", "region_code.IMPACT159")]
     # keepListCol.QIcomp <- c("scenario", "region_code.IMPACT159",  "year", "QI.comp")
     # dt.QIcomp <- dt.qi[, (keepListCol.QIcomp), with = FALSE]
     # dt.QIcomp <- unique(dt.QIcomp)
@@ -331,11 +331,11 @@ keepYearList <- keyVariable("keepYearList")
     # cleanup(inDT, outName, fileloc("resultsDir"), desc = desc)
 
     DT <- data.table::copy(dt.foodNnuts)
-    #keep rows that are needed
-    keepListCol <- c("scenario", "region_code.IMPACT159", "year", "IMPACT_code", "kcalsPerDay.tot", "kcalsPerDay.carbohydrate","kcalsPerDay.fat", "kcalsPerDay.protein",
-                     "kcalsPerDay.other", "kcalsPerDay.ethanol", "kcalsPerDay.sugar", "kcalsPerDay.ft_acds_tot_sat")
-    deleteListCol <- names(DT)[!names(DT) %in% keepListCol]
-    DT[, (deleteListCol) := NULL]
+    #keep columns that are needed
+    keepListCol <- c("scenario", "region_code.IMPACT159", "year", "IMPACT_code", "kcalsPerDay_tot", "kcalsPerDay_carbohydrate","kcalsPerDay_fat", "kcalsPerDay_protein",
+                     "kcalsPerDay_other", "kcalsPerDay_ethanol", "kcalsPerDay_sugar", "kcalsPerDay_ft_acds_tot_sat")
+  #  deleteListCol <- names(DT)[!names(DT) %in% keepListCol]
+    DT[, setdiff(names(DT), keepListCol) := NULL]
     DT <- unique(DT)
 
     nutrients.disqual_kcals <- paste0("kcals.",nutrients.disqual)
@@ -343,7 +343,7 @@ keepYearList <- keyVariable("keepYearList")
     # #set up data for the stacked bar charts for calorie sources.
     # dt.kcals <- data.table::copy(dt.nutrients.kcals)
     # dt.kcals <- unique(dt.kcals)
-    # kcalsSources <- c("kcalsPerDay.other", "kcalsPerDay.carbohydrate", "kcalsPerDay.fat",  "kcalsPerDay.protein")
+    # kcalsSources <- c("kcalsPerDay_other", "kcalsPerDay_carbohydrate", "kcalsPerDay_fat",  "kcalsPerDay_protein")
     # dt.kcals.long <- data.table::melt(
     #   data = dt.kcals,
     #   id.vars = c("scenario", "region_code.IMPACT159", "year"),
@@ -360,13 +360,13 @@ keepYearList <- keyVariable("keepYearList")
     # calculate nutrient to MRV ratio for all disqualifying nutrients -----
     di <- as.vector(paste0("di.",nutrients.disqual[!nutrients.disqual %in% "ethanol"]))
     nutrients.disqual.MRV <- as.vector(paste0("mrv.", nutrients.disqual[!nutrients.disqual %in% "ethanol"]))
-    nutrients.disqual.kcals <- as.vector(paste0("kcalsPerDay.",nutrients.disqual[!nutrients.disqual %in% "ethanol"]))
+    nutrients.disqual.kcals <- as.vector(paste0("kcalsPerDay_",nutrients.disqual[!nutrients.disqual %in% "ethanol"]))
     # see http://stackoverflow.com/questions/42471840/r-divide-a-list-or-vector-of-columns-by-a-list-or-vector-of-constants for source
     #dt.nutrients.kcals[, (di) := Map(`/`, mget(nutrients.disqual.kcals), mget(nutrients.disqual.MRV, envir = .GlobalEnv))]
 
     # do calculation for nutrients whose MRV is based on share of kcals
     for (l in seq_along(di)) {
-      set(DT, i = NULL, j = di[l], value = (DT[[nutrients.disqual.kcals[l]]] / DT[['kcalsPerDay.tot']]) /
+      set(DT, i = NULL, j = di[l], value = (DT[[nutrients.disqual.kcals[l]]] / DT[['kcalsPerDay_tot']]) /
             get(nutrients.disqual.MRV[l]))
     }
 
@@ -377,9 +377,8 @@ keepYearList <- keyVariable("keepYearList")
       set(DT, i = NULL, j = j, value = DT[[j]])
     }
 
-    #' do ethanol separately because it is about a specific numbers of grams (20 per cay) rather than share of total
-    #' ethanol MRV ratio is now created earlier
-    dt.mrv.ethanol <- getNewestVersion(paste("MRVs_sum_reqRatio", suffix, sep = "."), fileloc("resultsDir"))
+    #' do ethanol separately because it is about a specific numbers of grams (20 per day) rather than share of total
+    dt.mrv.ethanol <- getNewestVersion(paste("reqRatio_sum_MRVs", suffix, sep = "."), fileloc("resultsDir"))
     DT <- merge(dt.mrv.ethanol, DT, by = c("scenario",  "region_code.IMPACT159", "year" ))
     # dt.nutrients.kcals[, di.ethanol := value * 100] #April 29, 2017, remove the * 100
     DT[, di.ethanol := value ]
@@ -416,7 +415,7 @@ keepYearList <- keyVariable("keepYearList")
     # dt.di <- data.table::melt(
     #   data = dt.nutrients.kcals,
     #   id.vars = c( "scenario", "region_code.IMPACT159", "year"),
-    #   measure.vars = c(paste0("kcalsPerDay.", nutrients.disqual)),
+    #   measure.vars = c(paste0("kcalsPerDay_", nutrients.disqual)),
     #   variable.name = "nutrient",
     #   value.name = "di",
     #   variable.factor = FALSE
@@ -463,3 +462,4 @@ keepYearList <- keyVariable("keepYearList")
     cleanup(inDT, outName, fileloc("resultsDir"),  desc = desc)
   }
 finalizeScriptMetadata(metadataDT, sourceFile)
+

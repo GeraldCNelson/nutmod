@@ -26,7 +26,7 @@
 #' IMPACT159 includes all the countries in the ISO list, either individually or in a plus region
 #' SSP doesn't include the 56 countries in missingList.SSP. These are bunch of really small things.
 
-#Copyright (C) 2015 Gerald C,Nelson, except where noted
+#Copyright (C) 2015 Gerald C. Nelson, except where noted
 
 #     This program is free software: you can redistribute it and/or modify
 #     it under the terms of the GNU General Public License as published by

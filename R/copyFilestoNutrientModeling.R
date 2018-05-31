@@ -16,13 +16,9 @@
 #' dt.metadata
 #' dt.IMPACTgdxParams
 #' dt.foodGroupsInfo
-#' RDA.macro_sum_reqRatio
-#' RDA.vits_sum_reqRatio
-#' RDA.minrls_sum_reqRatio
-#' RDA.macro_FG_reqRatio
-#' RDA.vits_FG_reqRatio
-#' RDA.minrls_FG_reqRatio
-#' AMDR_hi_sum_reqRatio
+#' RDA_reqRatio_macro_sum
+#' RDA_reqRatio_vits_sum
+#' RDA_reqRatio_minrls_sum
 #' gdxinfo.csv
 
 #Copyright (C) 2016, 2017 Gerald C. Nelson, except where noted
@@ -62,10 +58,9 @@ copyFile <- function(fileShortName, sourceDir, destDir, fileType) {
   file.copy(from = paste(sourceDir, oldVersionList, sep = "/"), to = destDir, overwrite = TRUE)
 }
 
-for (switchloop in 1:3) {
-  # next two lines not needed here.
-  # switch.useCookingRetnValues <- keyVariable("switch.useCookingRetnValues")
-  # switch.fixFish <- keyVariable("switch.fixFish") #get rid of nutrient info for shrimp, tuna, and salmon because they are not currently in the FBS data
+for (switchloop in getSwitchChoice()) {
+  switch.useCookingRetnValues <- keyVariable("switch.useCookingRetnValues")
+  switch.fixFish <- keyVariable("switch.fixFish") #get rid of nutrient info for shrimp, tuna, and salmon because they are not currently in the FBS data
   if (switchloop == 1) {switch.vars <- FALSE;  switch.fortification <- FALSE; suffix = "base"}
   if (switchloop == 2) {switch.vars <- TRUE;  switch.fortification <- FALSE; suffix = "var"}
   if (switchloop == 3) {switch.vars <- TRUE;  switch.fortification <- TRUE; suffix = "varFort"}
@@ -74,11 +69,12 @@ for (switchloop in 1:3) {
   # dt.nutrients.sum.FG <- getNewestVersion("dt.nutrients.sum.FG", suffix, fileloc("resultsDir"))
   # dt.foodAvail.foodGroup <- getNewestVersion("dt.foodAvail.foodGroup", suffix, fileloc("resultsDir"))
 
-  copyListFromSpecificResults <- paste(c("dt.budgetShare", "dt.compDI", "dt.foodAvail.foodGroup", "dt.KcalShare.nonstaple",
-                                         "dt.MRVRatios", "dt.nutBalScore", "dt.nutrients.sum.all", "dt.nutrients.kcals", #changed dt.nutrients.adj to .sum.all
-                                         "dt.nutrients.sum.all", "dt.nutrients.sum.FG", "dt.RAOqe", "dt.shannonDiversity",
-                                         "food_agg_AMDR_hi", "RDA.macro_sum_reqRatio", "RDA.minrls_sum_reqRatio",
-                                         "RDA.vits_sum_reqRatio"), suffix, sep = ".")
+  copyListFromSpecificResults <- paste(c( "dt.compDI", "dt.foodAvail_foodGroup", "dt.KcalShare_nonstaple",
+                                         "dt.MRVRatios", "dt.nutBalScore", "dt.nutrients_sum_all", "dt.nutrients_kcals", #changed dt.nutrients_adj to _sum_all
+                                         "dt.nutrients_sum_all", "dt.nutrients_sum_FG", "dt.RAOqe", "dt.shannonDiversity",
+                                         "food_agg_AMDR_hi", "reqRatio_sum_RDA_macro", "reqRatio_sum_RDA_minrls",
+                                         "reqRatio_sum_RDA_vits"), suffix, sep = ".")
+  copyListFromSpecificResults <- c(copyListFromSpecificResults, "dt.budgetShare") # added because dt.budgetShare is identical for all suffixes
   copyListFromSpecificResultsNoSuffix <-c("dt.metadata")
   copyListFromiData <- c("dt.IMPACTgdxParams")
 

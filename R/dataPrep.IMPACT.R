@@ -11,7 +11,7 @@ createScriptMetaData()
 
 # Intro -------------------------------------------------------------------
 
-#Copyright (C) 2015 Gerald C. Nelson, except where noted
+#Copyright (C) 2015-2018 Gerald C. Nelson, except where noted
 
 # This program is free software: you can redistribute it and/or modify it
 # under the terms of the GNU General Public License as published by the Free
@@ -95,8 +95,8 @@ processIMPACT159Data <- function(gdxFileName, varName, catNames) {
   inDT <- dt.ptemp
   # this is where dt.FoodAvailability is written out, for example
   outName <- paste("dt", varName, sep = ".")
-  desc <- paste("Individual IMPACT variable", varName)
-  cleanup(inDT,outName,fileloc("iData"), desc = desc)
+  desc <- paste("Individual IMPACT gdx variable", varName)
+  cleanup(inDT,outName, fileloc("iData"), desc = desc)
 }
 
 vars.land <- c("AREACTYX0", "YLDCTYX0", "ANMLNUMCTYX0")

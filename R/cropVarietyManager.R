@@ -11,7 +11,7 @@
 #' individual graphs per pdf. The layout is guided by the layoutMatrixx structure, where the last x is replaced by a number (1 to 6). The heightsx variables
 #' control how tall the graph is in inches. The width is determined by the height variable and the relative width from the original file.
 
-#Copyright (C) 2015-2017 Gerald C,Nelson, except where noted
+#Copyright (C) 2015-2017 Gerald C. Nelson, except where noted
 
 #     This program is free software: you can redistribute it and/or modify
 #     it under the terms of the GNU General Public License as published by
@@ -169,7 +169,8 @@ head <- c("IMPACT_code", "usda_code", "Long_Desc", "IMPACT_conversion", "Ref_Des
 cookRetInfo <- c("retentioncode_aus", "RetnDesc" )
 extran <- oldOrder[!oldOrder %in% c(head,         macroNutrients, minerals, vitamins, addedSugar, fattyAcids, other, cookRetInfo, cols.cookingRet)]
 data.table::setcolorder(inDT,     c(head, extran, macroNutrients, minerals, vitamins, addedSugar, fattyAcids, other, cookRetInfo, cols.cookingRet))
-inDT[, 6:length(inDT)][is.na(inDT[, 6:length(inDT)])] <- 0
+NAlist <- names(inDT)[6:length(inDT)]
+inDT[, (NAlist) := lapply(.SD, function(x){x[is.na(x)] <- 0; x}), .SDcols = NAlist]
 
 outName <- "dt.nutVarieties_sr28"
 desc <- "USDA varieties used for specific countries"

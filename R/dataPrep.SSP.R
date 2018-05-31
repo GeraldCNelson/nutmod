@@ -6,7 +6,7 @@
 #' keepYearList (with year 0 added)
 #' It keeps population results only from the IIASA-WiC POP model.
 
-#Copyright (C) 2015-2017 Gerald C,Nelson, except where noted
+#Copyright (C) 2015-2017 Gerald C. Nelson, except where noted
 
 #   This program is free software: you can redistribute it and/or modify
 #   it under the terms of the GNU General Public License as published by

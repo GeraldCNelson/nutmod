@@ -198,7 +198,8 @@ dt.FBS.commods.final <- unique(dt.FBS.commods.melt)
 data.table::setnames(dt.FBS.commods.final,old = "value.sum", new = "value")
 data.table::setorder(dt.FBS.commods.final, ISO_code)
 dt.FBS.commods.final <- dt.FBS.commods.final[!is.na(country_name)]
-dt.FBS.commods.final[is.na(dt.FBS.commods.final)] <- 0
+dt.FBS.commods.final[, (names(dt.FBS.commods.final)) := lapply(.SD, function(x){x[is.na(x)] <- 0; x}), .SDcols = names(dt.FBS.commods.final)]
+
 inDT <- dt.FBS.commods.final
 outName <- "dt.FBS"
 desc <- "Sum FBS commodities to the IMPACT commodity they are included in"

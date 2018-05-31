@@ -80,8 +80,8 @@ dt.SSPGDPperCap <- merge(dt.SSPGDP, dt.SSPPop, by.x = c("scenario", "ISO_code", 
                          by.y = c( "scenario", "region_code.SSP", "year"))
 
 # convert ISO to region_code.IMPACT159
-keepListCol <- c("ISO_code", "region_code.SSP", "region_code.IMPACT159", "region_code.IMPACT115")
-dt.regions.all[, setdiff(names(dt.regions.all), keepListCol) := NULL]
+# keepListCol <- c("ISO_code", "region_code.SSP", "region_code.IMPACT159", "region_code.IMPACT115") commented out because dt.regions.all only has the elements in keepListCol May 31, 2018
+# dt.regions.all[, setdiff(names(dt.regions.all), keepListCol) := NULL]
 dt.SSPGDPperCap <- merge(dt.regions.all, dt.SSPGDPperCap, by = c("ISO_code"), all.x = TRUE)
 dt.SSPGDPperCap <- dt.SSPGDPperCap[is.na(value.GDP), value.GDP := 0] # get rid of some NAs in the small countries
 dt.SSPGDPperCap <- dt.SSPGDPperCap[is.na(value.pop), value.pop := 0]
@@ -122,6 +122,7 @@ dt.SSPPop.middleYear <- unique(dt.SSPPop.middleYear)
 
 #  get FBS data by both ISO code and IMPACT region code
 dt.FBS <- merge(dt.regions.all, dt.FBS, by = c("ISO_code"), all.x = TRUE)
+dt.FBS <- dt.FBS[!is.na(IMPACT_code)] # this seems to be necessary because the all.x in the previous line includes a bunch of really tiny 'countries'
 keepListCol <- c("region_code.IMPACT159", "ISO_code", "IMPACT_code", "year", "value")
 dt.FBS[, setdiff(names(dt.FBS), keepListCol) := NULL]
 
@@ -151,6 +152,7 @@ dt.FBS <- melt(dt.FBS.wide,
                id.vars = c("region_code.IMPACT159", "IMPACT_code"),
                measure.vars = c(middleYear.baseyear, middleYear.startyear),
                variable.name = "year")
+dt.FBS[, year := as.character(year)] # added May 31, 2018
 
 # make columns of the IMPACT_code data
 formula.wide <- "region_code.IMPACT159 + year ~ IMPACT_code"
@@ -160,7 +162,8 @@ formula = formula.wide,
 value.var = "value")
 
 # set X2005 values that are NA to 0
-dt.FBS.wide[is.na(dt.FBS.wide)] <- 0
+dt.FBS.wide[, (names(dt.FBS.wide)) := lapply(.SD, function(x){x[is.na(x)] <- 0; x}), .SDcols = names(dt.FBS.wide)]
+
 # working on fish elasticities -----
 # read in fish data from IMPACT  ----
 # # fish supply in 1000 metric tons. Not used so commmented out.
@@ -354,7 +357,8 @@ dt.GDPFBSelas <- rbind(temp.SSP2.NoCC, temp.SSP2.GFDL, temp.SSP2.HGEM, temp.SSP2
 # dt.GDPFBSelas units are kgs per person per day. To align with dt.foodAvailability they need to be per year.
 daysinyear <- keyVariable("DinY")
 dt.GDPFBSelas[, (fishNalcNames) := lapply(.SD, "*", daysinyear), .SDcols = (fishNalcNames)]
-dt.GDPFBSelas[is.na(dt.GDPFBSelas)] <- 0 # some countries have no consumption of the fish or alcoholic beverage items
+# some countries have no consumption of the fish or alcoholic beverage items
+dt.GDPFBSelas[, (names(dt.GDPFBSelas)) := lapply(.SD, function(x){x[is.na(x)] <- 0; x}), .SDcols = names(dt.GDPFBSelas)]
 
 idVarsFishnAlc <- c("scenario", "region_code.IMPACT159", "year")
 #' #' get the names of the fish and alcoholic beverages that are included in dt.fishScenario

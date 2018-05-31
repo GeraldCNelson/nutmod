@@ -119,13 +119,13 @@ dt.popTot <- dt.SSP.scen[, pop.tot := sum(value), by = eval(data.table::key(dt.S
 dt.popTot[,ageGenderCode := NULL]
 dt.popTot <- unique(dt.popTot)
 #a temporary line of code for testing
-# nutReqName <- "req.RDA.minrls_ssp"
+# nutReqName <- "req_RDA_minrls_ssp"
 
 
 #' Title repCons
 #' Short for Representative Consumer
 #' @param dt.pop - data table with population data for one scenario (at least for now)
-#' @param nutReqName - the short name of a nutrients requirement dataframe, eg. req.EAR.ssp
+#' @param nutReqName - the short name of a nutrients requirement dataframe, eg. req_EAR.ssp
 #' that has been converted to SSP age and gender groups
 #' @param common.nut - list of nutrients common to the food nutrient list and the
 #' requirements list
@@ -140,31 +140,30 @@ repCons <- function(dt.pop, nutReqName, ageRowsToSum) {
   # remove the nutrient requirements for the female age groups in ageRowsToSum
   # because they are already in dt.SSP.regionsF15_49
   dt.nutReq <- getNewestVersion(nutReqName)
-  #  dt.nutReq <- data.table::as.data.table(nutReq[!(nutReq$ageGenderCode %in% ageRowsToSumSSP), ])
   common.nut <- names(dt.nutReq)[2:length(dt.nutReq)]
-  data.table::setkey(dt.pop, ageGenderCode)
-  data.table::setkey(dt.nutReq, ageGenderCode)
-  # dt.temp <- cbind(dt.pop,dt.nutReq)
+  # data.table::setkey(dt.pop, ageGenderCode)
+  # data.table::setkey(dt.nutReq, ageGenderCode)
   dt.temp <- merge(dt.pop,dt.nutReq, by = "ageGenderCode", all.y = TRUE)
   keyValues <- c("scenario", "region_code.IMPACT159", "year", "ageGenderCode","pop.value")
   data.table::setkeyv(dt.temp,keyValues)
   # multiply the number of people be age and gender group by the nutritional requirements of that group
-  dt.temp[, (paste(common.nut, "prod", sep = ".")) :=
+  dt.temp[, (paste(common.nut, "prod", sep = "_")) :=
             lapply(.SD, function(x) x * dt.temp$pop.value), .SDcols = (common.nut)][,(common.nut) := NULL]
   keyValues <- c("scenario", "region_code.IMPACT159", "year")
   data.table::setkeyv(dt.temp, keyValues)
-  reqlist <- c(paste(common.nut, "prod", sep = "."),"pop.value")
+  reqlist <- c(paste(common.nut, "prod", sep = "_"), "pop.value")
   # sum the nutritional requirements for all groups
-  dt.temp[, (paste(reqlist, "sum", sep = ".")) := lapply(.SD, sum), by =
+  dt.temp[, (paste(reqlist, "sum", sep = "_")) := lapply(.SD, sum), by =
             keyValues, .SDcols = c(reqlist)][, c(reqlist) := NULL]
   dt.temp.sum <- unique(dt.temp[, c("scenario","region_code.IMPACT159", "year",
-                                    paste(reqlist, "sum", sep = ".")), with = FALSE])
+                                    paste(reqlist, "sum", sep = "_")), with = FALSE])
 
-  sumlist <- paste(common.nut, "prod.sum", sep = ".")
-  finlist <- paste(common.nut, "fin", sep = ".")
+  sumlist <- paste(common.nut, "prod_sum", sep = "_")
+  finlist <- paste(common.nut, "fin", sep = "_")
   #divide every element in sumlist by pop.value and put in corresponding variable in finlist
-  dt.temp.sum[,(finlist) := lapply(.SD,"/",dt.temp.sum$pop.value.sum),.SDcols = sumlist]
-  dt.temp.sum[, c("pop.value.sum", sumlist) := NULL]
+ # cat("\n\n", names(dt.temp.sum))
+  dt.temp.sum[,(finlist) := lapply(.SD,"/",dt.temp.sum$pop.value_sum),.SDcols = sumlist]
+  dt.temp.sum[, c("pop.value_sum", sumlist) := NULL]
   # change column names back to just nutrient names
   data.table::setnames(dt.temp.sum,old = finlist, new = common.nut)
   dt.temp.melt <- data.table::melt(
@@ -261,7 +260,7 @@ openxlsx::addStyle(
 
 # for loop for the nutrient requirements worksheets ----
 for (i in 1:length(reqsSSP)) {
-  dt.temp.internal <-  repCons(dt.pop, reqsSSP[i],ageRowsToSum)
+  dt.temp.internal <-  repCons(dt.pop, reqsSSP[i], ageRowsToSum)
   data.table::setkeyv(dt.temp.internal, c("nutrient", "region_code.IMPACT159"))
 
   dt.name <- paste(reqsSSP[i], "percap", sep = "_")

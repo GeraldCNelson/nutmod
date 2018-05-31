@@ -30,7 +30,7 @@ library(data.table) # this is needed everywhere and currently some scripts don't
 
 # sourcer is currently only used in automate.R but could potentially be used elsewhere
 sourcer <- function(sourceFile){
-  cat("\n\nRunning ", sourceFile)
+  cat("\n\nRunning ", sourceFile, "\n")
   source(sourceFile)
 }
 
@@ -134,7 +134,8 @@ getNewestVersion <- function(fileShortName, directory, fileType) {
   # cat("\nfileShortName is ", fileShortName))
   #  print(fileLongName)
   if (length(fileLongName) == 0) {
-    stop(sprintf("There is no file  '%s' in directory %s", fileShortName, mData))
+    cat("\nCan't find ", fileShortName, " in  directory ", mData, "\n")
+    stop(sprintf("\nThere is no file  '%s' in directory %s, \n", fileShortName, mData))
   } else {
     #   print(fileLongName)
     outFile = readRDS(paste(mData, fileLongName, sep = "/"))
@@ -326,6 +327,7 @@ capwords <- function(s, strict = FALSE) {
 
 cleanupScenarioNames <- function(dt.ptemp) {
   # replaces - with _ and removes 2 from a couple of USAID scenario
+  #  dt.ptemp[, scenario := gsub("-", "_", scenario)]
   dt.ptemp[, scenario := gsub("IRREXP-WUE2", "IRREXP_WUE2", scenario)]
   dt.ptemp[, scenario := gsub("PHL-DEV2", "PHL_DEV2", scenario)]
   dt.ptemp[, scenario := gsub("HGEM2", "HGEM", scenario)]
@@ -334,7 +336,7 @@ cleanupScenarioNames <- function(dt.ptemp) {
 }
 
 cleanupNutrientNames <- function(nutList) {
-  nutList <- gsub("_g.reqRatio","",nutList)
+  nutList <- gsub("_g_reqRatio","",nutList)
   nutList <- gsub("reqRatio","",nutList)
   nutList <- gsub("vit_","Vitamin ",nutList)
   nutList <- gsub("_µg","",nutList)
@@ -389,6 +391,7 @@ keyVariable <- function(variableName) {
                         "X2006", "X2007", "X2008", "X2009", "X2010", "X2011")
   FBSyearsToAverage.baseyear <- c("X2004", "X2005", "X2006")
   FBSyearsToAverage.startyear <- c("X2009", "X2010", "X2011")
+  fishComposites <- c("c_Mllsc", "c_ODmsrl", "c_OPelag", "c_Crust", "c_OMarn", "c_FrshD")
 
   keepListYears.composites <- c("Y2011", "Y2012", "Y2013")
   #' note shrimp, tuna, and salmon are removed in dataManagement.fish.R
@@ -401,7 +404,7 @@ keyVariable <- function(variableName) {
                                  "cyams", "corat", "cbean", "cchkp", "ccowp", "clent", "cpigp", "copul",
                                  "cbana", "cplnt", "csubf", "ctemf", "cvege", "csugr", "cgrnd", "cgdol",
                                  "crpol", "csoyb", "csbol", "csnfl", "csfol", "cplol", "cpkol", "crpsd",
-                                 "ctols", "ctool", "ccoco", "ccafe", "cteas", "cothr", IMPACTfish_code,
+                                 "ctols", "ctool", "ccoco", "ccafe", "cteas", "cothr", "ctoml", IMPACTfish_code, #ctoml added May 31 to be consistent with IFPRI list. FAO includes this as a food item.
                                  IMPACTalcohol_code))
 
   macronutrients <- c("protein_g", "fat_g", "carbohydrate_g",  "totalfiber_g")
@@ -413,8 +416,8 @@ keyVariable <- function(variableName) {
   fattyAcids <- c("ft_acds_tot_sat_g", "ft_acds_mono_unsat_g", "ft_acds_plyunst_g",
                   "ft_acds_tot_trans_g")
   other <- c("ethanol_g", "caffeine_mg", "cholesterol_mg")
-  energy <- c("kcals.fat_g", "kcals.carbohydrate_g", "kcals.protein_g",
-              "kcals.ethanol_g", "kcals.sugar_g", "kcals.ft_acds_tot_sat_g")  # note that "energy_kcal" is removed from this list
+  energy <- c("kcals_fat_g", "kcals_carbohydrate_g", "kcals_protein_g",
+              "kcals_ethanol_g", "kcals_sugar_g", "kcals_ft_acds_tot_sat_g")  # note that "energy_kcal" is removed from this list
   addedSugar <- c("sugar_g")
 
   #These are the scenario numbers for the IIASA data with population disaggregated.
@@ -432,15 +435,15 @@ keyVariable <- function(variableName) {
   #' GRL - has no data in FAO's FBS
   reqsList <-
     c(
-      "req.EAR",
-      "req.RDA.vits",
-      "req.RDA.minrls",
-      "req.RDA.macro",
-      "req.UL.vits",
-      "req.UL.minrls",
-      "req.AMDR_hi",
-      "req.AMDR_lo",
-      "req.MRVs" # added March 24, 2017
+      "req_EAR",
+      "req_RDA_vits",
+      "req_RDA_minrls",
+      "req_RDA_macro",
+      "req_UL_vits",
+      "req_UL_minrls",
+      "req_AMDR_hi",
+      "req_AMDR_lo",
+      "req_MRVs" # added March 24, 2017
     )
   # ,
 
@@ -859,7 +862,7 @@ countryCodeCleanup <- function(DT) {
 
 # test data for reqRatiodatasetup
 countryCode <- "AFG"; years <- c("X2010", "X2030", "X2050")
-reqTypeChoice <- "RDA.macro.all.reqRatio"
+reqTypeChoice <- "RDA_reqRatio_macro_all"
 #dir <- fileloc("resultsDir"); scenarioName <- "SSP3-NoCC"
 
 nutReqDataPrep <- function(reqTypeChoice, countryCode, scenarioName, years, dir) {
@@ -1181,10 +1184,21 @@ gdxLibraryLocationCheck <- function() {
   }
 }
 
+ switchChoices <- function(switchChoice) {
+   switch.useCookingRetnValues <- keyVariable("switch.useCookingRetnValues")
+   switch.fixFish <- keyVariable("switch.fixFish") #get rid of nutrient info for shrimp, tuna, and salmon because they are not currently in the FBS data
+   switch.useCookingRetnValues <- keyVariable("switch.useCookingRetnValues")
+   switch.fixFish <- keyVariable("switch.fixFish") #get rid of nutrient info for shrimp, tuna, and salmon because they are not currently in the FBS data
+   if (switchloop == 1) {switch.vars <- FALSE;  switch.fortification <- FALSE; suffix = "base"}
+   if (switchloop == 2) {switch.vars <- TRUE;  switch.fortification <- FALSE; suffix = "var"}
+   if (switchloop == 3) {switch.vars <- TRUE;  switch.fortification <- TRUE; suffix = "varFort"}
+}
+
 gdxFileNameChoice <- function() {
   cat("Choose the IMPACT data gdx file you want to use.\n")
   cat("1. for the nutrient modeling paper\n")
   cat("2. for the USAID nutrient modeling paper\n")
+  cat("3. for the USAID priority setting paper, 2018\n")
   cat("Note: the relevant gdx file must be in the data-raw/IMPACTdata directory\n")
   choice <- readline(prompt = "Choose the number of the gdx file you want to use. \n")
   #  choice <- "1" # so there will be a definite value
@@ -1196,10 +1210,21 @@ gdxFileNameChoice <- function() {
     gdxFileName <- "Micronutrient-Inputs-USAID.gdx"  #-  gdx for the USAID results
     gdxChoice <- "USAID"
   }
-  cat("\nYour gdx file name choice is ", gdxFileName)
-  gdxCombo <- cbind(gdxFileName, gdxChoice)
-  write.csv(gdxCombo, file = paste0(getwd(), "/results/gdxInfo.csv"), row.names = FALSE)
-  return(gdxCombo)
+  if (choice %in% "3") {
+    gdxFileName <- "Micronutrient-Inputs-2018.22.05.gdx"  #-  gdx for the USAID results
+    gdxChoice <- "USAIDPriorities"
+  }
+  cat("\nYour gdx file name choice is ", gdxFileName, "\n")
+  cat("Choose the switches you want to use.\n")
+  cat("1. Base nutrient data only.\n")
+  cat("2. Base nutrient data and country specific varieties.\n")
+  cat("3. Base nutrient data,  country specific varieties, and selected fortification.\n")
+  choice <- readline(prompt = "Choose 1, 2, or 3. \n")
+  if (!choice %in% c(1,2,3)) {stop(sprintf("Your choice %s needs to be one of 1, 2, or 3", choice))}
+  gdxSwitchCombo <- cbind(gdxFileName, gdxChoice, choice)
+
+  write.csv(gdxSwitchCombo, file = paste0(getwd(), "/results/gdxInfo.csv"), row.names = FALSE)
+  return(gdxSwitchCombo)
 }
 
 # Multiple plot function -----
@@ -1306,6 +1331,7 @@ generateWorldMaps <- function(spData, scenOrder, titleText, legendText, lowColor
 
 # store world map dataframe -----
 storeWorldMapDF <- function(){
+  library(maptools)
   # check to see if worldMap already exists
   # naturalearth world map geojson
   # updated source of data is http://www.naturalearthdata.com/downloads/50m-cultural-vectors/
@@ -1314,16 +1340,16 @@ storeWorldMapDF <- function(){
   #world <- readOGR(dsn = "data-raw/spatialData/ne_50m_admin_0_countries.geojson", layer = "OGRGeoJSON")
   #  world <- rgdal::readOGR(dsn = "data-raw/spatialData/ne_110m_admin_0_countries.geojson", layer = "OGRGeoJSON")
 
-  fileloc <- "data-raw/spatialData"
-  fn <- file.path(fileloc, "ne_50m_admin_0_countries.zip")
+  filelocMap <- "data-raw/spatialData"
+  fn <- file.path(filelocMap, "ne_50m_admin_0_countries.zip")
   cat("\n") # so the output from download.file starts on a new line
 
   temp <- list.files(fileloc("mData"))
 
   if (length(grep("worldMap", temp)) == 0) {
     suppressMessages(download.file("http://www.naturalearthdata.com/http//www.naturalearthdata.com/download/50m/cultural/ne_50m_admin_0_countries.zip", fn))
-    unzip(fn, exdir = fileloc)
-    world.raw <- rgdal::readOGR(dsn = fileloc)
+    unzip(fn, exdir = filelocMap)
+    world.raw <- rgdal::readOGR(dsn = filelocMap)
 
     # remove antarctica and some other small countries
     world <- world.raw[!world.raw$ISO_A3 %in% c("ATA"),]
@@ -1331,11 +1357,12 @@ storeWorldMapDF <- function(){
     world <- world[!world$ISO_A3 %in% othersToRemove,]
     # world <- world[world$TYPE %in% "SOVEREIGNT"]
     world <- sp::spTransform(world, CRSobj="+proj=longlat")
-    saveRDS(world, file = paste(fileloc, "worldFile.RDS", sep = "/"))
+    saveRDS(world, file = paste(filelocMap, "worldFile.RDS", sep = "/"))
     #world.simp <- gSimplify(world, tol = .1, topologyPreserve = TRUE)
     # alternative would be CRS("+proj=longlat")) for WGS 84
     # dat_url <- getURL("https://gist.githubusercontent.com/hrbrmstr/7a0ddc5c0bb986314af3/raw/6a07913aded24c611a468d951af3ab3488c5b702/pop.csv")
     # pop <- read.csv(text=dat_url, stringsAsFactors=FALSE, header=TRUE)
+    # gpclibPermit() # seems to be needed now May 29, 2018 but maybe not
     worldMap <- broom::tidy(world, region = "ISO_A3")
     inDT <- worldMap
     outName <- "worldMap"
@@ -1370,9 +1397,18 @@ facetMaps <- function(worldMap, DT, fileName, legendText, fillLimits, palette, f
 
 }
 getGdxChoice <- function() {
-  gdxCombo <- read.csv(file = paste0(getwd(), "/results/gdxInfo.csv"), header = TRUE, stringsAsFactors = FALSE)
-  gdxChoice <- gdxCombo[,2]
+  gdxSwitchCombo <- read.csv(file = paste0(getwd(), "/results/gdxInfo.csv"), header = TRUE, stringsAsFactors = FALSE)
+  gdxChoice <- gdxSwitchCombo[,2]
   return(gdxChoice)
+}
+
+getSwitchChoice <- function() {
+  gdxSwitchCombo <- read.csv(file = paste0(getwd(), "/results/gdxInfo.csv"), header = TRUE, stringsAsFactors = FALSE)
+  gdxChoice <- gdxSwitchCombo[,3]
+  if (gdxChoice == 1) choice = 1
+  if (gdxChoice == 2) choice = c(1,2)
+  if (gdxChoice == 3) choice = c(1,2,3)
+  return(choice)
 }
 
 # # use this function to get a tablegrob. Which can then be placed in a plot. This is done in aggNorder.R
