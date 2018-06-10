@@ -28,9 +28,9 @@ sourceFile <- "cropVarietyManager.R"
 createScriptMetaData()
 
 #' load in all the data from the USDA food composition tables
-FOOD_DES <- getNewestVersion("FOOD_DES")
-NUT_DATA <- getNewestVersion("NUT_DATA")
-NUTR_DEF <- getNewestVersion("NUTR_DEF")
+FOOD_DES <- getNewestVersion("FOOD_DES", fileloc("uData"))
+NUT_DATA <- getNewestVersion("NUT_DATA", fileloc("uData"))
+NUTR_DEF <- getNewestVersion("NUTR_DEF", fileloc("uData"))
 
 # lists needed in final data file assembly
 macroNutrients <- c(keyVariable("macronutrients"), "energy_kcal")

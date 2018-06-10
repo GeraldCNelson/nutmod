@@ -87,7 +87,7 @@ for (i in c("macronutrients", "vitamins", "minerals")) {
 #' compare results with country-specific vars with and without fortification
 
 # get list of countries that have fortification
-dt.fortValues <- getNewestVersion("dt.fortValues", fileloc("mData"))
+dt.fortValues <- getNewestVersion("dt.fortValues", fileloc("uData"))
 ctyWFort <- sort(unique(dt.fortValues$region_code.IMPACT159))
 
 dt.nutrients.sum.var <- dt.nutrients.sum.all.varFort[region_code.IMPACT159 %in% ctyWFort]

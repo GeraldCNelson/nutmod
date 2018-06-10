@@ -172,4 +172,4 @@ for (i in reqsList) {
   cleanup(inDT,outName,fileloc("mData"), desc = desc)
 }
 finalizeScriptMetadata(metadataDT, sourceFile)
-
+sourcer <- clearMemory() # removes everything in memory and sources the sourcer function

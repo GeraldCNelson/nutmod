@@ -44,6 +44,7 @@ updateLegendGrobs <- function(l, aggChoice, legendLoc, mergedVals) {
   scenarios <- unique(DT$scenario)
   DT[, scenario := gsub("-REF", "", scenario)]
   scenOrder <- gsub("-REF", "", scenOrder)
+ # if (gdxChoice %in% "USAIDPriorities") scenOrder <- gsub("SSP2-HGEM-", "", scenOrder)
   if (aggChoice %in% "WB") regionNameOrder <- c("Low", "Lower middle", "Upper middle", "High")
   if (aggChoice %in% "AggReg1") regionNameOrder <- regionNames
   if (aggChoice %in% "tenregions") regionNameOrder <- regionNames
@@ -52,6 +53,7 @@ updateLegendGrobs <- function(l, aggChoice, legendLoc, mergedVals) {
   DT[, region_name := factor(region_name, levels =  regionNameOrder)]
   DT[, scenario := factor(scenario, levels = scenarioNameOrder)]
   if (gdxChoice %in% "USAID")  DT <- renameUSAIDscenarios(DT)
+  if (gdxChoice %in% "USAIDPriorities") DT[, scenario := gsub("SSP2-HGEM-", "", scenario)] # needed to shorten scenario names
 
   #' draw bars to get the legend
   p <- ggplot(DT, aes(x = region_name, y = value, fill = scenario, order = c("region_name") )) +
@@ -88,6 +90,7 @@ orderRegions <- function(DT, aggChoice) {
 
 aggNorder <- function(gdxChoice, DTaggNorder, aggChoice, scenChoice, mergedVals, plotErrorBars) {
   setkey(DTaggNorder, NULL)
+  DTaggNorder <- DTaggNorder[scenario %in% scenChoice] # added June 4, 2018. Note: includes 2010
   dt.regions <- regionAgg(aggChoice)
   # aggregate to and retain only the relevant regions
   temp <- merge(DTaggNorder, dt.regions, by = "region_code.IMPACT159")
@@ -153,17 +156,15 @@ aggNorder <- function(gdxChoice, DTaggNorder, aggChoice, scenChoice, mergedVals,
     # scenarioList.addEnhance <- c("REF_NoCC","RPHL", "RMM")
     # scenarioList.comp <- c("REF_NoCC", "COMP", "COMP_NoCC", "COMP_IPSL")
     # keep only needed USAID scenarios
-    scenOrder.USAID <- c(scenChoice)
-    DT <- DT[scenario %in% scenChoice, ] # only needed for the USAID results
+    scenOrder <- scenChoice
     # order scenarios, first write the number into the number variable scenarioOrder
-    DT[, scenarioOrder := match(scenario, scenOrder.USAID)]
+    DT[, scenarioOrder := match(scenario, scenOrder)]
     data.table::setorder(DT, scenarioOrder)
     DT[, scenarioOrder := NULL]
   }
   if (gdxChoice == "SSPs") {
     # do manipulations on the gdx data that has the scenarios in scenChoice.
-    scenOrder <- c("2010", scenChoice)
-    DT <- DT[scenario %in% scenOrder, ] # doesn't need eval-parse because the list is defined inside the function
+    scenOrder <- scenChoice
 
     #' order by scenarios
     DT[, scenarioOrder := match(scenario, scenOrder)]
@@ -177,6 +178,24 @@ aggNorder <- function(gdxChoice, DTaggNorder, aggChoice, scenChoice, mergedVals,
       DT[, nutOrder := NULL]
     }
   }
+
+  if (gdxChoice == "USAIDPriorities") {
+    # do manipulations on the gdx data that has the scenarios in scenChoice.
+    scenOrder <- scenChoice
+
+    #' order by scenarios
+    DT[, scenarioOrder := match(scenario, scenOrder)]
+    data.table::setorder(DT, scenarioOrder)
+    DT[, scenarioOrder := NULL]
+
+    #' order by nutrients
+    if ("nutrient" %in% names(DT)) {
+      DT[, nutOrder := match(nutrient, nutOrder)]
+      data.table::setorder(DT, nutOrder)
+      DT[, nutOrder := NULL]
+    }
+  }
+
   #' order by regions
   DT <- orderRegions(DT, aggChoice)
   DT <- DT[, region_name := gsub(" plus", "", region_name)]
@@ -187,11 +206,13 @@ plotByRegionBar <- function(dt, fileName, plotTitle, yLab, yRange, aggChoice, su
   cat("\nPlotting bars by region", aggChoice, "for", plotTitle, "\n")
   plotTitle <- capwords(plotTitle)
   temp <- copy(dt)
+#  if (gdxChoice %in% "USAIDPriorities") temp[, scenario := gsub("SSP2-HGEM-", "", scenario)]
   regionCodes <- unique(temp$region_code)
   regionNames <- unique(temp$region_name)
   scenarios <- unique(temp$scenario)
   temp[, scenario := gsub("-REF", "", scenario)]
   scenOrder <- gsub("-REF", "", scenOrder)
+ # if (gdxChoice %in% "USAIDPriorities") scenOrder <- gsub("SSP2-HGEM-", "", scenOrder)
   if (aggChoice %in% "WB") regionNameOrder <- c("Low", "Lower middle", "Upper middle", "High")
   if (aggChoice %in% "AggReg1") regionNameOrder <- regionNames
   if (aggChoice %in% "tenregions") regionNameOrder <- regionNames
@@ -279,6 +300,7 @@ plotByRegionStackedBar <- function(dt, fileName, plotTitle, yLab, yRange, aggCho
 
   temp[, scenario := gsub("-REF", "", scenario)]
   scenOrder <- gsub("-REF", "", scenOrder)
+  # if (gdxChoice %in% "USAIDPriorities") scenOrder <- gsub("SSP2-HGEM-", "", scenOrder)
   if (aggChoice %in% "WB") regionNameOrder <- c("Low", "Lower middle", "Upper middle", "High")
   if (aggChoice %in% "AggReg1") regionNameOrder <- regionNames
   if (aggChoice %in% "tenregions") regionNameOrder <- regionNames
@@ -336,6 +358,7 @@ plotByBoxPlot2050 <- function(dt, fileName, plotTitle, yLab, yRange, aggChoice, 
   regionNames <- unique(temp$region_name)
   temp[, scenario := gsub("-REF", "", scenario)]
   scenOrder <- gsub("-REF", "", scenOrder)
+ # if (gdxChoice %in% "USAIDPriorities") scenOrder <- gsub("SSP2-HGEM-", "", scenOrder)
   if (aggChoice %in% "WB") regionNameOrder <- c("Low", "Lower middle", "Upper middle", "High")
   if (aggChoice %in% "AggReg1") regionNameOrder <- regionNames
   if (aggChoice %in% "tenregions") regionNameOrder <- regionNames
@@ -459,6 +482,7 @@ plotByRegionBarAMDR <- function(dt, fileName, plotTitle, yLab, yRange, aggChoice
   scenarios <- unique(temp$scenario)
   temp[, scenario := gsub("-REF", "", scenario)]
   scenOrder <- gsub("-REF", "", scenOrder)
+ # if (gdxChoice %in% "USAIDPriorities") scenOrder <- gsub("SSP2-HGEM-", "", scenOrder)
   if (aggChoice %in% "WB") regionNameOrder <- c("Low", "Lower middle", "Upper middle", "High")
   if (aggChoice %in% "AggReg1") regionNameOrder <- regionNames
   if (aggChoice %in% "tenregions") regionNameOrder <- regionNames
@@ -485,10 +509,11 @@ plotByRegionBarAMDR <- function(dt, fileName, plotTitle, yLab, yRange, aggChoice
     ggtitle(plotTitle) +
     labs(y = yLab, x = NULL) +
     geom_hline(aes(yintercept = AMDR_lo), color = "darkgreen") +
-    geom_text( aes(.62, AMDR_lo + 2.5, label = "Low"), color = "black") + # value after AMDR_lo shifts the label up or down
+    geom_text(aes(.62, AMDR_lo + 2.5, label = "Low"), color = "black") + # value after AMDR_lo shifts the label up or down
     geom_hline(aes(yintercept = AMDR_hi),  color = "dark red") +
-    geom_text( aes(.62, AMDR_hi + 2.5, label = "High"), color = "black") +
-    geom_text(aes(x = factor(region_name),  y=yval, label = round(value, 1)), position = position_dodge(0.9), size = 2.25, angle = 90,  color = "black", hjust = 'left')
+    geom_text(aes(.62, AMDR_hi + 2.5, label = "High"), color = "black") +
+    geom_text(aes(x = factor(region_name),  y=yval, label = round(value, 1)), position = position_dodge(0.9), size = 2.25, angle = 90,
+              color = "black", hjust = 'left')
 
    ggsave(filename = paste0(fileloc("gDir"),"/",fileName,".pdf"), plot = p,
          width = 7, height = 6)
@@ -521,6 +546,6 @@ generateBreakValues <- function(fillLimits, decimals) {
   breakValue.high <- round(fillLimits[2], digits = decimals)
   #' middle two values shift the palette gradient
 #  breakValues <- scales::rescale(c(breakValue.low, breakValue.low + fillRange/3, breakValue.low + fillRange/1.5, breakValue.high))
-  breakValues <- c(breakValue.low, breakValue.low + fillRange/3, breakValue.low + fillRange/1.5, breakValue.high)
+  breakValues <- round(c(breakValue.low, breakValue.low + fillRange/3, breakValue.low + fillRange/1.5, breakValue.high))
   return(breakValues)
 }

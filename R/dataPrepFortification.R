@@ -27,7 +27,7 @@ library(RColorBrewer)
 sourceFile <- "dataPrepFortification.R"
 createScriptMetaData()
 
-# create worldmap for later use
+# create worldmap for later use if it doesn't exist in uData
 storeWorldMapDF()
 dt.fortValues <- as.data.table(read_excel("data-raw/NutrientData/fortification/cc356-Map_ Number of Nutrients.xlsx",
                                           col_types = c("text", "text", "numeric",
@@ -61,16 +61,25 @@ dt.fortValues[
   Food_Vehicle %in% "Maize Flour", IMPACT_code := "cmaiz"][
   Food_Vehicle %in% "Rice", IMPACT_code := "crice"][
   Food_Vehicle %in% "Oil", IMPACT_code := "vegOils"]
-dt.regions.all <- getNewestVersion("dt.regions.all")
+dt.regions.all <- getNewestVersion("dt.regions.all", fileloc("uData"))
+# keep only iso_code and region_code.IMPACT159
+keepListCol <- c("region_code.IMPACT159", "ISO_code")
+dt.regions.all[, setdiff(names(dt.regions.all), keepListCol) := NULL]
+
 dt.fortValues <- merge(dt.fortValues, dt.regions.all, by = "ISO_code")
-deleteListCol <- c("ISO_code", "Country", "Food_Vehicle", "region_code.IMPACT115", "region_name.IMPACT115", "region_code.SSP", "FAOSTAT_code", "region_code.AggReg1",
-                   "region_name.AggReg1", "Official_name", "ISO2_code", "UNI_code",
-                   "UNDP_code", "GAUL_code", "region_name.AggReg2",
-                   "region_code.AggReg2", "region_code.EconGroup", "region_name.EconGroup",
-                   "region_code.EAPgMENg", "region_name.EAPgMENg", "region_code.WB", "region_name.WB",
-                   "Unit", "Nutrient_Level_Comment", "country_name.ISO", "region_name.IMPACT159", "Source", "Original_Source" ,
-                   "Year")
-dt.fortValues[, (deleteListCol) := NULL]
+# deleteListCol <- c("ISO_code", "Country", "Food_Vehicle", "region_code.IMPACT115", "region_name.IMPACT115", "region_code.SSP", "FAOSTAT_code", "region_code.AggReg1",
+#                    "region_name.AggReg1", "Official_name", "ISO2_code", "UNI_code",
+#                    "UNDP_code", "GAUL_code", "region_name.AggReg2",
+#                    "region_code.AggReg2", "region_code.EconGroup", "region_name.EconGroup",
+#                    "region_code.EAPgMENg", "region_name.EAPgMENg", "region_code.WB.income", "region_name.WB.income",
+#                    "Unit", "Nutrient_Level_Comment", "country_name.ISO", "region_name.IMPACT159", "Source", "Original_Source" ,
+#                    "Year")
+# dt.fortValues[, (deleteListCol) := NULL]
+# code above replaced by next two lines Jun 9, 2018. This is needed so that if additional regions are added to dt.regions but not needed they are automatically removed.
+
+keepListCol <- c("region_code.IMPACT159", "IMPACT_code", "Nutrient", "Average_Value_mgPerkg")
+dt.fortValues[, setdiff(names(dt.fortValues), keepListCol) := NULL]
+dt.fortValues <- unique(dt.fortValues)
 ctyWFort <- sort(unique(dt.fortValues$region_code.IMPACT159))
 
 #' now prepare the data to combine with dt.nutrients
@@ -127,11 +136,11 @@ dt.fortValues[, value := value/10]
 inDT <- dt.fortValues
 outName <- "dt.fortValues"
 desc <- "Fortification values by country, nutrient units per 100 gm of food"
-cleanup(inDT, outName, fileloc("mData"), desc = desc)
+cleanup(inDT, outName, fileloc("uData"), desc = desc)
 
 # facet maps -----
-cat("\n Working on facet maps of where fortification occurs; Saved to fileloc('gDir')")
-worldMap <- getNewestVersion("worldMap", fileloc("mData"))
+cat("\n Working on facet maps of where fortification occurs; Saved to fileloc('gDir')\n")
+worldMap <- getNewestVersion("worldMap", fileloc("uData"))
 
 legendText <- "Nutrient quantity (mg/kg)"
 fillLimits <- c(0, 100) # calcium values are 1000s of mg/kg; iron and vit e are 100s
@@ -149,7 +158,7 @@ palette <- myPalette(4)
 displayOrder <- sort(unique(DT[, get(facetColName)])) # default - alphabetically sorted
 fileName <- paste("facetmap", "fortify", "2050", sep = "_")
 # graphsListHolder <- list()
-# facetMaps(worldMap, DT, fileName, legendText, fillLimits, palette, facetColName, graphsListHolder, breakValues, displayOrder)
+# facetMaps(worldMap, DTfacetMap, fileName, legendText, fillLimits, palette, facetColName, graphsListHolder, breakValues, displayOrder)
 # print(graphsListHolder)
 
 b <- breakValues
@@ -161,17 +170,22 @@ n <- facetColName
 gg <- ggplot(data = d, aes(map_id = id))
 gg <- gg + geom_map(aes(fill = value), map = worldMap)
 #gg <- gg + geom_polygon(data=worldMap, aes(x=long, y=lat), colour='black', fill=NA)
-gg <- gg + borders("world", colour = "grey80")
-gg <- gg + expand_limits(x = worldMap$long, y = worldMap$lat)
-gg <- gg + facet_wrap(facets = n)
-gg <- gg + theme(legend.position = "bottom")
-gg <- gg +  theme(axis.ticks = element_blank(),axis.title = element_blank(), axis.text.x = element_blank(),
-                  axis.text.y = element_blank(), strip.text = element_text(family = "Times", face = "plain"))
-gg <- gg + scale_fill_gradientn(colors = p, name = legendText,
-                                na.value = "grey50", values = b,
-                                guide = "colorbar", limits = f)
-print(gg)
+# code below commented out June 1, 2018 because facet map seems to plot fine without it.
+# gg <- gg + borders("world", colour = "grey80")
+# gg <- gg + expand_limits(x = worldMap$long, y = worldMap$lat)
+# gg <- gg + facet_wrap(facets = n)
+# gg <- gg + theme(legend.position = "bottom")
+# gg <- gg +  theme(axis.ticks = element_blank(),axis.title = element_blank(), axis.text.x = element_blank(),
+#                   axis.text.y = element_blank(), strip.text = element_text(family = "Times", face = "plain"))
+# # gg <- gg + scale_fill_gradientn(colors = p, name = legendText,
+# #                                 na.value = "grey50", values = b,
+# #                                 guide = "colorbar", limits = f)
+# gg <- gg + scale_fill_gradientn(colors = p, name = legendText,
+#                                 na.value = "grey50", # break values removed June 1, 2018
+#                                 guide = "colorbar", limits = f)
+# print(gg)
 ggsave(file = paste0(fileloc("gDir"),"/",fileName,".pdf"), plot = gg,
        width = 9, height = 6)
 
 finalizeScriptMetadata(metadataDT, sourceFile)
+sourcer <- clearMemory() # removes everything in memory and sources the sourcer function

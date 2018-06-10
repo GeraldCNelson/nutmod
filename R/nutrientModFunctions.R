@@ -30,6 +30,7 @@ library(data.table) # this is needed everywhere and currently some scripts don't
 
 # sourcer is currently only used in automate.R but could potentially be used elsewhere
 sourcer <- function(sourceFile){
+  sourceFile <- paste0("R/", sourceFile)
   cat("\n\nRunning ", sourceFile, "\n")
   source(sourceFile)
 }
@@ -42,6 +43,7 @@ sourcer <- function(sourceFile){
 #'
 #' @param mData - main data directory
 #' @param iData - directory with IMPACT data
+#' @param uData - directory with data that are universal to all scenarios
 #' @param gDir  - the path to the graphics directory
 #' @param resultsPaperDir - directory with results for the paper
 #' @param resultsDir - directory for results
@@ -58,6 +60,7 @@ fileloc <- function(variableName) {
   mData <- paste("data/", gdxChoice, sep = "")
   gDir <- paste("graphics", gdxChoice, sep = "/")
   iData <- paste(mData, "IMPACTData/", sep = "/")
+  uData <- "data/universalData"
   nutData <- "data-raw/NutrientData"
   resultsTop <- "results"
   resultsDir <- paste("results/", gdxChoice, sep = "")
@@ -209,6 +212,19 @@ createScriptMetaData <- function(sourceFile) {
 
 finalizeScriptMetadata <- function(metadataDT, sourceFile) {
   write.csv(metadataDT, file = paste("data/metadata", sourceFile, "csv", sep = "."), row.names = FALSE)
+}
+
+clearMemory <- function() {
+  cat("Clearing memory after running", sourceFile)
+  rm(list = ls(envir = as.environment(1)), envir = .GlobalEnv) # pos=1 says do this in the global environment
+  gc()
+  # The sourcer function is run her in case the automate script is used to run all the R scripts
+  sourcer <- function(sourceFile){
+    cat("\n\nRunning ", sourceFile, "\n")
+    sourceFile <- paste0("R/", sourceFile)
+    source(sourceFile)
+  }
+  return(sourcer)
 }
 
 #' Title cleanup - remove old versions and save rds and xlsx versions of the file
@@ -617,8 +633,7 @@ fileNameList <- function(variableName) {
   #Note: the price a consumer pays is Pc * (1-CSE)
   CSEFileName     <- "CSEs20150824.xlsx"
   CSEs            <- paste(fileloc("IMPACTRawData"), CSEFileName, sep = "/")
-  # IMPACT159regionsFileName <-
-  "IMPACTRegionsFeb2016.xlsx" # this file includes Denmark plus (DNP) and Sudan plus (SDP)
+  # IMPACT159regionsFileName <- "IMPACTRegionsFeb2016.xlsx" # this file includes Denmark plus (DNP) and Sudan plus (SDP)
   #' IMPACT159regionsFileName <- "IMPACTRegionsMay2015.csv" # this file includes Denmark plus (DNP) and Sudan plus (SDP) and removes Greenland and South Sudan
   #' #IMPACT159regionsFileName <- "IMPACTRegionsJan15tmp.csv" # this file removes Denmark plus (DNP) and South Sudan (SSD) as well as removes Greenland and South Sudan
   # IMPACTregionsUpdateJun2016FileName <- "IMPACT regions update June 6 2016.xlsx"
@@ -627,7 +642,8 @@ fileNameList <- function(variableName) {
   # IMPACTstdRegionsFileName <- "IMPACT-agg-regionsFeb2016.xlsx"
   # IMPACTstdRegions <- paste(fileloc("IMPACTRawData"), IMPACTstdRegionsFileName, sep = "/")
   #  regionsLookupName <- "regions lookup Sep 6 2016.xlsx"
-  regionsLookupName <- "regions lookup Feb 14 2018.xlsx"
+  # regionsLookupName <- "regions lookup Feb 14 2018.xlsx"
+  regionsLookupName <- "regions lookup June 7 2018.xlsx" # adds regions for the USAID priorities work
   regionsLookup <- paste(fileloc("rawData"),regionsLookupName, sep = "/")
   #IMPACTgdx         <- paste(fileloc("IMPACTRawData"), IMPACTgdxfileName, sep = "/")
   #gdxLib            <- "/Applications/GAMS/gams24.5_osx_x64_64_sfx"
@@ -1093,13 +1109,13 @@ nutshareSpiderGraph <- function(reqFileName, countryCode, scenario, years, dir) 
 
 regionAgg <- function(aggChoice) {
   # region info setup for aggregating -----
-  dt.regions.all <- getNewestVersion("dt.regions.all")
+  dt.regions.all <- getNewestVersion("dt.regions.all", fileloc("uData"))
   I3regions <- sort(unique(dt.regions.all$region_code.IMPACT159))
   tenregions <- sort(c("NIC", "BRA", "CHM", "ETH", "IND", "GHA", "TZA", "FRP", "VNM", "USA"))
   AggReg1 <- sort(unique(dt.regions.all$region_code.AggReg1))
   AggReg2 <- sort(unique(dt.regions.all$region_code.AggReg2))
   twoEconGroup <- sort(unique(dt.regions.all$region_code.EconGroup))
-  WB <- sort(unique(dt.regions.all$region_code.WB))
+  WB <- sort(unique(dt.regions.all$region_code.WB.income))
   regionNamestenregions <- unique(dt.regions.all[region_code.IMPACT159 %in% tenregions, region_name.IMPACT159])
   regionNamesAggReg1 <- unique(dt.regions.all$region_name.AggReg1)
   regionNamesAggReg2 <- unique(dt.regions.all$region_name.AggReg2)
@@ -1131,7 +1147,7 @@ regionAgg <- function(aggChoice) {
   }
   # regionCodesWB
   if (aggChoice == "WB") {
-    keepListCol <- c("region_code.IMPACT159", "region_code.WB", "region_name.WB")
+    keepListCol <- c("region_code.IMPACT159", "region_code.WB.income", "region_name.WB.income")
   }
   dt.regions <- unique(dt.regions.all[, (keepListCol), with = FALSE])
   data.table::setnames(dt.regions, old = keepListCol, new = c("region_code.IMPACT159", "region_code", "region_name"))
@@ -1184,14 +1200,14 @@ gdxLibraryLocationCheck <- function() {
   }
 }
 
- switchChoices <- function(switchChoice) {
-   switch.useCookingRetnValues <- keyVariable("switch.useCookingRetnValues")
-   switch.fixFish <- keyVariable("switch.fixFish") #get rid of nutrient info for shrimp, tuna, and salmon because they are not currently in the FBS data
-   switch.useCookingRetnValues <- keyVariable("switch.useCookingRetnValues")
-   switch.fixFish <- keyVariable("switch.fixFish") #get rid of nutrient info for shrimp, tuna, and salmon because they are not currently in the FBS data
-   if (switchloop == 1) {switch.vars <- FALSE;  switch.fortification <- FALSE; suffix = "base"}
-   if (switchloop == 2) {switch.vars <- TRUE;  switch.fortification <- FALSE; suffix = "var"}
-   if (switchloop == 3) {switch.vars <- TRUE;  switch.fortification <- TRUE; suffix = "varFort"}
+switchChoices <- function(switchChoice) {
+  switch.useCookingRetnValues <- keyVariable("switch.useCookingRetnValues")
+  switch.fixFish <- keyVariable("switch.fixFish") #get rid of nutrient info for shrimp, tuna, and salmon because they are not currently in the FBS data
+  switch.useCookingRetnValues <- keyVariable("switch.useCookingRetnValues")
+  switch.fixFish <- keyVariable("switch.fixFish") #get rid of nutrient info for shrimp, tuna, and salmon because they are not currently in the FBS data
+  if (switchloop == 1) {switch.vars <- FALSE;  switch.fortification <- FALSE; suffix = "base"}
+  if (switchloop == 2) {switch.vars <- TRUE;  switch.fortification <- FALSE; suffix = "var"}
+  if (switchloop == 3) {switch.vars <- TRUE;  switch.fortification <- TRUE; suffix = "varFort"}
 }
 
 gdxFileNameChoice <- function() {
@@ -1221,7 +1237,10 @@ gdxFileNameChoice <- function() {
   cat("3. Base nutrient data,  country specific varieties, and selected fortification.\n")
   choice <- readline(prompt = "Choose 1, 2, or 3. \n")
   if (!choice %in% c(1,2,3)) {stop(sprintf("Your choice %s needs to be one of 1, 2, or 3", choice))}
-  gdxSwitchCombo <- cbind(gdxFileName, gdxChoice, choice)
+
+  cat("\nDo you need to update any files that are not IMPACT specific (new SSP, nutrient composition, FBS data?")
+  update <- readline(prompt = "Y/N. \n")
+  gdxSwitchCombo <- cbind(gdxFileName, gdxChoice, choice, update)
 
   write.csv(gdxSwitchCombo, file = paste0(getwd(), "/results/gdxInfo.csv"), row.names = FALSE)
   return(gdxSwitchCombo)
@@ -1340,11 +1359,12 @@ storeWorldMapDF <- function(){
   #world <- readOGR(dsn = "data-raw/spatialData/ne_50m_admin_0_countries.geojson", layer = "OGRGeoJSON")
   #  world <- rgdal::readOGR(dsn = "data-raw/spatialData/ne_110m_admin_0_countries.geojson", layer = "OGRGeoJSON")
 
-  filelocMap <- "data-raw/spatialData"
+# changed to uDir June 9, 2018  filelocMap <- "data-raw/spatialData"
+  filelocMap <- fileloc("uData")
   fn <- file.path(filelocMap, "ne_50m_admin_0_countries.zip")
   cat("\n") # so the output from download.file starts on a new line
 
-  temp <- list.files(fileloc("mData"))
+  temp <- list.files(fileloc("uData"))
 
   if (length(grep("worldMap", temp)) == 0) {
     suppressMessages(download.file("http://www.naturalearthdata.com/http//www.naturalearthdata.com/download/50m/cultural/ne_50m_admin_0_countries.zip", fn))
@@ -1367,16 +1387,16 @@ storeWorldMapDF <- function(){
     inDT <- worldMap
     outName <- "worldMap"
     desc <- "World map file used to create facet maps of the world"
-    cleanup(inDT, outName, fileloc("mData"), desc = desc)
+    cleanup(inDT, outName, fileloc("uData"), desc = desc)
   }
 }
 
-facetMaps <- function(worldMap, DT, fileName, legendText, fillLimits, palette, facetColName, graphsListHolder, breakValues, displayOrder) {
+facetMaps <- function(worldMap, DTfacetMap, fileName, legendText, fillLimits, palette, facetColName, graphsListHolder, breakValues, displayOrder) {
   b <- breakValues
   f <- fillLimits
   p <- palette
   n <- facetColName
-  d <- data.table::copy(DT)
+  d <- data.table::copy(DTfacetMap)
   d[, (n) := factor(get(n), levels = displayOrder)]
   gg <- ggplot(data = d, aes(map_id = id))
   gg <- gg + geom_map(aes(fill = value), map = worldMap)
@@ -1399,6 +1419,12 @@ facetMaps <- function(worldMap, DT, fileName, legendText, fillLimits, palette, f
 getGdxChoice <- function() {
   gdxSwitchCombo <- read.csv(file = paste0(getwd(), "/results/gdxInfo.csv"), header = TRUE, stringsAsFactors = FALSE)
   gdxChoice <- gdxSwitchCombo[,2]
+  return(gdxChoice)
+}
+
+getGdxFileName <- function() {
+  gdxSwitchCombo <- read.csv(file = paste0(getwd(), "/results/gdxInfo.csv"), header = TRUE, stringsAsFactors = FALSE)
+  gdxChoice <- gdxSwitchCombo[, 1]
   return(gdxChoice)
 }
 

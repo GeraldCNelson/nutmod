@@ -27,7 +27,7 @@ createScriptMetaData()
 
 # Read in all data first and standardize variable names -----
 # Read in IMPACT food data ----------
-dt.IMPACTfood <- getNewestVersionIMPACT("dt.IMPACTfood") # has food availability quantity information, pc income and prices
+dt.IMPACTfood <- getNewestVersion("dt.IMPACTfood", fileloc("iData")) # has food availability quantity information, pc income and prices
 
 # budget share and price growth don't depend on suffix
 budgetShare(dt.IMPACTfood)
@@ -199,8 +199,6 @@ for (switchloop in getSwitchChoice()) {
   dt.KcalShare.nonstaple <- dt.KcalShare.nonstaple[staple_code %in% "nonstaple",]
   dt.KcalShare.nonstaple <- unique(dt.KcalShare.nonstaple)
   keepListCol <- c("scenario", "region_code.IMPACT159", "year", "value")
-  dt.KcalShare.nonstaple[, setdiff(names(dt.KcalShare.nonstaple), keepListCol) := NULL]
-
   # convert to percent
   dt.KcalShare.nonstaple[,value := value * 100]
   inDT <- dt.KcalShare.nonstaple
@@ -281,4 +279,4 @@ for (switchloop in getSwitchChoice()) {
   cleanup(inDT, outName, fileloc("resultsDir"),  desc = desc)
 }
 finalizeScriptMetadata(metadataDT, sourceFile)
-
+sourcer <- clearMemory() # removes everything in memory and sources the sourcer function

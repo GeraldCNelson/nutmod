@@ -47,17 +47,6 @@ dt.FBS.raw <- as.data.table(readr::read_csv(unz(FBSdataZip, filename = "FoodBala
   `Unit` = col_character())
 ))
 
-# replaced with read_csv code above. April 13, 2018
-# temp <- unzip(paste(getwd(),FBSdataZip,sep = "/"), files = FBScsv)
-# dt.FBS.raw <- data.table::fread(temp, header = TRUE,
-#                                     colClasses = c(`Country` = "character",
-#                                                    `Country Code` = "character",
-#                                                    `Item` = "character",
-#                                                    `Item Code` = "character",
-#                                                    `Element` = "character",
-#                                                    `Element Code` = "character",
-#                                                    `Unit` = "character"))
-# file.remove(temp)
 # change original column names to 'names that are consistent with other data sources
 keepYearList.FBS <- keyVariable("keepYearList.FBS")
 keepYearList.FBS.oldname <- gsub("X", "Y", keepYearList.FBS)
@@ -103,7 +92,7 @@ dt.FBScommodLookup[, item_code := as.character(item_code)]
 dt.FBScommodLookup <- dt.FBScommodLookup[!item_name == "Miscellaneous",]
 
 # Read in the region lookup table, created in dataPrep.regions.R # this doesn't seem to be used
-#dt.regions.all <- getNewestVersion("dt.regions.all")
+#dt.regions.all <- getNewestVersion("dt.regions.all", fileloc("uData"))
 
 FAOCountryNameCodeLookup <- filelocFBS("FAOCountryNameCodeLookup")
 # Read in the worksheet that has the FAO country code-ISO country name lookup
@@ -203,5 +192,5 @@ dt.FBS.commods.final[, (names(dt.FBS.commods.final)) := lapply(.SD, function(x){
 inDT <- dt.FBS.commods.final
 outName <- "dt.FBS"
 desc <- "Sum FBS commodities to the IMPACT commodity they are included in"
-cleanup(inDT,outName,fileloc("mData"), desc = desc)
+cleanup(inDT,outName,fileloc("uData"), desc = desc)
 finalizeScriptMetadata(metadataDT, sourceFile)

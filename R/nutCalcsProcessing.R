@@ -50,7 +50,8 @@ for (switchloop in getSwitchChoice()) {
       measure.vars =  c("carbohydrate_g_reqRatio_all", "fat_g_reqRatio_all" , "protein_g_reqRatio_all"),
       variable.name = "nutrient",
       value.name = "value", variable.factor = FALSE)
-    DT.long[, nutrient := gsub("_reqRatio_all", "",nutrient)]
+
+    DT.long[, nutrient := gsub("_reqRatio_all", "", nutrient)]
     inDT <- unique(DT.long)
     outName <- paste("reqRatio_sum_", reqShortName, ".", suffix, sep = "")
     desc <- paste0("Adequacy ratios for ", reqShortName)
@@ -300,7 +301,9 @@ for (switchloop in getSwitchChoice()) {
     dt.food_agg.master[, scenario := gsub("IRREXP-WUE2", "IRREXP_WUE2", scenario)]
     dt.food_agg.master[, scenario := gsub("PHL-DEV2", "PHL_DEV2", scenario)]
     # get list of nutrients from dt.nutsReqPerCap for the req set of requirements
-    dt.nutsReqPerCap <- getNewestVersion(paste(req,"percap",sep = "_"))
+    # moving the reqs per cap files to uData June 5, 2018
+ #   dt.nutsReqPerCap <- getNewestVersion(paste(req,"percap",sep = "_"))
+    dt.nutsReqPerCap <- getNewestVersion(paste(req,"percap",sep = "_"), fileloc("uData"))
     nutList <- names(dt.nutsReqPerCap)[4:length(names(dt.nutsReqPerCap))]
     basicKey <- c("scenario", "region_code.IMPACT159", "year")
     cols.all <- names(dt.food_agg.master)[grep("_all", names(dt.food_agg.master))]
@@ -316,6 +319,8 @@ for (switchloop in getSwitchChoice()) {
 }
 
 finalizeScriptMetadata(metadataDT, sourceFile)
+sourcer <- clearMemory() # removes everything in memory and sources the sourcer function
+
 # kcals calculations -----
 # print("------ working on kcals")
 # # fats, etc share of total kcals ------

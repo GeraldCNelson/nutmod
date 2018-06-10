@@ -31,17 +31,18 @@ sourceFile <- "finalGraphCreation.R"
 
 #' gdxChoice values are either SSPs or USAID
 gdxChoice <- getGdxChoice()
-# delete all files in gDir/final
-graphicsPath <- paste(fileloc("gDir"), "final", sep = "/")
-graphicsFileList <- list.files(graphicsPath, all.files = TRUE)
-graphicsFileList <- paste(graphicsPath, graphicsFileList, sep = "/")
-invisible(unlink(graphicsFileList, recursive = FALSE))
+# delete all files in gDir/final - Commmented out June 4, 2018 because already done in aggRun.R
+# graphicsPath <- paste(fileloc("gDir"), "final", sep = "/")
+# graphicsFileList <- list.files(graphicsPath, all.files = TRUE)
+# graphicsFileList <- paste(graphicsPath, graphicsFileList, sep = "/")
+# invisible(unlink(graphicsFileList, recursive = FALSE))
 
 layoutPlots <- function(figchoice, aggChoice, prefix, rowNum, legendNum, layout, height, colWidths, suffix) {
   rowNum <- rowNum
   cat(get(figchoice))
   plotNameList <- paste(prefix, "_", get(figchoice), sep = "")
   plotNumberList <- which(graphNames %in% plotNameList)
+  cat("\nplayoutPlots plotNumberList:", plotNumberList, "\n")
   plotNumberList <- c(plotNumberList, legendNum)
   g.out <- grid.arrange(
     grobs = graphsListHolder[plotNumberList],
@@ -49,14 +50,17 @@ layoutPlots <- function(figchoice, aggChoice, prefix, rowNum, legendNum, layout,
     layout_matrix = layout,
     widths = colWidths, heights = height
   )
+  width <- 7
+  height <- sum(height)
   ggsave(file = paste(finalDir, figchoice, "_", aggChoice, ".", suffix, ".pdf", sep = ""),
          plot = g.out,
-         width = 7, height = sum(height))
+         width, height)
   cat("\n", finalDir, figchoice, "_", aggChoice, ".", suffix, ".pdf", "\n",sep = "")
   return(g.out)
 }
 
-if (gdxChoice %in% "SSPs") prefix <- "SSPs_scenOrderSSP" # need a different one for USAID
+if (gdxChoice %in% "SSPs") prefix <- "SSPs_scenOrderSSP"; scenChoiceList <- "scenOrderSSP"  # need a different one for USAID
+if (gdxChoice %in% "USAIDPriorities") prefix <- "USAIDPriorities_scenOrderUSAIDPriorities"; scenChoiceList <- "scenOrderUSAIDPriorities" # need a different one for USAID
 
 colNum <- 2 # how many columns of graphs per page
 colWidths <- c(2.9, 2.9) # how wide the columns are
@@ -98,9 +102,10 @@ for (switchloop in getSwitchChoice()) {
   finalDir <- paste0(fileloc("gDir"),"/final/")
   # get the names of all the graphs in the graphsListerHolder file
   graphNames <- names(graphsListHolder)
-  legendHorizontal <- "legend_bottom_SSPs_scenOrderSSP_tenregions"
+
+  legendHorizontal <- paste("legend", "bottom", gdxChoice, scenChoiceList, "WB", sep = "_") # using WB instead of aggChoice because I think WB and tenregion legends are the same
+  legendVertical <- paste("legend", "right", gdxChoice, scenChoiceList,  "WB", sep = "_")
   legendHorizontalNum <- which(graphNames %in% legendHorizontal)
-  legendVertical <- "legend_right_SSPs_scenOrderSSP_tenregions"
   legendVerticalNum <- which(graphNames %in% legendVertical)
 
   #' Figs with that combine a single plot from two regions - WB and tenregions -----
@@ -117,6 +122,9 @@ for (switchloop in getSwitchChoice()) {
     plotNameList <- c(plotNameList, paste(prefix, "_", get(figchoice), "_", "tenregions", ".", suffix, sep = ""))
     #' rev here reverses the order in which the graphs are plotted
     plotNumberList <- rev(which(graphNames %in% plotNameList))
+
+    cat("\nfigS3.nutavail.zinc plotNumberList:", plotNumberList, "\n")
+
     plotNumberList <- c(plotNumberList, legendNum)
     g.out <- grid.arrange(
       grobs = graphsListHolder[plotNumberList],
@@ -137,14 +145,29 @@ for (switchloop in getSwitchChoice()) {
   facetMapMRV_CCDelta <- paste("facetmap_MRVRatioChange_climate", suffix, sep = ".")
 
   # plot facet maps
-  for (figchoice in c("fig8.facetMapRR_CCDelta", "fig7.facetMapRR_IncDelta", "facetMapRR_2050NoCC", "fig6.facetMapRR_2010",
-                      "facetMapMRV_2010", "facetMapMRV_IncDelta","facetMapMRV_CCDelta")) {
-    plotNameList <- paste(prefix, "_",  get(figchoice), sep = "")
-    plotNumberList <- which(graphNames %in% plotNameList)
-    ggsave(file = paste(finalDir, figchoice, ".", suffix, ".pdf", sep = ""),
-           plot = graphsListHolder[[plotNumberList]], width = 7, height = 6)
+  if (gdxChoice %in% "SSPs") {
+    for (figchoice in c("fig8.facetMapRR_CCDelta", "fig7.facetMapRR_IncDelta", "facetMapRR_2050NoCC", "fig6.facetMapRR_2010",
+                        "facetMapMRV_2010", "facetMapMRV_IncDelta","facetMapMRV_CCDelta")) {
+      plotNameList <- paste(prefix, "_",  get(figchoice), sep = "")
+      cat(plotNameList)
+      plotNumberList <- which(graphNames %in% plotNameList)
+      cat("\nSSPs facet plotNumberList:", plotNumberList, "\n")
+
+      ggsave(file = paste(finalDir, figchoice, ".", suffix, ".pdf", sep = ""),
+             plot = graphsListHolder[[plotNumberList]], width = 7, height = 6)
+    }
   }
 
+  if (gdxChoice %in% "USAIDPriorities") {
+    for (figchoice in c( "fig7.facetMapRR_IncDelta", "fig6.facetMapRR_2010",
+                         "facetMapMRV_2010", "facetMapMRV_IncDelta")) {
+      plotNameList <- paste(prefix, "_",  get(figchoice), sep = "")
+      plotNumberList <- which(graphNames %in% plotNameList)
+      cat("\nUSAID facet plotNumberList:", plotNumberList, "\n")
+      ggsave(file = paste(finalDir, figchoice, ".", suffix, ".pdf", sep = ""),
+             plot = graphsListHolder[[plotNumberList]], width = 7, height = 6)
+    }
+  }
 
   #' Fig 1 budget, combines bar charts and box plots; box plots not for tenregions -----
   fig1.budgetShare <- paste(c("budgetShare", "budgetShareBoxPlot_2050"), "_", "WB", ".", suffix, sep = "")
@@ -197,9 +220,8 @@ for (switchloop in getSwitchChoice()) {
                                  "reqRatio_macro_totalfiber_g"),  "_", "WB", ".", suffix, sep = "")
 
   #' Fig  macro AMDRs ------, 3 plots per page
-  {fig3.AMDRhiLo <- paste(c("AMDRShare_carbohydrate_g", "AMDRShare_protein_g",
-                            "AMDRShare_fat_g"),  "_", "WB", ".", suffix, sep = "")
-  }
+  fig3.AMDRhiLo <- paste(c("AMDRShare_carbohydrate_g", "AMDRShare_protein_g",
+                           "AMDRShare_fat_g"),  "_", "WB", ".", suffix, sep = "")
 
   # minrls candidates for removal - magnesium, phosphorus
 
@@ -241,6 +263,9 @@ for (switchloop in getSwitchChoice()) {
   figS10.3.adequacy.minrls <- paste(c("reqRatio_minrls_calcium_mg", "reqRatio_minrls_iron_mg",
                                       "reqRatio_minrls_magnesium_mg", "reqRatio_minrls_phosphorus_mg",
                                       "reqRatio_minrls_potassium_g", "reqRatio_minrls_zinc_mg"), "_", "tenregions", ".", suffix, sep = "")
+
+  figS10.4.adequacy.macro <- paste(c("reqRatio_macro_carbohydrate_g", "reqRatio_macro_protein_g",
+                                      "reqRatio_macro_fiber_g"), "_", "tenregions", ".", suffix, sep = "")
 
 
   #' Figs with 6 plots -----
@@ -308,7 +333,7 @@ for (switchloop in getSwitchChoice()) {
   }
 
   #' Figs with 3 plots -----
-  for (figchoice in c("figS8.foodavail.3")) {
+  for (figchoice in c("figS8.foodavail.3", "figS10.4.adequacy.macro")) {
     rowNum <- 2
     legendNum <- legendVerticalNum
     layout <- layoutMatrix3

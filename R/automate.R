@@ -1,6 +1,6 @@
 # a test to see if the compiler helps with the automate script
-require(compiler)
-enableJIT(3)
+# require(compiler)
+# enableJIT(3)
 ls(all.names = TRUE)
 #' Nutrient Modeling automation script
 #' @title "Functions needed to make the nutrientModeling shiny app work"
@@ -9,8 +9,8 @@ ls(all.names = TRUE)
 # Intro ---------------------------------------------------3------------
 #Copyright (C) 2016-2018 Gerald C. Nelson, except where noted
 
-# This program is free software: you can redistribute it and/or modify it
-# under the terms of the GNU General Public License as published by the Free
+# This program is free software: you can redistribute it and/or modify it3
+# under the terms of the GNU General Public License as published by the Free1
 # Software Foundation, either version 3 of the License, or (at your option)
 # any later version.
 #
@@ -30,9 +30,16 @@ ls(all.names = TRUE)
 #   gDir = graphics/gdxChoice
 # The metadata file in the results directory provides details on files and file locations used in the analysis
 options(warn = 2) # converts all warnings to errors
+
+# sourcer function set up in nutrientModFunctions.R
+# sourcer <- function(sourceFile){
+# sourceFile <- paste0("R/", sourceFile)
+#   cat("\n\nRunning ", sourceFile, "\n")
+#   source(sourceFile)
+# }
 sourceFile <- "automate.R"
 
-ptm <- proc.time()
+# ptm <- proc.time()
 
 #install needed packages
 # replaced ggplot2 and readr with tidyverse which includes both. April 12, 2018
@@ -61,7 +68,7 @@ if (packageVersion("data.table") < "1.10.0") {
 
 # the source code needs to be below the install code so R doesn't have to restart
 # print(paste("start time is " , proc.time(), sep = ""))
-cat("Running nutrientModFunctions.R")
+cat("Running nutrientModFunctions.R\n")
 source("R/nutrientModFunctions.R")
 
 createScriptMetaData()
@@ -69,111 +76,96 @@ createScriptMetaData()
 gdxrrwExistenceCheck() #checks if the gdxrrw package is installed; if not, prints directions on how to install and stops.
 #choose between 1 of 2 possible gdx files.
 # 1 -  Micronutrient-Inputs-07252016.gdx;
-#2 - Micronutrient-Inputs-USAID.gdx
-gdxCombo <- gdxFileNameChoice()
+# 2 - Micronutrient-Inputs-USAID.gdx
+# 3 - Micronutrient-Inputs-2018.22.05.gdx
+
+gdxCombo <- gdxFileNameChoice() # asks what you want to do
 gdxFileName <- gdxCombo[1]
 gdxChoice <- gdxCombo[2]
-sourceFile <- "R/automate.R"
+oneTimeDataUpdate <- gdxCombo[4]
 metadata() # - creates dt.metaData; holds some key file locations and variable names;
 # needs to come after identification of gdxFileName and before library location check
 gdxLibraryLocationCheck()
 
 # the gdxrrwSetup.R script needs to be separate because shiny can't deal with the gams package.
-sourceFile <- "R/gdxrrwSetup.R"
+sourceFile <- "gdxrrwSetup.R"
 sourcer(sourceFile)
 
-sourceFile <- "R/dataPrep.IMPACT.R" # creates dt.scenarioListIMPACT and dt.IMPACTgdxParams
+if (oneTimeDataUpdate == 4){
+  # only needs to be run when a new SSP data file if obtained
+  sourceFile <- "dataPrep.SSP.R"
+  sourcer(sourceFile)
+  # only needs to be run when new regions or aggregations are added
+  sourceFile <- "dataPrep.regions.R"
+  sourcer(sourceFile) # - creates dt.regions.all and the list of scenarios
+  # only needs to be run when new FBS info arrives
+  sourceFile <- "dataPrep.FBS.R"
+  # sourcer(sourceFile) # - creates dt.FBS, mData
+  # only needs to be run if changes to the script are made
+  sourceFile <- "dataManagement.fishnAlc.R"
+  sourcer(sourceFile)
+  # Just need to do this for Fresh fish. c_FrshD. Not needed because results already recorded in dt.compositesLU file.
+  sourceFile <- "c_FrshD_cleanup.R"
+  sourcer(sourceFile) ## match up item name and item codes. The item names are in the comp recalc spreadsheets but item code is not.
+  # only needs to be run if changes to the script are made
+  sourceFile <- "dataPrep.ODBCaccess.R"
+  sourcer(sourceFile) # reads in nutrient data from the USDA nutrient composition access database
+  #commented out because only needs to run when new SSP data are used. June 5, 2018
+  sourceFile <- "dataManagement.SSPPop.R"
+  sourcer(sourceFile) #paste(gsub("_ssp","",nutReqName),"percap",sep = "_"), mData - Nutrient requirements adjusted for population distribution, example is req.EAR.percap.2016-06-24.rds
+
+}
+
+sourceFile <- "dataPrep.IMPACT.R" # creates dt.scenarioListIMPACT and dt.IMPACTgdxParams
 sourcer(sourceFile)
 # - creates files in iData
 # dt.IMPACTmetaData
 # paste(dt,varName, sep = ".") - one file for each IMPACT variable, example is dt.PerCapKCAL.2016-06-21.rds
 # dt.foodAvailability is created here. Just has food availability from gdx. dt.IMPACTfood adds the fish and alcoholic beverages
 
-sourceFile <- "R/dataPrep.SSP.R"
-sourcer(sourceFile)
-# - creates files in mData
-# dt.SSPGDPClean - SSP GDP data
-# dt.SSP.pop.tot
-# dt.SSPPopClean - SSP population data including age and gender groups
-# dt.IMPACT159.pop.tot - total population by IMPACT 159 region from the SSP population data set; not any more
-
-sourceFile <- "R/dataPrep.regions.R"
-sourcer(sourceFile) # - creates dt.regions.all and the list of scenarios
-
-sourceFile <- "R/dataPrep.FBS.R"
-sourcer(sourceFile) # - creates dt.FBS, mData
-
-sourceFile <- "R/dataManagement.fishnAlc.R"
-sourcer(sourceFile) # dt.fishIncElast, iData - to have a record of what fish income elasticities were used
-# dt.fishScenarios, mData
-# dt.alcIncElast, iData - to have a record of what alcohol income elasticities were used
-# dt.alcScenarios, mData - alcohol consumption scenarios, for input into dataManagement.IMPACT.R
-
-sourceFile <- "R/dataManagement.IMPACT.R"
+sourceFile <- "dataManagement.IMPACT.R"
 sourcer(sourceFile) # adds fish and alcohol data, writes out IMPACT variables just for food items (names begin with c), and dt.IMPACTfood file
 # Key output is dt.IMPACTfood
 #dt.IMPACTfood, iData
 
-# sourceFile <- "R/c_FrshD_cleanup.R"
-# sourcer(sourceFile) ## match up item name and item codes. The item names are in the comp recalc spreadsheets but item code is not.
-# Just need to do this for Fresh fish. c_FrshD. Not needed because results already recorded in dt.compositesLU file.
-
-sourceFile <- "R/dataPrepFishStat.R"
+sourceFile <- "dataPrepFishStat.R"
 sourcer(sourceFile) # adds fish data for composite fish commodities, writes out IMPACT variables just for composite fish items (names begin with c),
 # destination is fileloc("iData")
 
-sourceFile <- "R/dataPrep.ODBCaccess.R"
-sourcer(sourceFile) # reads in nutrient data from the USDA nutrient composition access database
+# only run dataPrepFortification.R if the switch choice is three
+gdxSwitchCombo <- read.csv(file = paste0(getwd(), "/results/gdxInfo.csv"), header = TRUE, stringsAsFactors = FALSE)
+if (gdxSwitchCombo[3] == 3) {
+  sourceFile <- "dataPrepFortification.R"
+  sourcer(sourceFile) # reads in data on where fortification occurs (not all types of fortification); writes out data file in appropriate format
+}
 
-# replaced by dataPrepUSDANuts.R feb 25, 2018
-# cat("Running dataManagement.ODBCaccess.R\n\n")
-# source("R/dataManagement.ODBCaccess.R")
-#Manipulates the results of the ODBC_access script and prepares dt.nutrients for later scripts
-
-sourceFile <- "R/dataPrepFortification.R"
-sourcer(sourceFile) # reads in data on where fortification occurs (not all types of fortification); writes out data file in appropriate format
-# and also creates facet maps with this information
-
-sourceFile <- "R/dataPrepUSDANuts.R"
+sourceFile <- "dataPrepUSDANuts.R"
 sourcer(sourceFile)
 
-sourceFile <- "R/dataPrep.NutrientRequirements.R"
+sourceFile <- "dataPrep.NutrientRequirements.R"
 sourcer(sourceFile) # newDFname, mData - nutrient requirements adjusted to SSP age and gender categories, example is req.RDA.macro.ssp.2016-06-22.rds
 
-sourceFile <- "R/dataManagement.SSPPop.R"
-sourcer(sourceFile) #paste(gsub("_ssp","",nutReqName),"percap",sep = "_"), mData - Nutrient requirements adjusted for population distribution, example is req.EAR.percap.2016-06-24.rds
 
-sourceFile <- "R/dataManagement.foodNnuts.R"
+sourceFile <- "dataManagement.foodNnuts.R"
 sourcer(sourceFile) #resultsD - creates dt.foodNnuts, dt.nutrients.kcals, dt.nutrients.sum.all, dt.nutrients.sum.staples,
 # dt.nutrients.nonstapleShare, dt.foodAvail.foodGroup
 
-sourceFile <- "R/nutrientCalcs.R"
+sourceFile <- "nutrientCalcs.R"
 sourcer(sourceFile)
-#writes
-# paste("food.agg.",reqShortName,sep = "") fileloc("resultsDir"), "csv")
-# "dt.nutrients.sum", fileloc("resultsDir"))
 
-sourceFile <- "R/nutCalcsProcessing.R"
+sourceFile <- "nutCalcsProcessing.R"
 sourcer(sourceFile) # should probably be rewritten so it doesn't take so long to run
-#writes
-# paste(reqShortName, "all.sum", sep = ".")
-# paste(reqShortName, "sum.req.ratio", sep = ".")
-# paste(reqShortName, "all.ratio", sep = ".")
-# paste(reqShortName, "all.req.ratio", sep = ".")
-# cleanup(inDT, outName, fileloc("resultsDir"))
-# "all.req.ratio.cMax"
-# cleanup(inDT, outName, fileloc("resultsDir"))
-"all.req.ratio.cMin"
-# dt.energy.ratios - ratio of kcals from specific sources to total kcals
 
-sourceFile <- "R/diversityMetrics.R"
+sourceFile <- "diversityMetrics.R"
 sourcer(sourceFile)
 
-#creating list of .rds files in results
+#creating list of .rds files in results.
 cat("create list of .rds files in data\n\n")
+source("R/nutrientModFunctions.R") # added here because clearmemory in diversityMetrics.R deletes all the functions
+createScriptMetaData()
 dt.resultsFiles <- data.table::as.data.table(list.files(path = fileloc("resultsDir"), pattern = "*.rds"))
 data.table::setnames(dt.resultsFiles, old = "V1", new = "fileName")
-dt.resultsFiles[, reqTypeName := gsub(".{15}$","",dt.resultsFiles$fileName)]
+dt.resultsFiles[, reqTypeName := gsub(".{15}$", "", dt.resultsFiles$fileName)]
 
 # this csv file is hand edited. Don't delete!
 descriptionLookup <- fread(paste(fileloc("rawData"), "descriptionLookup.csv", sep = "/"))
@@ -181,18 +173,22 @@ dt.resultsFiles <- merge(dt.resultsFiles,descriptionLookup, by = "reqTypeName", 
 inDT <- dt.resultsFiles
 outName <- "resultFileLookup"
 desc <- " Description of contents of some files."
+sourceFile <- "automate.R"
 cleanup(inDT, outName, fileloc("mData"), desc = desc)
+finalizeScriptMetadata(metadataDT, sourceFile)
 
-sourceFile <- "R/copyFilestoNutrientModeling.R"
-sourcer(sourceFile)  # move results needed for the shiny app.R in the nutrientModeling folder
-
+gdxChoice <- getGdxChoice()
+if (gdxChoice %in% "SSPs") { # copy files only if using the nutrient modeling gdx
+  sourceFile <- "copyFilestoNutrientModeling.R"
+  sourcer(sourceFile)  # move results needed for the shiny app.R in the nutrientModeling folder
+}
 library(dtplyr)# generate graphs
-sourceFile <- "R/aggRun.R"
+sourceFile <- "aggRun.R"
 sourcer(sourceFile)
 
-sourceFile <- "R/finalGraphCreation.R"
+sourceFile <- "finalGraphCreation.R"
 sourcer(sourceFile)
 
-sourceFile <- "R/dataPrep.metadata.R"
+sourceFile <- "dataPrep.metadata.R"
 sourcer(sourceFile)
 

@@ -51,7 +51,7 @@ f.createGeneralWorksheet <- function() {
 
   wbInfoGeneral[1, ] <- c("Sheet names", "Description of sheet contents")
   wbInfoGeneral[(nrow(wbInfoGeneral) + 1), ] <- c("creation_Info", "Information on creator, date, model version, etc.")
-  dt.regions.all <- getNewestVersion("dt.regions.all")
+  dt.regions.all <- getNewestVersion("dt.regions.all", fileloc("uData"))
   # create a worksheet with info on the regions
   openxlsx::addWorksheet(wbGeneral, sheetName = "metadataRegions")
   wbInfoGeneral[(nrow(wbInfoGeneral) + 1), ] <- c("metadataRegions",

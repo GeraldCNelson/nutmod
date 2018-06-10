@@ -38,11 +38,11 @@ FBSyearsToAverage.startyear <- keyVariable("FBSyearsToAverage.startyear") # year
 keepYearList <- keyVariable("keepYearList") # list of years we need to keep for later use between 2010 and 2050
 
 #load the SSP GDP and population data -----
-dt.SSPGDP <- getNewestVersion("dt.SSPGDPClean")
-dt.SSPPop <- getNewestVersion("dt.SSP.pop.tot")
-dt.regions.all <- getNewestVersion("dt.regions.all")
+dt.SSPGDP <- getNewestVersion("dt.SSPGDPClean", fileloc("uData"))
+dt.SSPPop <- getNewestVersion("dt.SSP.pop.tot", fileloc("uData"))
+dt.regions.all <- getNewestVersion("dt.regions.all", fileloc("uData"))
 
-dt.FBS <- getNewestVersion("dt.FBS")
+dt.FBS <- getNewestVersion("dt.FBS", fileloc("uData"))
 # various lists of countries
 regionList.FBS <- sort(unique(dt.FBS$ISO_code)) # Regions with FBS data
 regionList.IMPACT <- sort(unique(dt.regions.all$region_code.IMPACT159)) # IMPACT regions
@@ -103,9 +103,8 @@ dt.SSPGDPperCap[, setdiff(names(dt.SSPGDPperCap), keepListCol) := NULL]
 # lag and difference SSP GDP ----- switching to per cap GDP April 23, 2018
 # dt.SSPGDPperCap[,GDP.lag1 := data.table::shift(value.GDP, type = "lag"), by = c("region_code.IMPACT159", "scenario")]
 # dt.SSPGDPperCap[,delta.GDP := value.GDP - GDP.lag1]
-dt.SSPGDPperCap[, value.perCapGDP.lag1 := data.table::shift(value.perCapGDP, type = "lag"), by = c("region_code.IMPACT159", "scenario")][,
-                  delta.GDP := value.perCapGDP - value.perCapGDP.lag1][,
-                  GDPRatio := delta.GDP/(value.perCapGDP + value.perCapGDP.lag1)]
+dt.SSPGDPperCap[, value.perCapGDP.lag1 := data.table::shift(value.perCapGDP, type = "lag"), by = c("region_code.IMPACT159", "scenario")]
+dt.SSPGDPperCap[, delta.GDP := value.perCapGDP - value.perCapGDP.lag1]
 keepListCol <- c("region_code.IMPACT159", "scenario", "year","delta.GDP", "GDPRatio")
 dt.SSPGDPperCap[, setdiff(names(dt.SSPGDPperCap), keepListCol) := NULL]
 
@@ -158,8 +157,8 @@ dt.FBS[, year := as.character(year)] # added May 31, 2018
 formula.wide <- "region_code.IMPACT159 + year ~ IMPACT_code"
 dt.FBS.wide <- data.table::dcast(
   data = dt.FBS,
-formula = formula.wide,
-value.var = "value")
+  formula = formula.wide,
+  value.var = "value")
 
 # set X2005 values that are NA to 0
 dt.FBS.wide[, (names(dt.FBS.wide)) := lapply(.SD, function(x){x[is.na(x)] <- 0; x}), .SDcols = names(dt.FBS.wide)]
@@ -244,7 +243,7 @@ if (switch.fixFish == TRUE) {
 # set max income elasticity to 1 if TRUE
 switch.changeElasticity <- keyVariable("switch.changeElasticity")
 if (switch.changeElasticity == TRUE) {
-#  temp <- names(dt.incElas.fish)[2:length(names(dt.incElas.fish))]
+  #  temp <- names(dt.incElas.fish)[2:length(names(dt.incElas.fish))]
   temp <- names(dt.incElas.fish)[grep("elas", names(dt.incElas.fish))]
   for (j in temp)
     data.table::set(
@@ -267,9 +266,9 @@ dt.years <- data.table::data.table(year = rep(keepYearList, each = nrow(dt.incEl
 dt.incElas.fish <- cbind(dt.years, dt.incElas.fish)
 
 inDT <- dt.incElas.fish
-outName <- "dt.incElas.fish"
+outName <- "dt.incElas.fish" # not used elsewhere
 desc <- "Fish income elasticities estimates to 2050; capped at 1.0. Assumed to be identical in all scenarios and all time periods"
-cleanup(inDT,outName,fileloc("iData"), desc = desc)
+cleanup(inDT,outName,fileloc("uData"), desc = desc)
 
 #combine alcohol and fish income elasticities
 dt.incElas.fishnalc <- merge(dt.incElas.fish, dt.incElas.alc, by = c("region_code.IMPACT159", "year"))
@@ -338,22 +337,6 @@ dt.GDPFBSelas[, (Qn) := Map(f.cumprod,  mget(Qn), mget(xRatio)), by = .(region_c
 keepListCol <- c("scenario", "region_code.IMPACT159", "year", fishNalcNames)
 dt.GDPFBSelas[, setdiff(names(dt.GDPFBSelas), keepListCol) := NULL]
 
-# add the climModel and experiment on to the scenario name
-
-# some kludging follows - May 12, 2018
-dt.GDPFBSelas[, scenario := gsub("SSP1", "SSP1-NoCC-REF", scenario)]  # because the current set of scenarios only has SSP1 and SSP3 with noCC
-dt.GDPFBSelas[, scenario := gsub("SSP3", "SSP3-NoCC-REF", scenario)]  # because the current set of scenarios only has SSP1 and SSP3 with noCC
-temp.SSP2 <- dt.GDPFBSelas[scenario %in% "SSP2"]
-temp.SSP2.NoCC <- copy(temp.SSP2)
-temp.SSP2.GFDL <- copy(temp.SSP2)
-temp.SSP2.HGEM <- copy(temp.SSP2)
-temp.SSP2.IPSL <- copy(temp.SSP2)
-temp.SSP2.GFDL[ , scenario := gsub("SSP2", "SSP2-GFDL-REF", scenario)]
-temp.SSP2.HGEM[ , scenario := gsub("SSP2", "SSP2-HGEM-REF", scenario)]
-temp.SSP2.IPSL[ , scenario := gsub("SSP2", "SSP2-IPSL-REF", scenario)]
-temp.SSP2.NoCC[ , scenario := gsub("SSP2", "SSP2-NoCC-REF", scenario)]
-dt.GDPFBSelas <- rbind(temp.SSP2.NoCC, temp.SSP2.GFDL, temp.SSP2.HGEM, temp.SSP2.IPSL, dt.GDPFBSelas)
-
 # dt.GDPFBSelas units are kgs per person per day. To align with dt.foodAvailability they need to be per year.
 daysinyear <- keyVariable("DinY")
 dt.GDPFBSelas[, (fishNalcNames) := lapply(.SD, "*", daysinyear), .SDcols = (fishNalcNames)]
@@ -364,19 +347,19 @@ idVarsFishnAlc <- c("scenario", "region_code.IMPACT159", "year")
 #' #' get the names of the fish and alcoholic beverages that are included in dt.fishScenario
 measureVarsFishnAlc <- names(dt.GDPFBSelas)[!names(dt.GDPFBSelas) %in% idVarsFishnAlc]
 dt.GDPFBSelas.melt <- data.table::melt(dt.GDPFBSelas,
-                                              id.vars = idVarsFishnAlc,
-                                              variable.name = "IMPACT_code",
-                                              measure.vars = measureVarsFishnAlc,
-                                              value.name = "FoodAvailability",
-                                              variable.factor = FALSE)
+                                       id.vars = idVarsFishnAlc,
+                                       variable.name = "IMPACT_code",
+                                       measure.vars = measureVarsFishnAlc,
+                                       value.name = "FoodAvailability",
+                                       variable.factor = FALSE)
 
 dt.GDPFBSelas.melt <- unique(dt.GDPFBSelas.melt) # added May 15, 2018, not sure why it is needed.
-
-inDT <- dt.GDPFBSelas.melt
+keepYearList <- keyVariable("keepYearList") # get original list
+inDT <- dt.GDPFBSelas.melt[year %in% keepYearList]
 outName <- "dt.fishnAlcScenarios"
-desc <- "Scenarios of fish and alcoholic beverages availability by fish composite and country. Average availability, kgs per person per year"
-cleanup(inDT,outName, fileloc("iData"), desc = desc)
+desc <- "SSP scenarios of fish and alcoholic beverages availability by fish composite and country. Average availability, kgs per person per year"
+cleanup(inDT,outName, fileloc("uData"), desc = desc)
 
 # testing of data
-dt.GDPFBSelas.melt[, fishCons := rowSums(.SD), by = c("scenario", "region_code.IMPACT159", "year", "IMPACT_code")]
+# dt.GDPFBSelas.melt[, fishCons := rowSums(.SD), by = c("scenario", "region_code.IMPACT159", "year", "IMPACT_code")]
 

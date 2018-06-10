@@ -37,6 +37,7 @@
 #' @include workbookFunctions.R
 #' @include nutrientCalcFunctions.R
 source("R/nutrientModFunctions.R")
+gdxChoice <- getGdxChoice()
 
 #for testing
 fileShortName <- "RDA.macro_sum_reqRatio"

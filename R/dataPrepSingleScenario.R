@@ -70,7 +70,7 @@ generateResults <- function(gdxFileName, gdxFileLoc, vars, catNames, singleScena
 #' @export
 #'
 processIMPACT159Data <- function(gdxFileName, gdxFileLoc, varName, catNames, singleScenario, keepYearList) {
-  # dt.regions.all <- getNewestVersion("dt.regions.all")
+  # dt.regions.all <- getNewestVersion("dt.regions.all", fileloc("uData"))
   # IMPACTgdx <- gdxFileName
   dt <- data.table::as.data.table(gdxrrw::rgdx.param(gdxFileLoc, varName,
                                                      ts = TRUE, names = catNames))
@@ -208,7 +208,7 @@ openxlsx::saveWorkbook(wb = sumStats, file = paste(fileDest, "compareStats.xlsx"
 
 # facet maps of deltas due to use of Globe
 cat("\n Working on facet maps")
-worldMap <- getNewestVersion("worldMap", fileloc("mData"))
+worldMap <- getNewestVersion("worldMap", fileloc("uData"))
 
 measureVars <- c("pcGDPX0_woGlobe", "pcGDPX0_wGlobe", "budget_woGlobe", "budget_wGlobe",
                  "incShare_woGlobe", "incShare_wGlobe",
@@ -257,7 +257,7 @@ dt.50.long.share <- copy(dt.50.long)
   displayOrder <- sort(unique(DT[, get(facetColName)])) # default - alphabetically sorted
   fileName <- paste("facetmap", "macroMetrics", "2050", sep = "_")
   graphsListHolder <- list()
-  facetMaps(worldMap, DT, fileName, legendText, fillLimits, palette, facetColName, graphsListHolder, breakValues, displayOrder)
+  facetMaps(worldMap, DTfacetMap, fileName, legendText, fillLimits, palette, facetColName, graphsListHolder, breakValues, displayOrder)
   print(graphsListHolder)
 
   b <- breakValues

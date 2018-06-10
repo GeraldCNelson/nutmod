@@ -37,11 +37,6 @@ dt.SSP <- as.data.table(readr::read_csv(unz(SSPdataZip, filename = SSPcsv), col_
   `2005` = col_double()
 )))
 
-# old code below; new code above, added Apri 12, 2018
-# temp <- utils::unzip(SSPdataZip, files = SSPcsv)
-# dt.SSP <- data.table::fread(temp, header = TRUE, stringsAsFactors = FALSE)
-# file.remove(temp)
-
 #' add X to the year column name so R is happy with years as column names
 data.table::setnames(dt.SSP, make.names(names(dt.SSP)))
 
@@ -91,7 +86,7 @@ dt.SSP.GDP.melt <- dt.SSP.GDP.melt[!ISO_code %in% keyVariable("dropListCty"),]
 inDT <- dt.SSP.GDP.melt
 outName <- "dt.SSPGDPClean"
 desc <- "GDP information by country and scenario with cleaned up column names"
-cleanup(inDT,outName,fileloc("mData"), desc = desc)
+cleanup(inDT,outName,fileloc("uData"), desc = desc)
 
 # create cleaned up population SSP data -----
 #' @param dt.SSP.pop - data table with the SSP results from the model identified in modelListPop
@@ -141,7 +136,7 @@ dt.SSP.pop.tot.melt <- dt.SSP.pop.tot.melt[!region_code.SSP %in% keyVariable("dr
 inDT <- dt.SSP.pop.tot.melt
 outName <- "dt.SSP.pop.tot"
 desc <- "Population information by country and scenario with cleaned up column names"
-cleanup(inDT,outName,fileloc("mData"), desc = desc)
+cleanup(inDT,outName,fileloc("uData"), desc = desc)
 
 #' Remove the aggregates of
 #' "Population", "Population|Female" and "Population|Male"
@@ -208,6 +203,6 @@ dt.SSP.pop.step2.melt <- dt.SSP.pop.step2.melt[!ISO_code %in% keyVariable("dropL
 inDT <- dt.SSP.pop.step2.melt
 outName <- "dt.SSPPopClean"
 desc <- "Population information by country and scenario and age and gender with cleaned up column names"
-cleanup(inDT,outName,fileloc("mData"), desc = desc)
+cleanup(inDT,outName,fileloc("uData"), desc = desc)
 
 finalizeScriptMetadata(metadataDT, sourceFile)

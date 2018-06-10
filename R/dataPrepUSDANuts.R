@@ -139,7 +139,7 @@ dt.USDAnutrients.fish[, ft_acds_tot_trans_g := as.numeric(ft_acds_tot_trans_g)]
 
 #' FAOSTAT (crop and animal production and trade) data are (currently) used only for the composite categories, to get nutrient availability by weighting the nutrient composition of composite items
 # get FAOSTAT code info
-dt.regions.all <- getNewestVersion("dt.regions.all")
+dt.regions.all <- getNewestVersion("dt.regions.all", fileloc("uData"))
 keepListCol <- c("region_code.IMPACT159", "FAOSTAT_code")
 dt.regions <- dt.regions.all[,(keepListCol), with = FALSE][, FAOSTAT_code := as.character(FAOSTAT_code)]
 
@@ -540,7 +540,7 @@ desc <- "Nutrient composition of IMPACT food items, country-specific"
 cleanup(inDT, outName, fileloc("iData"), desc = desc)
 
 # now add supplementation. Add this to dt.nutrients.var
-dt.fortValues <- getNewestVersion(fileShortName = "dt.fortValues")
+dt.fortValues <- getNewestVersion(fileShortName = "dt.fortValues", fileloc("uData"))
 nutrientsList.fort <- unique(dt.fortValues$Nutrient)
 dt.fortValues[, Nutrient := paste0(Nutrient,".fort")]
 
@@ -614,3 +614,4 @@ desc <- "Nutrient names and units"
 cleanup(inDT, outName, fileloc("mData"), desc = desc)
 
 finalizeScriptMetadata(metadataDT, sourceFile)
+sourcer <- clearMemory() # removes everything in memory and sources the sourcer function

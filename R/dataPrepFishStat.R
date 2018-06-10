@@ -99,7 +99,7 @@ dt.prod.wide[, (NAlist) := lapply(.SD, function(x){x[is.na(x)] <- 0; x}), .SDcol
 dt.prod.wide[, prodAve := rowSums(.SD), .SDcols = NAlist]
 dt.prod.wide[, (NAlist) := NULL]
 
-dt.regions <- getNewestVersion("dt.regions.all")
+dt.regions <- getNewestVersion("dt.regions.all", fileloc("uData"))
 keepListCol <- c("region_code.IMPACT159", "FAOSTAT_code", "UNI_code", "country_name.ISO")
 dt.regions[, setdiff(names(dt.regions), keepListCol) := NULL][, UNI_code := as.character(UNI_code)]
 
@@ -135,3 +135,4 @@ outName <- "dt.fishStatData"
 desc <- "Production and edible share of fish species and which composite they are part of by country from FishStat"
 cleanup(inDT, outName, fileloc("iData"), desc = desc)
 finalizeScriptMetadata(metadataDT, sourceFile)
+sourcer <- clearMemory() # removes everything in memory and sources the sourcer function

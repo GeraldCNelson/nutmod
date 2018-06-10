@@ -16,7 +16,7 @@ source("R/nutrientModFunctions.R")
 ctyList <- c("NIC", "BRA", "CHM", "ETH", "IND", "GHA","TZA", "FRP", "VNM", "USA", "ZAF")
 yearList <- c("X2010", "X2050")
 scenarioList <- c("SSP1-NoCC","SSP2-NoCC","SSP3-NoCC", "SSP2-HGEM", "SSP2-IPSL")
-dt.regions.all <- getNewestVersion("dt.regions.all")
+dt.regions.all <- getNewestVersion("dt.regions.all", fileloc("uData"))
 
 dt.IMPACTfood <- getNewestVersionIMPACT("dt.IMPACTfood")
 dt.budgetShare <- getNewestVersion("dt.budgetShare", fileloc("resultsDir"))

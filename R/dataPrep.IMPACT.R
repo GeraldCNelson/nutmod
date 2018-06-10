@@ -45,7 +45,7 @@ if (!exists("gdxFileName")) {
   gdxFileName <- dt.metadata[file_description %in% "IMPACT demand data in gdx form", file_name_location]
 }
 gdxFileLoc <- paste(fileloc("IMPACTRawData"),gdxFileName, sep = "/")
-
+gdxChoice <- getGdxChoice()
 #' Title generateResults - send a list of variables with common categories to the
 #' function to write out the data
 #' @param vars - list of variables to process
@@ -62,16 +62,28 @@ gdxFileLoc <- paste(fileloc("IMPACTRawData"),gdxFileName, sep = "/")
 #' @export
 #'
 processIMPACT159Data <- function(gdxFileName, varName, catNames) {
-  # dt.regions.all <- getNewestVersion("dt.regions.all")
+  # dt.regions.all <- getNewestVersion("dt.regions.all", fileloc("uData"))
   # IMPACTgdx <- gdxFileName
   dt.ptemp <- data.table::as.data.table(gdxrrw::rgdx.param(gdxFileLoc, varName,
                                                            ts = TRUE, names = catNames))
   dt.ptemp <- data.table::as.data.table(rapply(dt.ptemp, as.character, classes = "factor", how = "replace"))
 
-  dt.ptemp[scenario %in% c("SSP1-NoCC", "SSP2-GFDL", "SSP2-HGEM","SSP2-HGEM2", "SSP2-IPSL", "SSP2-IPSL2",
-                           "SSP2-MIROC", "SSP2-NoCC", "SSP3-NoCC"),
-           scenario := paste(scenario, "-REF", sep = "")]
-
+  if (gdxChoice %in% "SSPs") {
+    dt.ptemp[scenario %in% c("SSP1-NoCC", "SSP2-GFDL", "SSP2-HGEM","SSP2-HGEM2", "SSP2-IPSL", "SSP2-IPSL2",
+                             "SSP2-MIROC", "SSP2-NoCC", "SSP3-NoCC"),
+             scenario := paste(scenario, "-REF", sep = "")]
+  }
+  if (gdxChoice %in% "USAIDPriorities") {
+      dt.ptemp[, crop := tstrsplit(scenario, "-", fixed = TRUE, keep = c(3))]
+      SSPName <- "SSP2"
+      climModel <- "HGEM"
+      dt.ptemp[, scenario := paste(SSPName, climModel, paste0("c", crop), sep = "-")]
+      dt.ptemp[, crop := NULL]
+    # SSPName <- "SSP2"
+    # climModel <- "HGEM"
+    # dt.ptemp[, scenario := paste(SSPName, climModel, paste0("c", tstrsplit(scenario, "-", fixed = TRUE, keep = c(3))), sep = "-")]
+    # dt.ptemp[, crop := NULL]
+  }
   keepYearList <- keyVariable("keepYearList")
   # dt.temp <- dt.regions.all[,c("region_code.IMPACT159","region_name.IMPACT159"), with = FALSE]
   # data.table::setkey(dt.temp,region_code.IMPACT159)
@@ -142,3 +154,4 @@ generateResults(gdxFileName, vars.world, catNames.world)
 
 
 finalizeScriptMetadata(metadataDT, sourceFile)
+sourcer <- clearMemory() # removes everything in memory and sources the sourcer function

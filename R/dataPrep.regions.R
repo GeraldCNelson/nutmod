@@ -57,13 +57,13 @@ dt.regions.all <- data.table::as.data.table(regionsLookup)
 #   startRow = 2,
 #   colNames = FALSE
 # )
-# colnames(WBNameLookup) <- c("ISO_code", "country_name.ISO", "region_name.WB", "region_code.WB")
+# colnames(WBNameLookup) <- c("ISO_code", "country_name.ISO", "region_name.WB.income", "region_code.WB.income")
 # dt.regions.all <- merge(dt.regions.all, WBNameLookup, by = c("ISO_code", "country_name.ISO"), all = TRUE)
 inDT <- dt.regions.all
 data.table::setorder(inDT, ISO_code)
 outName <- "dt.regions.all"
 desc <- "A lookup table for all the ways countries can be classified"
-cleanup(inDT,outName,fileloc("mData"), desc = desc)
+cleanup(inDT,outName,fileloc("uData"), desc = desc)
 finalizeScriptMetadata(metadataDT, sourceFile)
 
 #

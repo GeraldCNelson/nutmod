@@ -90,19 +90,19 @@ NUTR_DEF[,(deleteListCol) := NULL][, Nutr_No := as.character(Nutr_No)]
 inDT <- FOOD_DES
 outName <- "FOOD_DES"
 desc <- "Food descriptive info from USDA FCT"
-cleanup(inDT, outName, fileloc("mData"), desc = desc)
+cleanup(inDT, outName, fileloc("uData"), desc = desc)
 
 #' the requirement for potassium (code 306) is expressed in grams; the NUT_DATA data are in mg. We convert the NUT_DATA here to g
 NUT_DATA[ Nutr_No %in% "306", Nutr_Val := Nutr_Val/1000]
 inDT <- NUT_DATA
 outName <- "NUT_DATA"
 desc <- "Nutrient data from USDA FCT"
-cleanup(inDT, outName, fileloc("mData"), desc = desc)
+cleanup(inDT, outName, fileloc("uData"), desc = desc)
 inDT <- NUTR_DEF
 
 outName <- "NUTR_DEF"
 desc <- "Nutrient definitions from USDA FCT"
-cleanup(inDT, outName, fileloc("mData"), desc = desc)
+cleanup(inDT, outName, fileloc("uData"), desc = desc)
 
 finalizeScriptMetadata(metadataDT, sourceFile)
 
