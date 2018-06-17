@@ -203,7 +203,7 @@ for (switchloop in getSwitchChoice()) {
   dt.KcalShare.nonstaple[,value := value * 100]
   inDT <- dt.KcalShare.nonstaple
   outName <- paste("dt.KcalShare_nonstaple", suffix, sep = ".")
-  desc <- "Share of kcals from nonstaples"
+  desc <- "Share of kcals from nonstaples in value column; other Kcal data included"
   cleanup(inDT, outName, fileloc("resultsDir"), desc = desc)
 
   #' dt.nutrients.sum.staples

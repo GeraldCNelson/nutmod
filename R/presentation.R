@@ -1,10 +1,13 @@
 library(officer)
 library(magrittr)
+library(data.table)
 source("R/nutrientModFunctions.R")
 gdxChoice <- getGdxChoice()
+imageFilePrefix <- paste0("graphics/", gdxChoice, "/final/")
+dateNtime <- Sys.Date()
 
-my_pres.wb <- read_pptx("presentations/blank.pptx")
-my_pres.tenregions <- read_pptx("presentations/blank.pptx")
+my_pres.wb <- copy(read_pptx("presentations/blank.pptx"))
+
 
 # ph_with_text(type = "ctrTitle", str = "Comparing Nutrient Modeling Results") %>%
 # add_slide(layout="Section Header", master="Office Theme")  %>%
@@ -32,15 +35,11 @@ imageList_SSPs.wb <- c("fig1.budgetShare_WB.base.pdf", "fig1.budgetShare_WB.var.
 imageList_USAIDPriorities.wb <- c("fig1.budgetShare_WB.base.pdf",
                                   "fig2.adequacy.macro_WB.base.pdf",
                                   "fig3.AMDRhiLo_WB.base.pdf",
-                                  "fig4.1.adequacy.vits_WB.base.pdf",
-                                  "fig4.2.adequacy.vits_WB.base.pdf",
-                                  "fig4.3.adequacy.minrls_WB.base.pdf",
+                                  "fig4.1.adequacy.vits_WB.base.pdf", "fig4.2.adequacy.vits_WB.base.pdf", "fig4.3.adequacy.minrls_WB.base.pdf",
                                   "fig5.compDINB_WB.base.pdf",
                                   "fig6.facetMapRR_2010.base.pdf",
                                   "fig7.facetMapRR_IncDelta.base.pdf",
-                                  "FigS1.foodavail.1_WB.base.pdf",
-                                  "FigS1.foodavail.2_WB.base.pdf",
-                                  "FigS1.foodavail.3_WB.base.pdf",
+                                  "figS1.foodavail.1_WB.base.pdf",  "figS1.foodavail.2_WB.base.pdf",  "figS1.foodavail.3_WB.base.pdf",
                                   "figS3.nutavail.zinc.base.pdf",
                                   "figS4.RaoNenergyShareNonStaples_WB.base.pdf",
                                   "figS6.badRatios_WB.base.pdf")
@@ -59,55 +58,150 @@ imageList_USAIDPriorities.tenregions <- c("figS8.foodavail.1_tenregions.base.pdf
                                           "figS10.3.adequacy.minrls_tenregions.base.pdf",
                                           "figS10.4.adequacy.macro_tenregions.base.pdf")
 
-if (gdxChoice %in% "SSPs") imageList.wb <- imageList_SSPs.wb; imageList.tenregions <- imageList_SSPs.tenregions
-if (gdxChoice %in% "USAIDPriorities") imageList.wb <- imageList_USAIDPriorities.wb; imageList.tenregions <- imageList_USAIDPriorities.tenregions
+pdfDimensions <- getNewestVersion("pdfDimensions", fileloc("gDir"))
+pdfDimensions[, width := as.numeric(width)]
+pdfDimensions[, height := as.numeric(height)]
+
+pdfDimensions[, fileName := gsub(imageFilePrefix, "", fileName)]
+imageList.tenregions <- paste0("imageList_", gdxChoice, ".tenregions")
+imageList.wb <- paste0("imageList_", gdxChoice, ".wb")
+
+pdfDimensions.tenregions <- pdfDimensions[fileName %in% get(imageList.tenregions)]
+pdfDimensions.wb <- pdfDimensions[fileName %in% get(imageList.wb)]
+
+pdfDimensions.wb[, newOrder := match(fileName, get(imageList.wb))]
+setorder(pdfDimensions.wb, newOrder)
+pdfDimensions.wb[, newOrder := NULL]
+
+pdfDimensions.tenregions[, newOrder := match(fileName, get(imageList.tenregions))]
+setorder(pdfDimensions.tenregions, newOrder)
+pdfDimensions.tenregions[, newOrder := NULL]
+
+# add path back onto filename
+pdfDimensions.wb[, fileName := paste0(imageFilePrefix, fileName)]
+pdfDimensions.tenregions[, fileName := paste0(imageFilePrefix, fileName)]
+
+#pdfDimensions <- pdfDimensions[!fileName %in% c("facetMapMRV_2010.base.pdf", "facetMapMRV_IncDelta.base.pdf")]
+
+# if (gdxChoice %in% "SSPs") imageList.wb <- imageList_SSPs.wb; imageList.tenregions <- imageList_SSPs.tenregions
+# if (gdxChoice %in% "USAIDPriorities") imageList.wb <- imageList_USAIDPriorities.wb; imageList.tenregions <- imageList_USAIDPriorities.tenregions
 titleSlide.wb <- "add_slide(x = my_pres.wb, layout='Title Slide', master='Office Theme')"
-titleContentString.wb <- paste0('Nutrient Modeling Results Comparison, World Bank aggregations, created ', Sys.Date())
-titleSlideContent.wb <- "ph_with_text(x = my_pres.wb, type = 'ctrTitle', str = 'Nutrient Modeling Results Comparison')"
+#titleContentString.wb <- paste0('Nutrient Modeling Results Comparison, World Bank aggregations, created ', Sys.Date())
+contentString.wb <- paste0("Nutrient Modeling Results Comparison, World Bank aggregations for ", gdxChoice, ', created ', Sys.Date())
+titleContentString.wb <- paste0("ph_with_text(x = my_pres.wb, type = 'ctrTitle', str =  '", contentString.wb, "')")
 pageStart.wb <- "add_slide(x = my_pres.wb, layout='Title and Content', master='Office Theme') %>% "
 pageStart.tenregions <- "add_slide(x = my_pres.tenregions, layout='Title and Content', master='Office Theme') %>% "
 titleListPre <-  "ph_with_text(type = 'title', str = '"
 titleListPost <- "') %>% "
-imageListPre <- paste0("ph_with_img(src = 'graphics/", gdxChoice, "/final/")
-imageListPost <- "', type = 'body', width = NULL, height = NULL)"
+imageListPre.wb <- paste0("ph_with_img(src = fileName, height = height, width = width, type = 'body')")
+imageListPre.tenregions <- paste0("ph_with_img(src = fileName, height = height, width = width, type = 'body')")
 str1 <- "The title of each of the following slides is the name of the pdf file displayed in the slide. The list below shows where the data come from."
 str2 <- "Base - A 'base' file uses the original data set for nutrient composition."
 str3 <- "Var - A file with 'var' in its name uses country-specific nutrient composition values for maize, rice, and wheat. This information is in countryCropVariety.xlsx"
 str4 <- "VarFort - Results from a 'Var' file with 'Fort'ification of selected food items. This information is in '...fortValues_[date created].xlsx'"
 strList <- c(str1, str2, str3, str4)
-my_pres.wb <- eval(parse(text = titleSlide.wb))
-my_pres.wb <- eval(parse(text = titleSlideContent.wb))
+#my_pres.wb <- eval(parse(text = titleSlide.wb))
+my_pres.wb <- eval(parse(text = titleContentString.wb))
 my_pres.wb <- add_slide(x = my_pres.wb, layout="Title and Content", master="Office Theme")
 my_pres.wb <- ph_with_text(x = my_pres.wb, type = "title", str = "File name explanation")
 my_pres.wb <- ph_with_ul(x = my_pres.wb, type = "body", index = 1,
                          str_list = strList,
                          level_list = c(1, 2, 2, 2) )
 
-
-for (i in imageList.wb) {
-  titleString <- paste0(titleListPre, i, titleListPost)
-  imageString <- paste0(imageListPre, i, imageListPost)
+for (i in 1: length(get(imageList.wb))) {
+  fileName <- pdfDimensions.wb$fileName[i]
+  width <- pdfDimensions.wb$width[i]
+  height <- pdfDimensions.wb$height[i]
+  fileNameForHeader <- get(imageList.wb)[i]
+  cat("\nfileName", fileName, "fileNameforHeader", fileNameForHeader, "width", width, "height", height)
+  titleString <- paste0(titleListPre, fileNameForHeader, titleListPost)
+  imageString <- imageListPre.wb
   finalString <- paste0(pageStart.wb, titleString, imageString)
   my_pres.wb <- eval(parse(text = finalString))
 }
-my_pres.wb <- remove_slide(x = my_pres.wb, index = 1)
+# my_pres.wb <- remove_slide(x = my_pres.wb, index = 1)
 
-titleSlide.wb <- "add_slide(x = my_pres.wb, layout='Title Slide', master='Office Theme')"
+# now work on ten regions
+my_pres.tenregions <- copy(read_pptx("presentations/blank.pptx"))
+pdfDimensions[, fileName := gsub(imageFilePrefix, "", fileName)]
+imageList.tenregions <- paste0("imageList_", gdxChoice, ".tenregions")
+
+pdfDimensions.tenregions <- pdfDimensions[fileName %in% get(imageList.tenregions)]
+pdfDimensions.tenregions[, newOrder := match(fileName, get(imageList.tenregions))]
+setorder(pdfDimensions.tenregions, newOrder)
+pdfDimensions.tenregions[, newOrder := NULL]
+
+# add path back onto filename
+pdfDimensions.tenregions[, fileName := paste0(imageFilePrefix, fileName)]
+
+#pdfDimensions <- pdfDimensions[!fileName %in% c("facetMapMRV_2010.base.pdf", "facetMapMRV_IncDelta.base.pdf")]
+
+dateNtime <- Sys.Date()
+contentString <- paste0("Nutrient Modeling Results Comparison, World Bank aggregations for ", gdxChoice, ', created ', Sys.Date())
+titleContentString.wb <- paste0("ph_with_text(x = my_pres.wb, type = 'ctrTitle', str =  '", contentString, "')")
+pageStart.wb <- "add_slide(x = my_pres.wb, layout='Title and Content', master='Office Theme') %>% "
+pageStart.tenregions <- "add_slide(x = my_pres.tenregions, layout='Title and Content', master='Office Theme') %>% "
+titleListPre <-  "ph_with_text(type = 'title', str = '"
+titleListPost <- "') %>% "
+imageListPre.wb <- paste0("ph_with_img(src = fileName, height = height, width = width, type = 'body')")
+imageListPre.tenregions <- paste0("ph_with_img(src = fileName, height = height, width = width, type = 'body')")
+str1 <- "The title of each of the following slides is the name of the pdf file displayed in the slide. The list below shows where the data come from."
+str2 <- "Base - A 'base' file uses the original data set for nutrient composition."
+str3 <- "Var - A file with 'var' in its name uses country-specific nutrient composition values for maize, rice, and wheat. This information is in countryCropVariety.xlsx"
+str4 <- "VarFort - Results from a 'Var' file with 'Fort'ification of selected food items. This information is in '...fortValues_[date created].xlsx'"
+strList <- c(str1, str2, str3, str4)
+#my_pres.wb <- eval(parse(text = titleSlide.wb))
+my_pres.wb <- eval(parse(text = titleContentString.wb))
+my_pres.wb <- add_slide(x = my_pres.wb, layout="Title and Content", master="Office Theme")
+my_pres.wb <- ph_with_text(x = my_pres.wb, type = "title", str = "File name explanation")
+my_pres.wb <- ph_with_ul(x = my_pres.wb, type = "body", index = 1,
+                         str_list = strList,
+                         level_list = c(1, 2, 2, 2) )
+
+for (i in 1: length(get(imageList.wb))) {
+  fileName <- pdfDimensions.wb$fileName[i]
+  width <- pdfDimensions.wb$width[i]
+  height <- pdfDimensions.wb$height[i]
+  fileNameForHeader <- get(imageList.wb)[i]
+  cat("\nfileName", fileName, "fileNameforHeader", fileNameForHeader, "width", width, "height", height)
+  titleString <- paste0(titleListPre, fileNameForHeader, titleListPost)
+  imageString <- imageListPre.wb
+  finalString <- paste0(pageStart.wb, titleString, imageString)
+  my_pres.wb <- eval(parse(text = finalString))
+}
+
+
+
+
+
+
+
+
+
+
+titleSlide.tenregions <- "add_slide(x = my_pres.tenregions, layout='Title Slide', master='Office Theme')"
 titleContentString.tenregions <- paste0('Nutrient Modeling Results Comparison, ten regions, created', Sys.Date())
-titleSlideContent.tenregions <- "ph_with_text(x = my_pres.tenregions, type = 'ctrTitle', str = 'Nutrient Modeling Results Comparison')"
+titleSlideContent.tenregions <- paste0("ph_with_text(x = my_pres.tenregions, type = 'ctrTitle', str =  'Nutrient Modeling Results Comparison for ", gdxChoice, "')")
+my_pres.tenregions <- eval(parse(text = titleSlide.wb))
+my_pres.tenregions <- eval(parse(text = titleSlideContent.tenregions))
 my_pres.tenregions <- add_slide(x = my_pres.tenregions, layout="Title and Content", master="Office Theme")
 my_pres.tenregions <- ph_with_text(x = my_pres.tenregions, type = "title", str = "File name explanation")
 my_pres.tenregions <- ph_with_ul(x = my_pres.tenregions, type = "body", index = 1,
                                  str_list = strList,
                                  level_list = c(1, 2, 2, 2) )
 
-for (i in imageList.tenregions) {
-  titleString <- paste0(titleListPre, i, titleListPost)
-  imageString <- paste0(imageListPre, i, imageListPost)
+for (i in 1: length(get(imageList.tenregions))) {
+  fileName <- pdfDimensions.tenregions$fileName[i]
+  width <- pdfDimensions.tenregions$width[i]
+  height <- pdfDimensions.tenregions$height[i]
+  fileNameForHeader <- get(imageList.tenregions)[i]
+  titleString <- paste0(titleListPre, fileNameForHeader, titleListPost)
+  imageString <- imageListPre.tenregions
   finalString <- paste0(pageStart.tenregions, titleString, imageString)
   my_pres.tenregions <- eval(parse(text = finalString))
+
 }
-my_pres.tenregions <- remove_slide(x = my_pres.tenregions, index = 1)
+#my_pres.tenregions <- remove_slide(x = my_pres.tenregions, index = 1)
 
 targetDirNfileName.wb <- paste0("presentations/",gdxChoice, "/", "comparisons.WB", ".pptx" )
 targetDirNfileName.tenregions <- paste0("presentations/",gdxChoice, "/", "comparisons.tenregions", ".pptx" )
@@ -122,3 +216,6 @@ print(my_pres.wb, target = targetDirNfileName.wb)
 #               master = "Office Theme" )
 # knitr::kable(layout_properties ( x = my_pres, layout = "Title Only",
 #               master = "Office Theme" )
+
+
+

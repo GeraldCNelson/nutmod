@@ -113,7 +113,6 @@ if (oneTimeDataUpdate == 4){
   #commented out because only needs to run when new SSP data are used. June 5, 2018
   sourceFile <- "dataManagement.SSPPop.R"
   sourcer(sourceFile) #paste(gsub("_ssp","",nutReqName),"percap",sep = "_"), mData - Nutrient requirements adjusted for population distribution, example is req.EAR.percap.2016-06-24.rds
-
 }
 
 sourceFile <- "dataPrep.IMPACT.R" # creates dt.scenarioListIMPACT and dt.IMPACTgdxParams

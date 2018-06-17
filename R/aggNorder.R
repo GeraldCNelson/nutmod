@@ -546,6 +546,6 @@ generateBreakValues <- function(fillLimits, decimals) {
   breakValue.high <- round(fillLimits[2], digits = decimals)
   #' middle two values shift the palette gradient
 #  breakValues <- scales::rescale(c(breakValue.low, breakValue.low + fillRange/3, breakValue.low + fillRange/1.5, breakValue.high))
-  breakValues <- round(c(breakValue.low, breakValue.low + fillRange/3, breakValue.low + fillRange/1.5, breakValue.high))
+  breakValues <- round(c(breakValue.low, breakValue.low + fillRange/3, breakValue.low + fillRange/1.5, breakValue.high), digits = decimals)
   return(breakValues)
 }

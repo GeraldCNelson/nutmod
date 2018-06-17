@@ -69,4 +69,4 @@ gamsSetup <- function(gdxFileName) {
 gamsSetup(gdxFileName)
 
 finalizeScriptMetadata(metadataDT, sourceFile)
-sourcer <- clearMemory() # removes everything in memory and sources the sourcer function
+# sourcer <- clearMemory() # removes everything in memory and sources the sourcer function

@@ -529,10 +529,11 @@ for (switchloop in getSwitchChoice()) {
   # facet maps for the world  -----
   worldMap <- getNewestVersion("worldMap", fileloc("uData")) # run storeWorldMapDF() if this is not available
   truncateDT <- function(DT, fillLimits){ # function to make sure every country gets a color. The fillLimits values are identified ahead of time and entered manually into the code below
+    dt <- copy(DT)
     # truncate range, upper and lower
-    DT[value < fillLimits[1], value := fillLimits[1]]
-    DT[value > fillLimits[2], value := fillLimits[2]]
-    return(DT)
+    dt[value < fillLimits[1], value := fillLimits[1]]
+    dt[value > fillLimits[2], value := fillLimits[2]]
+    return(dt)
   }
   # facet map, food availability by food groups -----
   cat("\nWorking on food availability by selected food groups facet maps for", suffix, "\n")
@@ -592,26 +593,26 @@ for (switchloop in getSwitchChoice()) {
     fileName <- paste(gdxChoice, "_", l, "_", "facetmap", "_", "FGAvailChange", "_", "climate", ".", suffix, sep = "")
     facetMaps(worldMap, DTfacetMap = temp, fileName, legendText, fillLimits, palette, facetColName, graphsListHolder, breakValues, displayOrder)
   }
-  # increase in availability due to income growth
+  # increase in availability due to income growth -----
   DT.wide[, value := 100 * (get(scenario.base.converted) - X2010) / X2010]
   facetColName <- "food_group_code"
   legendText <- "Income Growth Effect on Availability, \n2010-2050, (percent)"
   fillLimits.inc <- c(-30, 100)
   paletteType <- "Spectral"
-  temp <- truncateDT(DT.wide, tempLimits = fillLimits.inc)
+  temp <- truncateDT(DT.wide, fillLimits = fillLimits.inc)
   breakValues <- generateBreakValues(fillLimits = fillLimits.inc, decimals = 0)
   myPalette <- colorRampPalette(rev(brewer.pal(11, paletteType)))
   palette <- myPalette(4)
- displayOrder <- sort(unique(temp[, get(facetColName)])) # default - alphabetically sorted
+  displayOrder <- sort(unique(temp[, get(facetColName)])) # default - alphabetically sorted
   fileName <- paste(gdxChoice, "_", l, "_", "facetmap", "_", "FGAvailChange", "_", "income", ".", suffix, sep = "")
-  facetMaps(worldMap, DTfacetMap = temp, fileName, legendText, fillLimits, palette, facetColName, graphsListHolder, breakValues, displayOrder)
+  facetMaps(worldMap, DTfacetMap = temp, fileName, legendText, fillLimits = fillLimits.inc, palette, facetColName, graphsListHolder, breakValues, displayOrder)
 
   #' facet maps, adequacy results ------
   #' use this both for the nutrients to keep and the order in which they should be displayed
   keepListNuts <- c("protein_g", "carbohydrate_g", "calcium_mg", "iron_mg", "zinc_mg", "folate_µg", "vit_a_rae_µg",
                     "vit_d_µg", "vit_e_mg", "vit_b12_µg")
 
-  # adequacy ratios by suffix (base, var, varFort)
+  # adequacy ratios by suffix (base, var, varFort) -----
   DT.macro <- getNewestVersion(paste("reqRatio_sum_RDA_macro", suffix, sep = "."), fileloc("resultsDir"))
   DT.vits <- getNewestVersion(paste("reqRatio_sum_RDA_vits", suffix, sep = "."), fileloc("resultsDir"))
   DT.minrls <- getNewestVersion(paste("reqRatio_sum_RDA_minrls", suffix, sep = "."), fileloc("resultsDir"))
@@ -633,7 +634,7 @@ for (switchloop in getSwitchChoice()) {
   legendText <- "adequacy ratio, 2010"
   fillLimits <- c(0, 3) # changed from 5 May 29, 2018
   paletteType <- "Spectral"
-  temp <- truncateDT(DT, tempLimits = fillLimits)
+  temp <- truncateDT(DT, fillLimits =  fillLimits)
   temp <- temp[scenario %in% "X2010",]
   breakValues <- generateBreakValues(fillLimits = fillLimits, decimals = 0)
   #  breakValues <- scales::rescale(c(breakValue.low, 1, 2, breakValue.high))
@@ -670,29 +671,27 @@ for (switchloop in getSwitchChoice()) {
     facetMaps(worldMap, DTfacetMap = temp, fileName, legendText, fillLimits, palette, facetColName, graphsListHolder, breakValues, displayOrder)
 
     #facet map, climate change effect on adequacy -----
+    DT.wide[, value := 100 * (SSP2_HGEM_REF - get(scenario.base.converted)) / get(scenario.base.converted)]
     legendText <- "Climate Change Effect on adequacy, 2050, \n(percent)"
-    xxx
     fillLimits.cc <- c(-10, 2)
     paletteType <- "Spectral"
-    DT.wide[, value := delta.cc]
-    DT.wide <- truncateDT(DT.wide, fillLimits = fillLimits.cc)
-
+    temp <- truncateDT(DT.wide, fillLimits = fillLimits.cc)
     myPalette <- colorRampPalette(brewer.pal(11, paletteType))
     palette <- myPalette(4)
     #  breakValues <- scales::rescale(c(breakValue.low, breakValue.low + fillRange/3, breakValue.low + fillRange/1.5, breakValue.high))
     breakValues <- generateBreakValues(fillLimits = fillLimits.cc, decimals = 0)
     displayOrder <- capwords(cleanupNutrientNames(keepListNuts))
     fileName <- paste(gdxChoice, "_", l, "_", "facetmap", "_", "nutReqRatioChange", "_", "climate", ".", suffix, sep = "")
-    facetMaps(worldMap, DTfacetMap = DT.wide, fileName, legendText, fillLimits = fillLimits.cc, palette, facetColName, graphsListHolder, breakValues, displayOrder)
+    facetMaps(worldMap, DTfacetMap = temp, fileName, legendText, fillLimits = fillLimits.cc, palette, facetColName, graphsListHolder, breakValues, displayOrder)
   }
   # increase in adequacy due to income growth
+  DT.wide[, value := 100 * (get(scenario.base.converted) - X2010) / X2010]
+  temp <- truncateDT(DT.wide, fillLimits.inc)
   facetColName <- "nutrient"
   legendText <- "Income Growth Effect, \n2010-2050, (percent)"
   fillLimits.inc <- c(8, 100)
   paletteType <- "Blues"
   breakValues <- generateBreakValues(fillLimits = fillLimits, decimals = 0)
-  DT.wide[, value := 100 * (get(scenario.base.converted) - X2010) / X2010]
-  temp <- truncateDT(DT.wide, fillLimits.inc)
 
   myPalette <- colorRampPalette(brewer.pal(9, paletteType))
   palette <- myPalette(4)
@@ -716,14 +715,14 @@ for (switchloop in getSwitchChoice()) {
   #DT[, nutrient := capwords(nutrient)]
   data.table::setnames(DT, old = "region_code.IMPACT159", new = "id")
 
-
   #' disqualifying index ratio 2010 -----
+  temp <- truncateDT(DT, fillLimits =  fillLimits)
   facetColName <- "nutrient"
   legendText <- "disqualifying index ratio, 2010"
   fillLimits <- c(0, 4)
   paletteType <- "Spectral"
   temp <- temp[scenario %in% "X2010",]
-  temp <- truncateDT(DT, tempLimits = fillLimits.inc)
+  temp <- truncateDT(DT, fillLimits =  fillLimits)
   breakValues <- generateBreakValues(fillLimits = fillLimits, decimals = 0)
   #  breakValues <- scales::rescale(c(breakValue.low, 1, 2, breakValue.high))
   myPalette <- colorRampPalette(rev(brewer.pal(11, paletteType)))
@@ -745,7 +744,8 @@ for (switchloop in getSwitchChoice()) {
     legendText <- "disqualifying index ratio, \nno climate change"
     fillLimits <- c(0, 4)
     paletteType <- "Spectral"
-    temp <- truncateDT(DT.wide, fillLimits)
+    temp <- temp[scenario %in% "SSP2_NoCC_REF"]
+    temp <- truncateDT(DT, fillLimits)
     breakValues <- generateBreakValues(fillLimits = fillLimits, decimals = 0)
     #  breakValues <- scales::rescale(c(breakValue.low, 1, 2, breakValue.high))
     myPalette <- colorRampPalette(brewer.pal(11, paletteType))
@@ -754,9 +754,8 @@ for (switchloop in getSwitchChoice()) {
     fileName <- paste(gdxChoice, "_", l, "_", "facetmap", "_", "MRVRatio", "_","2050", "_", "noCC", ".", suffix, sep = "")
     facetMaps(worldMap, DTfacetMap = temp, fileName, legendText, fillLimits, palette, facetColName, graphsListHolder, breakValues, displayOrder)
 
-    DT.wide[, value := 100 * (SSP2_HGEM_REF - get(scenario.base.converted)) / get(scenario.base.converted)]
-
     #facet map, climate change effect on disqualifying index ratio -----
+    DT.wide[, value := 100 * (SSP2_HGEM_REF - get(scenario.base.converted)) / get(scenario.base.converted)]
     facetColName <- "nutrient"
     legendText <- "Climate Change Effect, 2050, \n(percent)"
     fillLimits.cc <- c(-3, 6)
@@ -764,7 +763,6 @@ for (switchloop in getSwitchChoice()) {
     breakValues <- generateBreakValues(fillLimits = fillLimits.cc, decimals = 0)
     #  breakValues <- scales::rescale(c(breakValue.low, breakValue.low + fillRange/3, breakValue.low + fillRange/1.5, breakValue.high))
     temp <- truncateDT(DT.wide, fillLimits = fillLimits.cc)
-
     #myPalette <- colorRampPalette(rev(brewer.pal(9, "Reds")))
     myPalette <- colorRampPalette(rev(brewer.pal(11, paletteType)))
     palette <- myPalette(4)
@@ -772,8 +770,7 @@ for (switchloop in getSwitchChoice()) {
     fileName <- paste(gdxChoice, "_", l, "_", "facetmap", "_", "MRVRatioChange", "_", "climate", ".", suffix, sep = "")
     facetMaps(worldMap, DTfacetMap = temp, fileName, legendText, fillLimits = fillLimits.cc, palette, facetColName, graphsListHolder, breakValues, displayOrder)
   }
-  # increase in adequacy due to income growth
-  #  breakValues <- scales::rescale(c(breakValue.low, breakValue.low + fillRange/3, breakValue.low + fillRange/1.5, breakValue.high))
+  # increase in adequacy due to income growth -----
   DT.wide[, value := 100 * (get(scenario.base.converted) - X2010) / X2010]
   facetColName <- "nutrient"
   legendText <- "Income Growth Effect on adequacy, \n2010-2050, (percent)"
@@ -781,7 +778,6 @@ for (switchloop in getSwitchChoice()) {
   paletteType <- "Reds"
   temp <- truncateDT(DT.wide, fillLimits.inc)
   breakValues <- generateBreakValues(fillLimits = fillLimits.inc, decimals = 0)
-
   # myPalette <- colorRampPalette(rev(brewer.pal(11, "Spectral")))
   myPalette <- colorRampPalette(brewer.pal(9, paletteType))
   palette <- myPalette(4)
@@ -943,7 +939,7 @@ for (switchloop in getSwitchChoice()) {
     for (aggChoice in c("WB")) {
       #      for (aggChoice in c("AggReg1", "WB")) { commented out Mar 18, 2018
       DT <- getNewestVersion(paste(fname, suffix, sep = "."), fileloc("resultsDir"))
-      DT <- merge(DT, dt.pop, by = c("scenario","region_code.IMPACT159", "year")) ### where does dt.pop come from? XXX
+      DT <- merge(DT, dt.pop, by = c("scenario","region_code.IMPACT159", "year")) ### where does dt.pop come from? It is loaded in aggNorder.R
       dt.regions <- regionAgg(aggChoice)
       # aggregate to and retain only the relevant regions; region code is the code for the region
       merged <- merge(DT, dt.regions, by = "region_code.IMPACT159")

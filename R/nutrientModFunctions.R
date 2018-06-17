@@ -4,6 +4,21 @@
 #' @title "Functions to facilitate management of nutrient data"
 #' @name nutrientModFunctions.R
 #' @author Gerald C. Nelson, \\email{nelson.gerald.c@@gmail.com}
+#'
+# Copyright (C) 2015 - 2018 Gerald C. Nelson, except where noted
+
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or (at
+# your option) any later version.  This program is distributed in the
+# hope that it will be useful, but WITHOUT ANY WARRANTY; without even
+# the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
+# PURPOSE.  See the GNU General Public License for more details at
+# http://www.gnu.org/licenses/.  Contributors to the work include
+# Brendan Power (for coding assistance), Joanne E. Arsenault (for
+# constructing the nutrient requirements worksheet) and Joanne E.
+# Arsenault, Malcolm Reilly, Jessica Bogard, and Keith Lividini (for
+# nutrition expertise)
 
 source("R/workbookFunctions.R")
 source("R/nutrientCalcFunctions.R")
@@ -121,7 +136,10 @@ getNewestVersion <- function(fileShortName, directory, fileType) {
   # cat("\nfileShortNameTest ", fileShortNameTest)
   filesofFileType <- list.files(mData)[grep(fileType,list.files(mData))]
   #  cat("\nfilesofFileType ", filesofFileType)
-  fileLongName <- filesofFileType[grep(fileShortNameTest, filesofFileType, fixed = TRUE)]
+
+  # Note: added grepteststring, changed grep to grepl and fixed to FALSE June 14, 2018
+  greptestString <- paste0("^", fileShortNameTest)
+  fileLongName <- filesofFileType[grepl(greptestString, filesofFileType, fixed = FALSE)]
   #  cat("\nfileLongName ", fileLongName)
   #  temp <- gsub(fillIn, "", list.files(mData))
   # filesList <-
@@ -139,11 +157,14 @@ getNewestVersion <- function(fileShortName, directory, fileType) {
   if (length(fileLongName) == 0) {
     cat("\nCan't find ", fileShortName, " in  directory ", mData, "\n")
     stop(sprintf("\nThere is no file  '%s' in directory %s, \n", fileShortName, mData))
-  } else {
-    #   print(fileLongName)
-    outFile = readRDS(paste(mData, fileLongName, sep = "/"))
-    return(outFile)
   }
+  if (length(fileLongName) > 1) {
+    cat("\nTwo versions of ", fileShortName, " in  directory ", mData, "\n")
+    stop(sprintf("\nTwo or more files with  '%s' in their names in directory %s, \n", fileShortName, mData))
+  }
+  #       cat(fileLongName)
+  outFile = readRDS(paste(mData, fileLongName, sep = "/"))
+  return(outFile)
 }
 
 #' Title getNewestVersionIMPACT
@@ -270,7 +291,7 @@ cleanup <- function(inDT, outName, destDir, writeFiles, desc) {
   #
   # #print(proc.time())
   if (missing(writeFiles)) {writeFiles = "xlsx"}
-  if (nrow(inDT) > 50000) {
+  if (nrow(inDT) > 75000) {
     sprintf("\nThe number of rows in the data, %s, is greater than 50,000. Not writing xlsx or csv", nrow(inDT))
     writeFiles <- writeFiles[!writeFiles %in% c("xlsx")]
   }
@@ -384,6 +405,9 @@ cleanupNutrientNames <- function(nutList) {
 #' @param scenarioListSSP.GDP - list of scenarios in the SSP GDP|PPP data
 #' @param DinY - number of days in a year
 #' @param reqsList - nutrient requirements basic list
+#' @param reqsList_RDA_macro <- list of RDAs for macro nutrients
+#' @param reqsList_RDA_minrls <- list of RDAs for mineral nutrients
+#' @param reqsList_RDA_vits <- list of RDAs for vitamin nutrients
 #' @param reqsListSSP - nutrient requirements by SSP age groups
 #' @param ctyDeleteList
 #' @param switch.useCookingRetnValues - apply the cooking retention values to the nutrient content
@@ -424,9 +448,8 @@ keyVariable <- function(variableName) {
                                  IMPACTalcohol_code))
 
   macronutrients <- c("protein_g", "fat_g", "carbohydrate_g",  "totalfiber_g")
-  vitamins <- c("vit_c_mg", "thiamin_mg", "riboflavin_mg", "niacin_mg",
-                "vit_b6_mg", "folate_µg", "vit_b12_µg", "vit_a_rae_µg",
-                "vit_e_mg",  "vit_d_µg", "vit_k_µg")
+  vitamins <- c("vit_a_rae_µg", "vit_b6_mg", "vit_b12_µg", "vit_c_mg", "vit_d_µg", "vit_e_mg", "vit_k_µg",
+                "folate_µg", "niacin_mg", "riboflavin_mg", "thiamin_mg")
   minerals <- c("calcium_mg",  "iron_mg", "magnesium_mg", "phosphorus_mg",
                 "potassium_g", "zinc_mg")
   fattyAcids <- c("ft_acds_tot_sat_g", "ft_acds_mono_unsat_g", "ft_acds_plyunst_g",
@@ -435,7 +458,12 @@ keyVariable <- function(variableName) {
   energy <- c("kcals_fat_g", "kcals_carbohydrate_g", "kcals_protein_g",
               "kcals_ethanol_g", "kcals_sugar_g", "kcals_ft_acds_tot_sat_g")  # note that "energy_kcal" is removed from this list
   addedSugar <- c("sugar_g")
-
+  reqsList_RDA_macro <- c("carbohydrate_g", "totalfiber_g", "protein_g")
+  reqsList_RDA_vits <- c("vit_a_rae_µg", "vit_c_mg", "vit_d_µg", "vit_e_mg", "vit_k_µg", "thiamin_mg", "riboflavin_mg",
+                         "niacin_mg", "vit_b6_mg", "folate_µg", "vit_b12_µg", "pantothenicacid_mg", "biotin_µg", "choline_mg")
+    reqsList_RDA_minrls <- c("calcium_mg", "chromium_μg", "copper_μg", "fluoride_mg", "iodine_μg", "iron_mg",
+                             "magnesium_mg", "manganese_mg", "molybdenum_μg", "phosphorus_mg", "selenium_μg", "zinc_mg",
+                             "potassium_g", "sodium_g", "chloride_g")
   #These are the scenario numbers for the IIASA data with population disaggregated.
   scenarioListSSP.pop <- c("SSP1_v9_130115", "SSP2_v9_130115", "SSP3_v9_130115",
                            "SSP4_v9_130115", "SSP5_v9_130115")
@@ -643,7 +671,7 @@ fileNameList <- function(variableName) {
   # IMPACTstdRegions <- paste(fileloc("IMPACTRawData"), IMPACTstdRegionsFileName, sep = "/")
   #  regionsLookupName <- "regions lookup Sep 6 2016.xlsx"
   # regionsLookupName <- "regions lookup Feb 14 2018.xlsx"
-  regionsLookupName <- "regions lookup June 7 2018.xlsx" # adds regions for the USAID priorities work
+  regionsLookupName <- "regions lookup June 15 2018.xlsx" # adds regions for the USAID priorities work
   regionsLookup <- paste(fileloc("rawData"),regionsLookupName, sep = "/")
   #IMPACTgdx         <- paste(fileloc("IMPACTRawData"), IMPACTgdxfileName, sep = "/")
   #gdxLib            <- "/Applications/GAMS/gams24.5_osx_x64_64_sfx"
@@ -1359,7 +1387,7 @@ storeWorldMapDF <- function(){
   #world <- readOGR(dsn = "data-raw/spatialData/ne_50m_admin_0_countries.geojson", layer = "OGRGeoJSON")
   #  world <- rgdal::readOGR(dsn = "data-raw/spatialData/ne_110m_admin_0_countries.geojson", layer = "OGRGeoJSON")
 
-# changed to uDir June 9, 2018  filelocMap <- "data-raw/spatialData"
+  # changed to uDir June 9, 2018  filelocMap <- "data-raw/spatialData"
   filelocMap <- fileloc("uData")
   fn <- file.path(filelocMap, "ne_50m_admin_0_countries.zip")
   cat("\n") # so the output from download.file starts on a new line
@@ -1405,9 +1433,10 @@ facetMaps <- function(worldMap, DTfacetMap, fileName, legendText, fillLimits, pa
   gg <- gg + theme(legend.position = "bottom")
   gg <- gg +  theme(axis.ticks = element_blank(),axis.title = element_blank(), axis.text.x = element_blank(),
                     axis.text.y = element_blank(), strip.text = element_text(family = "Times", face = "plain"))
+
   gg <- gg + scale_fill_gradientn(colors = p, name = legendText,
                                   na.value = "grey50", values = b,
-                                  guide = "colorbar", limits = f)
+                                  guide = "colorbar", limits=f)
   gg
 
   graphsListHolder[[fileName]] <- gg
