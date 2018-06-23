@@ -98,7 +98,7 @@ if (oneTimeDataUpdate == 4){
   # only needs to be run when new regions or aggregations are added
   sourceFile <- "dataPrep.regions.R"
   sourcer(sourceFile) # - creates dt.regions.all and the list of scenarios
-  # only needs to be run when new FBS info arrives
+  # only needs to be run when new FBS info from FAO arrives
   sourceFile <- "dataPrep.FBS.R"
   # sourcer(sourceFile) # - creates dt.FBS, mData
   # only needs to be run if changes to the script are made
@@ -122,11 +122,13 @@ sourcer(sourceFile)
 # paste(dt,varName, sep = ".") - one file for each IMPACT variable, example is dt.PerCapKCAL.2016-06-21.rds
 # dt.foodAvailability is created here. Just has food availability from gdx. dt.IMPACTfood adds the fish and alcoholic beverages
 
+start_time <- Sys.time()
 sourceFile <- "dataManagement.IMPACT.R"
 sourcer(sourceFile) # adds fish and alcohol data, writes out IMPACT variables just for food items (names begin with c), and dt.IMPACTfood file
 # Key output is dt.IMPACTfood
 #dt.IMPACTfood, iData
 
+start_time <- Sys.time()
 sourceFile <- "dataPrepFishStat.R"
 sourcer(sourceFile) # adds fish data for composite fish commodities, writes out IMPACT variables just for composite fish items (names begin with c),
 # destination is fileloc("iData")
@@ -134,27 +136,32 @@ sourcer(sourceFile) # adds fish data for composite fish commodities, writes out 
 # only run dataPrepFortification.R if the switch choice is three
 gdxSwitchCombo <- read.csv(file = paste0(getwd(), "/results/gdxInfo.csv"), header = TRUE, stringsAsFactors = FALSE)
 if (gdxSwitchCombo[3] == 3) {
+  start_time <- Sys.time()
   sourceFile <- "dataPrepFortification.R"
   sourcer(sourceFile) # reads in data on where fortification occurs (not all types of fortification); writes out data file in appropriate format
 }
 
+start_time <- Sys.time()
 sourceFile <- "dataPrepUSDANuts.R"
 sourcer(sourceFile)
 
+start_time <- Sys.time()
 sourceFile <- "dataPrep.NutrientRequirements.R"
 sourcer(sourceFile) # newDFname, mData - nutrient requirements adjusted to SSP age and gender categories, example is req.RDA.macro.ssp.2016-06-22.rds
 
-
+start_time <- Sys.time()
 sourceFile <- "dataManagement.foodNnuts.R"
-sourcer(sourceFile) #resultsD - creates dt.foodNnuts, dt.nutrients.kcals, dt.nutrients.sum.all, dt.nutrients.sum.staples,
-# dt.nutrients.nonstapleShare, dt.foodAvail.foodGroup
+sourcer(sourceFile)
 
+start_time <- Sys.time()
 sourceFile <- "nutrientCalcs.R"
 sourcer(sourceFile)
 
+start_time <- Sys.time()
 sourceFile <- "nutCalcsProcessing.R"
 sourcer(sourceFile) # should probably be rewritten so it doesn't take so long to run
 
+start_time <- Sys.time()
 sourceFile <- "diversityMetrics.R"
 sourcer(sourceFile)
 
@@ -181,10 +188,13 @@ if (gdxChoice %in% "SSPs") { # copy files only if using the nutrient modeling gd
   sourceFile <- "copyFilestoNutrientModeling.R"
   sourcer(sourceFile)  # move results needed for the shiny app.R in the nutrientModeling folder
 }
-library(dtplyr)# generate graphs
+
+#library(dtplyr)# generate graphs
+start_time <- Sys.time()
 sourceFile <- "aggRun.R"
 sourcer(sourceFile)
 
+start_time <- Sys.time()
 sourceFile <- "finalGraphCreation.R"
 sourcer(sourceFile)
 

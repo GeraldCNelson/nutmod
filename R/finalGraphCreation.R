@@ -55,7 +55,8 @@ layoutPlots <- function(fileName, figchoice, prefix, rowNum, legendNum, layout, 
          device = "pdf",
          width = sum(colWidths), height = sum(colHeights))
   cat("\n", fileName)
-  return(g.out)
+  pdfDimensions <-  as.list(c(fileName, sum(colHeights), sum(colWidths)))
+  return(pdfDimensions)
 }
 
 # prefix defined here
@@ -124,9 +125,7 @@ for (switchloop in getSwitchChoice()) {
     plotNameList <- c(plotNameList, paste(prefix, "_", get(figchoice), "_", "tenregions", ".", suffix, sep = ""))
     #' rev here reverses the order in which the graphs are plotted
     plotNumberList <- rev(which(graphNames %in% plotNameList))
-    #    g.out <- layoutPlots(figchoice, aggChoice = "WB", prefix, rowNum, legendNum, layout, colHeights = colHeights, colWidths = colWidths, suffix)
     fileName <- paste(finalDir, figchoice, ".", suffix, ".pdf", sep = "")
-    g.out <- layoutPlots(fileName, figchoice, prefix, rowNum, legendNum, layout, colHeights = colHeights, colWidths = colWidths)
 
     cat("\nfigS3.nutavail.zinc plotNumberList:", plotNumberList, "\n")
 
@@ -138,8 +137,9 @@ for (switchloop in getSwitchChoice()) {
       widths = colWidths, heights = colHeights
     )
     fileName <- paste(finalDir, figchoice, ".", suffix, ".pdf", sep = "")
-    ggsave(file = fileName, plot = g.out, width = 7, height = colHeights)
-    pdfDimensions <- rbind(pdfDimensions, as.list(c(fileName, sum(colHeights), sum(colWidths))))
+    fileDims <- as.list(c(fileName, sum(colHeights), sum(colWidths)))
+    ggsave(file = fileName, plot = g.out, width = sum(colWidths), height = sum(colHeights))
+    pdfDimensions <- rbind(pdfDimensions, fileDims)
   }
 
   fig8.facetMapRR_CCDelta <- paste("facetmap_nutReqRatioChange_climate", suffix, sep = ".")
@@ -159,8 +159,11 @@ for (switchloop in getSwitchChoice()) {
       plotNumberList <- which(graphNames %in% plotNameList)
       cat("\nSSPs facet plotNumberList:", plotNumberList, "\n")
       fileName <- paste(finalDir, figchoice, ".", suffix, ".pdf", sep = "")
-      ggsave(file = fileName, plot = graphsListHolder[[plotNumberList]], width = 7, height = 6)
-      pdfDimensions <- rbind(pdfDimensions, as.list(c(fileName, sum(colHeights), sum(colWidths))))
+      colWidths <- 7
+      colHeights <- 6
+      ggsave(file = fileName, plot = graphsListHolder[[plotNumberList]], width = colWidths, height = colHeights)
+      fileDims <- as.list(c(fileName, sum(colHeights), sum(colWidths)))
+      pdfDimensions <- rbind(pdfDimensions, fileDims)
     }
   }
 
@@ -171,8 +174,11 @@ for (switchloop in getSwitchChoice()) {
       plotNumberList <- which(graphNames %in% plotNameList)
       cat("\nUSAIDPriorities facet plotNumberList:", plotNumberList, "\n")
       fileName <- paste(finalDir, figchoice, ".", suffix, ".pdf", sep = "")
-      ggsave(file = fileName, plot = graphsListHolder[[plotNumberList]], width = 7, height = 6)
-      pdfDimensions <- rbind(pdfDimensions, as.list(c(fileName, sum(colHeights), sum(colWidths))))
+      colWidths <- 7
+      colHeights <- 6
+      ggsave(file = fileName, plot = graphsListHolder[[plotNumberList]], width = colWidths, height = colHeights)
+      fileDims <- as.list(c(fileName, sum(colHeights), sum(colWidths)))
+      pdfDimensions <- rbind(pdfDimensions, fileDims)
     }
   }
 
@@ -186,9 +192,8 @@ for (switchloop in getSwitchChoice()) {
     colWidths <- colWidths2
     colHeights <-heights2
     fileName <- paste(finalDir, figchoice, "_", aggChoice = "WB", ".", suffix, ".pdf", sep = "")
-    #    g.out <- layoutPlots(figchoice, aggChoice = "WB", prefix, rowNum, legendNum, layout, colHeights = colHeights, colWidths = colWidths, suffix)
-    g.out <- layoutPlots(fileName, figchoice, prefix, rowNum, legendNum, layout, colHeights = colHeights, colWidths = colWidths)
-    pdfDimensions <- rbind(pdfDimensions, as.list(c(fileName, sum(colHeights), sum(colWidths))))
+    fileDims <- layoutPlots(fileName, figchoice, prefix, rowNum, legendNum, layout, colHeights = colHeights, colWidths = colWidths)
+    pdfDimensions <- rbind(pdfDimensions, fileDims)
   }
 
   #' Fig S1 availability -----
@@ -285,20 +290,19 @@ for (switchloop in getSwitchChoice()) {
     colWidths <- colWidths2
     colHeights <-heights6
     fileName <- paste(finalDir, figchoice, "_", "WB", ".", suffix, ".pdf", sep = "")
-    #    g.out <- layoutPlots(figchoice, "WB", prefix, rowNum, legendNum, layout, colHeights = colHeights, colWidths = colWidths, suffix)
-    g.out <- layoutPlots(fileName, figchoice, prefix, rowNum, legendNum, layout, colHeights = colHeights, colWidths = colWidths)
-    pdfDimensions <- rbind(pdfDimensions, as.list(c(fileName, sum(colHeights), sum(colWidths))))
+    fileDims <- layoutPlots(fileName, figchoice, prefix, rowNum, legendNum, layout, colHeights = colHeights, colWidths = colWidths)
+    pdfDimensions <- rbind(pdfDimensions, fileDims)
   }
 
+  #xxx
   for (figchoice in c("figS1.foodavail.1", "figS1.foodavail.2")) {
     rowNum <- 4; legendNum <- legendHorizontalNum
     layout <- layoutMatrix6;
     colWidths <- colWidths2
     colHeights <-heights6
     fileName <- paste(finalDir, figchoice, "_", "WB", ".", suffix, ".pdf", sep = "")
-    #    g.out <- layoutPlots(figchoice, "WB", prefix, rowNum, legendNum, layout, colHeights = colHeights, colWidths = colWidths, suffix)
-    g.out <- layoutPlots(fileName, figchoice, prefix, rowNum, legendNum, layout, colHeights = colHeights, colWidths = colWidths)
-    pdfDimensions <- rbind(pdfDimensions, as.list(c(fileName, sum(colHeights), sum(colWidths))))
+    fileDims <- layoutPlots(fileName, figchoice, prefix, rowNum, legendNum, layout, colHeights = colHeights, colWidths = colWidths)
+        pdfDimensions <- rbind(pdfDimensions, fileDims)
   }
 
   for (figchoice in c( "figS8.foodavail.1", "figS8.foodavail.2", "figS10.1.adequacy.vits", "figS10.3.adequacy.minrls")) {
@@ -307,9 +311,8 @@ for (switchloop in getSwitchChoice()) {
     colWidths <-colWidths2
     colHeights <-heights6
     fileName <- paste(finalDir, figchoice, "_", "tenregions", ".", suffix, ".pdf", sep = "")
-    #    g.out <- layoutPlots(figchoice, "tenregions", prefix, rowNum, legendNum, layout, colHeights = colHeights, colWidths = colWidths, suffix)
-    g.out <- layoutPlots(fileName, figchoice, prefix, rowNum, legendNum, layout, colHeights = colHeights, colWidths = colWidths)
-    pdfDimensions <- rbind(pdfDimensions, as.list(c(fileName, sum(colHeights), sum(colWidths))))
+    fileDims <- layoutPlots(fileName, figchoice, prefix, rowNum, legendNum, layout, colHeights = colHeights, colWidths = colWidths)
+        pdfDimensions <- rbind(pdfDimensions, fileDims)
   }
 
   #' Figs with 5 plots -----
@@ -320,9 +323,8 @@ for (switchloop in getSwitchChoice()) {
     colWidths <- colWidths2
     colHeights <-heights5
     fileName <- paste(finalDir, figchoice, "_", "WB", ".", suffix, ".pdf", sep = "")
-    #   g.out <- layoutPlots(figchoice, "WB", prefix, rowNum, legendNum, layout, colHeights = colHeights, colWidths = colWidths, suffix)
-    g.out <- layoutPlots(fileName, figchoice, prefix, rowNum, legendNum, layout, colHeights = colHeights, colWidths = colWidths)
-    pdfDimensions <- rbind(pdfDimensions, as.list(c(fileName, sum(colHeights), sum(colWidths))))
+    fileDims <- layoutPlots(fileName, figchoice, prefix, rowNum, legendNum, layout, colHeights = colHeights, colWidths = colWidths)
+        pdfDimensions <- rbind(pdfDimensions, fileDims)
   }
 
   for (figchoice in c("figS10.2.adequacy.vits")) {
@@ -332,9 +334,8 @@ for (switchloop in getSwitchChoice()) {
     colWidths <- colWidths2
     colHeights <-heights5
     fileName <- paste(finalDir, figchoice, "_", "tenregions", ".", suffix, ".pdf", sep = "")
-    #   g.out <- layoutPlots(figchoice, "tenregions", prefix, rowNum, legendNum, layout, colHeights = colHeights, colWidths = colWidths, suffix)
-    g.out <- layoutPlots(fileName, figchoice, prefix, rowNum, legendNum, layout, colHeights = colHeights, colWidths = colWidths)
-    pdfDimensions <- rbind(pdfDimensions, as.list(c(fileName, sum(colHeights), sum(colWidths))))
+    fileDims <- layoutPlots(fileName, figchoice, prefix, rowNum, legendNum, layout, colHeights = colHeights, colWidths = colWidths)
+        pdfDimensions <- rbind(pdfDimensions, fileDims)
   }
   #' #' Figs with 1 plot - commented out temporarily March 11, 2108
   #' for (figchoice in c("fig6")) {
@@ -344,7 +345,7 @@ for (switchloop in getSwitchChoice()) {
   #'   colWidths <- colWidths1
   #'   colHeights <-heights1
   #'   fileName <- paste(finalDir, figchoice, "_", aggChoice, ".", suffix, ".pdf", sep = "")
-  #'   g.out <- layoutPlots(figchoice, aggChoice, prefix, rowNum, legendNum, layout, height, colWidths = c(4, 1), suffix)
+  #'   fileDims <- layoutPlots(figchoice, aggChoice, prefix, rowNum, legendNum, layout, height, colWidths = c(4, 1), suffix)
   #' }
 
   #' Figs with 2 plots -----
@@ -355,9 +356,8 @@ for (switchloop in getSwitchChoice()) {
     colWidths <- colWidths2
     colHeights <-heights2
     fileName <- paste(finalDir, figchoice, "_", "WB", ".", suffix, ".pdf", sep = "")
-    #  g.out <- layoutPlots(figchoice, "WB", prefix, rowNum, legendNum, layout, colHeights = colHeights, colWidths = colWidths, suffix)
-    g.out <- layoutPlots(fileName, figchoice, prefix, rowNum, legendNum, layout, colHeights = colHeights, colWidths = colWidths)
-    pdfDimensions <- rbind(pdfDimensions, as.list(c(fileName, sum(colHeights), sum(colWidths))))
+    fileDims <- layoutPlots(fileName, figchoice, prefix, rowNum, legendNum, layout, colHeights = colHeights, colWidths = colWidths)
+        pdfDimensions <- rbind(pdfDimensions, fileDims)
   }
 
   #' Figs with 3 plots -----
@@ -369,9 +369,8 @@ for (switchloop in getSwitchChoice()) {
     colHeights <-heights3
     cat("\nfigchoice: ", figchoice, "\n")
     fileName <- paste(finalDir, figchoice, "_", "WB", ".", suffix, ".pdf", sep = "")
-    #    g.out <- layoutPlots(figchoice, "WB", prefix, rowNum, legendNum, layout, colHeights = colHeights, colWidths = colWidths, suffix)
-    g.out <- layoutPlots(fileName, figchoice, prefix, rowNum, legendNum, layout, colHeights = colHeights, colWidths = colWidths)
-    pdfDimensions <- rbind(pdfDimensions, as.list(c(fileName, sum(colHeights), sum(colWidths))))
+    fileDims <- layoutPlots(fileName, figchoice, prefix, rowNum, legendNum, layout, colHeights = colHeights, colWidths = colWidths)
+        pdfDimensions <- rbind(pdfDimensions, fileDims)
   }
 
   #' Figs with 3 plots -----
@@ -383,9 +382,8 @@ for (switchloop in getSwitchChoice()) {
     colHeights <-heights3
     cat("\nfigchoice: ", figchoice, "\n")
     fileName <- paste(finalDir, figchoice, "_", "tenregions", ".", suffix, ".pdf", sep = "")
-    #   g.out <- layoutPlots(figchoice, "tenregions", prefix, rowNum, legendNum, layout, colHeights = colHeights, colWidths = colWidths, suffix)
-    g.out <- layoutPlots(fileName, figchoice, prefix, rowNum, legendNum, layout, colHeights = colHeights, colWidths = colWidths)
-    pdfDimensions <- rbind(pdfDimensions, as.list(c(fileName, sum(colHeights), sum(colWidths))))
+    fileDims <- layoutPlots(fileName, figchoice, prefix, rowNum, legendNum, layout, colHeights = colHeights, colWidths = colWidths)
+        pdfDimensions <- rbind(pdfDimensions, fileDims)
   }
 }
 createScriptMetaData()

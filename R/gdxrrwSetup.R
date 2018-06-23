@@ -23,9 +23,11 @@ gamsSetup <- function(gdxFileName) {
     keepListCol <- "scenario"
     dt.scenarioListIMPACT <- unique(dt.ptemp[, (keepListCol), with = FALSE])
   }
-  if (gdxFileName %in% "Micronutrient-Inputs-2018.22.05.gdx") {
-    keepListCol <- "scenario"
+ # if (gdxFileName %in% "Micronutrient-Inputs-2018.21.06.gdx") {
+    if (gdxFileName %in% "Micronutrient-Inputs-2018.22.06.gdx") {
+      keepListCol <- "scenario"
     dt.scenarioListIMPACT <- unique(dt.ptemp[, (keepListCol), with = FALSE])
+    dt.scenarioListIMPACT <- dt.scenarioListIMPACT[!scenario %in% c("GLOBE_SSP2-HGEM-bnpl-SG-25f", "GLOBE_SSP2-HGEM-puls-SG-25f")]
     dt.scenarioListIMPACT[, crop := tstrsplit(scenario, "-", fixed = TRUE, keep = c(3))]
     SSPName <- "SSP2"
     climModel <- "HGEM"

@@ -18,7 +18,7 @@
 
 #' @include nutrientModFunctions.R
 
-  source("R/nutrientModFunctions.R")
+source("R/nutrientModFunctions.R")
 
 sourceFile <- "dataManagement.foodNnuts.R"
 createScriptMetaData()
@@ -86,7 +86,7 @@ for (switchloop in getSwitchChoice()) {
   dt.foodNnuts[, (list.tot) := lapply(.SD, function(x){x[is.na(x)] <- 0; x}), .SDcols = list.tot]
 
 
-# calculate the total quantity of a nutrient available for each food item as the amount per 100 g * quantity of food available per day
+  # calculate the total quantity of a nutrient available for each food item as the amount per 100 g * quantity of food available per day
   # for Norway in 2010 average daily egg availability was 2.739431e-02, egg content of vitamin d is 17.6 micro grams per kg
   # (converted from 100 grams by switches) so vit d availability (vit_d_µg.Q)
   # is 2.739431e-02 * 17.6 = 0.482139798
@@ -131,9 +131,9 @@ for (switchloop in getSwitchChoice()) {
   #' dt.nutrients.kcals -----
   dt.nutrients.kcals <- data.table::copy(dt.foodNnuts)
   deleteListCol <- c( "foodAvailpDay", "foodQ.sum", "ft_acds_tot_sat_g",
-                     "ft_acds_mono_unsat_g", "ft_acds_plyunst_g",
-                     keyVariable("minerals"), keyVariable("vitamins"), keyVariable("macronutrients"),
-                     "phytate_mg", "sugar_g", "ethanol_g", "energy_kcal")
+                      "ft_acds_mono_unsat_g", "ft_acds_plyunst_g",
+                      keyVariable("minerals"), keyVariable("vitamins"), keyVariable("macronutrients"),
+                      "phytate_mg", "sugar_g", "ethanol_g", "energy_kcal")
   dt.nutrients.kcals[, (deleteListCol) := NULL]
 
   kcalsSources <- c("kcalsPerDay_other", "kcalsPerDay_carbohydrate", "kcalsPerDay_fat",  "kcalsPerDay_protein",
@@ -153,10 +153,10 @@ for (switchloop in getSwitchChoice()) {
                                              !names(dt.nutrients.kcals) %in% c("food_group_code", "staple_code")]
   dt.nutrients.kcals <- data.table::melt(dt.nutrients.kcals,
                                          id.vars = idVars,
-    measure.vars = measureVars,
-    variable.name = "nutrient",
-    value.name = "value",
-    variable.factor = FALSE)
+                                         measure.vars = measureVars,
+                                         variable.name = "nutrient",
+                                         value.name = "value",
+                                         variable.factor = FALSE)
   inDT <- unique(dt.nutrients.kcals)
   outName <- paste("dt.nutrients_kcals", suffix, sep = ".")
   desc <- "Kcals and kcals shares from carbohydrates, fat, etc. by country"

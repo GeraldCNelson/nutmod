@@ -1,3 +1,4 @@
+library(RColorBrewer)
 source("R/nutrientModFunctions.R")
 sourceFile <- "USAIDPriorities.R"
 createScriptMetaData()
@@ -150,16 +151,9 @@ dt.pop <- dt.pop[year %in% keepListYear]
 # increase.reqRatio.RDA.all.var <- increase.reqRatio.RDA.all.var[, value.agg := weighted.mean(value, PopX0), by = c("scenario", "region_code", "year", "nutrient")]
 # increase.reqRatio.RDA.all.var[, (reqRatiosSum) := sum(scenarioList.crops), by = ]
 
-source("R/aggNorder.R")
-library(RColorBrewer)
+# source("R/aggNorder.R")
+
 worldMap <- getNewestVersion("worldMap", fileloc("uData")) # run storeWorldMapDF() if this is not available
-truncateDT <- function(DT, fillLimits){ # function to make sure every country gets a color. The fillLimits values are identified ahead of time and entered manually into the code below
-  dt <- copy(DT)
-  # truncate range, upper and lower
-  dt[value < fillLimits[1], value := fillLimits[1]]
-  dt[value > fillLimits[2], value := fillLimits[2]]
-  return(dt)
-}
 
 increase.dt.KcalShare_nonstaple.share.var <- getNewestVersion("increase.dt.KcalShare_nonstaple.share.var", fileloc("resultsDir"))
 increase.dt.KcalShare_nonstaple.share.var[, c("SSP2-HGEM-cf", scenarioList.crops, aggregationRegionChoices) := NULL]
@@ -176,34 +170,104 @@ increase.reqRatio.RDA.all.var <- melt(increase.reqRatio.RDA.all.var,
 # work on facetmaps for 2030 adequacy ratios
 DTorig <- increase.reqRatio.RDA.all.var[scenario %in% "SSP2-HGEM-cf"]
 facetColName <- "nutrient"
-legendText <- "adequacy ratio, 2030"
+legendText <- "Adequacy ratio, 2030"
 fillLimits <- c(0, 3)
 
-# do facetmap for macronutrients and minerals
+# do facetmap for macronutrients and minerals base 2030 values
 for (i in c("keepListNuts.macroMinrls", "keepListNuts.vits")) {
   DT <- copy(DTorig)
   DT <- DT[nutrient %in% get(i)]
   DT <- countryCodeCleanup(DT) # converts IMPACT region codes to ISO3 codes for largest country in the region
-  DT[, nutrient := capwords(cleanupNutrientNames(get(i)))]
-  # DT[, scenario := gsub("-", "_", scenario)] # needed to have valid column names
-  # DT <- DT[, scenario :=  gsub("-", "_", scenario)]
+  nutListtemp = sort(unique(DT$nutrient))
+  dt.nuts <- data.table(nutListtemp = nutListtemp, nutListtempclean = capwords(cleanupNutrientNames(nutListtemp)))
+  DT <- merge(DT, dt.nuts, by.x = "nutrient", by.y = "nutListtemp")
+  DT[, nutrient := NULL]
+  setnames(DT, old = "nutListtempclean", new = "nutrient")
+
   DT <- truncateDT(DT, fillLimits =  fillLimits)
   paletteType <- "Spectral"
   breakValues <- generateBreakValues(fillLimits = fillLimits, decimals = 0)
   # breakValues <- scales::rescale(c(breakValue.low, breakValue.low + fillRange/3, breakValue.low + fillRange/1.5, breakValue.high))
-  myPalette <- colorRampPalette(rev(brewer.pal(11, paletteType)))
+  myPalette <- colorRampPalette(brewer.pal(11, paletteType))
   palette <- myPalette(4)
   graphsListHolder <- list()
   if (i %in% "keepListNuts.macroMinrls") filePart <- "macroMinrlsAR"
   if (i %in% "keepListNuts.vits") filePart <- "vitsAR"
 
-  displayOrder <- capwords(cleanupNutrientNames(get(i)))
+  displayOrder <- capwords(cleanupNutrientNames(get(i))) # do this to keep the macro nutrients first
   data.table::setnames(DT, old = "region_code.IMPACT159", new = "id")
   fileName <- paste("facetmap", "_", filePart, "_", "2030", ".", "var", sep = "")
   facetMaps(worldMap, DTfacetMap = DT, fileName, legendText, fillLimits, palette, facetColName, graphsListHolder, breakValues, displayOrder)
 }
 
+# do facet maps for the scenarios
+DTorig <- increase.reqRatio.RDA.all.var[!scenario %in% "SSP2-HGEM-cf"]
+DTorig <- countryCodeCleanup(DTorig) # converts IMPACT region codes to ISO3 codes for largest country in the region
+fillLimits <- c(0, 0.5)
+DTorig[, scenario := gsub("SSP2-HGEM-", "", scenario)][, scenario := gsub(".ratio", "", scenario)]
 
+cropList <- gsub("SSP2-HGEM-", "", scenarioList.crops)
+cropList <- gsub(".ratio", "", cropList)
 
+for (j in cropList) {
+  for (i in c("keepListNuts.macroMinrls", "keepListNuts.vits")) {
+    DT <- copy(DTorig)
+    DT <- DT[scenario %in% j]
+    DT <- DT[nutrient %in% get(i)]
 
+    nutListtemp = sort(unique(DT$nutrient))
+    dt.nuts <- data.table(nutListtemp = nutListtemp, nutListtempclean = capwords(cleanupNutrientNames(nutListtemp)))
+    DT <- merge(DT, dt.nuts, by.x = "nutrient", by.y = "nutListtemp")
+    DT[, nutrient := NULL]
+    setnames(DT, old = "nutListtempclean", new = "nutrient")
+
+    DT <- truncateDT(DT, fillLimits =  fillLimits)
+    paletteType <- "Spectral"
+    breakValues <- generateBreakValues(fillLimits = fillLimits, decimals = 1)
+    # breakValues <- scales::rescale(c(breakValue.low, breakValue.low + fillRange/3, breakValue.low + fillRange/1.5, breakValue.high))
+    myPalette <- colorRampPalette(brewer.pal(11, paletteType))
+    palette <- myPalette(4)
+    graphsListHolder <- list()
+    if (i %in% "keepListNuts.macroMinrls") filePart <- "macroMinrlsARDelta"
+    if (i %in% "keepListNuts.vits") filePart <- "vitsARDelta"
+    legendText <- "Change in adequacy ratio, 2030 (percent)"
+
+    displayOrder <- capwords(cleanupNutrientNames(get(i)))
+    data.table::setnames(DT, old = "region_code.IMPACT159", new = "id")
+    fileName <- paste("facetmap", "_", j, "_", filePart, "_", "2030", ".", "var", sep = "")
+    facetMaps(worldMap, DTfacetMap = DT, fileName, legendText, fillLimits, palette, facetColName, graphsListHolder, breakValues, displayOrder)
+  }
+}
+
+#attempt to do individual facet maps
+
+for (j in cropList) {
+  for (i in keepListNuts) {
+    DT <- copy(DTorig)
+    DT <- DT[scenario %in% j]
+    DT <- DT[nutrient %in% i]
+
+    nutListtemp = sort(unique(DT$nutrient))
+    dt.nuts <- data.table(nutListtemp = nutListtemp, nutListtempclean = capwords(cleanupNutrientNames(nutListtemp)))
+    DT <- merge(DT, dt.nuts, by.x = "nutrient", by.y = "nutListtemp")
+    DT[, nutrient := NULL]
+    setnames(DT, old = "nutListtempclean", new = "nutrient")
+
+    DT <- truncateDT(DT, fillLimits =  fillLimits)
+    paletteType <- "Spectral"
+    breakValues <- generateBreakValues(fillLimits = fillLimits, decimals = 1)
+    # breakValues <- scales::rescale(c(breakValue.low, breakValue.low + fillRange/3, breakValue.low + fillRange/1.5, breakValue.high))
+    myPalette <- colorRampPalette(brewer.pal(11, paletteType))
+    palette <- myPalette(4)
+    graphsListHolder <- list()
+    if (i %in% "keepListNuts.macroMinrls") filePart <- "macroMinrlsARDelta"
+    if (i %in% "keepListNuts.vits") filePart <- "vitsARDelta"
+    legendText <- "Change in adequacy ratio, 2030 (percent)"
+
+    displayOrder <- capwords(cleanupNutrientNames(i))
+    data.table::setnames(DT, old = "region_code.IMPACT159", new = "id")
+    fileName <- paste("facetmap", "_crop ", j, "_nut_", i, "_", "2030", ".", "var", sep = "")
+    facetMaps(worldMap, DTfacetMap = DT, fileName, legendText, fillLimits, palette, facetColName, graphsListHolder, breakValues, displayOrder)
+  }
+}
 

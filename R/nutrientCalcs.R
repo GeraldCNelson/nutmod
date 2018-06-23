@@ -37,7 +37,7 @@ generateResults.dataPrep <- function(req, dt.foodNnuts, scenarioListIMPACT) {
 
   #' read in nutrient requirements data for a representative consumer -----
   #' Note that these are for SSP age group and gender categories and thus vary by SSP category and year for each region
-  dt.nutsReqPerCap <- getNewestVersion(req) # scenarios should just be SSP1, SSP2, etc.
+  dt.nutsReqPerCap <- getNewestVersion(req, fileloc("uData")) # scenarios should just be SSP1, SSP2, etc.
 
   #' get list of nutrients from dt.nutsReqPerCap for the req set of requirements
   nutListReq <- names(dt.nutsReqPerCap)[4:length(names( dt.nutsReqPerCap))]

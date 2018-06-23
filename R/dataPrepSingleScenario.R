@@ -156,8 +156,9 @@ setnames(dt_wGlobe, old = namesToChange, new = paste0(namesToChange, "_wGlobe"))
 dt <- merge(dt_woGlobe, dt_wGlobe, by = c("region_code.IMPACT159", "IMPACT_code", "year"))
 write.csv(dt, file = "data/IMPACTData/singleScenario/combinedResults.csv")
 
-dt <- as.data.table(read.csv(file = "data/IMPACTData/singleScenario/combinedResults.csv", stringsAsFactors = FALSE))
-dt[, X := NULL] # get rid of row numbers
+# commented out because it just seems to read in the csv file just written out in the line above June 21, 2018
+#dt <- as.data.table(read.csv(file = "data/IMPACTData/singleScenario/combinedResults.csv", stringsAsFactors = FALSE))
+#dt[, X := NULL] # get rid of row numbers
 dt <- dt[!region_code.IMPACT159 %in% "SOM",]
 dt.50 <- dt[year %in% "X2050",]
 dt.50[, c("IMPACT_code", "FoodAvailability_woGlobe", "FoodAvailability_wGlobe", "PCX0_woGlobe", "PCX0_wGlobe","year") := NULL]

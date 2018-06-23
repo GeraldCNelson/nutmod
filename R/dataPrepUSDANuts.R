@@ -26,9 +26,9 @@ sourceFile <- "dataPrepUSDANuts.R"
 createScriptMetaData()
 
 # load data created in the dataPrep.ODBCaccess.R script
-FOOD_DES <- getNewestVersion("FOOD_DES", fileloc("mData"))
-NUT_DATA <- getNewestVersion("NUT_DATA", fileloc("mData"))
-NUTR_DEF <- getNewestVersion("NUTR_DEF", fileloc("mData"))
+FOOD_DES <- getNewestVersion("FOOD_DES", fileloc("uData"))
+NUT_DATA <- getNewestVersion("NUT_DATA", fileloc("uData"))
+NUTR_DEF <- getNewestVersion("NUTR_DEF", fileloc("uData"))
 
 # Important note: USDA nutrient values are for 100 gm of edible portion of a food item
 

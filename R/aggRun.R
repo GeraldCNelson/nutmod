@@ -108,7 +108,6 @@ for (switchloop in getSwitchChoice()) {
                                  "foodAvail.foodGroup"
   )
 
-
   #nutrients grouping
   macroNutrients <- keyVariable("macronutrients")
   vitamins <- keyVariable("vitamins")
@@ -364,7 +363,7 @@ for (switchloop in getSwitchChoice()) {
 
       # multiple nutrients loop -----
       for (k in 1:length(multipleNutsFileList)) {
-        cat("\nWorking on multiple nut file", multipleNutsFileList[k], " for", suffix, "for", aggChoice, "\n")
+        cat("\nWorking on multiple nut file", multipleNutsFileList[k], " for", suffix, "for", aggChoice) #, "\n"
         cat("\nk is ", k)
         temp.in <- getNewestVersion(multipleNutsFileList[k], fileloc("resultsDir"))
         #     temp.in <- temp.in[nutrient %in% keepListNuts,]
@@ -528,13 +527,7 @@ for (switchloop in getSwitchChoice()) {
 
   # facet maps for the world  -----
   worldMap <- getNewestVersion("worldMap", fileloc("uData")) # run storeWorldMapDF() if this is not available
-  truncateDT <- function(DT, fillLimits){ # function to make sure every country gets a color. The fillLimits values are identified ahead of time and entered manually into the code below
-    dt <- copy(DT)
-    # truncate range, upper and lower
-    dt[value < fillLimits[1], value := fillLimits[1]]
-    dt[value > fillLimits[2], value := fillLimits[2]]
-    return(dt)
-  }
+
   # facet map, food availability by food groups -----
   cat("\nWorking on food availability by selected food groups facet maps for", suffix, "\n")
   DT <- getNewestVersion(paste("dt.foodAvail_foodGroup", suffix, sep = "."), fileloc("resultsDir"))
@@ -625,8 +618,13 @@ for (switchloop in getSwitchChoice()) {
              year == "X2050",][year == "X2010", scenario := "X2010"][, year := NULL]
 
   DT <- countryCodeCleanup(DT) # converts IMPACT region codes to ISO3 codes for largest country in the region
-  DT[, nutrient := capwords(cleanupNutrientNames(nutrient))]
-  # DT[, nutrient := capwords(nutrient)]
+  nutListtemp = sort(unique(DT$nutrient))
+  dt.nuts <- data.table(nutListtemp = nutListtemp, nutListtempclean = capwords(cleanupNutrientNames(nutListtemp)))
+
+  DT <- merge(DT, dt.nuts, by.x = "nutrient", by.y = "nutListtemp")
+  DT[, nutrient := NULL]
+  setnames(DT, old = "nutListtempclean", new = "nutrient")
+
   data.table::setnames(DT, old = "region_code.IMPACT159", new = "id")
 
   #' adequacy 2010 -----
@@ -711,8 +709,12 @@ for (switchloop in getSwitchChoice()) {
              year == "X2050",][year == "X2010", scenario := "X2010"][, year := NULL]
 
   DT <- countryCodeCleanup(DT) # converts IMPACT region codes to ISO3 codes for largest country in the region
-  DT[, nutrient := cleanupNutrientNames(nutrient)]
-  #DT[, nutrient := capwords(nutrient)]
+  nutListtemp = sort(unique(DT$nutrient))
+  dt.nuts <- data.table(nutListtemp = nutListtemp, nutListtempclean = capwords(cleanupNutrientNames(nutListtemp)))
+  DT <- merge(DT, dt.nuts, by.x = "nutrient", by.y = "nutListtemp")
+  DT[, nutrient := NULL]
+  setnames(DT, old = "nutListtempclean", new = "nutrient")
+
   data.table::setnames(DT, old = "region_code.IMPACT159", new = "id")
 
   #' disqualifying index ratio 2010 -----

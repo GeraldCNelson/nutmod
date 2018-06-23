@@ -239,7 +239,7 @@ clearMemory <- function() {
   cat("Clearing memory after running", sourceFile)
   rm(list = ls(envir = as.environment(1)), envir = .GlobalEnv) # pos=1 says do this in the global environment
   gc()
-  # The sourcer function is run her in case the automate script is used to run all the R scripts
+  # The sourcer function is run here in case the automate script is used to run all the R scripts
   sourcer <- function(sourceFile){
     cat("\n\nRunning ", sourceFile, "\n")
     sourceFile <- paste0("R/", sourceFile)
@@ -302,6 +302,7 @@ cleanup <- function(inDT, outName, destDir, writeFiles, desc) {
   if ("xlsx"  %in% writeFiles) {
     #    cat("\nwriting the xlsx for ", outName, " to ", dir, sep = ""))
     wbGeneral <- openxlsx::createWorkbook()
+    longName <- outName
     outName <- strtrim(outName, c(31))
     openxlsx::addWorksheet(wb = wbGeneral, sheetName = outName)
 
@@ -318,7 +319,7 @@ cleanup <- function(inDT, outName, destDir, writeFiles, desc) {
       wbGeneral, sheet = outName, style = numStyle, rows = 1:nrow(inDT) + 1, cols = 2:ncol(inDT), # +1 added Mar 24, 2017
       gridExpand = TRUE )
 
-    xcelOutFileName = paste(destDir, "/", outName, "_", Sys.Date(), ".xlsx", sep = "")
+    xcelOutFileName = paste(destDir, "/", longName, "_", Sys.Date(), ".xlsx", sep = "") # added longName functionality June 20, 2018
     openxlsx::saveWorkbook(wbGeneral, xcelOutFileName, overwrite = TRUE)
     #   cat("\nDone writing the xlsx for ", outName, sep = "")
     #  print(proc.time())
@@ -447,7 +448,7 @@ keyVariable <- function(variableName) {
                                  "ctols", "ctool", "ccoco", "ccafe", "cteas", "cothr", "ctoml", IMPACTfish_code, #ctoml added May 31 to be consistent with IFPRI list. FAO includes this as a food item.
                                  IMPACTalcohol_code))
 
-  macronutrients <- c("protein_g", "fat_g", "carbohydrate_g",  "totalfiber_g")
+  macronutrients <- c("carbohydrate_g", "fat_g",  "protein_g", "totalfiber_g")
   vitamins <- c("vit_a_rae_µg", "vit_b6_mg", "vit_b12_µg", "vit_c_mg", "vit_d_µg", "vit_e_mg", "vit_k_µg",
                 "folate_µg", "niacin_mg", "riboflavin_mg", "thiamin_mg")
   minerals <- c("calcium_mg",  "iron_mg", "magnesium_mg", "phosphorus_mg",
@@ -1255,7 +1256,9 @@ gdxFileNameChoice <- function() {
     gdxChoice <- "USAID"
   }
   if (choice %in% "3") {
-    gdxFileName <- "Micronutrient-Inputs-2018.22.05.gdx"  #-  gdx for the USAID results
+  #  gdxFileName <- "Micronutrient-Inputs-2018.22.05.gdx"  #-  gdx for the USAID results
+   # gdxFileName <- "Micronutrient-Inputs-2018.21.06.gdx"  #-  gdx for the USAID priority results
+    gdxFileName <- "Micronutrient-Inputs-2018.22.06.gdx"  #-  gdx for the USAID priority results
     gdxChoice <- "USAIDPriorities"
   }
   cat("\nYour gdx file name choice is ", gdxFileName, "\n")
@@ -1419,8 +1422,19 @@ storeWorldMapDF <- function(){
   }
 }
 
+generateBreakValues <- function(fillLimits, decimals) {
+  fillRange <- fillLimits[2] - fillLimits[1]
+  breakValue.low <- round(fillLimits[1], digits = decimals)
+  breakValue.high <- round(fillLimits[2], digits = decimals)
+  #' middle two values shift the palette gradient
+  #  breakValues <- scales::rescale(c(breakValue.low, breakValue.low + fillRange/3, breakValue.low + fillRange/1.5, breakValue.high))
+  breakValues <- round(c(breakValue.low, breakValue.low + fillRange/3, breakValue.low + fillRange/1.5, breakValue.high), digits = decimals)
+  return(breakValues)
+}
+
+library(scales)
 facetMaps <- function(worldMap, DTfacetMap, fileName, legendText, fillLimits, palette, facetColName, graphsListHolder, breakValues, displayOrder) {
-  b <- breakValues
+  b <- rescale(breakValues, to = c(0,1)) # the break values MUST be from 0 to 1
   f <- fillLimits
   p <- palette
   n <- facetColName
@@ -1437,14 +1451,24 @@ facetMaps <- function(worldMap, DTfacetMap, fileName, legendText, fillLimits, pa
   gg <- gg + scale_fill_gradientn(colors = p, name = legendText,
                                   na.value = "grey50", values = b,
                                   guide = "colorbar", limits=f)
+  #
   gg
 
   graphsListHolder[[fileName]] <- gg
   assign("graphsListHolder", graphsListHolder, envir = .GlobalEnv)
-  ggsave(file = paste0(fileloc("gDir"),"/",fileName,".pdf"), plot = gg,
+  ggsave(file = paste0(fileloc("gDir"),"/",fileName,".png"), plot = gg,
          width = 7, height = 6)
 
 }
+
+truncateDT <- function(DT, fillLimits){ # function to make sure every country gets a color. The fillLimits values are identified ahead of time and entered manually into the code below
+  dt <- copy(DT)
+  # truncate range, upper and lower
+  dt[value < fillLimits[1], value := fillLimits[1]]
+  dt[value > fillLimits[2], value := fillLimits[2]]
+  return(dt)
+}
+
 getGdxChoice <- function() {
   gdxSwitchCombo <- read.csv(file = paste0(getwd(), "/results/gdxInfo.csv"), header = TRUE, stringsAsFactors = FALSE)
   gdxChoice <- gdxSwitchCombo[,2]

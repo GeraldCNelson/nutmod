@@ -474,7 +474,7 @@ plotByBoxPlot2050 <- function(dt, fileName, plotTitle, yLab, yRange, aggChoice, 
 #' }
 
 plotByRegionBarAMDR <- function(dt, fileName, plotTitle, yLab, yRange, aggChoice, suffix, scenOrder, colorList, AMDR_lo, AMDR_hi, graphsListHolder, plotErrorBars) {
-  cat("\nPlotting AMDR bars for region ", aggChoice, "for", plotTitle, "\n")
+  cat("\nPlotting AMDR bars for region ", aggChoice, "for", plotTitle) #, "\n"
   plotTitle <- capwords(plotTitle)
   temp <- copy(dt)
   regionCodes <- unique(temp$region_code)
@@ -538,14 +538,4 @@ plotByRegionBarAMDR <- function(dt, fileName, plotTitle, yLab, yRange, aggChoice
   data.table::setnames(temp.wide, old = names(temp.wide), new = c("scenario", regionCodes))
   #  textplot(temp.wide, cex = 0.6, valign = "top", show.rownames = FALSE, mai = c(.5, .5, .5, .5))
   write.csv(temp.wide, file = paste(fileloc("gDir"),"/", fileName, ".csv", sep = ""))
-}
-
-generateBreakValues <- function(fillLimits, decimals) {
-  fillRange <- fillLimits[2] - fillLimits[1]
-  breakValue.low <- round(fillLimits[1], digits = decimals)
-  breakValue.high <- round(fillLimits[2], digits = decimals)
-  #' middle two values shift the palette gradient
-#  breakValues <- scales::rescale(c(breakValue.low, breakValue.low + fillRange/3, breakValue.low + fillRange/1.5, breakValue.high))
-  breakValues <- round(c(breakValue.low, breakValue.low + fillRange/3, breakValue.low + fillRange/1.5, breakValue.high), digits = decimals)
-  return(breakValues)
 }
