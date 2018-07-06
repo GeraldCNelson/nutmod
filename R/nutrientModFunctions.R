@@ -235,7 +235,7 @@ finalizeScriptMetadata <- function(metadataDT, sourceFile) {
   write.csv(metadataDT, file = paste("data/metadata", sourceFile, "csv", sep = "."), row.names = FALSE)
 }
 
-clearMemory <- function() {
+clearMemory <- function(sourceFile) {
   cat("Clearing memory after running", sourceFile)
   rm(list = ls(envir = as.environment(1)), envir = .GlobalEnv) # pos=1 says do this in the global environment
   gc()
@@ -1258,7 +1258,8 @@ gdxFileNameChoice <- function() {
   if (choice %in% "3") {
   #  gdxFileName <- "Micronutrient-Inputs-2018.22.05.gdx"  #-  gdx for the USAID results
    # gdxFileName <- "Micronutrient-Inputs-2018.21.06.gdx"  #-  gdx for the USAID priority results
-    gdxFileName <- "Micronutrient-Inputs-2018.22.06.gdx"  #-  gdx for the USAID priority results
+   # gdxFileName <- "Micronutrient-Inputs-2018.22.06.gdx"  #-  gdx for the USAID priority results
+    gdxFileName <- "Micronutrient-Inputs-7.1.2018.gdx"  #-  gdx for the USAID priority results
     gdxChoice <- "USAIDPriorities"
   }
   cat("\nYour gdx file name choice is ", gdxFileName, "\n")

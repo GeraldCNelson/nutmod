@@ -60,9 +60,10 @@ for (switchloop in getSwitchChoice()) {
 
   # individual food function -----
   # This is called from a for loop down about 200 lines of code
-  f.ratios.all <- function(){
+  f.ratios.all <- function(dt.food_agg.master){
+    dt.food_agg <- data.table::copy(dt.food_agg.master)
     keepListCol <- c(mainCols, cols.all)
-    dt.food_agg <- dt.food_agg.master[, (keepListCol), with = FALSE]
+    dt.food_agg[, setdiff(names(dt.food_agg), keepListCol) := NULL]
     sumKey <- c(basicKey, "IMPACT_code")
     # the total daily consumption of each nutrient
     nutList_sum_all <-    paste(nutList, "sum_all", sep = "_")
@@ -170,10 +171,10 @@ for (switchloop in getSwitchChoice()) {
   }
 
   # foodGroup function -----
-  f.ratios.FG <- function(){
+  f.ratios.FG <- function(dt.food_agg.master){
     dt.food_agg <- data.table::copy(dt.food_agg.master)
     keepListCol <- c(mainCols, cols.foodGroup)
-    dt.food_agg <- dt.food_agg[, (keepListCol), with = FALSE]
+    dt.food_agg[, setdiff(names(dt.food_agg), keepListCol) := NULL]
     foodGroupKey <- c(basicKey, "food_group_code")
     nutList_ratio_foodGroup <-   paste(nutList, "ratio_foodGroup", sep = "_")
     nutList_reqRatio_foodGroup <- paste(nutList, "reqRatio_foodGroup", sep = "_")
@@ -219,10 +220,11 @@ for (switchloop in getSwitchChoice()) {
   }
 
   # staples function
-  f.ratios.staples <- function(){
+  f.ratios.staples <- function(dt.food_agg.master){
     dt.food_agg <- data.table::copy(dt.food_agg.master)
     keepListCol <- c(mainCols, cols.staple)
-    dt.food_agg <- dt.food_agg[, (keepListCol), with = FALSE]
+    dt.food_agg[, setdiff(names(dt.food_agg), keepListCol) := NULL]
+
     stapleKey <- c(basicKey, "staple_code")
 
     # the total daily consumption of each staple
@@ -312,14 +314,14 @@ for (switchloop in getSwitchChoice()) {
     mainCols <- names(dt.food_agg.master)[!names(dt.food_agg.master) %in% c(cols.all,cols.staple,cols.foodGroup)]
 
     # run the ratios functions -----
-    f.ratios.all()
-    f.ratios.staples()
-    f.ratios.FG()
+    f.ratios.all(dt.food_agg.master)
+    f.ratios.staples(dt.food_agg.master)
+    f.ratios.FG(dt.food_agg.master)
   }
 }
 
 finalizeScriptMetadata(metadataDT, sourceFile)
-sourcer <- clearMemory() # removes everything in memory and sources the sourcer function
+sourcer <- clearMemory(sourceFile) # removes everything in memory and sources the sourcer function
 
 # kcals calculations -----
 # print("------ working on kcals")

@@ -184,8 +184,8 @@ gg <- gg + geom_map(aes(fill = value), map = worldMap)
 #                                 na.value = "grey50", # break values removed June 1, 2018
 #                                 guide = "colorbar", limits = f)
 # print(gg)
-ggsave(file = paste0(fileloc("gDir"),"/",fileName,".pdf"), plot = gg,
+ggsave(file = paste0(fileloc("gDir"),"/",fileName,".png"), plot = gg,
        width = 9, height = 6)
 
 finalizeScriptMetadata(metadataDT, sourceFile)
-sourcer <- clearMemory() # removes everything in memory and sources the sourcer function
+sourcer <- clearMemory(sourceFile) # removes everything in memory and sources the sourcer function

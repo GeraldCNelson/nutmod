@@ -787,10 +787,10 @@ for (switchloop in getSwitchChoice()) {
   fileName <- paste(gdxChoice, "_", l, "_facetmap_", "MRVRatioChange", "_", "income", ".", suffix, sep = "")
   facetMaps(worldMap, DTfacetMap = temp, fileName, legendText, fillLimits = fillLimits.inc, palette, facetColName, graphsListHolder, breakValues, displayOrder)
 
-  # filenames.pdf <- list.files(path = paste(fileloc("gDir"), sep = "/"), pattern = ".pdf")
+  # filenames.png <- list.files(path = paste(fileloc("gDir"), sep = "/"), pattern = ".png")
   # for (scenChoice in scenChoiceList) {
   #   #create zip file of all the graphics outputs for a set of scenarios
-  #   temp <- filenames.csv[grep(scenChoice, filenames.pdf)]
+  #   temp <- filenames.csv[grep(scenChoice, filenames.png)]
   #   cat("\nWriting .zip file of pdf files for", scenChoice)
   #   zip(zipfile = paste(fileloc("gDir"), "/", gdxChoice, scenChoice, "_pdffiles.zip", sep = ""),
   #       files = paste(fileloc("gDir"), "/", temp, sep = ""), extras = "-qdgds 10m", flags = "-j")
@@ -964,4 +964,4 @@ for (switchloop in getSwitchChoice()) {
   cleanupGraphFiles(inDT, outName, fileloc("gDir"), desc = desc)
 }
 finalizeScriptMetadata(metadataDT, sourceFile)
-sourcer <- clearMemory() # removes everything in memory and sources the sourcer function
+sourcer <- clearMemory(sourceFile) # removes everything in memory and sources the sourcer function

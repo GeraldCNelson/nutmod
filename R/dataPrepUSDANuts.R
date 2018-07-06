@@ -178,13 +178,31 @@ FAOSTATcombined.wide <- data.table::dcast(
   value.var = "itemSum")
 
 FAOSTATcombined.wide[, (names(FAOSTATcombined.wide)) := lapply(.SD, function(x){x[is.na(x)] <- 0; x}), .SDcols = names(FAOSTATcombined.wide)]
+
+# pulses are made up of opul and cbean for Vietnam
+# At least for pulses, the production item code is 211 for pulses, nes while the trade item code is 1954 is for pulses. So I'm going to
+# put these into a single item and give it the item code 211
+# I also assigned 211 to usda fct code 16069, Lentils, raw July 4, 2018
+
+# FAOSTATcombined.wide <- FAOSTATcombined.wide[item_code %in% "1954", item_name := "Pulses, nes"][item_code %in% "1954", item_code := "211"]
+temp <- FAOSTATcombined.wide[item_code %in% c("211","1954")]
+sumCols <- c("Production", "exportQ", "importQ")
+temp[,  (sumCols) := lapply(.SD, sum), .SDcols = (sumCols), by = "region_code.IMPACT159"]
+temp[, item_name := "pulses, nes"][, item_code := "211"]
+temp <- unique(temp)
+FAOSTATcombined.wide <- FAOSTATcombined.wide[!item_code %in% c("211","1954")]
+FAOSTATcombined.wide <- rbind(FAOSTATcombined.wide, temp)
+
 FAOSTATcombined.wide[, foodAvail := (Production + importQ - exportQ)/3] # average annual food availability for the 3 years. Summation done above.
+
 deleteListCol <- c("Production", "importQ", "exportQ")
 FAOSTATcombined.wide[, (deleteListCol) := NULL]
 FAOSTATcombined.wide[foodAvail <0, foodAvail := 0]
 
 # merge FAOSTAT with dt.compositesLU.nofish
 composites.temp <- merge(FAOSTATcombined.wide, dt.compositesLU.nofish, by = c("item_code", "item_name"))
+composites.temp[, edible_share := lapply(.SD, function(x){x[is.na(x)] <- 100; x}), .SDcols = c("edible_share")]
+
 composites.temp[, c("FAOSTAT_code") := NULL]
 compositesHolder <- merge(composites.temp, dt.USDAnutrients, by = c("usda_code", "edible_share"))
 
@@ -195,7 +213,8 @@ compositesHolder[, (NAlist) := lapply(.SD, function(x){x[is.na(x)] <- 0; x}), .S
 
 # combine fish with other composites
 dt.composites <- rbind(compositesHolder, dt.USDAnutrients.fish)
-
+compositeNames <- sort(unique(dt.composites$composite))
+compositeNames <- c(compositeNames, "c_aqan", "c_aqpl")
 dt.composites[, c("item_code", "item_name") := NULL]
 dt.composites[, foodAvailpDay := foodAvail * (edible_share/100)/keyVariable("DinY")] # reduce food avail quantity by the edible share ratio and divide by days in year to get average daily availability
 
@@ -336,7 +355,8 @@ dt.cookingRetn.wide <- data.table::dcast(
   data = dt.cookingRetn,
   formula = formula.wide,
   value.var = "Retn_Factor")
-dt.cookingRetn.wide[is.na(dt.cookingRetn.wide)] <- 100
+naList <- names(dt.cookingRetn.wide)[!names(dt.cookingRetn.wide) %in% c("RetnDesc", "Retn_Code")]
+dt.cookingRetn.wide[, (naList) := lapply(.SD, function(x){x[is.na(x)] <- 100; x}), .SDcols = naList]
 dt.cookingRetn.wide <- dt.cookingRetn.wide[Retn_Code %in% dt.retentionLU$retentioncode_aus,]
 dt.cookingRetn.wide <- merge(dt.retentionLU, dt.cookingRetn.wide, by.x = "retentioncode_aus", by.y = "Retn_Code")
 dt.cookingRetn.wide[, retfactor_desc := NULL]
@@ -351,7 +371,6 @@ outName <- "dt.cookingRetn"
 desc <- "Cooking retention for selected nutrients for each food item"
 cleanup(inDT, outName, fileloc("iData"), desc = desc)
 
-
 # add cooking retention to composites
 # - wld
 dt.cookingRetn.wide.composites <- dt.cookingRetn.wide[IMPACT_code %in% unique(dt.composites.wld.wide$IMPACT_code)]
@@ -362,7 +381,7 @@ inDT <- dt.composites.wld
 inDT[, (names(inDT)) := lapply(.SD, function(x){x[is.na(x)] <- 0; x}), .SDcols = names(inDT)]
 outName <- "dt.composites.wld"
 desc <- "Nutrient composition for composite food items, identical for all countries"
-cleanup(inDT, outName, fileloc("iData"), desc = desc)
+cleanup(inDT, outName, fileloc("iData"), desc = desc) # something above assigns 100 to all the usda_code s
 
 # - var (country specific VARieties)
 dt.cookingRetn.var.composites <- dt.cookingRetn.wide[IMPACT_code %in% unique(dt.composites.var.wide$IMPACT_code)]
@@ -464,6 +483,10 @@ outName <- "dt.nutrients.base"
 desc <- "Nutrient composition of IMPACT food items, identical for all countries"
 cleanup(inDT, outName, fileloc("iData"), desc = desc)
 
+# need to get base nutrient composition for composite commodities. This is for some countries that don't have
+# the composite commodities in FAOSTAT but do have values in IMPACT; eg. Vietnam and cbean
+dt.nutrients.base.composites <- dt.nutrients.base[IMPACT_code %in% compositeNames]
+
 # work on nutrients for country specific varieties
 # read in data table with all countries and variety specific commodities
 dt.countryCropVariety <- as.data.table(read_excel("data-raw/NutrientData/countryCropVariety.xlsx", na = "NA"))
@@ -533,8 +556,18 @@ dt.nutrients.var <- merge(dt.nutrients.var, dt.foodGroupsInfo, by = "IMPACT_code
 dt.nutrients.var <- unique(dt.nutrients.var)
 dt.nutrients.var[, (names(dt.nutrients.var)) := lapply(.SD, function(x){x[is.na(x)] <- 0; x}), .SDcols = names(dt.nutrients.var)]
 
-inDT <- dt.nutrients.var
 dt.nutrients.var[, usda_code := NULL]
+
+# add nutrient values from the base code for composites that are not in dt.nutrients.var because they are not in FAOSTAT in the process above
+ctynames <- sort(unique(dt.nutrients.var$region_code.IMPACT159))
+for (i in ctyNames) {
+  missingList <- compositeNames[!compositeNames %in% dt.nutrients.var[region_code.IMPACT159 %in% i, IMPACT_code]  ]
+  temp <- dt.nutrients.base[IMPACT_code %in% missingList]
+  temp[, region_code.IMPACT159 := i]
+  dt.nutrients.var <- rbind(dt.nutrients.var, temp)
+}
+
+inDT <- dt.nutrients.var
 outName <- "dt.nutrients.var"
 desc <- "Nutrient composition of IMPACT food items, country-specific"
 cleanup(inDT, outName, fileloc("iData"), desc = desc)
@@ -614,4 +647,4 @@ desc <- "Nutrient names and units"
 cleanup(inDT, outName, fileloc("mData"), desc = desc)
 
 finalizeScriptMetadata(metadataDT, sourceFile)
-sourcer <- clearMemory() # removes everything in memory and sources the sourcer function
+sourcer <- clearMemory(sourceFile) # removes everything in memory and sources the sourcer function

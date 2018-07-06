@@ -9,7 +9,6 @@ createScriptMetaData()
 #gamsSetup() # to load GAMs stuff and create the initial list of IMPACT scenarios
 gdxFileName <- getGdxFileName()
 gamsSetup <- function(gdxFileName) {
-
   # some of this code duplicates code in dataPrep.IMPACT.R. Not good.
   #  gdxrrw::igdx(gamsSysDir = fileNameList("R_GAMS_SYSDIR"), silent = TRUE)
   gdxFileLoc <- paste(fileloc("IMPACTRawData"),gdxFileName, sep = "/")
@@ -24,7 +23,7 @@ gamsSetup <- function(gdxFileName) {
     dt.scenarioListIMPACT <- unique(dt.ptemp[, (keepListCol), with = FALSE])
   }
  # if (gdxFileName %in% "Micronutrient-Inputs-2018.21.06.gdx") {
-    if (gdxFileName %in% "Micronutrient-Inputs-2018.22.06.gdx") {
+    if (gdxFileName %in% "Micronutrient-Inputs-7.1.2018.gdx") {
       keepListCol <- "scenario"
     dt.scenarioListIMPACT <- unique(dt.ptemp[, (keepListCol), with = FALSE])
     dt.scenarioListIMPACT <- dt.scenarioListIMPACT[!scenario %in% c("GLOBE_SSP2-HGEM-bnpl-SG-25f", "GLOBE_SSP2-HGEM-puls-SG-25f")]
@@ -71,4 +70,4 @@ gamsSetup <- function(gdxFileName) {
 gamsSetup(gdxFileName)
 
 finalizeScriptMetadata(metadataDT, sourceFile)
-# sourcer <- clearMemory() # removes everything in memory and sources the sourcer function
+# sourcer <- clearMemory(sourceFile) # removes everything in memory and sources the sourcer function

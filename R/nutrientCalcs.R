@@ -279,7 +279,7 @@ for (switchloop in getSwitchChoice()) {
   dt.foodNnuts <- getNewestVersion(paste("dt.foodNnuts", suffix, sep = "."), fileloc("resultsDir"))
   dt.foodNnuts <- dt.foodNnuts[scenario %in% scenarioListIMPACT]
 
-  dt.nutrients_sum_all <- getNewestVersion(paste("dt.nutrients_sum_all", suffix, sep = "."), fileloc("resultsDir"))
+#  dt.nutrients_sum_all <- getNewestVersion(paste("dt.nutrients_sum_all", suffix, sep = "."), fileloc("resultsDir")) # discovered that it is not used elsewhere in this script July 4, 2018
 
   #' reqsListPercap is a list of the requirements types. Each has a different set of nutrients. These are a subset
   #' of what are in the nutrients requirements tables from IOM. They are the nutrients common to

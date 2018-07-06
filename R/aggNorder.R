@@ -266,7 +266,7 @@ plotByRegionBar <- function(dt, fileName, plotTitle, yLab, yRange, aggChoice, su
   p <- p + geom_text(aes(label = formatC( round(value, roundVal), format='f', digits = roundVal), x = factor(region_name), y = yval), position = position_dodge(0.9),
             size = fontsize, angle = 90, color = "black") + #vjust = "bottom", hjust = 'left', commented out April 8, 2018
 
-  ggsave(file = paste0(fileloc("gDir"),"/",fileName,".pdf"), plot = p,
+  ggsave(file = paste0(fileloc("gDir"),"/",fileName,".png"), plot = p,
          width = 7, height = 6)
   # dev.off()
 
@@ -313,7 +313,7 @@ plotByRegionStackedBar <- function(dt, fileName, plotTitle, yLab, yRange, aggCho
   if (gdxChoice %in% "USAID")  temp <- renameUSAIDscenarios(temp)
 
   #' draw bars
-pdfFileName <- paste(fileloc("gDir"),"/", fileName, ".pdf", sep = "")
+pdfFileName <- paste(fileloc("gDir"),"/", fileName, ".png", sep = "")
  # pdf(file = pdfFileName, width = 7, height = 5.2,)
 #  if (max(temp$value) - yRange[2] > 0) yRange[2] <- max(temp$value) - commented out April 3, 2018
   p <- ggplot(temp, aes(as.numeric(interaction(scenario,region_name)), y = value, fill = nutrient, order = c("region_name") )) +
@@ -327,7 +327,7 @@ pdfFileName <- paste(fileloc("gDir"),"/", fileName, ".pdf", sep = "")
     labs(y = yLab, x = NULL)
 
   if (oneLine == FALSE) {} else {p + geom_abline(intercept = oneLine, slope = 0)}
-  ggsave(file = paste0(fileloc("gDir"),"/",fileName,".pdf"), plot = p,
+  ggsave(file = paste0(fileloc("gDir"),"/",fileName,".png"), plot = p,
          width = 7, height = 6)
 
   #' code to save the plot for future use
@@ -384,7 +384,7 @@ plotByBoxPlot2050 <- function(dt, fileName, plotTitle, yLab, yRange, aggChoice, 
   #' code to save the plot for future use
   graphsListHolder[[fileName]] <- p
   assign("graphsListHolder", graphsListHolder, envir = .GlobalEnv)
-  ggsave(file = paste0(fileloc("gDir"),"/",fileName,".pdf"), plot = p,
+  ggsave(file = paste0(fileloc("gDir"),"/",fileName,".png"), plot = p,
          width = 7, height = 6)
 }
 #
@@ -515,7 +515,7 @@ plotByRegionBarAMDR <- function(dt, fileName, plotTitle, yLab, yRange, aggChoice
     geom_text(aes(x = factor(region_name),  y=yval, label = round(value, 1)), position = position_dodge(0.9), size = 2.25, angle = 90,
               color = "black", hjust = 'left')
 
-   ggsave(filename = paste0(fileloc("gDir"),"/",fileName,".pdf"), plot = p,
+   ggsave(filename = paste0(fileloc("gDir"),"/",fileName,".png"), plot = p,
          width = 7, height = 6)
  # # dev.off()
   #' code to save the plot for future use

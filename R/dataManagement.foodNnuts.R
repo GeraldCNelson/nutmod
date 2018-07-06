@@ -23,11 +23,9 @@ source("R/nutrientModFunctions.R")
 sourceFile <- "dataManagement.foodNnuts.R"
 createScriptMetaData()
 
-# removing bioavailability adjustments for iron and zinc because they are in nutrientCalcs.R March 28, 2018
-
 # Read in all data first and standardize variable names -----
 # Read in IMPACT food data ----------
-dt.IMPACTfood <- getNewestVersion("dt.IMPACTfood", fileloc("iData")) # has food availability quantity information, pc income and prices
+dt.IMPACTfood <- getNewestVersion("dt.IMPACTfood", fileloc("iData")) # has food availability quantity information, pc income and prices. These don't change with vars and varFort
 
 # budget share and price growth don't depend on suffix
 budgetShare(dt.IMPACTfood)
@@ -48,7 +46,7 @@ for (switchloop in getSwitchChoice()) {
 
   #dt.nutrients is per 100 gm
   #dt is per kg of food
-  dt <- switches() # is specific to countries if switchloop = 2 or 3. nutrient composition of fish composites vary in .var because the composition of fish composites changes by country
+  dt <- switches() # is specific to countries if switchloop = 2 or 3. nutrient composition of composites vary in .var because the composition of composites changes by country
 
   if (switch.vars == "FALSE") {
     dt.foodNnuts <- merge(dt.IMPACTfood, dt, by = "IMPACT_code", allow.cartesian = TRUE) # , allow.cartesian=TRUE does seem to be needed here
@@ -123,15 +121,15 @@ for (switchloop in getSwitchChoice()) {
   data.table::setnames(dt.foodNnuts, old = c(names.tot), new = c(list.tot))
   dt.foodNnuts <- adjustBioavailability(dt.foodNnuts)
   outName <- paste("dt.foodNnuts", suffix, sep = ".")
+  inDT <- dt.foodNnuts
   desc <- "Combines dt.IMPACTfood with nutrients and kcalsPerDay"
-  cleanup(dt.foodNnuts, outName, fileloc("resultsDir"), desc = desc)
+  cleanup(inDT, outName, fileloc("resultsDir"), desc = desc)
 
   #' produce subsets that are more manageable in size -----
 
   #' dt.nutrients.kcals -----
   dt.nutrients.kcals <- data.table::copy(dt.foodNnuts)
-  deleteListCol <- c( "foodAvailpDay", "foodQ.sum", "ft_acds_tot_sat_g",
-                      "ft_acds_mono_unsat_g", "ft_acds_plyunst_g",
+  deleteListCol <- c( "foodAvailpDay", "foodQ.sum", "ft_acds_tot_sat_g",  "ft_acds_mono_unsat_g", "ft_acds_plyunst_g",
                       keyVariable("minerals"), keyVariable("vitamins"), keyVariable("macronutrients"),
                       "phytate_mg", "sugar_g", "ethanol_g", "energy_kcal")
   dt.nutrients.kcals[, (deleteListCol) := NULL]
@@ -163,12 +161,11 @@ for (switchloop in getSwitchChoice()) {
   cleanup(inDT, outName, fileloc("resultsDir"), desc = desc)
 
   #' dt.nutrients.sum.all ------
-  dt.nutrients.sum <- data.table::copy(dt.foodNnuts)
+  dt.nutrients.sum.all <- data.table::copy(dt.foodNnuts)
   deleteListCol <- c("energy_kcal")
-  dt.nutrients.sum[, (deleteListCol) := NULL]
+  dt.nutrients.sum.all[, (deleteListCol) := NULL]
 
-  #' use dt.nutrient.sum for all three sum files, all, staple, FG
-  dt.nutrients.sum.all <- data.table::copy(dt.nutrients.sum) # the list.tot values are supposed to be average daily availability
+  # the list.tot values are supposed to be average daily availability
   dt.nutrients.sum.all[, (list.tot) := lapply(.SD, sum), .SDcols = (list.tot),
                        by =  c("scenario", "region_code.IMPACT159", "year")]
   dt.nutrients.sum.all <- unique(dt.nutrients.sum.all)
@@ -186,28 +183,11 @@ for (switchloop in getSwitchChoice()) {
   desc <- "Sum of each nutrient from each of the food items"
   cleanup(inDT,outName, fileloc("resultsDir"), desc = desc)
 
-  #' dt.KcalShare.nonstaple
-  dt.KcalShare.nonstaple <- data.table::copy(dt.foodNnuts)
-  keepListCol <- c("scenario", "region_code.IMPACT159", "year", "IMPACT_code", "kcalsPerCommod", "kcalsPerDay_tot", "staple_code",
-                   "kcalsPerDay_carbohydrate", "kcalsPerDay_fat", "kcalsPerDay_protein", "kcalsPerDay_other", "kcalsPerDay_ethanol", "kcalsPerDay_sugar", "kcalsPerDay_ft_acds_tot_sat")
-  dt.KcalShare.nonstaple[, setdiff(names(dt.KcalShare.nonstaple), keepListCol) := NULL]
-  dt.KcalShare.nonstaple <- unique(dt.KcalShare.nonstaple)
-  dt.KcalShare.nonstaple[,value := sum(kcalsPerCommod) / kcalsPerDay_tot, by = c("scenario", "region_code.IMPACT159", "year", "staple_code")]
-  deleteListCol <- c("IMPACT_code", "kcalsPerCommod", "kcalsPerDay_tot")
-  dt.KcalShare.nonstaple[, (deleteListCol) := NULL]
-  dt.KcalShare.nonstaple <- unique(dt.KcalShare.nonstaple)
-  dt.KcalShare.nonstaple <- dt.KcalShare.nonstaple[staple_code %in% "nonstaple",]
-  dt.KcalShare.nonstaple <- unique(dt.KcalShare.nonstaple)
-  keepListCol <- c("scenario", "region_code.IMPACT159", "year", "value")
-  # convert to percent
-  dt.KcalShare.nonstaple[,value := value * 100]
-  inDT <- dt.KcalShare.nonstaple
-  outName <- paste("dt.KcalShare_nonstaple", suffix, sep = ".")
-  desc <- "Share of kcals from nonstaples in value column; other Kcal data included"
-  cleanup(inDT, outName, fileloc("resultsDir"), desc = desc)
-
   #' dt.nutrients.sum.staples
-  dt.nutrients.sum.staples <- data.table::copy(dt.nutrients.sum)
+  dt.nutrients.sum.staples <- data.table::copy(dt.foodNnuts)
+  deleteListCol <- c("energy_kcal")
+  dt.nutrients.sum.staples[, (deleteListCol) := NULL]
+
   deleteListCol <- c("kcalsPerDay_tot", "kcalsPerDay_carbohydrate", "kcalsPerDay_fat", "kcalsPerDay_protein",
                      "kcalsPerDay_ethanol", "kcalsPerDay_sugar", "kcalsPerDay_ft_acds_tot_sat", "kcalsPerDay_other",
                      "foodQ.sum")
@@ -232,7 +212,10 @@ for (switchloop in getSwitchChoice()) {
   cleanup(inDT,outName, fileloc("resultsDir"), desc = desc)
 
   #' dt.nutrients.sum.FG
-  dt.nutrients.sum.FG <- data.table::copy(dt.nutrients.sum)
+  dt.nutrients.sum.FG <- data.table::copy(dt.foodNnuts)
+  deleteListCol <- c("energy_kcal")
+  dt.nutrients.sum.FG[, (deleteListCol) := NULL]
+
   dt.nutrients.sum.FG[, (list.tot) := lapply(.SD, sum), .SDcols = (list.tot),
                       by = c("scenario", "region_code.IMPACT159", "year", "food_group_code")]
   deleteListCol <- c("IMPACT_code", "foodAvailpDay", "kcalsPerCommod", "staple_code")
@@ -251,7 +234,27 @@ for (switchloop in getSwitchChoice()) {
   desc <- "Sum of each nutrient from each food group"
   cleanup(inDT,outName, fileloc("resultsDir"), desc = desc)
 
-  # # dt.nutrients.nonstapleShare, not currently (Feb 2018) so commented out ------
+  #' dt.KcalShare.nonstaple
+  dt.KcalShare.nonstaple <- data.table::copy(dt.foodNnuts)
+  keepListCol <- c("scenario", "region_code.IMPACT159", "year", "IMPACT_code", "kcalsPerCommod", "kcalsPerDay_tot", "staple_code",
+                   "kcalsPerDay_carbohydrate", "kcalsPerDay_fat", "kcalsPerDay_protein", "kcalsPerDay_other", "kcalsPerDay_ethanol", "kcalsPerDay_sugar", "kcalsPerDay_ft_acds_tot_sat")
+  dt.KcalShare.nonstaple[, setdiff(names(dt.KcalShare.nonstaple), keepListCol) := NULL]
+  dt.KcalShare.nonstaple <- unique(dt.KcalShare.nonstaple)
+  dt.KcalShare.nonstaple[,value := sum(kcalsPerCommod) / kcalsPerDay_tot, by = c("scenario", "region_code.IMPACT159", "year", "staple_code")]
+  deleteListCol <- c("IMPACT_code", "kcalsPerCommod", "kcalsPerDay_tot")
+  dt.KcalShare.nonstaple[, (deleteListCol) := NULL]
+  dt.KcalShare.nonstaple <- unique(dt.KcalShare.nonstaple)
+  dt.KcalShare.nonstaple <- dt.KcalShare.nonstaple[staple_code %in% "nonstaple",]
+  dt.KcalShare.nonstaple <- unique(dt.KcalShare.nonstaple)
+  keepListCol <- c("scenario", "region_code.IMPACT159", "year", "value")
+  # convert to percent
+  dt.KcalShare.nonstaple[,value := value * 100]
+  inDT <- dt.KcalShare.nonstaple
+  outName <- paste("dt.KcalShare_nonstaple", suffix, sep = ".")
+  desc <- "Share of kcals from nonstaples in value column; other Kcal data included"
+  cleanup(inDT, outName, fileloc("resultsDir"), desc = desc)
+
+  # # dt.nutrients.nonstapleShare, not currently used (Feb 2018) so commented out ------
   # dt.nut.nonstaple.share <- data.table::copy(dt.nutrients.sum.staples.long)
   # shareFormula <- "scenario + region_code.IMPACT159 + nutrient + year ~ staple_code"
   # dt.nut.nonstaple.share.wide <- data.table::dcast(data = dt.nut.nonstaple.share,
@@ -263,9 +266,11 @@ for (switchloop in getSwitchChoice()) {
 
   #' dt.foodAvail.foodGroup -----
   #sum and convert to grams. Note that the food group alcohol results are for the grams in the total beverage, not ethanol.
+
   dt.foodAvail.foodGroup <- data.table::copy(dt.foodNnuts)
-  deleteListCol <- names(dt.foodNnuts)[!names(dt.foodNnuts) %in% c("scenario", "region_code.IMPACT159", "IMPACT_code", "year", "food_group_code", "foodAvailpDay")]
-  dt.foodAvail.foodGroup[, (deleteListCol) := NULL]
+  keepListCol <- c("scenario", "region_code.IMPACT159", "IMPACT_code", "year", "food_group_code", "foodAvailpDay")
+  dt.foodAvail.foodGroup[, setdiff(names(dt.foodAvail.foodGroup), keepListCol) := NULL]
+
   dt.foodAvail.foodGroup <- dt.foodAvail.foodGroup[, foodavail.foodgroup.sum := sum(foodAvailpDay) * 1000,
                                                    by = c("scenario", "region_code.IMPACT159", "year", "food_group_code")]
   deleteListCol <- c("IMPACT_code", "foodAvailpDay")
@@ -279,4 +284,4 @@ for (switchloop in getSwitchChoice()) {
   cleanup(inDT, outName, fileloc("resultsDir"),  desc = desc)
 }
 finalizeScriptMetadata(metadataDT, sourceFile)
-sourcer <- clearMemory() # removes everything in memory and sources the sourcer function
+sourcer <- clearMemory(sourceFile) # removes everything in memory and sources the sourcer function

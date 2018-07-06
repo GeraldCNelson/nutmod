@@ -327,4 +327,4 @@ openxlsx::saveWorkbook(wb = wbGeneral, xcelOutFileName, overwrite = TRUE)
 }
 
 finalizeScriptMetadata(metadataDT, sourceFile)
-sourcer <- clearMemory() # removes everything in memory and sources the sourcer function
+sourcer <- clearMemory(sourceFile) # removes everything in memory and sources the sourcer function

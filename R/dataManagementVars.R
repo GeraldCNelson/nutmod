@@ -22,6 +22,9 @@ source("R/nutrientModFunctions.R")
 sourceFile <- "dataManagementVars.R" # would be better to figure out a way to get this automatically.
 createScriptMetaData()
 
+gdxSwitchCombo <- read.csv(file = paste0(getwd(), "/results/gdxInfo.csv"), header = TRUE, stringsAsFactors = FALSE)
+
+
 #get the country crop variety lookup data table
 library(readxl)
 dt.countryCropVariety <- as.data.table(read_excel("data-raw/NutrientData/countryCropVariety.xlsx", na = "NA"))
@@ -34,7 +37,7 @@ ctyWspecVarieties <- ctyWspecVarieties[3:length(ctyWspecVarieties)]
 
 dt.nutrients.sum.all.base <- getNewestVersion("dt.nutrients.sum.all.base", fileloc("resultsDir"))
 dt.nutrients.sum.all.var <- getNewestVersion("dt.nutrients.sum.all.var", fileloc("resultsDir"))
-dt.nutrients.sum.all.varFort <- getNewestVersion("dt.nutrients.sum.all.varFort", fileloc("resultsDir"))
+if (gdxSwitchCombo[3] == 3) dt.nutrients.sum.all.varFort <- getNewestVersion("dt.nutrients.sum.all.varFort", fileloc("resultsDir"))
 
 #' compare results with base and country-specific vars
 dt.nutrients.sum.var <- dt.nutrients.sum.all.var[region_code.IMPACT159 %in% ctyWspecVarieties]
@@ -53,11 +56,6 @@ temp <- temp[!nutrient %in% deleteListNuts]
 temp[, diff := valueVar - valueBase]
 temp[, diffRatio := 100 * diff/valueBase]
 temp.small <- temp[scenario %in% "SSP2-NoCC-REF" & year %in% "X2010",]
-# macronutrients <- c("carbohydrate_g", "fat_g", "protein_g", "totalfiber_g" )
-# vitamins <- c("folate_µg", "niacin_mg", "riboflavin_mg", "thiamin_mg",
-#               "vit_a_rae_µg", "vit_b12_µg", "vit_b6_mg", "vit_c_mg",
-#               "vit_d_µg", "vit_e_mg", "vit_k_µg")
-# minerals <- c("iron_mg", "magnesium_mg", "phosphorus_mg", "potassium_g", "zinc_mg")
 
 macronutrients <- keyVariable("macronutrients")
 vitamins <- keyVariable("vitamins")
@@ -84,58 +82,60 @@ for (i in c("macronutrients", "vitamins", "minerals")) {
   print(p)
 }
 
-#' compare results with country-specific vars with and without fortification
+if (gdxSwitchCombo[3] == 3) {
+  #' compare results with country-specific vars with and without fortification
 
-# get list of countries that have fortification
-dt.fortValues <- getNewestVersion("dt.fortValues", fileloc("uData"))
-ctyWFort <- sort(unique(dt.fortValues$region_code.IMPACT159))
+  # get list of countries that have fortification
+  dt.fortValues <- getNewestVersion("dt.fortValues", fileloc("uData"))
+  ctyWFort <- sort(unique(dt.fortValues$region_code.IMPACT159))
 
-dt.nutrients.sum.var <- dt.nutrients.sum.all.varFort[region_code.IMPACT159 %in% ctyWFort]
-dt.nutrients.sum.base <- dt.nutrients.sum.all.var[region_code.IMPACT159 %in% ctyWFort]
-setnames(dt.nutrients.sum.var, old = "value", new = "valueVar")
-setnames(dt.nutrients.sum.base, old = "value", new = "valueBase")
-temp <- merge(dt.nutrients.sum.var, dt.nutrients.sum.base)
+  dt.nutrients.sum.var <- dt.nutrients.sum.all.varFort[region_code.IMPACT159 %in% ctyWFort]
+  dt.nutrients.sum.base <- dt.nutrients.sum.all.var[region_code.IMPACT159 %in% ctyWFort]
+  setnames(dt.nutrients.sum.var, old = "value", new = "valueVar")
+  setnames(dt.nutrients.sum.base, old = "value", new = "valueBase")
+  temp <- merge(dt.nutrients.sum.var, dt.nutrients.sum.base)
 
-# dt.nutrients.sumVar <- copy(dt.nutrients.sum.allVarFort)
-# setnames(dt.nutrients.sumVar, old = "value", new = "valueVar")
-#
-# dt.nutrients.sum.base <- copy(dt.nutrients.sum.allVar)
-# setnames(dt.nutrients.sum.base, old = "value", new = "valueBase")
-# temp <- merge(dt.nutrients.sumVar, dt.nutrients.sum.base)
-# # delete irrelevant nutrients
-# deleteListNuts <- c("kcalsPerDay_other", "ethanol_g", "kcalsPerDay_ethanol", "kcals.ethanol_g",
-#                     "kcalsPerDay_ft_acds_tot_sat", "kcalsPerDay_protein", "kcalsPerDay_sugar",
-#                     "kcals.protein_g", "kcals.sugar_g", "kcalsPerDay_carbohydrate", "kcalsPerDay_fat",
-#                     "ft_acds_mono_unsat_g", "ft_acds_plyunst_g", "ft_acds_tot_sat_g",
-#                     "kcals.carbohydrate_g", "kcals.fat_g", "kcals.ft_acds_tot_sat_g")
-temp <- temp[!nutrient %in% deleteListNuts]
+  # dt.nutrients.sumVar <- copy(dt.nutrients.sum.allVarFort)
+  # setnames(dt.nutrients.sumVar, old = "value", new = "valueVar")
+  #
+  # dt.nutrients.sum.base <- copy(dt.nutrients.sum.allVar)
+  # setnames(dt.nutrients.sum.base, old = "value", new = "valueBase")
+  # temp <- merge(dt.nutrients.sumVar, dt.nutrients.sum.base)
+  # # delete irrelevant nutrients
+  # deleteListNuts <- c("kcalsPerDay_other", "ethanol_g", "kcalsPerDay_ethanol", "kcals.ethanol_g",
+  #                     "kcalsPerDay_ft_acds_tot_sat", "kcalsPerDay_protein", "kcalsPerDay_sugar",
+  #                     "kcals.protein_g", "kcals.sugar_g", "kcalsPerDay_carbohydrate", "kcalsPerDay_fat",
+  #                     "ft_acds_mono_unsat_g", "ft_acds_plyunst_g", "ft_acds_tot_sat_g",
+  #                     "kcals.carbohydrate_g", "kcals.fat_g", "kcals.ft_acds_tot_sat_g")
+  temp <- temp[!nutrient %in% deleteListNuts]
 
-temp[, diff := valueVar - valueBase]
-temp[, diffRatio := 100 * diff/valueBase]
-temp.small <- temp[scenario %in% "SSP2-NoCC-REF" & year %in% "X2010",]
-macronutrients <- keyVariable("macronutrients")
-vitamins <- keyVariable("vitamins")
-minerals <- keyVariable("minerals")
+  temp[, diff := valueVar - valueBase]
+  temp[, diffRatio := 100 * diff/valueBase]
+  temp.small <- temp[scenario %in% "SSP2-NoCC-REF" & year %in% "X2010",]
+  macronutrients <- keyVariable("macronutrients")
+  vitamins <- keyVariable("vitamins")
+  minerals <- keyVariable("minerals")
 
-for (i in c("macronutrients", "vitamins", "minerals")) {
-  dt <- temp.small[nutrient %in% eval(parse(text = i)),]
-  p <- ggplot(data = dt, aes(x = region_code.IMPACT159, y = diffRatio, group = nutrient, color = nutrient)) +
-    xlab("Country") +
-    ylab("(percent)") +
-    #  scale_y_continuous() +
-    theme_bw() +
-    #  ggtitle(sprintf("%s\n egg %s", gasinTitle, eggName)) +
-    ggtitle("Difference between fortified and unfortified results") +
-    theme(plot.title = element_text(hjust = 0.5)) + # center title
-    theme(legend.position = "bottom") +
-    guides(color = guide_legend(nrow = 3, byrow = TRUE))+
-    theme(legend.title=element_blank())+
-    geom_bar(aes(fill=nutrient),   # fill depends on cond2
-             stat="identity",
-             colour="black",    # Black outline for all
-             position=position_dodge()) # Put bars side-by-side instead of stacked)
-  #   print(ggplotly(p, tooltip = c("timeStamp", i), dynamicTicks = TRUE))
-  print(p)
+  for (i in c("macronutrients", "vitamins", "minerals")) {
+    dt <- temp.small[nutrient %in% eval(parse(text = i)),]
+    p <- ggplot(data = dt, aes(x = region_code.IMPACT159, y = diffRatio, group = nutrient, color = nutrient)) +
+      xlab("Country") +
+      ylab("(percent)") +
+      #  scale_y_continuous() +
+      theme_bw() +
+      #  ggtitle(sprintf("%s\n egg %s", gasinTitle, eggName)) +
+      ggtitle("Difference between fortified and unfortified results") +
+      theme(plot.title = element_text(hjust = 0.5)) + # center title
+      theme(legend.position = "bottom") +
+      guides(color = guide_legend(nrow = 3, byrow = TRUE))+
+      theme(legend.title=element_blank())+
+      geom_bar(aes(fill=nutrient),   # fill depends on cond2
+               stat="identity",
+               colour="black",    # Black outline for all
+               position=position_dodge()) # Put bars side-by-side instead of stacked)
+    #   print(ggplotly(p, tooltip = c("timeStamp", i), dynamicTicks = TRUE))
+    print(p)
+  }
 }
 
 finalizeScriptMetadata(metadataDT, sourceFile)

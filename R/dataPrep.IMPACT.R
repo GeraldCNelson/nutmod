@@ -60,7 +60,7 @@ gdxChoice <- getGdxChoice()
 #' @param catNames - types of info about the parameter
 #' @return null
 #' @export
-#'
+
 processIMPACT159Data <- function(gdxFileName, varName, catNames) {
   # dt.regions.all <- getNewestVersion("dt.regions.all", fileloc("uData"))
   # IMPACTgdx <- gdxFileName
@@ -154,4 +154,4 @@ generateResults(gdxFileName, vars.world, catNames.world)
 
 
 finalizeScriptMetadata(metadataDT, sourceFile)
-sourcer <- clearMemory() # removes everything in memory and sources the sourcer function
+sourcer <- clearMemory(sourceFile) # removes everything in memory and sources the sourcer function

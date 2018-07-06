@@ -37,10 +37,6 @@ for (switchloop in getSwitchChoice()) {
   if (switchloop == 3) {switch.vars <- TRUE;  switch.fortification <- TRUE; suffix = "varFort"}
 
   dt.foodNnuts <- getNewestVersion(paste("dt.foodNnuts", suffix, sep = "."), fileloc("resultsDir"))
-
-  #dt.foodNnuts <- getNewestVersion("dt.foodNnuts", fileloc("resultsDir"))
-  #keepListCol <- c("scenario", "region_code.IMPACT159", "year", "IMPACT_code", "foodAvailpDay", "foodQ.sum")
-  #dt.foodNnuts <- dt.foodNnuts[, (keepListCol), with = FALSE]
   dt.foodNnuts <- dt.foodNnuts[year %in% keepYearList, ]
   data.table::setkey(dt.foodNnuts)
   dt.foodNnuts <- unique(dt.foodNnuts)
@@ -77,7 +73,8 @@ for (switchloop in getSwitchChoice()) {
   dt.SDfood[,SD := -sum(lnfoodQ.ratio), by = c("scenario","region_code.IMPACT159", "year")]
   foodList <- unique(dt.SDfood$IMPACT_code)
   keepListCol <- c("scenario","region_code.IMPACT159", "year", "SD")
-  dt.SDfood <- unique(dt.SDfood[, keepListCol, with = FALSE])
+  dt.SDfood[, setdiff(names(dt.SDfood), keepListCol) := NULL]
+  dt.SDfood <- unique(dt.SDfood)
   dt.SDfood[, SDnorm := SD * 100/log(length(foodList))]
   inDT <- dt.SDfood
   outName <- paste("dt.shannonDiversity", suffix, sep = ".")
@@ -156,7 +153,8 @@ for (switchloop in getSwitchChoice()) {
   dt.MFAD[, `:=`(MFAD = sum(dist(.SD)) / (2 * .N)),
           by = c("scenario", "year", "region_code.IMPACT159"), .SDcols = nutList]
   keepListCol.MFAD <- c("scenario", "region_code.IMPACT159", "year", "MFAD" )
-  dt.MFAD <- unique(dt.MFAD[, (keepListCol.MFAD), with = FALSE])
+  dt.MFAD[, setdiff(names(dt.MFAD), keepListCol.MFAD) := NULL]
+  dt.MFAD <- unique(dt.MFAD)
   data.table::setnames(dt.MFAD, old = "MFAD", new = "value")
 
   #' scale to 0 to 100 range
@@ -169,7 +167,7 @@ for (switchloop in getSwitchChoice()) {
 
   DT <- data.table::copy(dt.foodNnuts)
   keepListCol <- c("scenario", "region_code.IMPACT159", "year", "IMPACT_code", "foodAvailpDay", "foodQ.sum")
-   DT[, setdiff(names(DT), keepListCol) := NULL]
+  DT[, setdiff(names(DT), keepListCol) := NULL]
 
   dt.RAOqe <- merge(dt.adequateRatio.nuts, DT,
                     by = c("scenario", "year", "region_code.IMPACT159", "IMPACT_code"))
@@ -182,7 +180,8 @@ for (switchloop in getSwitchChoice()) {
            by = c("scenario", "year", "region_code.IMPACT159"), .SDcols = nutList]
 
   keepListCol.RAOqe <- c("scenario", "region_code.IMPACT159", "year", "RAOqe" )
-  dt.RAOqe <- unique(dt.RAOqe[, (keepListCol.RAOqe), with = FALSE])
+  dt.RAOqe[, setdiff(names(dt.RAOqe), keepListCol.RAOqe) := NULL]
+  dt.RAOqe <- unique(dt.RAOqe)
   data.table::setnames(dt.RAOqe, old = "RAOqe", new = "value")
 
   #' scale RAOqe to 0 to 100 range for each scenario and year
@@ -273,8 +272,7 @@ for (switchloop in getSwitchChoice()) {
   dt.foodGroupLookUp <- data.table::copy(dt.foodNnuts)
   keepListCol <- c("scenario", "region_code.IMPACT159", "year", "IMPACT_code", "kcalsPerCommod", "kcalsPerDay_tot", "food_group_code",
                    "kcalsPerDay_carbohydrate", "kcalsPerDay_fat", "kcalsPerDay_protein", "kcalsPerDay_other", "kcalsPerDay_ethanol", "kcalsPerDay_sugar", "kcalsPerDay_ft_acds_tot_sat")
-  deleteListCol <- names(dt.foodGroupLookUp)[!names(dt.foodGroupLookUp) %in% keepListCol]
-  dt.foodGroupLookUp[,(deleteListCol) := NULL]
+  dt.foodGroupLookUp[, setdiff(names(dt.foodGroupLookUp), keepListCol) := NULL]
   dt.foodGroupLookUp <- unique(dt.foodGroupLookUp)
   dt.foodGroupLookUp[,value := sum(kcalsPerCommod) / kcalsPerDay_tot, by = c("scenario", "region_code.IMPACT159", "year", "food_group_code")]
   dt.foodGroupLookUp[, c("IMPACT_code", "kcalsPerCommod", "kcalsPerDay_tot") := NULL]
@@ -292,7 +290,9 @@ for (switchloop in getSwitchChoice()) {
   dt.qi <- merge(dt.ratio.adj, dt.foodNnuts, by = c("IMPACT_code", "scenario", "region_code.IMPACT159", "year" ))
 
   # get just kcals per day for each country -----
-  dt.kcalsInfo.region <- dt.foodNnuts[, c("scenario", "region_code.IMPACT159", "year", "kcalsPerDay_tot"), with = FALSE]
+  dt.kcalsInfo.region <- data.table::copy(dt.foodNnuts)
+  keepListCol <- c("scenario", "region_code.IMPACT159", "year", "kcalsPerDay_tot")
+  dt.kcalsInfo.region[, setdiff(names(dt.kcalsInfo.region), keepListCol) := NULL]
   dt.kcalsInfo.region <- unique(dt.kcalsInfo.region)
 
   # combine the qi ratio for each nutrient from all food items with the kcals
@@ -395,7 +395,7 @@ for (switchloop in getSwitchChoice()) {
   di <- c(di, "di.ethanol")
 
   keepListCol <- c("scenario", "region_code.IMPACT159", "year", di)
-  DT <- DT[, (keepListCol), with = FALSE]
+  DT[, setdiff(names(DT), keepListCol) := NULL]
 
   # use standard nutrient names
   newNames <- gsub("di.", "", di)
@@ -444,7 +444,7 @@ for (switchloop in getSwitchChoice()) {
   DT[, DI.comp := rowSums(.SD), .SDcols = (newNames)]
   DT[, DI.comp :=  DI.comp / Nd]
   keepListCol.DIcomp <- c( "scenario", "region_code.IMPACT159", "year", "DI.comp")
-  DT <- DT[, (keepListCol.DIcomp), with = FALSE]
+  DT[, setdiff(names(DT), keepListCol.DIcomp) := NULL]
   DT <- unique(DT)
   data.table::setnames(DT, old = "DI.comp", new = "value")
 
@@ -460,12 +460,12 @@ for (switchloop in getSwitchChoice()) {
   dt.qi.sum[, value := (sum(qi.adj) / Nq) * 100,
             by = c( "scenario", "region_code.IMPACT159", "year") ]
   keepListCol.NB.sum <- c("scenario", "region_code.IMPACT159",  "year", "value")
-  dt.NB.sum <- dt.qi.sum[, (keepListCol.NB.sum), with = FALSE]
-  dt.NB.sum <- unique(dt.NB.sum)
-  inDT <-  dt.NB.sum
+  dt.qi.sum[, setdiff(names(dt.qi.sum), keepListCol.NB.sum) := NULL]
+   dt.qi.sum <- unique(dt.qi.sum)
+  inDT <-  dt.qi.sum
   outName <- paste("dt.nutBalScore", suffix, sep = ".")
   desc <- "Nutrient balance score"
   cleanup(inDT, outName, fileloc("resultsDir"),  desc = desc)
 }
 finalizeScriptMetadata(metadataDT, sourceFile)
-sourcer <- clearMemory() # removes everything in memory and sources the sourcer function
+sourcer <- clearMemory(sourceFile) # removes everything in memory and sources the sourcer function
