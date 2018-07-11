@@ -49,7 +49,7 @@ for (i in 1:length(GENuS.fct.files)) {
 }
 
 #' Import Latam from csv so font encoding is not a problem
-dt.GENuS.LatAm <- as.data.table(read_csv("data-raw/NutrientData/GENus_FCTs/FCT_GENuS_LATINFoods.csv", col_names = TRUE, cols(
+dt.GENuS.LatAm <- as.data.table(read_csv("data-raw/NutrientData/fortification/GENus_FCTs/FCT_GENuS_LATINFoods.csv", col_names = TRUE, cols(
   .default = col_double(),
   `#` = col_integer(),
   GENuS_foodID = col_character(),
@@ -94,7 +94,7 @@ setcolorder(GENuS.FCT, newOrder)
 temp <- unique(GENuS.FCT[, c("GENuS_foodID", "GENuS_FoodName"), with = FALSE])
 
 library(readxl)
-genusFoodNamesIMPACTlookup <- as.data.table(read_excel("genusFoodNamesIMPACTlookup.xlsx",
+genusFoodNamesIMPACTlookup <- as.data.table(read_excel("data-raw/NutrientData/fortification/genusFoodNamesIMPACTlookup.xlsx",
                                                        col_types = c("skip", "text", "text",
                                                                      "text", "skip", "skip", "skip",
                                                                      "skip", "skip")))

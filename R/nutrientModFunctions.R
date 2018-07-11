@@ -433,7 +433,7 @@ keyVariable <- function(variableName) {
   FBSyearsToAverage.baseyear <- c("X2004", "X2005", "X2006")
   FBSyearsToAverage.startyear <- c("X2009", "X2010", "X2011")
   fishComposites <- c("c_Mllsc", "c_ODmsrl", "c_OPelag", "c_Crust", "c_OMarn", "c_FrshD")
-
+  foodGroups <- c("alcohol", "beverages", "cereals", "dairy", "eggs", "fish", "fruits", "meats", "nutsNseeds", "oils", "pulses", "rootsNPlantain", "sweeteners", "vegetables")
   keepListYears.composites <- c("Y2011", "Y2012", "Y2013")
   #' note shrimp, tuna, and salmon are removed in dataManagement.fish.R
   IMPACTfish_code <- c("c_Shrimp", "c_Crust", "c_Salmon", "c_FrshD", "c_ODmrsl",
@@ -462,9 +462,9 @@ keyVariable <- function(variableName) {
   reqsList_RDA_macro <- c("carbohydrate_g", "totalfiber_g", "protein_g")
   reqsList_RDA_vits <- c("vit_a_rae_µg", "vit_c_mg", "vit_d_µg", "vit_e_mg", "vit_k_µg", "thiamin_mg", "riboflavin_mg",
                          "niacin_mg", "vit_b6_mg", "folate_µg", "vit_b12_µg", "pantothenicacid_mg", "biotin_µg", "choline_mg")
-    reqsList_RDA_minrls <- c("calcium_mg", "chromium_μg", "copper_μg", "fluoride_mg", "iodine_μg", "iron_mg",
-                             "magnesium_mg", "manganese_mg", "molybdenum_μg", "phosphorus_mg", "selenium_μg", "zinc_mg",
-                             "potassium_g", "sodium_g", "chloride_g")
+  reqsList_RDA_minrls <- c("calcium_mg", "chromium_μg", "copper_μg", "fluoride_mg", "iodine_μg", "iron_mg",
+                           "magnesium_mg", "manganese_mg", "molybdenum_μg", "phosphorus_mg", "selenium_μg", "zinc_mg",
+                           "potassium_g", "sodium_g", "chloride_g")
   #These are the scenario numbers for the IIASA data with population disaggregated.
   scenarioListSSP.pop <- c("SSP1_v9_130115", "SSP2_v9_130115", "SSP3_v9_130115",
                            "SSP4_v9_130115", "SSP5_v9_130115")
@@ -515,6 +515,7 @@ keyVariable <- function(variableName) {
         "keepYearList",
         "keepYearList.FBS",
         "FBSyearsToAverage",
+        "foodGroups",
         "IMPACTfish_code",
         "IMPACTalcohol_code",
         "IMPACTfoodCommodList",
@@ -638,7 +639,7 @@ metadata <- function() {
 #' @param IMPACTfood - path and file name for IMPACT food results
 #' @param nutrientFileName - file name for nutrient lookup data
 #' @param nutrientLU - path and file name for nutrient lookup data
-#' @param commoditydt.foodGroupLUFileName - file name for the commodity to food group lookup spreadsheet
+#' @param dt.foodGroupLUFileName - file name for the commodity to food group lookup spreadsheet
 #' @param dt.foodGroupLU - path and file name for the commodity to food group lookup
 #' @param SSPdataZipFile - file name of the SSP data in zip format
 #' @param SSPdataZip - path and file name for the SSP data zip file
@@ -1256,9 +1257,9 @@ gdxFileNameChoice <- function() {
     gdxChoice <- "USAID"
   }
   if (choice %in% "3") {
-  #  gdxFileName <- "Micronutrient-Inputs-2018.22.05.gdx"  #-  gdx for the USAID results
-   # gdxFileName <- "Micronutrient-Inputs-2018.21.06.gdx"  #-  gdx for the USAID priority results
-   # gdxFileName <- "Micronutrient-Inputs-2018.22.06.gdx"  #-  gdx for the USAID priority results
+    #  gdxFileName <- "Micronutrient-Inputs-2018.22.05.gdx"  #-  gdx for the USAID results
+    # gdxFileName <- "Micronutrient-Inputs-2018.21.06.gdx"  #-  gdx for the USAID priority results
+    # gdxFileName <- "Micronutrient-Inputs-2018.22.06.gdx"  #-  gdx for the USAID priority results
     gdxFileName <- "Micronutrient-Inputs-7.1.2018.gdx"  #-  gdx for the USAID priority results
     gdxChoice <- "USAIDPriorities"
   }
@@ -1430,12 +1431,14 @@ generateBreakValues <- function(fillLimits, decimals) {
   #' middle two values shift the palette gradient
   #  breakValues <- scales::rescale(c(breakValue.low, breakValue.low + fillRange/3, breakValue.low + fillRange/1.5, breakValue.high))
   breakValues <- round(c(breakValue.low, breakValue.low + fillRange/3, breakValue.low + fillRange/1.5, breakValue.high), digits = decimals)
+#  breakValues <- rescale(breakValues, to = c(0,1)) # the break values MUST be from 0 to 1. Already done in facetMaps() July 10, 2018
   return(breakValues)
 }
 
 library(scales)
-facetMaps <- function(worldMap, DTfacetMap, fileName, legendText, fillLimits, palette, facetColName, graphsListHolder, breakValues, displayOrder) {
-  b <- rescale(breakValues, to = c(0,1)) # the break values MUST be from 0 to 1
+facetMaps <- function(worldMap, DTfacetMap, fileName, legendText, fillLimits, palette, facetColName,
+                      graphsListHolder, breakValues, displayOrder, desc) {
+  b <- rescale(breakValues, to = c(0,1)) # the values option in scale_fill_gradientn MUST be from 0 to 1
   f <- fillLimits
   p <- palette
   n <- facetColName
@@ -1451,7 +1454,7 @@ facetMaps <- function(worldMap, DTfacetMap, fileName, legendText, fillLimits, pa
 
   gg <- gg + scale_fill_gradientn(colors = p, name = legendText,
                                   na.value = "grey50", values = b,
-                                  guide = "colorbar", limits=f)
+                                  guide = "colorbar", limits=f, labels = )
   #
   gg
 
@@ -1462,6 +1465,7 @@ facetMaps <- function(worldMap, DTfacetMap, fileName, legendText, fillLimits, pa
 
 }
 
+# truncates the column value to the range of fillLimits
 truncateDT <- function(DT, fillLimits){ # function to make sure every country gets a color. The fillLimits values are identified ahead of time and entered manually into the code below
   dt <- copy(DT)
   # truncate range, upper and lower

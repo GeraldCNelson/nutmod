@@ -239,8 +239,7 @@ for (j in cropList) {
   }
 }
 
-#attempt to do individual facet maps
-
+# do individual facet maps
 for (j in cropList) {
   for (i in keepListNuts) {
     DT <- copy(DTorig)

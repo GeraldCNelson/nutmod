@@ -51,7 +51,7 @@ layoutPlots <- function(fileName, figchoice, prefix, rowNum, legendNum, layout, 
   )
   ggsave(file = fileName,
          plot = g.out,
-         device = "pdf",
+         device = "png",
          width = sum(colWidths), height = sum(colHeights))
   cat("\n", fileName)
   pdfDimensions <-  as.list(c(fileName, sum(colHeights), sum(colWidths)))
@@ -141,17 +141,17 @@ for (switchloop in getSwitchChoice()) {
     pdfDimensions <- rbind(pdfDimensions, fileDims)
   }
 
-  fig8.facetMapRR_CCDelta <- paste("facetmap_nutReqRatioChange_climate", suffix, sep = ".")
-  fig7.facetMapRR_IncDelta <- paste("facetmap_nutReqRatioChange_income", suffix, sep = ".")
+  fig6.facetMapRR_CCDelta <- paste("facetmap_nutReqRatioChange_climate", suffix, sep = ".")
+  fig5.facetMapRR_IncDelta <- paste("facetmap_nutReqRatioChange_income", suffix, sep = ".")
   facetMapRR_2050NoCC <- paste("facetmap_nutReqRatio_2050_noCC", suffix, sep = ".")
-  fig6.facetMapRR_2010 <- paste("facetmap_nutReqRatio_2010", suffix, sep = ".")
+  fig4.facetMapRR_2010 <- paste("facetmap_nutReqRatio_2010", suffix, sep = ".")
   facetMapMRV_2010 <- paste("facetmap_MRVRatio_2010", suffix, sep = ".")
   facetMapMRV_IncDelta <- paste("facetmap_MRVRatioChange_income", suffix, sep = ".")
   facetMapMRV_CCDelta <- paste("facetmap_MRVRatioChange_climate", suffix, sep = ".")
 
   # plot facet maps
   if (gdxChoice %in% "SSPs") {
-    for (figchoice in c("fig8.facetMapRR_CCDelta", "fig7.facetMapRR_IncDelta", "facetMapRR_2050NoCC", "fig6.facetMapRR_2010",
+    for (figchoice in c("fig6.facetMapRR_CCDelta", "fig5.facetMapRR_IncDelta", "facetMapRR_2050NoCC", "fig4.facetMapRR_2010",
                         "facetMapMRV_2010", "facetMapMRV_IncDelta","facetMapMRV_CCDelta")) {
       plotNameList <- paste(prefix, "_",  get(figchoice), sep = "")
       cat(plotNameList)
@@ -167,7 +167,7 @@ for (switchloop in getSwitchChoice()) {
   }
 
   if (gdxChoice %in% "USAIDPriorities") {
-    for (figchoice in c( "fig7.facetMapRR_IncDelta", "fig6.facetMapRR_2010",
+    for (figchoice in c( "fig5.facetMapRR_IncDelta", "fig4.facetMapRR_2010",
                          "facetMapMRV_2010", "facetMapMRV_IncDelta")) {
       plotNameList <- paste(prefix, "_",  get(figchoice), sep = "")
       plotNumberList <- which(graphNames %in% plotNameList)
@@ -208,20 +208,20 @@ for (switchloop in getSwitchChoice()) {
   #' foodgroup availability", part 3 - 2 graphs
   figS1.foodavail.3 <- paste(c("foodAvail_foodGroup_sweeteners", "foodAvail_foodGroup_vegetables"), "_", "WB", ".", suffix, sep = "")
 
-  #' Fig 4 micronutrients adequacy ratio ------
+  #' Fig 2 micronutrients adequacy ratio ------
   #' micronutrients adequacy", "part 2 and 3 vitamins
-  fig4.1.adequacy.vits <- paste(c("reqRatio_vits_folate_µg", "reqRatio_vits_niacin_mg",
+  fig2.1.adequacy.vits <- paste(c("reqRatio_vits_folate_µg", "reqRatio_vits_niacin_mg",
                                   "reqRatio_vits_riboflavin_mg", "reqRatio_vits_thiamin_mg",
                                   "reqRatio_vits_vit_a_rae_µg", "reqRatio_vits_vit_b6_mg"),  "_", "WB", ".", suffix, sep = "")
 
-  fig4.2.adequacy.vits <- paste(c("reqRatio_vits_vit_b12_µg", "reqRatio_vits_vit_c_mg",
+  fig2.2.adequacy.vits <- paste(c("reqRatio_vits_vit_b12_µg", "reqRatio_vits_vit_c_mg",
                                   "reqRatio_vits_vit_d_µg", "reqRatio_vits_vit_e_mg",
                                   "reqRatio_vits_vit_k_µg"), "_", "WB", ".", suffix, sep = "")
 
   # vits candidates for removal - niacin, thiamin, vitamin b6
 
   #' micronutrients adequacy", "part 1 minerals
-  fig4.3.adequacy.minrls <- paste(c("reqRatio_minrls_calcium_mg", "reqRatio_minrls_iron_mg",
+  fig2.3.adequacy.minrls <- paste(c("reqRatio_minrls_calcium_mg", "reqRatio_minrls_iron_mg",
                                     "reqRatio_minrls_magnesium_mg", "reqRatio_minrls_phosphorus_mg",
                                     "reqRatio_minrls_potassium_g", "reqRatio_minrls_zinc_mg"), "_", "WB", ".", suffix, sep = "")
 
@@ -229,9 +229,21 @@ for (switchloop in getSwitchChoice()) {
 
   figS2.energyavail <- paste(c("nutrients.avail_energy_kcal"),  "_", "tenregions", ".", suffix, sep = "")
 
-  #' Fig 2 macro nutrients adequacy ratio, 6 plots per page
+  #' Fig 2 macro nutrients adequacy ratio, 3 plots per page
   fig2.adequacy.macro <- paste(c("reqRatio_macro_carbohydrate_g", "reqRatio_macro_protein_g",
                                  "reqRatio_macro_totalfiber_g"),  "_", "WB", ".", suffix, sep = "")
+
+  #'  #' Fig 2 minrl nutrients adequacy ratio, 6 plots per page
+  #' fig2.adequacy.minrls <- paste(c("minrls_calcium_mg", "minrls_iron_mg", "minrls_magnesium_mg", "minrls_phosphorus_mg",
+  #'                                 "minrls_potassium_g", "minrls_zinc_mg"),  "_", "WB", ".", suffix, sep = "")
+  #'
+  #'   #' Fig 2 vits 1 nutrients adequacy ratio, 6 plots per page
+  #' fig2.adequacy.vits.1 <- paste(c("vits_folate_µg", "vits_niacin_mg", "vits_riboflavin_mg", "vits_thiamin_mg",
+  #'                                 "vits_vit_a_rae_µg", "vits_vit_b6_mg" ),  "_", "WB", ".", suffix, sep = "")
+  #'
+  #' #' Fig 2 vits 2 nutrients adequacy ratio, 5 plots per page
+  #' fig2.adequacy.vits. <- paste(c("vits_vit_b6_µg", "vits_vit_c_mg", "vits_vit_d_µg", "vits_vit_e_mg",
+  #'                                 "vits_vit_k_µg"),  "_", "WB", ".", suffix, sep = "")
 
   #' Fig  macro AMDRs ------, 3 plots per page
   fig3.AMDRhiLo <- paste(c("AMDRShare_carbohydrate_g", "AMDRShare_protein_g",
@@ -258,6 +270,7 @@ for (switchloop in getSwitchChoice()) {
   figS8.foodavail.2 <- paste(c("foodAvail_foodGroup_fruits", "foodAvail_foodGroup_meats",
                                "foodAvail_foodGroup_nutsNseeds", "foodAvail_foodGroup_oils",
                                "foodAvail_foodGroup_pulses", "foodAvail_foodGroup_rootsNPlantain"), "_", "tenregions", ".", suffix, sep = "")
+
   #' foodgroup availability", part 3 - 2 graphs
   figS8.foodavail.3 <- paste(c("foodAvail_foodGroup_sweeteners", "foodAvail_foodGroup_vegetables"), "_", "tenregions", ".", suffix, sep = "")
 
@@ -283,11 +296,13 @@ for (switchloop in getSwitchChoice()) {
 
 
   #' Figs with 6 plots -----
-  for (figchoice in c( "fig4.1.adequacy.vits", "fig4.3.adequacy.minrls" )) {
-    rowNum <- 4; legendNum <- legendHorizontalNum
-    layout <- layoutMatrix6;
-    colWidths <- colWidths2
-    colHeights <-heights6
+  rowNum <- 4
+  legendNum <- legendHorizontalNum
+  layout <- layoutMatrix6;
+  colWidths <- colWidths2
+  colHeights <-heights6
+
+  for (figchoice in c( "fig2.1.adequacy.vits", "fig2.3.adequacy.minrls" )) {
     fileName <- paste(finalDir, figchoice, "_", "WB", ".", suffix, ".png", sep = "")
     fileDims <- layoutPlots(fileName, figchoice, prefix, rowNum, legendNum, layout, colHeights = colHeights, colWidths = colWidths)
     pdfDimensions <- rbind(pdfDimensions, fileDims)
@@ -295,43 +310,30 @@ for (switchloop in getSwitchChoice()) {
 
   #xxx
   for (figchoice in c("figS1.foodavail.1", "figS1.foodavail.2")) {
-    rowNum <- 4; legendNum <- legendHorizontalNum
-    layout <- layoutMatrix6;
-    colWidths <- colWidths2
-    colHeights <-heights6
     fileName <- paste(finalDir, figchoice, "_", "WB", ".", suffix, ".png", sep = "")
     fileDims <- layoutPlots(fileName, figchoice, prefix, rowNum, legendNum, layout, colHeights = colHeights, colWidths = colWidths)
         pdfDimensions <- rbind(pdfDimensions, fileDims)
   }
 
   for (figchoice in c( "figS8.foodavail.1", "figS8.foodavail.2", "figS10.1.adequacy.vits", "figS10.3.adequacy.minrls")) {
-    rowNum <- 4; legendNum <- legendHorizontalNum
-    layout <- layoutMatrix6;
-    colWidths <-colWidths2
-    colHeights <-heights6
     fileName <- paste(finalDir, figchoice, "_", "tenregions", ".", suffix, ".png", sep = "")
     fileDims <- layoutPlots(fileName, figchoice, prefix, rowNum, legendNum, layout, colHeights = colHeights, colWidths = colWidths)
         pdfDimensions <- rbind(pdfDimensions, fileDims)
   }
 
   #' Figs with 5 plots -----
-  for (figchoice in c("fig4.2.adequacy.vits")) {
-    rowNum <- 3
-    legendNum <- legendVerticalNum
-    layout <- layoutMatrix5
-    colWidths <- colWidths2
-    colHeights <-heights5
+  rowNum <- 3
+  legendNum <- legendVerticalNum
+  layout <- layoutMatrix5
+  colWidths <- colWidths2
+  colHeights <-heights5
+  for (figchoice in c("fig2.2.adequacy.vits")) {
     fileName <- paste(finalDir, figchoice, "_", "WB", ".", suffix, ".png", sep = "")
     fileDims <- layoutPlots(fileName, figchoice, prefix, rowNum, legendNum, layout, colHeights = colHeights, colWidths = colWidths)
         pdfDimensions <- rbind(pdfDimensions, fileDims)
   }
 
   for (figchoice in c("figS10.2.adequacy.vits")) {
-    rowNum <- 3
-    legendNum <- legendVerticalNum
-    layout <- layoutMatrix5
-    colWidths <- colWidths2
-    colHeights <-heights5
     fileName <- paste(finalDir, figchoice, "_", "tenregions", ".", suffix, ".png", sep = "")
     fileDims <- layoutPlots(fileName, figchoice, prefix, rowNum, legendNum, layout, colHeights = colHeights, colWidths = colWidths)
         pdfDimensions <- rbind(pdfDimensions, fileDims)
@@ -348,37 +350,31 @@ for (switchloop in getSwitchChoice()) {
   #' }
 
   #' Figs with 2 plots -----
+  rowNum <- 2
+  legendNum <- legendHorizontalNum
+  layout <- layoutMatrix2
+  colWidths <- colWidths2
+  colHeights <-heights2
   for (figchoice in c("figS1.foodavail.3",  "fig5.compDINB", "figS4.RaoNenergyShareNonStaples")) {
-    rowNum <- 2
-    legendNum <- legendHorizontalNum
-    layout <- layoutMatrix2
-    colWidths <- colWidths2
-    colHeights <-heights2
     fileName <- paste(finalDir, figchoice, "_", "WB", ".", suffix, ".png", sep = "")
     fileDims <- layoutPlots(fileName, figchoice, prefix, rowNum, legendNum, layout, colHeights = colHeights, colWidths = colWidths)
         pdfDimensions <- rbind(pdfDimensions, fileDims)
   }
 
   #' Figs with 3 plots -----
+  rowNum <- 2
+  legendNum <- legendVerticalNum
+  layout <- layoutMatrix3
+  colWidths <- colWidths2
+  colHeights <-heights3
   for (figchoice in c("fig3.AMDRhiLo", "fig2.adequacy.macro", "figS6.badRatios")) {
-    rowNum <- 2
-    legendNum <- legendVerticalNum
-    layout <- layoutMatrix3
-    colWidths <- colWidths2
-    colHeights <-heights3
     cat("\nfigchoice: ", figchoice, "\n")
     fileName <- paste(finalDir, figchoice, "_", "WB", ".", suffix, ".png", sep = "")
     fileDims <- layoutPlots(fileName, figchoice, prefix, rowNum, legendNum, layout, colHeights = colHeights, colWidths = colWidths)
         pdfDimensions <- rbind(pdfDimensions, fileDims)
   }
 
-  #' Figs with 3 plots -----
-  for (figchoice in c("figS8.foodavail.3", "figS10.4.adequacy.macro")) {
-    rowNum <- 2
-    legendNum <- legendVerticalNum
-    layout <- layoutMatrix3
-    colWidths <- colWidths2
-    colHeights <-heights3
+ for (figchoice in c("figS8.foodavail.3", "figS10.4.adequacy.macro")) {
     cat("\nfigchoice: ", figchoice, "\n")
     fileName <- paste(finalDir, figchoice, "_", "tenregions", ".", suffix, ".png", sep = "")
     fileDims <- layoutPlots(fileName, figchoice, prefix, rowNum, legendNum, layout, colHeights = colHeights, colWidths = colWidths)

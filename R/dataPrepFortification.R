@@ -28,7 +28,7 @@ sourceFile <- "dataPrepFortification.R"
 createScriptMetaData()
 
 # create worldmap for later use if it doesn't exist in uData
-storeWorldMapDF()
+worldMap <- getNewestVersion("worldMap", fileloc("uData"))
 dt.fortValues <- as.data.table(read_excel("data-raw/NutrientData/fortification/cc356-Map_ Number of Nutrients.xlsx",
                                           col_types = c("text", "text", "numeric",
                                                         "text", "text", "numeric", "text",

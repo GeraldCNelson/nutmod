@@ -19,9 +19,13 @@
 #' @name dataPrep.SingleScenario.R
 #' @include nutrientModFunctions.R
 source("R/nutrientModFunctions.R")
+sourceFile <- "dataPrepSingleScenario.R"
 
 library(gdxrrw)
 library(RColorBrewer)
+
+graphsListHolder <- list()
+
 gdxrrw::igdx(gamsSysDir = fileNameList("R_GAMS_SYSDIR"), silent = TRUE)
 
 
@@ -258,7 +262,7 @@ dt.50.long.share <- copy(dt.50.long)
   displayOrder <- sort(unique(DT[, get(facetColName)])) # default - alphabetically sorted
   fileName <- paste("facetmap", "macroMetrics", "2050", sep = "_")
   graphsListHolder <- list()
-  facetMaps(worldMap, DTfacetMap, fileName, legendText, fillLimits, palette, facetColName, graphsListHolder, breakValues, displayOrder)
+  facetMaps(worldMap, DTfacetMap = DT, fileName, legendText, fillLimits, palette, facetColName, graphsListHolder, breakValues, displayOrder)
   print(graphsListHolder)
 
   b <- breakValues
@@ -285,3 +289,6 @@ gg <- gg + xlab("Change in per capita income (percent)") + ylab("Change in food 
 gg
 
 lmout <- lm(incShareRatio ~  incRatio, dt.50 )
+
+finalizeScriptMetadata(metadataDT, sourceFile)
+
