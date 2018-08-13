@@ -56,29 +56,27 @@ data.table::setnames(dt.FBS.raw, old = c("Element", "Element Code", "Country", "
 #this drops all the ...F columns which provide information for each year on the data in that year
 keepListCol <- c("FAOSTAT_country_code", "country_name", "item_code", "item",
                  "variable_code", "variable", "unit", keyVariable("keepYearList.FBS"))
-
-deleteListCol <- names(dt.FBS.raw)[!names(dt.FBS.raw) %in% keepListCol]
-dt.FBS.raw[, (deleteListCol) := NULL]
+dt.FBS.raw[, setdiff(names(dt.FBS.raw), keepListCol) := NULL]
 
 # improve on some element names
 dt.FBS.raw[variable == "Food", variable := "foodMT"]
 dt.FBS.raw[variable == "Food supply quantity (kg/capita/yr)", variable := "kgPerCapPerYear"]
-dt.FBS.raw[variable == "Food supply (kcal/capita/day)", variable := "perCapKcal"]
+dt.FBS.raw[variable == "Food supply (kcal/capita/day)", variable := "KcalPerCapPerDay"]
 #dt.FBS.raw[variable == "Protein supply quantity (g/capita/day)", variable := "perCapProt"]
 #dt.FBS.raw[variable == "Fat supply quantity (g/capita/day)", variable := "perCapFat"]
 
-# get rid of variables other than perCapKg, kgs per person per year
-dt.FBS.raw <- dt.FBS.raw[variable %in% "kgPerCapPerYear"]
+# get rid of variables other than perCapKg, kgs per person per year. Added kcals July 24, 2018
+dt.FBS.raw <- dt.FBS.raw[variable %in% c("kgPerCapPerYear", "KcalPerCapPerDay")]
 
 #how to drop years with the previous version of the FBS data
 # remove years before 2010. The latest year is 2011 currently.
 # setkey(dt.FBS.raw,year)
 # dt.FBS.raw <- dt.FBS.raw[year > 2009,]
 
-#convert selected columns to numeric class
-dt.FBS.raw[,(keepYearList.FBS) := lapply(.SD, as.numeric), .SDcols=keepYearList.FBS]
+# #convert selected columns to numeric class. They are all now numeric before the next step. July 24, 2018
+# dt.FBS.raw[,(keepYearList.FBS) := lapply(.SD, as.numeric), .SDcols=keepYearList.FBS]
 
-# Read in a worksheet with the list of FBS food items by code, name, definition, and IMPACT commodity code
+# Read in a worksheet with the list of FBS food items by code, name, definition, and IMPACT commodity code.
 FBSCommodityInfo <- filelocFBS("FBSCommodityInfo")
 dt.FBScommodLookup <- data.table::as.data.table(openxlsx::read.xlsx(FBSCommodityInfo,
                                                                     sheet = 1,
@@ -91,20 +89,21 @@ dt.FBScommodLookup[, item_code := as.character(item_code)]
 # remove the item called "Miscellaneous"
 dt.FBScommodLookup <- dt.FBScommodLookup[!item_name == "Miscellaneous",]
 
-# Read in the region lookup table, created in dataPrep.regions.R # this doesn't seem to be used
-#dt.regions.all <- getNewestVersion("dt.regions.all", fileloc("uData"))
+# Read in the region lookup table, created in dataPrep.regions.R
+dt.regions.all <- getNewestVersion("dt.regions.all", fileloc("uData"))
 
-FAOCountryNameCodeLookup <- filelocFBS("FAOCountryNameCodeLookup")
-# Read in the worksheet that has the FAO country code-ISO country name lookup
-dt.FBSNameLookup <- data.table::as.data.table(openxlsx::read.xlsx(FAOCountryNameCodeLookup,
-                                                                  sheet = 1,
-                                                                  startRow = 1,
-                                                                  colNames = TRUE))
+# FAOCountryNameCodeLookup <- filelocFBS("FAOCountryNameCodeLookup")
+# # Read in the worksheet that has the FAO country code-ISO country name lookup. All this info is in dt.regions.all. Changing code to use dt.regions.all July 24, 2018
+# dt.FBSNameLookup <- data.table::as.data.table(openxlsx::read.xlsx(FAOCountryNameCodeLookup,
+#                                                                   sheet = 1,
+#                                                                   startRow = 1,
+#                                                                   colNames = TRUE))
 
-#convert to character and leave just ISO code and FAOSTAT code
-charConvertList <- c("ISO3","FAOSTAT")
-dt.FBSNameLookup <- dt.FBSNameLookup[, lapply(.SD, as.character), .SDcols = charConvertList]
-data.table::setnames(dt.FBSNameLookup,c("ISO3","FAOSTAT"),c("ISO_code","FAOSTAT_country_code"))
+keeplistCol <- c("ISO_code","FAOSTAT_code")
+dt.regions.all[,setdiff(names(dt.regions.all), keeplistCol) := NULL]
+
+data.table::setnames(dt.regions.all,c("FAOSTAT_code"),c("FAOSTAT_country_code"))
+
 # deal with Sudan and Sudan (former issue)
 # the old country Sudan (SDN) split into two parts in 2011. A new country called Sudan (SDN) and a second
 # country called South Sudan (SSD). The old country data are under the name Sudan (former) in the FBS
@@ -112,11 +111,11 @@ data.table::setnames(dt.FBSNameLookup,c("ISO3","FAOSTAT"),c("ISO_code","FAOSTAT_
 # listed as 276 and 277.
 # Currently there are no data for South Sudan at all and only up to 2011 for Sudan.
 # So I'm going to change the code for Sudan in the name lookup to 206 and see what happens
-dt.FBSNameLookup[FAOSTAT_country_code == "276", FAOSTAT_country_code := "206"]
+dt.regions.all[FAOSTAT_country_code == "276", FAOSTAT_country_code := "206"]
 
 data.table::setkey(dt.FBS.raw,FAOSTAT_country_code)
-data.table::setkey(dt.FBSNameLookup,FAOSTAT_country_code)
-dt.FBS <- dt.FBS.raw[dt.FBSNameLookup]
+data.table::setkey(dt.regions.all,FAOSTAT_country_code)
+dt.FBS <- dt.FBS.raw[dt.regions.all]
 
 # # Check for aggregations of countries; this should have no content
 # FBSDat.countryAggs <- subset(dt.FBS,!(ISO_code %in% regions.ISO$ISO_code))
@@ -124,7 +123,7 @@ dt.FBS <- dt.FBS.raw[dt.FBSNameLookup]
 # #get rid of rows that are aggregations of countries
 # dt.FBS <- subset(dt.FBS,Country %in% regions.ISO$country_name)
 
-# Create separate data data without the commodities aggregations
+# Create separate data  without the commodities aggregations
 aggregates <- c("Alcoholic Beverages", # added March 19, 2017
                 "Animal fats + (Total)",
                 "Cereals - Excluding Beer + (Total)",
@@ -170,8 +169,9 @@ idVars <- c( "country_name","item_code","item",
              "IMPACT_code")
 dt.FBS.commods.melt <- data.table::melt(temp,
                                         id.vars = idVars,
-                                        variable.name = "year",
                                         measure.vars = keepYearList.FBS,
+                                        variable.name = "year",
+                                        value.name = "value",
                                         variable.factor = FALSE)
 
 # need to sum individual FBS commodities to the IMPACT commodity they are in
@@ -181,7 +181,6 @@ dt.FBS.commods.melt[,value.sum := sum(value), by = list(ISO_code, variable, IMPA
 #now get rid of info that is not needed
 keepListCol <- c("country_name", "variable_code", "variable", "unit", "ISO_code",
                  "IMPACT_code", "year", "value.sum")
-
 dt.FBS.commods.melt[,setdiff(names(dt.FBS.commods.melt), keepListCol) := NULL]
 dt.FBS.commods.final <- unique(dt.FBS.commods.melt)
 data.table::setnames(dt.FBS.commods.final,old = "value.sum", new = "value")
@@ -191,6 +190,6 @@ dt.FBS.commods.final[, (names(dt.FBS.commods.final)) := lapply(.SD, function(x){
 
 inDT <- dt.FBS.commods.final
 outName <- "dt.FBS"
-desc <- "Sum FBS commodities to the IMPACT commodity they are included in"
+desc <- "Sum FBS commodities, and kcals per day to the IMPACT commodity they are included in" # kcals added July 24, 2018
 cleanup(inDT,outName,fileloc("uData"), desc = desc)
 finalizeScriptMetadata(metadataDT, sourceFile)

@@ -132,10 +132,10 @@ generateResults <- function(gdxFileName, vars, catNames){
 }
 
 # comment out lines below to speed up data crunching.
-# generateResults(vars.land,catNames.land)
+generateResults(gdxFileName, vars = vars.land, catNames = catNames.land)
 generateResults(gdxFileName, vars = vars.commods, catNames = catNames.commod)
-generateResults(gdxFileName, vars.region, catNames.region)
-generateResults(gdxFileName, vars.world, catNames.world)
+generateResults(gdxFileName, vars.region, catNames = catNames.region)
+generateResults(gdxFileName, vars.world, catNames = catNames.world)
 
 #' @param dt.CSEs - data table with consumer surplus equivalents
 #CSEs <- fileNameList("CSEs")

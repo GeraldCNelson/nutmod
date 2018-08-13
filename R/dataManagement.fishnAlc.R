@@ -52,6 +52,9 @@ regionList.missing.FBS <- sort(regionList.ISO[!regionList.ISO %in% regionList.FB
 # Greenland, Libya, Papua New Guinea, Somalia, Syria, Taiwan - as of May 12, 2018
 
 dt.regions.all <- dt.regions.all[!region_code.IMPACT159 %in% keyVariable("dropListCty"),]
+
+# as of July 24, 2018 FBS also has KcalPerCapPerDay; remove it here for this script
+dt.FBS <- dt.FBS[!variable %in% "KcalPerCapPerDay", ]
 dt.FBS <- dt.FBS[IMPACT_code %in% fishNalcNames & year %in% c(FBSyearsToAverage.baseyear, FBSyearsToAverage.startyear)]
 
 # the value variable in dt.FBS is in kg per person per year. Convert to per day here. It is converted back to per year below to align with other food items from IMPACT.
@@ -105,6 +108,7 @@ dt.SSPGDPperCap[, setdiff(names(dt.SSPGDPperCap), keepListCol) := NULL]
 # dt.SSPGDPperCap[,delta.GDP := value.GDP - GDP.lag1]
 dt.SSPGDPperCap[, value.perCapGDP.lag1 := data.table::shift(value.perCapGDP, type = "lag"), by = c("region_code.IMPACT159", "scenario")]
 dt.SSPGDPperCap[, delta.GDP := value.perCapGDP - value.perCapGDP.lag1]
+dt.SSPGDPperCap[,GDPRatio := delta.GDP/(value.perCapGDP + value.perCapGDP.lag1)] # is this needed? Seems to be.
 keepListCol <- c("region_code.IMPACT159", "scenario", "year","delta.GDP", "GDPRatio")
 dt.SSPGDPperCap[, setdiff(names(dt.SSPGDPperCap), keepListCol) := NULL]
 
@@ -254,7 +258,7 @@ if (switch.changeElasticity == TRUE) {
     )
 }
 
-# next few lines assign income elasticities to all the region_code.IMPACT159 countries
+# next few lines assign income elasticities to all the region_code.IMPACT159 countries. For non-159 countries, elasticities are set to values for ROW.
 dt.incElas.fish <- merge(dt.incElas.fish, dt.regions.all, by = "region_code.IMPACT115")
 keepListCol <- c( "region_code.IMPACT159", paste0(fishNalcNames, ".elas"))
 dt.incElas.fish[, setdiff(names(dt.incElas.fish), keepListCol) := NULL]
@@ -299,7 +303,7 @@ dt.incElas.fishnalc <- merge(dt.incElas.fish, dt.incElas.alc, by = c("region_cod
 # (xRatio) := get(1 + x)/(x - 1)
 
 # Combine GDP and FBS data
-# remove X2010 data from dt.FBS.wide because only the X2005 data are used for projection
+# remove X2010 data from dt.FBS.wide because only the X2005 data are used for projection. Not currently being done, July 25, 2018
 dt.GDPFBS <- merge(dt.SSPGDPperCap, dt.FBS.wide, by = c("region_code.IMPACT159", "year"), all.x = TRUE)
 
 # add income elasticity data to the GDP and FBS data

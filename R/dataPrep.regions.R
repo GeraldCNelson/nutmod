@@ -38,7 +38,7 @@
 #     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE, See the
 #     GNU General Public License for more details at http://www.gnu.org/licenses/.
 source("R/nutrientModFunctions.R")
-
+library(readxl)
 sourceFile <- "dataPrep.regions.R"
 createScriptMetaData()
 
@@ -47,7 +47,15 @@ createScriptMetaData()
 #only run in the dataPrep.regions.R script
 # source("R/createIMPACT159Regions.R")
 
-regionsLookup <- openxlsx::read.xlsx(xlsxFile = fileNameList("regionsLookup"), sheet = "dt.regions.all")
+regionsLookup <- read_excel(fileNameList("regionsLookup"), sheet = "dt.regions.all", na = "NA",
+                                          col_types = c("text", "text", "text",
+                                                        "text", "text", "text", "text", "text",
+                                                        "text", "text", "text", "text", "text",
+                                                        "text", "text", "text", "text",
+                                                        "text", "text", "text", "text", "text",
+                                                        "text", "text", "text", "text",
+                                                        "text", "text", "text", "text", "text",
+                                                        "text", "text"))
 dt.regions.all <- data.table::as.data.table(regionsLookup)
 
 # # Read in the worksheet that has the WB region code/name -ISO country name lookup

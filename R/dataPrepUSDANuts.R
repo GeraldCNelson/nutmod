@@ -22,6 +22,8 @@
 source("R/nutrientModFunctions.R")
 source("R/workbookFunctions.R")
 source("R/nutrientCalcFunctions.R")
+library(readxl)
+
 sourceFile <- "dataPrepUSDANuts.R"
 createScriptMetaData()
 
@@ -37,7 +39,6 @@ dt.IMPACTSingleCodeLU <- data.table::as.data.table(openxlsx::read.xlsx("data-raw
 dt.IMPACTSingleCodeLU <- dt.IMPACTSingleCodeLU[is.na(IMPACT_conversion), IMPACT_conversion := 100]
 
 # USDA codes from the initial results. It includes conversion from FAOSTAT to retail product.
-library(readxl)
 
 # lots of warnings about getting NA when expecting numeric
 # dt.compositesLU.fish <- data.table::as.data.table(read_excel("data-raw/NutrientData/nutrientDetails/composites.lookup.fish.xlsx",
@@ -107,7 +108,6 @@ dt.USDAnutrients <- data.table::dcast(
 dt.USDAnutrients[is.na(phytate_mg), phytate_mg := 0]
 
 #fix some of the missing values in the USDA fct with imputed values
-library(readxl)
 # Some food items didn't have all nutrients so we imputed them from other sources, described in sources.
 # This meant that the correction for potassium was over written.
 USDANutrientImputedValues <- as.data.table(read_excel("data-raw/NutrientData/nutrientDetails/USDANutrientImputedValues.xlsx"))

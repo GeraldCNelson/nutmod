@@ -43,21 +43,29 @@ gdxChoice <- getGdxChoice()
 # - dt.nutrients.nonstapleShare, dt.foodGroupsInfo, dt.energy.ratios
 # aggChoices are I3regions, tenregions, AggReg1, AggReg2, twoEconGroup, WB
 
+#nutrients grouping
+macroNutrients <- keyVariable("macronutrients")
+vitamins <- keyVariable("vitamins")
+minerals <- keyVariable("minerals")
+kcals <- keyVariable("energy") # the keyVariable includes "kcals.ft_acds_tot_sat_g"; may need to delete
+fattyAcids <- keyVariable("fattyAcids")
+# other <- c("sugar_g", "cholesterol_mg") not used below
+
 # create list variable to hold ggplot output
 graphsListHolder <- list()
 
-# delete all files in gDir
-graphicsPath <- fileloc("gDir")
-graphicsFileList <- list.files(graphicsPath, all.files = TRUE)
-graphicsFileList <- paste(graphicsPath, graphicsFileList, sep = "/")
-#unlink works like file.remove but with fewer messages
-invisible(unlink(graphicsFileList, recursive = FALSE))
-
-# delete all files in gDir/final
-graphicsPath <- paste(fileloc("gDir"), "final", sep = "/")
-graphicsFileList <- list.files(graphicsPath, all.files = TRUE)
-graphicsFileList <- paste(graphicsPath, graphicsFileList, sep = "/")
-invisible(unlink(graphicsFileList, recursive = FALSE))
+# # delete all files in gDir - commented out all the deletion code July 22, 2018
+# graphicsPath <- fileloc("gDir")
+# graphicsFileList <- list.files(graphicsPath, all.files = TRUE)
+# graphicsFileList <- paste(graphicsPath, graphicsFileList, sep = "/")
+# #unlink works like file.remove but with fewer messages
+# invisible(unlink(graphicsFileList, recursive = FALSE))
+#
+# # delete all files in gDir/final
+# graphicsPath <- paste(fileloc("gDir"), "final", sep = "/")
+# graphicsFileList <- list.files(graphicsPath, all.files = TRUE)
+# graphicsFileList <- paste(graphicsPath, graphicsFileList, sep = "/")
+# invisible(unlink(graphicsFileList, recursive = FALSE))
 
 # function to choose whether errorbars are displayed
 chooseErrorBars <- function(aggChoice) {
@@ -82,7 +90,7 @@ for (switchloop in getSwitchChoice()) {
              #    "dt,nutrients_nonstapleShare", "dt,nutrients_nonstapleShare", commented out Mar 9 2018
              "dt_MRVRatios", "badRatios",
              "reqRatio_sum_AMDR_hi", "AMDR_hi",
-             "reqRatio_sum_AMDR_lo", "AMDR_lo",
+             #             "reqRatio_sum_AMDR_lo", "AMDR_lo",
              "dt.foodAvail_foodGroup", "foodAvail_foodGroup")
 
   multipleNutsFileList <- c(paste("dt.nutrients_sum_all", suffix, sep = "."),
@@ -92,7 +100,7 @@ for (switchloop in getSwitchChoice()) {
                             # paste("dt.nutrients_nonstapleShare", suffix, sep = "."), commented out Mar 9 2018
                             paste("dt.MRVRatios", suffix, sep = "."),
                             paste("reqRatio_sum_AMDR_hi", suffix, sep = "."),
-                            paste("reqRatio_sum_AMDR_lo", suffix, sep = "."),
+                            #                        paste("reqRatio_sum_AMDR_lo", suffix, sep = "."),
                             paste("dt.foodAvail_foodGroup", suffix, sep = "."))
   multipleNutsListShortName <- c("nutrients.avail",
                                  "reqRatio_macro",
@@ -102,30 +110,20 @@ for (switchloop in getSwitchChoice()) {
                                  # "zinc_bioavail_reqRatio",suffix,sep = ".",
                                  # "iron_bioavail_reqRatio",suffix, sep = ".",
                                  "badRatios",
-                                 # the next three were commented out. I'm uncommenting out Mar 12, 2018
                                  "AMDR_hi",
-                                 "AMDR_lo",
+                                 #   "AMDR_lo",
                                  "foodAvail.foodGroup"
   )
 
-  #nutrients grouping
-  macroNutrients <- keyVariable("macronutrients")
-  vitamins <- keyVariable("vitamins")
-  minerals <- keyVariable("minerals")
-  kcals <- keyVariable("energy") # the keyVariable includes "kcals.ft_acds_tot_sat_g"; may need to delete
-  fattyAcids <- keyVariable("fattyAcids")
-  # other <- c("sugar_g", "cholesterol_mg") not used below
 
   # scenChoices for the USAID gdx are scenarioList.prodEnhance, scenarioList.waterMan, scenarioList.addEnhance, scenarioList.comp
   # scenChoice for SSPs is scenOrder.SSPs
   if (gdxChoice == "SSPs") {
     scenario.base <- "SSP2-NoCC-REF"
-    #  scenOrder <- c("2010", "SSP2-NoCC-REF", "SSP1-NoCC-REF", "SSP3-NoCC-REF", "SSP2-GFDL-REF",
-    #                 "SSP2-IPSL-REF", "SSP2-HGEM-REF")
     scenOrderSSP <- c("2010",  "SSP2-NoCC-REF", "SSP2-HGEM-REF", "SSP1-NoCC-REF","SSP3-NoCC-REF")
     scenChoiceList <- "scenOrderSSP"
     scenChoice.name <- gdxChoice
-    aggChoiceListBarChart <- c("tenregions", "WB") # missing AggReg2 and  "2EconGroup
+    aggChoiceListBarChart <- c("WB", "tenregions") # missing AggReg2 and  "2EconGroup
   }
 
   if (gdxChoice == "USAIDPriorities") {
@@ -184,8 +182,9 @@ for (switchloop in getSwitchChoice()) {
     scenChoice.name <- gdxChoice
   }
 
-
   dt.nutrientNames_Units <- getNewestVersion("dt.nutrientNames_Units", fileloc("mData"))
+
+  # mergedVals is used in aggNorder to determine what regions get merged. The regionAgg function sets region_code to the proper values for the relevant region aggregation.
   mergedVals <- c("scenario", "region_code", "year")
 
   for (l in scenChoiceList) {
@@ -233,7 +232,7 @@ for (switchloop in getSwitchChoice()) {
       ylab <- "(percent)"
       fileName <- paste(gdxChoice, "_", l, "_",  "budgetShare", "_", aggChoice, ".", suffix, sep = "")
       if (ylab %in%  "(percent)") {yRangeMinMax <- c(0,100)} else {yRangeMinMax <- c(0, max(DT$value) )}
-      yRangeMinMax <- c(0,60) #custom for budgetShare
+      yRangeMinMax <- c(0,60) # custom for budgetShare
       plotErrorBars <- chooseErrorBars(suffix)
       # plotByRegionBar(dt = DT, fileName, plotTitle = "Food budget share of per capita income", # old version. New version has no plot title
       plotByRegionBar(dt = DT, fileName, plotTitle = "",
@@ -268,7 +267,7 @@ for (switchloop in getSwitchChoice()) {
       # cat("\nWorking on bar chart for food availability for", i))
       # foodAvail.out <- aggNorder(gdxChoice, DTglobal = "dt.foodAvail.foodGroup", aggChoice, scenChoice = get(l), mergedVals)
       # plotByRegionBar(dt = foodAvail.out, fileName = "foodAvail.foodGroup", plotTitle = "Food availability by food group",
-      #                 yLab = "(grams)", yRange = c(0, 100), aggChoice)
+      #                 yLab = "(grams per day)", yRange = c(0, 100), aggChoice)
 
       # nonstaple share of kcals ------
       cat("\nWorking on bar chart for the nonstaple share of kcals for", suffix, "for", aggChoice, "\n")
@@ -276,7 +275,7 @@ for (switchloop in getSwitchChoice()) {
       DTglobal <- getNewestVersion(paste("dt.KcalShare_nonstaple", suffix, sep = "."), fileloc("resultsDir"))
 
       DT <- aggNorder(gdxChoice, DTaggNorder = DTglobal, aggChoice, scenChoice = get(l),
-                      mergedVals =  c("scenario", "region_code", "year"), plotErrorBars)
+                      mergedVals, plotErrorBars)
       ylab <- "(percent)"
       if (ylab %in%  "(percent)") {yRangeMinMax <- c(0,100)} else {yRangeMinMax <- c(0, max(DT$value) )}
       fileName = paste(gdxChoice, "_", l, "_",  "nonStapleShare", "_", aggChoice, ".", suffix, sep = "")
@@ -322,15 +321,31 @@ for (switchloop in getSwitchChoice()) {
       cat("\nWorking on stacked kcal bar chart for", suffix, "for", aggChoice, "\n")
 
       DTglobal <- getNewestVersion(paste("dt.nutrients_kcals", suffix, sep = "."), fileloc("resultsDir"))
+
+      # do stacked bar chart of sources of kcals
       DT <- aggNorder(gdxChoice, DTaggNorder = DTglobal, aggChoice, scenChoice = get(l),
-                      mergedVals =  c("scenario", "region_code", "year", "nutrient"), plotErrorBars)
+                      mergedVals =  c("scenario", "region_code", "year", "nutrient"), plotErrorBars) # I think nutrient might be ignored in aggNorder. July 17, 2018
       DT <- DT[nutrient %in% c("kcalsPerDay_carbohydrate", "kcalsPerDay_fat", "kcalsPerDay_other", "kcalsPerDay_protein"), ]
       DT[, nutrient := gsub("kcalsPerDay_", "", nutrient)]
       yLab <- "(Kcals)"
       if (yLab %in%  "(percent)") {yRangeMinMax <- c(0,100)} else {yRangeMinMax <- c(0, round(max(DT$value)) )}
-      fileName = paste(gdxChoice, "_", l, "_",  "kcals.values.bySource", "_", aggChoice, ".", suffix, sep = "")
+      fileName = paste(gdxChoice, "_", l, "_",  "kcals.values_bySource", "_", aggChoice, ".", suffix, sep = "")
       plotByRegionStackedBar(dt = DT, fileName, plotTitle = "Average daily dietary energy by source",
                              yLab, yRange = yRangeMinMax, aggChoice, suffix, scenOrder = get(l), oneLine = FALSE, colorList)
+
+      # do bar chart of total kcals by agg choice
+      cat("\nWorking on total daily kcal bar chart for", suffix, "for", aggChoice, "\n")
+      DT <- DTglobal[nutrient %in% "kcalsPerDay_tot"]
+      DT[, nutrient := NULL]
+      DT <- aggNorder(gdxChoice, DTaggNorder = DT, aggChoice, scenChoice = get(l),  mergedVals, plotErrorBars)
+
+      yLab <- "(Kcals)"
+      yRangeMinMax <- c(0, round(max(DT$value)))
+      fileName = paste(gdxChoice, "_", l, "_",  "kcals.tot.perDay", "_", aggChoice, ".", suffix, sep = "")
+
+      plotByRegionBar(dt = DT, fileName, plotTitle = "",
+                      yLab = ylab, yRange = yRangeMinMax, aggChoice, suffix, scenOrder = get(l), oneLine = FALSE, colorList,
+                      graphsListHolder, plotErrorBars)
 
       # food groups -----
       cat("\nWorking on bar chart for dt.foodAvail.foodGroup for", suffix, "for", aggChoice, "\n")
@@ -454,7 +469,7 @@ for (switchloop in getSwitchChoice()) {
   scenChoice <- scenario.base # this is the 2050 value for this scenario
 
   ylab <- "(percent)"
-#  plottitle = "Food budget share of 2050 per capita income" # commented out July 11, 2018 because the title will be in the figure title in word
+  #  plottitle = "Food budget share of 2050 per capita income" # commented out July 11, 2018 because the title will be in the figure title in word
   plottitle = ""
   #' statement below excludes tenregions, which is not relevant for a box plot
   for (aggChoice in aggChoiceListBarChart[!aggChoiceListBarChart %in% "tenregions"]) {
@@ -529,7 +544,41 @@ for (switchloop in getSwitchChoice()) {
 
   # facet maps for the world  -----
   worldMap <- getNewestVersion("worldMap", fileloc("uData")) # run storeWorldMapDF() if this is not available
+ # worldMap <- getNewestVersion("africaMap", fileloc("uData")) # run storeWorldMapDF() if this is not available
 
+  # 2050 budget share map
+  cat("\nWorking on budget share facet maps. \n") # Just do it once, using var suffix
+  if (suffix %in% "var") {
+    DTGlobal <- getNewestVersion(paste("dt.budgetShare", sep = "."), fileloc("resultsDir"))
+    DTGlobal[, scenario := gsub("-", "_", scenario)] # needed to have valid column names
+
+    DTGlobal <- DTGlobal[year == "X2010" & scenario %in% gsub("-", "_", scenario.base) |
+                           year == "X2050",][year == "X2010", scenario := "X2010"][, year := NULL]
+    DTGlobal <- countryCodeCleanup(DTGlobal) # converts IMPACT region codes to ISO3 codes for largest country in the region
+    data.table::setnames(DTGlobal, old = "region_code.IMPACT159", new = "id")
+    keepListCol <- c("scenario", "id",  "incShare.PCX0" )
+    DTGlobal[, setdiff(names(DTGlobal), keepListCol) := NULL]
+    DTGlobal <- DTGlobal[!id %in% "SOM"][, value := incShare.PCX0][, incShare.PCX0 := NULL]
+
+    # do map
+    DT <- DTGlobal[scenario %in% c("X2010","SSP2_HGEM_REF", "SSP2_NoCC_REF",  "SSP1_NoCC_REF",  "SSP3_NoCC_REF" )]
+    DT <- DT[, scenario := gsub("_REF", "", scenario)][, scenario := gsub("X", "", scenario)]
+    scenOrder <- c("2010", "SSP2_HGEM", "SSP2_NoCC", "SSP1_NoCC",  "SSP3_NoCC")
+    DT <- unique(DT)
+    DT[, scenario := factor(scenario, levels = scenOrder)]
+    facetColName <- "scenario"
+    legendText <- "Budget Share of Income, 2010 and 2050 scenarios"
+    fillLimits <- c(0, 70)
+    temp <- truncateDT(DT, fillLimits = fillLimits)
+    breakValues <- generateBreakValues(fillLimits = fillLimits, decimals = 0)
+    paletteType <- "Spectral"
+    myPalette <- colorRampPalette(rev(brewer.pal(11, paletteType)))
+    palette <- myPalette(4)
+#    displayOrder <- sort(unique(temp[, get(facetColName)])) # default - alphabetically sorted
+    fileName <- paste(gdxChoice, "_", l, "_", "facetmap", "_", "budgetShare", "_", "2010_50", "_", "SSP2_HGEM", ".", "world", sep = "")
+    facetMaps(worldMap, DTfacetMap = temp, fileName, legendText, fillLimits, palette, facetColName, graphsListHolder, breakValues, displayOrder = scenOrder)
+
+  }
   # facet map, food availability by food groups -----
   cat("\nWorking on food availability by selected food groups facet maps for", suffix, "\n")
   DT <- getNewestVersion(paste("dt.foodAvail_foodGroup", suffix, sep = "."), fileloc("resultsDir"))
@@ -837,85 +886,87 @@ for (switchloop in getSwitchChoice()) {
       figInfo <- "4, affordability,"
     }
 
-    # if (figtype %in% nutlistmacro) {
-    filename <- paste(gdxChoice, "_", l, "_", "reqRatio_macro", "_", figtype, "_", aggChoice, ".", suffix, sep = "")
-    figInfo <- "5, adequacy, macro nutrients, "
-  }
-  if (figtype %in% nutlistmacroAMDRShare) {
-    filename <- paste(gdxChoice, "_", l, "_", figtype, "_", aggChoice, ".", suffix, sep = "")
-    #       filename <- gsub("AMDRShare", "_", filename) # a kludge to deal with the fact that these are macronutrients
-    figInfo <- "6, Share of total kilocalories, "
-  }
-  if (figtype %in% minerals) {
-    filename <- paste(gdxChoice, "_", l, "_", "reqRatio_minrls", figtype, "_", aggChoice, ".", suffix, sep = "")
-    figInfo <- "7, adequacy, minerals, "
-  }
-  if (figtype %in% vitamins) {
-    filename <- paste(gdxChoice, "_", l, "_",  "reqRatio_vits", figtype, "_", aggChoice, ".", suffix, sep = "")
-    figInfo <- "7, adequacy, vitamins, "
-  }
-  if (figtype %in% nutBal) {
-    filename <- paste(gdxChoice, "_", l, "_",  figtype, "_", aggChoice, ".", suffix, sep = "")
-    figInfo <- "8, Nutrient balance metrics, "
-  }
-  if (figtype %in% diversity) {
-    filename <- paste(gdxChoice, "_", l, "_",  figtype, "_", aggChoice, ".", suffix, sep = "")
-    figInfo <- "9, diversity metrics, "
-  }
-  # moved to supplementary information
-  if (figtype %in% dailyAvail.foodgroup) {
-    filename <- paste(gdxChoice, "_", l, "_",  "foodAvail_foodGroup",  "_", figtype, "_", aggChoice, ".", suffix, sep = "")
-    figInfo <- "S1, food group daily availability (g), "
-  }
-  # moved to supplementary information
-  if (figtype %in% energy) {
-    filename <- paste(gdxChoice, "_", l, "_",  "kcals.values",  "_", aggChoice, ".", suffix, sep = "")
-    figInfo <- "S2, average daily availability dietary energy (kcals), "
-  }
-
-  fileIn <- data.table::fread(paste(fileloc("gDir"), "/", filename, ".csv", sep = ""), select = 2:6)
-
-  for (j in scen2050list) {
-    for (k in 1:length(incCats)) {
-      baseVal <- fileIn[scenario == gsub("-REF", "", scenario.base), get(incCats[k])]
-      fileIn[scenario %in% j, DincCats[k] := (get(incCats[k]) - baseVal) / baseVal]
+    if (figtype %in% nutlistmacro) {
+      filename <- paste(gdxChoice, "_", l, "_", "reqRatio_macro", "_", figtype, "_", aggChoice, ".", suffix, sep = "")
+      figInfo <- "5, adequacy, macro nutrients, "
     }
+    if (figtype %in% nutlistmacroAMDRShare) {
+      filename <- paste(gdxChoice, "_", l, "_", figtype, "_", aggChoice, ".", suffix, sep = "")
+      #       filename <- gsub("AMDRShare", "_", filename) # a kludge to deal with the fact that these are macronutrients
+      figInfo <- "6, Share of total kilocalories, "
+    }
+    if (figtype %in% minerals) {
+      filename <- paste(gdxChoice, "_", l, "_", "reqRatio_minrls",  "_", figtype, "_", aggChoice, ".", suffix, sep = "")
+      figInfo <- "7, adequacy, minerals, "
+    }
+    if (figtype %in% vitamins) {
+      filename <- paste(gdxChoice, "_", l, "_",  "reqRatio_vits",  "_", figtype, "_", aggChoice, ".", suffix, sep = "")
+      figInfo <- "7, adequacy, vitamins, "
+    }
+    if (figtype %in% nutBal) {
+      filename <- paste(gdxChoice, "_", l, "_",  figtype, "_", aggChoice, ".", suffix, sep = "")
+      figInfo <- "8, Nutrient balance metrics, "
+    }
+    if (figtype %in% diversity) {
+      filename <- paste(gdxChoice, "_", l, "_",  figtype, "_", aggChoice, ".", suffix, sep = "")
+      figInfo <- "9, diversity metrics, "
+    }
+    # xxxx
+    # moved to supplementary information
+    if (figtype %in% dailyAvail.foodgroup) {
+      filename <- paste(gdxChoice, "_", l, "_",  "foodAvail_foodGroup",  "_", figtype, "_", aggChoice, ".", suffix, sep = "")
+      figInfo <- "S1, food group daily availability (g), "
+    }
+    # moved to supplementary information.
+    if (figtype %in% energy) {
+      filename <- paste(gdxChoice, "_", l, "_",  "kcals.tot.perDay",  "_", aggChoice, ".", suffix, sep = "")
+      figInfo <- "S2, average daily availability dietary energy (kcals), "
+    }
+
+    fileIn <- data.table::fread(paste(fileloc("gDir"), "/", filename, ".csv", sep = ""), select = 2:6)
+    cat("\nfileIn:", filename)
+    for (j in scen2050list) {
+      # inCats is income categories
+      for (k in 1:length(incCats)) {
+        baseVal <- fileIn[scenario == gsub("-REF", "", scenario.base), get(incCats[k])]
+        fileIn[scenario %in% j, DincCats[k] := (get(incCats[k]) - baseVal) / baseVal]
+      }
+    }
+    #write name of data set to the spreadsheet
+    nutshortName <- cleanupNutrientNames(figtype)
+    openxlsx::writeData(
+      wb = figsData, sheet = "FigureData", rowNames = FALSE, colNames = FALSE, startCol = 1,
+      x = paste("Figure", figInfo, nutshortName),
+      startRow = rowCounter
+    )
+    rowCounter <- rowCounter + 1
+    cat("\nrowCounter: ", rowCounter)
+    openxlsx::writeData(
+      wb = figsData, sheet = "FigureData", rowNames = FALSE, colNames = FALSE, startCol = 1,
+      x = fileIn,
+      startRow = rowCounter
+    )
+    rowCounter <- rowCounter + nrow(fileIn)
+    cat("rowCounter: ", rowCounter, "\n")
+
+    category <- data.table::data.table(scenario = figtype,
+                                       lowInc = NA, lowMidInc = NA, upMidInc = NA, highInc = NA,
+                                       DlowInc = NA, DlowMidInc = NA, DupMidInc = NA, DhighInc = NA)
+    csvHolder <- rbind(csvHolder, category)
+    csvHolder <- rbind(csvHolder, fileIn)
+
+    # data.table::setnames(csvHolder,
+    #                      old = names(csvHolder),
+    #                      new = colHeaders)
+
+    openxlsx::addStyle(
+      wb = figsData, sheet = "FigureData", style = numStyle, cols = 2:length(csvHolder), rows = 2:nrow(csvHolder),
+      gridExpand = TRUE)
+
+    openxlsx::saveWorkbook(wb = figsData, file = paste(fileloc("gDir"), "/", gdxChoice, "_", "reqTable_", aggChoice, ".", suffix, ".xlsx", sep = ""),
+                           overwrite = TRUE)
+    data.table::fwrite(csvHolder, file = paste(fileloc("gDir"), "/", gdxChoice, "_", "reqTable_", aggChoice, ".", suffix, ".csv", sep = ""), na = "", row.names = FALSE)
   }
-  #write name of data set to the spreadsheet
-  nutshortName <- cleanupNutrientNames(figtype)
-  openxlsx::writeData(
-    wb = figsData, sheet = "FigureData", rowNames = FALSE, colNames = FALSE, startCol = 1,
-    x = paste("Figure", figInfo, nutshortName),
-    startRow = rowCounter
-  )
-  rowCounter <- rowCounter + 1
-  cat("\nrowCounter: ", rowCounter)
-  openxlsx::writeData(
-    wb = figsData, sheet = "FigureData", rowNames = FALSE, colNames = FALSE, startCol = 1,
-    x = fileIn,
-    startRow = rowCounter
-  )
-  rowCounter <- rowCounter + nrow(fileIn)
-  cat("rowCounter: ", rowCounter, "\n")
-
-  category <- data.table::data.table(scenario = figtype,
-                                     lowInc = NA, lowMidInc = NA, upMidInc = NA, highInc = NA,
-                                     DlowInc = NA, DlowMidInc = NA, DupMidInc = NA, DhighInc = NA)
-  csvHolder <- rbind(csvHolder, category)
-  csvHolder <- rbind(csvHolder, fileIn)
-
-  # data.table::setnames(csvHolder,
-  #                      old = names(csvHolder),
-  #                      new = colHeaders)
-
-  openxlsx::addStyle(
-    wb = figsData, sheet = "FigureData", style = numStyle, cols = 2:length(csvHolder), rows = 2:nrow(csvHolder),
-    gridExpand = TRUE)
-
-  openxlsx::saveWorkbook(wb = figsData, file = paste(fileloc("gDir"), "/", gdxChoice, "_", "reqTable_", aggChoice, ".", suffix, ".xlsx", sep = ""),
-                         overwrite = TRUE)
-  data.table::fwrite(csvHolder, file = paste(fileloc("gDir"), "/", gdxChoice, "_", "reqTable_", aggChoice, ".", suffix, ".csv", sep = ""), na = "", row.names = FALSE)
-
   # aggregate RDA reqRatios to regions -----
   filesToAgg <- c("reqRatio_sum_RDA_macro", "reqRatio_sum_RDA_minrls", "reqRatio_sum_RDA_vits")
   for (fname in filesToAgg) {

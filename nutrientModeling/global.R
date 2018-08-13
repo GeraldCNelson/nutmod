@@ -173,6 +173,7 @@ cleanupNutrientNames <- function(nutList) {
   nutList <- gsub(".ratio.foodGroup","",nutList)
   # nutList <- gsub("_share","",nutList)
   nutList <- gsub(".sum.all","",nutList)
+  nutList <- gsub("_sum.all","",nutList)
   nutList <- gsub("rootsNPlantain","Roots\nand plantain",nutList)
   nutList <- gsub("nutsNseeds","Nuts\nand seeds",nutList)
   nutList <- gsub("beverages","Beverages,\nother",nutList)
@@ -180,7 +181,7 @@ cleanupNutrientNames <- function(nutList) {
   nutList <- gsub("NonAlcoholic Beveragesic Beverages","Alcoholic beverages",nutList)
   nutList <- gsub("ft_acds_tot_sat", "Saturated fat", nutList)
   nutList <- gsub("_g_AMDR", "", nutList)
-  nutList <- gsub("foodroup_code", "Food group", nutList)
+  nutList <- gsub("foodgroup_code", "Food group", nutList)
   return(nutList)
 }
 
@@ -197,6 +198,7 @@ cleanupNutrientNamesFacetGraph <- function(nutList) {
   nutList <- gsub(".ratio.foodGroup","",nutList)
   # nutList <- gsub("_share","",nutList)
   nutList <- gsub(".sum.all","",nutList)
+  nutList <- gsub("_sum.all","",nutList)
   nutList <- gsub("RootsNPlantain","Roots and plantain",nutList)
   nutList <- gsub("NutsNseeds","Nuts and seeds",nutList)
   nutList <- gsub("Beverages","Beverages, other",nutList)
@@ -456,8 +458,9 @@ years <- c("X2010", "X2030", "X2050")
 yearsClean <- gsub("X", "", years)
 fontFamily <- "Times"
 dt.scenarioListIMPACT <- getNewestVersion("dt.scenarioListIMPACT", fileloc("mData"))
+dt.scenarioListIMPACT <- dt.scenarioListIMPACT[,scenario := gsub("-REF", "", scenario)]
 scenarioNames <- unique(dt.scenarioListIMPACT$scenario)
-scenarioNames <- scenarioNames[!scenarioNames %in% c( "SSP2-IPSL-REF", "SSP2-MIROC-REF", "SSP2-GFDL-REF")]
+scenarioNames <- scenarioNames[!scenarioNames %in% c( "SSP2-IPSL", "SSP2-MIROC", "SSP2-GFDL")]
 resultFileLookup <- getNewestVersion("resultFileLookup", fileloc("mData"))
 dt.regions.all <- getNewestVersion("dt.regions.all", fileloc("mData"))
 dt.regions.all[, region_name.IMPACT159 := gsub(" plus", "", region_name.IMPACT159)] # used to get to country code
@@ -522,9 +525,10 @@ load_data <- function(dataSetsToLoad) {
   loadNresize <- function(dt) {
     temp <- getNewestVersion(dt, fileloc("mData"))
     temp <- (temp[year %in% years])
+    temp[, scenario := gsub("-REF", "", scenario)] # added Aug 9, 2018
     temp <- temp[scenario %in% scenarioNames]
     assign(dt, temp, envir = .GlobalEnv) # this puts the data sets into the global environment
-    return(dt)
+    return(temp) # changed to temp Aug 9, 2018
   }
 
   withProgress(message = 'Loading data', value = 0, {
@@ -612,8 +616,9 @@ load_data_special <- function(data_name) {
   withProgress(message = 'Loading data', {
     if (!exists(data_name)) {
       temp <- getNewestVersion(data_name, fileloc("mData"))
-      temp <- (temp[year %in% years])
-      temp <- temp[scenario %in% scenarioNames]
+      temp[, scenario := gsub("-REF", "", scenario)] # added Aug 12, 2018
+      temp <- (temp[year %in% years &scenario %in% scenarioNames,])
+#      temp <- temp[scenario %in% scenarioNames]
       assign(data_name, temp, envir = .GlobalEnv) # this puts the data sets into the global environment
       return(data_name)
     }
@@ -688,7 +693,7 @@ barGraphData <- function(countryName, inData) {
   countryCode <- countryCodeLookup(countryName, fileloc("mData"))
   dt <- data.table::copy(inData)
   dt <- dt[region_code.IMPACT159 %in% countryCode,]
-  AMDRNuts <- c("scenario", "year", "region_code.IMPACT159", "carbohydrate_g.Q", "fat_g.Q", "protein_g.Q")
+  AMDRNuts <- c("scenario", "year", "region_code.IMPACT159", "carbohydrate_g.kcalpercent", "fat_g.kcalpercent", "protein_g.kcalpercent")
   deleteListCol <- names(dt)[!names(dt)  %in% AMDRNuts]
   dt[, (deleteListCol) := NULL]
   dt <- dt[scenario %in% scenarioNames, ]
@@ -704,12 +709,12 @@ plotByRegionBarAMDRinShiny <- function(barData, yLab) {
   temp  <- data.table::melt(
     data = temp,
     id.vars = c("scenario", "region_code.IMPACT159", "year"),
-    measure.vars = c("carbohydrate_g.Q", "fat_g.Q", "protein_g.Q"),
+    measure.vars = c("carbohydrate_g.kcalpercent", "fat_g.kcalpercent", "protein_g.kcalpercent"),
     variable.name = "nutrient",
     value.name = "value",
     variable.factor = FALSE
   )
-  temp[, nutrient := gsub("_g.Q", "", nutrient)]
+  temp[, nutrient := gsub("_g.kcalpercent", "", nutrient)]
   AMDR_hi.carbohydrate <- 65
   AMDR_hi.fat <- 35
   AMDR_hi.protein <- 30

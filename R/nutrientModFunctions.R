@@ -1384,6 +1384,11 @@ generateWorldMaps <- function(spData, scenOrder, titleText, legendText, lowColor
 # store world map dataframe -----
 storeWorldMapDF <- function(){
   library(maptools)
+  require("rgdal")
+  require("rgeos")
+  require("dplyr")
+  sourceFile <- "storeWorldMapDF in R/nutrientModFunctions.R"
+  createScriptMetaData()
   # check to see if worldMap already exists
   # naturalearth world map geojson
   # updated source of data is http://www.naturalearthdata.com/downloads/50m-cultural-vectors/
@@ -1399,30 +1404,114 @@ storeWorldMapDF <- function(){
 
   temp <- list.files(fileloc("uData"))
 
-  if (length(grep("worldMap", temp)) == 0) {
-    suppressMessages(download.file("http://www.naturalearthdata.com/http//www.naturalearthdata.com/download/50m/cultural/ne_50m_admin_0_countries.zip", fn))
-    unzip(fn, exdir = filelocMap)
-    world.raw <- rgdal::readOGR(dsn = filelocMap)
+  # if (length(grep("worldMap", temp)) == 0) { commented out July 22, 2018
+  # on the assumption that this is only run when something is wrong with the existing map.
+  suppressMessages(download.file("http://www.naturalearthdata.com/http//www.naturalearthdata.com/download/50m/cultural/ne_50m_admin_0_countries.zip", fn))
+  unzip(fn, exdir = filelocMap)
 
-    # remove antarctica and some other small countries
-    world <- world.raw[!world.raw$ISO_A3 %in% c("ATA"),]
-    othersToRemove <- c("ABW", "AIA", "ALA", "AND", "ASM", "AFT")
-    world <- world[!world$ISO_A3 %in% othersToRemove,]
-    # world <- world[world$TYPE %in% "SOVEREIGNT"]
-    world <- sp::spTransform(world, CRSobj="+proj=longlat")
-    saveRDS(world, file = paste(filelocMap, "worldFile.RDS", sep = "/"))
-    #world.simp <- gSimplify(world, tol = .1, topologyPreserve = TRUE)
-    # alternative would be CRS("+proj=longlat")) for WGS 84
-    # dat_url <- getURL("https://gist.githubusercontent.com/hrbrmstr/7a0ddc5c0bb986314af3/raw/6a07913aded24c611a468d951af3ab3488c5b702/pop.csv")
-    # pop <- read.csv(text=dat_url, stringsAsFactors=FALSE, header=TRUE)
-    # gpclibPermit() # seems to be needed now May 29, 2018 but maybe not
-    worldMap <- broom::tidy(world, region = "ISO_A3")
-    inDT <- worldMap
-    outName <- "worldMap"
-    desc <- "World map file used to create facet maps of the world"
-    cleanup(inDT, outName, fileloc("uData"), desc = desc)
-  }
+  #   shpFile <- file.path(filelocMap, "ne_50m_admin_0_countries")
+  world.raw <- rgdal::readOGR(dsn = filelocMap, layer = "ne_50m_admin_0_countries")
+  idList <- world.raw@data$ISO_A3
+  centroids.df <- as.data.frame(coordinates(world.raw))
+  names(centroids.df) <- c("Longitude", "Latitude")
+  # create new regions code is based on https://philmikejones.wordpress.com/2015/09/03/dissolve-polygons-in-r/
+
+  #keep just the basic information needed
+  regions.to.merge <- c("SSD", "SDN") # ISO codes for all the countries in the new region
+  dataToKeep <- c("ISO_A3", "NAME_EN", "REGION_UN") # get the complete list with names(world.raw)
+  #need to have values for each of the items in dataToKeep for the new region
+  name.newRegion <- "Sudan"
+  ISOcode.newRegion <- "SDN"
+  REGION_UN.newRegion <- "Africa"
+  lu <- data.frame(ISO_A3 = ISOcode.newRegion,
+                   NAME_EN = name.newRegion,
+                   REGION_UN = REGION_UN.newRegion) # data frame to be added to the new region polygon
+
+  world.raw@data <- world.raw@data[,dataToKeep]
+  world.raw.subset <- subset(world.raw, ISO_A3 %in% regions.to.merge)
+
+  # add a column to disolve over with gUnaryUnion
+  world.raw.subset@data$region.new <- name.newRegion
+  world.raw.subset <- gUnaryUnion(world.raw.subset, id = world.raw.subset@data$region.new)
+
+  #now add back in the descriptive data data frame
+  # If you want to recreate an object with a data frame
+  # make sure row names match
+  row.names(world.raw.subset) <- as.character(1:length(world.raw.subset))
+  world.raw.subset <- SpatialPolygonsDataFrame(world.raw.subset, lu)
+
+  # now remove the merged regions from the original file
+  temp <- subset(world.raw, !ISO_A3 %in% regions.to.merge)
+
+  # now add back the new region
+  world.raw <- rbind(temp, world.raw.subset)
+
+  # remove antarctica and some other small countries
+  world <- world.raw[!world.raw$ISO_A3 %in% c("ATA"),]
+  othersToRemove <- c("ABW", "AIA", "ALA", "AND", "ASM", "AFT")
+  world <- world[!world$ISO_A3 %in% othersToRemove,]
+  SSAafricaCodes <- c("AGO", "BDI", "BEN", "BFA", "BWA", "CAF", "CIV", "CMR",
+                      "COD", "COG", "DJI", "ERI", "ETH", "GAB", "GHA", "GIN",
+                      "GMB", "GNB", "GNQ", "KEN", "LBR", "LSO", "MDG", "MLI", "MOZ",
+                      "MWI", "NAM", "NER", "NGA", "OAO", "RWA", "SDP", "SEN", "SLE",
+                      "SOM", "SWZ", "TCD", "TGO", "TZA", "UGA", "ZAF", "ZMB", "ZWE")
+  africa <- world[world@data$REGION_UN == "Africa",]
+  africa$REGION_UN <- factor(africa$REGION_UN)
+  europe <-   world[world@data$REGION_UN  == "Europe",]
+  europe$REGION_UN <- factor(europe$REGION_UN)
+  americas <- world[world@data$REGION_UN  == "Americas",]
+  americas$REGION_UN <- factor(americas$REGION_UN)
+  asia <- world[world@data$REGION_UN  == "Asia",]
+  asia$REGION_UN <- factor(asia$REGION_UN)
+
+  world <- sp::spTransform(world, CRSobj="+proj=longlat")
+  africa <- sp::spTransform(africa, CRSobj="+proj=longlat")
+  europe <- sp::spTransform(europe, CRSobj="+proj=longlat")
+  americas <- sp::spTransform(americas, CRSobj="+proj=longlat")
+  asia <- sp::spTransform(asia, CRSobj="+proj=longlat")
+
+  saveRDS(world, file = paste(filelocMap, "worldFile.RDS", sep = "/"))
+  saveRDS(africa, file = paste(filelocMap, "africaFile.RDS", sep = "/"))
+  saveRDS(europe, file = paste(filelocMap, "europeFile.RDS", sep = "/"))
+  saveRDS(americas, file = paste(filelocMap, "americasFile.RDS", sep = "/"))
+  saveRDS(asia, file = paste(filelocMap, "asiaFile.RDS", sep = "/"))
+  #world.simp <- gSimplify(world, tol = .1, topologyPreserve = TRUE)
+  # alternative would be CRS("+proj=longlat")) for WGS 84
+  # dat_url <- getURL("https://gist.githubusercontent.com/hrbrmstr/7a0ddc5c0bb986314af3/raw/6a07913aded24c611a468d951af3ab3488c5b702/pop.csv")
+  # pop <- read.csv(text=dat_url, stringsAsFactors=FALSE, header=TRUE)
+  # gpclibPermit() # seems to be needed now May 29, 2018 but maybe not
+  worldMap <- broom::tidy(world, region = "ISO_A3")
+  worldMap$region <- worldMap$id # added Juy 22, 2018 to get rid of warning about a missing region column
+  inDT <- worldMap
+  outName <- "worldMap"
+  desc <- "World map file used to create facet maps of the world"
+  cleanup(inDT, outName, fileloc("uData"), desc = desc)
+
+  africaMap <- broom::tidy(africa, region = "ISO_A3")
+  inDT <- africaMap
+  outName <- "africaMap"
+  desc <- "Africa map file used to create facet maps of Africa"
+  cleanup(inDT, outName, fileloc("uData"), desc = desc)
+
+  europeMap <- broom::tidy(europe, region = "ISO_A3")
+  inDT <- europeMap
+  outName <- "europeMap"
+  desc <- "Europe map file used to create facet maps of Europe"
+  cleanup(inDT, outName, fileloc("uData"), desc = desc)
+
+  americasMap <- broom::tidy(americas, region = "ISO_A3")
+  inDT <- americasMap
+  outName <- "americasMap"
+  desc <- "Americas map file used to create facet maps of Americas"
+  cleanup(inDT, outName, fileloc("uData"), desc = desc)
+
+  asiaMap <- broom::tidy(asia, region = "ISO_A3")
+  inDT <- asiaMap
+  outName <- "asiaMap"
+  desc <- "Asia map file used to create facet maps of Asia"
+  cleanup(inDT, outName, fileloc("uData"), desc = desc)
 }
+# }
 
 generateBreakValues <- function(fillLimits, decimals) {
   fillRange <- fillLimits[2] - fillLimits[1]
@@ -1431,7 +1520,7 @@ generateBreakValues <- function(fillLimits, decimals) {
   #' middle two values shift the palette gradient
   #  breakValues <- scales::rescale(c(breakValue.low, breakValue.low + fillRange/3, breakValue.low + fillRange/1.5, breakValue.high))
   breakValues <- round(c(breakValue.low, breakValue.low + fillRange/3, breakValue.low + fillRange/1.5, breakValue.high), digits = decimals)
-#  breakValues <- rescale(breakValues, to = c(0,1)) # the break values MUST be from 0 to 1. Already done in facetMaps() July 10, 2018
+  #  breakValues <- rescale(breakValues, to = c(0,1)) # the break values MUST be from 0 to 1. Already done in facetMaps() July 10, 2018
   return(breakValues)
 }
 

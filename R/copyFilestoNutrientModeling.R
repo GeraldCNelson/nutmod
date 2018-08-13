@@ -16,10 +16,11 @@
 #' dt.metadata
 #' dt.IMPACTgdxParams
 #' dt.foodGroupsInfo
-#' RDA_reqRatio_macro_sum
-#' RDA_reqRatio_vits_sum
-#' RDA_reqRatio_minrls_sum
+#' reqRatio_sum_RDA_macro
+#' reqRatio_sum_RDA_vits
+#' reqRatio_sum_RDA_minrls
 #' gdxinfo.csv
+#' dt.nutrients
 
 #Copyright (C) 2016, 2017 Gerald C. Nelson, except where noted
 
@@ -39,11 +40,11 @@
 source("R/nutrientModFunctions.R")
 gdxChoice <- getGdxChoice()
 
-#for testing
-fileShortName <- "RDA.macro_sum_reqRatio"
-sourceDir <- fileloc("resultsDir")
-destDir <- paste("nutrientModeling/data", getGdxChoice(), sep = "/")
-fileType <- "rds"
+# #for testing
+# fileShortName <- "RDA.macro_sum_reqRatio"
+# sourceDir <- fileloc("resultsDir")
+# destDir <- paste("nutrientModeling/data", getGdxChoice(), sep = "/")
+# fileType <- "rds"
 
 #' function that copies files from one directory to another taking into account file name structure in nutrient modeling
 copyFile <- function(fileShortName, sourceDir, destDir, fileType) {
@@ -71,13 +72,14 @@ for (switchloop in getSwitchChoice()) {
   # dt.foodAvail.foodGroup <- getNewestVersion("dt.foodAvail.foodGroup", suffix, fileloc("resultsDir"))
 
   copyListFromSpecificResults <- paste(c( "dt.compDI", "dt.foodAvail_foodGroup", "dt.KcalShare_nonstaple",
-                                         "dt.MRVRatios", "dt.nutBalScore", "dt.nutrients_sum_all", "dt.nutrients_kcals", #changed dt.nutrients_adj to _sum_all
-                                         "dt.nutrients_sum_all", "dt.nutrients_sum_FG", "dt.RAOqe", "dt.shannonDiversity",
+                                         "dt.MRVRatios", "dt.nutBalScore", "dt.nutrients_kcals", "dt.nutrients_sum_all", "dt.nutrients_sum_FG", "dt.RAOqe", "dt.shannonDiversity",
                                          "food_agg_AMDR_hi", "reqRatio_sum_RDA_macro", "reqRatio_sum_RDA_minrls",
-                                         "reqRatio_sum_RDA_vits"), suffix, sep = ".")
+                                         "reqRatio_sum_RDA_vits", "dt.foodAvail.foodGroup"), suffix, sep = ".")
   copyListFromSpecificResults <- c(copyListFromSpecificResults, "dt.budgetShare") # added because dt.budgetShare is identical for all suffixes
-  copyListFromSpecificResultsNoSuffix <-c("dt.metadata")
-  copyListFromiData <- c("dt.IMPACTgdxParams")
+  copyListFromSpecificResultsNoSuffix <- c("dt.metadata")
+  copyListFromiData <- c("dt.IMPACTgdxParams", "dt.nutrients.var")
+  copyListFromuData <- c("dt.regions.all", "dt.foodGroupsInfo")
+  copyListFrommData <-c("dt.scenarioListIMPACT", "resultFileLookup")
 
   #' special copy for the gdxInfo file which is just below results
   invisible(file.copy("results/gdxInfo.csv", "nutrientModeling/data"))
@@ -93,11 +95,24 @@ for (switchloop in getSwitchChoice()) {
     print(sprintf("copying file %s from results to %s", i, destDir))
     copyFile(i, fileloc("resultsDir"), destDir, "rds")
   }
-
 }
+
+# copy data from the IMPACT directory
 for (i in copyListFromiData) {
   print(sprintf("copying file %s from %s to nutrientModeling/data", i, fileloc("iData")))
   copyFile(i, fileloc("iData"), destDir, "rds")
+}
+
+# copy data from the data directory
+for (i in copyListFrommData) {
+  print(sprintf("copying file %s from %s to nutrientModeling/data", i, fileloc("iData")))
+  copyFile(i, fileloc("mData"), destDir, "rds")
+}
+
+# copy data from the universal data directory
+for (i in copyListFromuData) {
+  print(sprintf("copying file %s from %s to nutrientModeling/data", i, fileloc("uData")))
+  copyFile(i, fileloc("mData"), destDir, "rds")
 }
 
 #' next line commented out because global.R diverges from nutrientModFunctions.R

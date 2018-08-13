@@ -270,16 +270,17 @@ for (switchloop in getSwitchChoice()) {
 
   # create food group share of kcals ---------------
   dt.foodGroupLookUp <- data.table::copy(dt.foodNnuts)
-  keepListCol <- c("scenario", "region_code.IMPACT159", "year", "IMPACT_code", "kcalsPerCommod", "kcalsPerDay_tot", "food_group_code",
-                   "kcalsPerDay_carbohydrate", "kcalsPerDay_fat", "kcalsPerDay_protein", "kcalsPerDay_other", "kcalsPerDay_ethanol", "kcalsPerDay_sugar", "kcalsPerDay_ft_acds_tot_sat")
+  # keepListCol <- c("scenario", "region_code.IMPACT159", "year", "IMPACT_code", "kcalsPerCommod", "kcalsPerDay_tot", "food_group_code",
+  #                  "kcalsPerDay_carbohydrate", "kcalsPerDay_fat", "kcalsPerDay_protein", "kcalsPerDay_other", "kcalsPerDay_ethanol", "kcalsPerDay_sugar", "kcalsPerDay_ft_acds_tot_sat")
+  keepListCol <- c("scenario", "region_code.IMPACT159", "year", "IMPACT_code", "kcalsPerCommod", "kcalsPerDay_tot", "food_group_code")
   dt.foodGroupLookUp[, setdiff(names(dt.foodGroupLookUp), keepListCol) := NULL]
   dt.foodGroupLookUp <- unique(dt.foodGroupLookUp)
-  dt.foodGroupLookUp[,value := sum(kcalsPerCommod) / kcalsPerDay_tot, by = c("scenario", "region_code.IMPACT159", "year", "food_group_code")]
-  dt.foodGroupLookUp[, c("IMPACT_code", "kcalsPerCommod", "kcalsPerDay_tot") := NULL]
+  dt.foodGroupLookUp[,value := sum(kcalsPerCommod), by = c("scenario", "region_code.IMPACT159", "year", "food_group_code")]
+  # convert to percent
+  dt.foodGroupLookUp[,value := 100 * value / kcalsPerDay_tot]
+   dt.foodGroupLookUp[, c("IMPACT_code", "kcalsPerCommod", "kcalsPerDay_tot") := NULL]
   dt.foodGroupLookUp <- unique(dt.foodGroupLookUp)
 
-  # convert to percent
-  dt.foodGroupLookUp[,value := value * 100]
   inDT <- dt.foodGroupLookUp
   outName <- paste("dt.KcalShare.foodgroup", suffix, sep = ".")
   desc <- "Share of total kcals from each food group"
