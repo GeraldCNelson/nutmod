@@ -483,6 +483,7 @@ initialCountryCode <- countryCodeLookup(initialCountryName, fileloc("mData"))
 spiderGraphData <- function(countryName, scenarioName, dt, displayColumnName) {
   if (missing(displayColumnName)) displayColumnName <- "nutrient"
   countryCode <- countryCodeLookup(countryName, fileloc("mData"))
+  dt[, scenario := gsub("-REF", "", scenario)]
   dt <- dt[region_code.IMPACT159 %in% countryCode & scenario %in% scenarioName,]
   dt[, year := gsub("X", "", year)]
   formula.wide <- sprintf("scenario + region_code.IMPACT159 + year ~ %s", displayColumnName)

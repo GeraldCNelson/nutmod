@@ -614,7 +614,7 @@ server <- function(input, output, session) {
     #   data.table::setnames(dt, old = names(dt), new = capwords(names(dt)))
     data.table::setnames(dt, old = codeNames.foodGroups, new = foodGroupNamesWrap)
     p <- spiderGraphOutput(dt, scenarioName)
-    ggiraph(code = print(p), zoom_max = 1)
+    ggiraph(code = print(p), zoom_max = 1, selection_type = "single", selection_type = "single")
   })
 
   # availability table server side -----
@@ -645,7 +645,7 @@ server <- function(input, output, session) {
     #   data.table::setnames(dt, old = names(dt), new = capwords(names(dt)))
     data.table::setnames(dt, old = codeNames.macro, new = nutNamesNoUnitsWrap.macro)
     p <- spiderGraphOutput(dt, scenarioName)
-    ggiraph(code = print(p), zoom_max = 1)
+    ggiraph(code = print(p), zoom_max = 1, selection_type = "single")
   })
 
   output$adequacySpiderGraphP2 <- renderggiraph({
@@ -655,7 +655,7 @@ server <- function(input, output, session) {
     #   data.table::setnames(dt, old = names(dt), new = capwords(names(dt)))
     data.table::setnames(dt, old = codeNames.vits, new = nutNamesNoUnitsWrap.vits)
     p <- spiderGraphOutput(dt, scenarioName)
-    ggiraph(code = print(p), zoom_max = 1)
+    ggiraph(code = print(p), zoom_max = 1, selection_type = "single")
   })
 
   output$adequacySpiderGraphP3 <- renderggiraph({
@@ -665,7 +665,7 @@ server <- function(input, output, session) {
     #   data.table::setnames(dt, old = names(dt), new = capwords(names(dt)))
     data.table::setnames(dt, old = codeNames.minrls, new = nutNamesNoUnitsWrap.minrls)
     p <- spiderGraphOutput(dt, scenarioName)
-    ggiraph(code = print(p), zoom_max = 1)
+    ggiraph(code = print(p), zoom_max = 1, selection_type = "single")
   })
 
   # adequacy tables server side -----
@@ -744,7 +744,7 @@ server <- function(input, output, session) {
     p <- p + theme(axis.text = element_text(size = 12, family = fontFamily, face = "plain"))
     p <- p + theme(legend.text = element_text(size = 12, family = fontFamily, face = "plain")) +
       labs(y = yLab, x = NULL)
-    ggiraph(code = print(p), zoom_max = 1)
+    ggiraph(code = print(p), zoom_max = 1, selection_type = "single")
   })
 
   # energy quantity bar chart -----
@@ -764,7 +764,7 @@ server <- function(input, output, session) {
     p <- p + theme(axis.text = element_text(size = 12, family = fontFamily, face = "plain"))
     p <- p + theme(legend.text = element_text(size = 12, family = fontFamily, face = "plain")) +
       labs(y = yLab, x = NULL)
-    ggiraph(code = print(p), zoom_max = 1)
+    ggiraph(code = print(p), zoom_max = 1, selection_type = "single")
   })
 
   # energy share table -----
@@ -826,7 +826,7 @@ server <- function(input, output, session) {
   output$AMDRbarGraphP1 <- renderggiraph({
     dt <- data.table::copy(data.AMDR())
     p <- plotByRegionBarAMDRinShiny(dt, yLab = "share of total dietary energy (percent)")
-    ggiraph(code = print(p), zoom_max = 1)
+    ggiraph(code = print(p), zoom_max = 1, selection_type = "single")
   })
 
   # adequacy AMDR table server side ------
