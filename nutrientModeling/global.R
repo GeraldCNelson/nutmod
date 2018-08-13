@@ -162,6 +162,7 @@ cleanupScenarioNames <- function(dt.ptemp) {
 }
 
 cleanupNutrientNames <- function(nutList) {
+  nutList <- gsub("food_group_code", "Food group", nutList)
   nutList <- gsub("_g.reqRatio","",nutList)
   nutList <- gsub("reqRatio","",nutList)
   nutList <- gsub("vit_","Vitamin ",nutList)

@@ -100,7 +100,7 @@ dataSetsToLoad <- c(
 
 # edited Aug 10, 2018 to deal with the .var element of file names
 dataSetsToLoad <- paste0(dataSetsToLoad, ".var")
-dataSetsToLoad <- c(dataSetsToLoad, "dt.budgetShare")
+dataSetsToLoad <- c(dataSetsToLoad, "dt.budgetShare") # no var version of this.
 
 # use for big data sets
 dataSetsToLoad.supplemental <- c("dt.nutrients_sum_FG.var")
@@ -148,17 +148,17 @@ ui <- fluidPage(
           tabPanel(title = "Introduction",
                    sidebarLayout(
                      sidebarPanel( #width = 2,
-                                  includeHTML("www/countryChoice.html"),
-                                  selectizeInput(inputId = "userCountryName", label = "Choose country", choices = countryNames, selected = NULL),
-                                  selectizeInput(inputId = "userScenarioName", label = "Choose scenario", choices = scenarioNames, selected = initialScenarioName)),
+                       includeHTML("www/countryChoice.html"),
+                       selectizeInput(inputId = "userCountryName", label = "Choose country", choices = countryNames, selected = NULL),
+                       selectizeInput(inputId = "userScenarioName", label = "Choose scenario", choices = scenarioNames, selected = initialScenarioName)),
                      mainPanel(includeHTML("www/introText.html")))),
           # Affordability tab panel ------
           tabPanel(title = "Affordability",
                    sidebarLayout(
                      sidebarPanel(
-                                  selectizeInput(inputId = "affordabilityCountryName", label = "Choose country", choices = countryNames,
-                                                 options = list(placeholder = "Select country")),
-                                  downloadButton("downloadData.afford", "Download")),
+                       selectizeInput(inputId = "affordabilityCountryName", label = "Choose country", choices = countryNames,
+                                      options = list(placeholder = "Select country")),
+                       downloadButton("downloadData.afford", "Download")),
                      mainPanel(titlePanel("Food expenditure, per capita income and affordability"),
                                includeHTML("www/affordabilityText.html"),
                                DT::dataTableOutput("affordabilityTable"),
@@ -167,13 +167,13 @@ ui <- fluidPage(
           tabPanel(title = "Food Availability",
                    sidebarLayout(
                      sidebarPanel(
-                                  selectizeInput(inputId = "availabilityCountryName", label = "Choose country",
-                                                 choices = countryNames,
-                                                 options = list(placeholder = "Select country")),
+                       selectizeInput(inputId = "availabilityCountryName", label = "Choose country",
+                                      choices = countryNames,
+                                      options = list(placeholder = "Select country")),
 
-                                  # selectizeInput(inputId = "availabilityScenarioName", label = "Choose a scenario (see definition in glossary)",
-                                  #                choices = scenarioNames),
-                                  downloadButton("downloadData.avail", "Download")),
+                       # selectizeInput(inputId = "availabilityScenarioName", label = "Choose a scenario (see definition in glossary)",
+                       #                choices = scenarioNames),
+                       downloadButton("downloadData.avail", "Download")),
                      mainPanel(titlePanel("Average daily food availability by food group"),
                                includeHTML("www/availabilityText.html"),
                                radioButtons("availabilityScenarioName", "Choose scenario (See glossary for details):",
@@ -196,44 +196,43 @@ ui <- fluidPage(
                                              downloadButton("downloadData.energyRat", "Energy share data"),
                                              downloadButton("downloadData.energyQ", "Kcal data")
                                 ),
-                                mainPanel(
-                                  # titlePanel("Dietary adequacy"), , width = "100%", height = "300px"
-                                  includeHTML("www/adequacyText.html"),
-                                  radioButtons("adequacyScenarioName", "Choose scenario (See glossary for details):",
-                                               list("SSP2-NoCC", "SSP2-HGEM", "SSP1-NoCC", "SSP3-NoCC"), inline = TRUE),
-                                  fluidRow(
-                                  #   column(width = 6, ggiraphOutput("adequacySpiderGraphP1", height = "400px")),
-                                  #   column(width = 6, ggiraphOutput("adequacySpiderGraphP2", height = "400px"))),
-                                  column(width = 6, ggiraphOutput("adequacySpiderGraphP1")),
-                                  column(width = 6, ggiraphOutput("adequacySpiderGraphP2"))),
-                                fluidRow(
-     #                               column(width = 6, ggiraphOutput("adequacySpiderGraphP3", height = "400px"))),
-                                column(width = 6, ggiraphOutput("adequacySpiderGraphP3"))),
-                                fluidRow(
-                                    column(width = 6, ggiraphOutput("energyQuantityBarPlot")),
-                                    column(width = 6, ggiraphOutput("energyShareBarPlot"))),
-                                  fluidRow(
-                                    column(width = 12, DT::dataTableOutput("adequacyTableP1"))),
-                                  fluidRow(
-                                    column(width = 12, DT::dataTableOutput("adequacyTableP2"))),
-                                  fluidRow(
-                                    column(width = 12, DT::dataTableOutput("adequacyTableP3"))),
-                                  fluidRow(
-                                    column(width = 12, DT::dataTableOutput("energyQuantityTable"))),
-                                  fluidRow(
-                                    column(width = 12, DT::dataTableOutput("energyShareTable")))))),
+                                mainPanel(titlePanel("Nutrient adequacy and kilocalorie availability"),
+                                          includeHTML("www/adequacyText.html"),
+                                          radioButtons("adequacyScenarioName", "Choose scenario (See glossary for details):",
+                                                       list("SSP2-NoCC", "SSP2-HGEM", "SSP1-NoCC", "SSP3-NoCC"), inline = TRUE),
+                                          fluidRow(
+                                            #   column(width = 6, ggiraphOutput("adequacySpiderGraphP1", height = "400px")),
+                                            #   column(width = 6, ggiraphOutput("adequacySpiderGraphP2", height = "400px"))),
+                                            column(width = 6, ggiraphOutput("adequacySpiderGraphP1")),
+                                            column(width = 6, ggiraphOutput("adequacySpiderGraphP2"))),
+                                          fluidRow(
+                                            # column(width = 6, ggiraphOutput("adequacySpiderGraphP3", height = "400px"))),
+                                            column(width = 6, ggiraphOutput("adequacySpiderGraphP3"))),
+                                          fluidRow(
+                                            column(width = 6, ggiraphOutput("energyQuantityBarPlot")),
+                                            column(width = 6, ggiraphOutput("energyShareBarPlot"))),
+                                          fluidRow(
+                                            column(width = 12, DT::dataTableOutput("adequacyTableP1"))),
+                                          fluidRow(
+                                            column(width = 12, DT::dataTableOutput("adequacyTableP2"))),
+                                          fluidRow(
+                                            column(width = 12, DT::dataTableOutput("adequacyTableP3"))),
+                                          fluidRow(
+                                            column(width = 12, DT::dataTableOutput("energyQuantityTable"))),
+                                          fluidRow(
+                                            column(width = 12, DT::dataTableOutput("energyShareTable")))))),
                      # AMDR tab panel -----
                      tabPanel(title = "Acceptable Macronutrient Distribution Range (AMDR)",
                               sidebarLayout(
                                 sidebarPanel(width = 3,
                                              selectizeInput(inputId = "AMDRCountryName", label = "Choose country", choices = countryNames),
                                              downloadButton("downloadData.AMDR", "Download")),
-                                mainPanel(
-                                  # titlePanel("Acceptable Macronutrient Distribution Range"),
-                                  includeHTML("www/AMDRText.html"),
-                                  fluidRow(column(width = 12, ggiraphOutput("AMDRbarGraphP1"))),
-                                  fluidRow(column(width = 12, DT::dataTableOutput("AMDRTableP1"))),
-                                  includeHTML("www/tableNote_AMDR.html")))),
+                                mainPanel(titlePanel("Acceptable Macronutrient Distribution Range (AMDR)"),
+                                          # titlePanel("Acceptable Macronutrient Distribution Range"),
+                                          includeHTML("www/AMDRText.html"),
+                                          fluidRow(column(width = 12, ggiraphOutput("AMDRbarGraphP1"))),
+                                          fluidRow(column(width = 12, DT::dataTableOutput("AMDRTableP1"))),
+                                          includeHTML("www/tableNote_AMDR.html")))),
                      # nutrient balance tab panel -----
                      tabPanel(title = "Nutrient Balance Score",
                               sidebarLayout(
@@ -250,9 +249,9 @@ ui <- fluidPage(
                                 sidebarPanel(width = 3,
                                              selectizeInput(inputId = "MRVCountryName", label = "Choose country", choices = countryNames),
                                              downloadButton("downloadData.MRV", "Download")),
-                                mainPanel(
-                                  includeHTML("www/MRVText.html"),
-                                  DT::dataTableOutput("MRVTableP1")))))),
+                                mainPanel(titlePanel("Maximum Recommended Intake (MRV) results"),
+                                          includeHTML("www/MRVText.html"),
+                                          DT::dataTableOutput("MRVTableP1")))))),
           # Diversity tab panel, with tabset ------
           tabPanel("Dietary diversity",
                    tabsetPanel(
@@ -262,9 +261,9 @@ ui <- fluidPage(
                                 sidebarPanel(width = 3,
                                              selectizeInput(inputId = "diversityCountryName", label = "Choose country", choices = countryNames),
                                              downloadButton("downloadData.ShannonDiversity", "Download")),
-                                mainPanel(
-                                  includeHTML("www/shannonDiversityText.html"),
-                                  DT::dataTableOutput("diversityTable")))),
+                                mainPanel(titlePanel("Shannon diversity index"),
+                                          includeHTML("www/shannonDiversityText.html"),
+                                          DT::dataTableOutput("diversityTable")))),
                      # Nut availability by food group tab panel ------
                      tabPanel(title = "Nutrient availability by food group",
                               sidebarLayout(
@@ -273,12 +272,12 @@ ui <- fluidPage(
                                              selectizeInput(inputId = "nutrientGroup", label = "Choose a nutrient group", choices = c("vitamins", "minerals", "macronutrients")),
                                              downloadButton("downloadData.nutAvailFG", "Download")),
                                 mainPanel(titlePanel("Nutrient availability by food group"),
-                                  includeHTML("www/foodGroupSpiderGraphText.html"),
-                                  radioButtons("FGscenarioName", "Choose scenario (See glossary for details):",
-                                               list("SSP2-NoCC", "SSP2-HGEM", "SSP1-NoCC", "SSP3-NoCC"), inline = TRUE),
-                                  uiOutput("plot.NutAvailFGbarGraphP1"),
-                                  DT::dataTableOutput("NutAvailFGTable"),
-                                  includeHTML("www/nutrientDescription.html")))),
+                                          includeHTML("www/foodGroupSpiderGraphText.html"),
+                                          radioButtons("FGscenarioName", "Choose scenario (See glossary for details):",
+                                                       list("SSP2-NoCC", "SSP2-HGEM", "SSP1-NoCC", "SSP3-NoCC"), inline = TRUE),
+                                          uiOutput("plot.NutAvailFGbarGraphP1"),
+                                          DT::dataTableOutput("NutAvailFGTable"),
+                                          includeHTML("www/nutrientDescription.html")))),
                      # nonstaple energy share tab panel ------
                      tabPanel(title = "Nonstaple share of dietary energy",
                               sidebarLayout(
@@ -286,7 +285,7 @@ ui <- fluidPage(
                                              selectizeInput(inputId = "nonstapleEnergyShareCountryName", label = "Choose country", choices = countryNames),
                                              downloadButton("downloadData.nonStapleShare", "Download")),
                                 mainPanel(
-                                  # titlePanel("Nonstaple share of dietary energy"),
+                                  titlePanel("Nonstaple share of dietary energy"),
                                   includeHTML("www/nonStapleShareGraphText.html"),
                                   DT::dataTableOutput("nonStapleEnergyShareTable"),
                                   includeHTML("www/tableNote_nonstapleShare.html")))),
@@ -297,11 +296,13 @@ ui <- fluidPage(
                                              selectizeInput(inputId = "RaosQECountryName", label = "Choose country", choices = countryNames),
                                              downloadButton("downloadData.RaoQE", "Download")),
                                 mainPanel(
+                                  titlePanel("Rao's quadratic entropy metric"),
                                   includeHTML("www/RaosQEGraphText.html"),
                                   DT::dataTableOutput("RaosQETable")))))),
           # glossary tab panel ------
           tabPanel(title = "Glossary",
                    mainPanel(
+                     titlePanel("Glossary"),
                      includeHTML("www/glossaryText.html"))),
           # data review and download tab panel ------
           tabPanel(title = "Data",
@@ -312,37 +313,40 @@ ui <- fluidPage(
                                   downloadButton('downloadData.full', 'Download'),
                                   includeHTML("www/downloadFullText.html")
                      ),
-                     mainPanel(DT::dataTableOutput('table')))),
+                     mainPanel(
+                       titlePanel("Data download"),
+                       DT::dataTableOutput('table')))),
           # data and developer information tabs with tabset -----
           tabPanel(
             "Developer Info",
             tabsetPanel(
               # Metadata tab panel -----
               tabPanel(
-                title = "Metadata",
+                title = "Files",
                 mainPanel(
-                  "Information for developers", " ",
+                  titlePanel("Information on file content for developers"),
                   fluidRow(column(width = 12, div(DT::dataTableOutput("metadataTable"), style = "font-size:80%", family = fontFamily))))),
               # IMPACT metadata tab panel -----
               tabPanel(title = "IMPACT metadata",
                        mainPanel(
-                         "Information for developers", " ",
+                         titlePanel("IMPACT metadata"),
                          fluidRow(column(width = 12, div(DT::dataTableOutput("IMPACTmetadataTable"), style = "font-size:80%", family = fontFamily))))),
               # Foodgroup lookup panel -----
               tabPanel(title = "Food group lookup table",
                        mainPanel(
-                         "Information for developers", " ",
+                         titlePanel("Food group lookup table"),
                          fluidRow(column(width = 12, div(DT::dataTableOutput("IMPACTfoodgroupTable"), style = "font-size:80%", family = fontFamily))))),
               # nutrient lookup -----
               tabPanel(title = "Nutrient lookup table",
                        mainPanel(
-                         "Information for developers", " ",
+                         titlePanel("Nutrient lookup table"),
+                         includeHTML("www/nutrientLookupText.html"),
                          downloadButton("downloadData.nutrients.adj", "Download"),
                          fluidRow(column(width = 12, div(DT::dataTableOutput("nutrientLookup"), style = "font-size:80%", family = fontFamily))))),
               # File documentation -----
               tabPanel(title = "File documentation",
                        mainPanel(
-                         "Information for developers", " ",
+                         titlePanel("File documentation"),
                          fluidRow(column(width = 12, div(DT::dataTableOutput("fileDocumentation"), style = "font-size:80%", family = fontFamily))))))),
           # Acknowledgements -----
           tabPanel(title = "Acknowledgements",
@@ -355,7 +359,7 @@ ui <- fluidPage(
 
 server <- function(input, output, session) {
   load_data(dataSetsToLoad) # load most of the data. Big files can be loaded elsewhere
-#  router(input, output) # for table of contents
+  #  router(input, output) # for table of contents
   #not sure this is the best place for this. Need to get crud out of budget share. Just do once
   # update Jan 28, 2018. I think this this code was written, dt.budgetShare is now already in long form with name changes done
   keepListCol <- c("scenario", "region_code.IMPACT159", "year", "pcGDPX0", "budget.PCX0", "incShare.PCX0")
@@ -389,7 +393,7 @@ server <- function(input, output, session) {
     dt <- data.table::copy(dt.budgetShare.wide)
     countryCode <- countryCodeLookup(countryName, fileloc("mData"))
     dt <- dt[region_code.IMPACT159 %in% countryCode, ]
-    setnames(dt, old = "region_code.IMPACT159", new = "Region code")
+    setnames(dt, old = "region_code.IMPACT159", new = "Country code")
     dt[, scenario := factor(scenario, levels = scenarioNames)]
     #dt[, scenario := gsub("", "", scenario)]
     dt
@@ -498,9 +502,9 @@ server <- function(input, output, session) {
     countryCode <- countryCodeLookup(countryName, fileloc("mData"))
     dt <- data.table::copy(dt.MRVRatios.var)
     dt <- dt[region_code.IMPACT159 %in% countryCode ,]
-    setnames(dt, old = "region_code.IMPACT159", new = "Region code")
+#    setnames(dt, old = "region_code.IMPACT159", new = "Country code")
     dt[, value := round(value, 2)]
-    #dt[, scenario := gsub("", "", scenario)][, year := gsub("X", "", year)]
+    dt[, year := gsub("X", "", year)]
     dt
   })
 
@@ -534,6 +538,7 @@ server <- function(input, output, session) {
     countryName <- input$nutbalCountryName
     countryCode <- countryCodeLookup(countryName, fileloc("mData"))
     dt <- data.table::copy(dt.nutBalScore.var)
+    dt[, year := gsub("X", "", year)]
     dt <- dt[region_code.IMPACT159 == countryCode,]
     dt[, value := round(value, 2)]
     #dt[, scenario := gsub("", "", scenario)][, year := gsub("X", "", year)]
@@ -580,7 +585,7 @@ server <- function(input, output, session) {
     dt <- data.table::copy(dt.RAOqe.var)
     dt <- dt[region_code.IMPACT159 == countryCode,]
     dt[, value := round(value, 2)]
-    #dt[, scenario := gsub("", "", scenario)][, year := gsub("X", "", year)]
+    dt[, year := gsub("X", "", year)]
     formula.wide <- paste("scenario + region_code.IMPACT159 ~ year")
     spiderData <- data.table::dcast(
       data = dt,
@@ -614,7 +619,7 @@ server <- function(input, output, session) {
     #   data.table::setnames(dt, old = names(dt), new = capwords(names(dt)))
     data.table::setnames(dt, old = codeNames.foodGroups, new = foodGroupNamesWrap)
     p <- spiderGraphOutput(dt, scenarioName)
-    ggiraph(code = print(p), zoom_max = 1, selection_type = "single", selection_type = "single")
+    ggiraph(code = print(p), zoom_max = 1, selection_type = "single")
   })
 
   # availability table server side -----
@@ -976,7 +981,6 @@ server <- function(input, output, session) {
     dt <- data.table::dcast(data = dt, formula = formula.wide, value.var = "value")
     data.table::setnames(dt, old = "region_code.IMPACT159", new = "country code")
     names.new <- cleanupNutrientNames(names(dt))
-    #dt[, scenario := gsub("", "", scenario)]
     if (facetColumnName %in% "nutrient") dt[, nutrient := capwords(cleanupNutrientNames(nutrient))]
     data.table::setnames(dt, old = names(dt), new = capwords(names.new))
     # dt <- DT::datatable(dt, rownames = FALSE, options = list(pageLength = 25, dom = 't', filter = list(position = "top")))
@@ -996,6 +1000,7 @@ server <- function(input, output, session) {
     valueDTNames <- paste0(c( "dt.foodAvail_foodGroup", "dt.nutrients_kcals",
                               "reqRatio_sum_RDA_macro",  "reqRatio_sum_RDA_vits", "reqRatio_sum_RDA_minrls",
                               "dt.nutBalScore", "dt.MRVRatios", "dt.KcalShare_nonstaple", "dt.RAOqe"), ".var")
+    setnames(dt, old = "region_code.IMPACT159", new = "Country code")
     if (!currentDT %in% valueDTNames) {
       dt <- DT::datatable(dt, rownames = FALSE, options = list(pageLength = 25))
     }else{
@@ -1028,26 +1033,28 @@ server <- function(input, output, session) {
 
   # metadataTable ------
   output$metadataTable <- DT::renderDataTable({
-    dt.metadata <- getNewestVersion("dt.metadata", fileloc("mData"))
-    dt.metadata
+    dt <- getNewestVersion("dt.metadata", fileloc("mData"))
+    dt <- DT::datatable(dt, rownames = FALSE, options = list(pageLength = 25))
   })
 
   # IMPACTmetadataTable ------
   output$IMPACTmetadataTable <- DT::renderDataTable({
-    dt.IMPACTgdxParams <- getNewestVersion("dt.IMPACTgdxParams", fileloc("mData"))
-    dt.IMPACTgdxParams
+    dt <- getNewestVersion("dt.IMPACTgdxParams", fileloc("mData"))
+    dt <- DT::datatable(dt, rownames = FALSE, options = list(pageLength = 25))
   })
 
   # IMPACTfoodgroupLookupTable ------
   output$IMPACTfoodgroupTable <- DT::renderDataTable({
     data.table::setnames(dt.foodGroupsInfo, old = names(dt.foodGroupsInfo), new = gsub("_", " ", names(dt.foodGroupsInfo)))
-    dt.foodGroupsInfo[,1:5]
+    dt <- dt.foodGroupsInfo[,1:5]
+    dt <- DT::datatable(dt, rownames = FALSE, options = list(pageLength = 25))
+    dt
   })
 
   # nutrient lookup -----
   output$nutrientLookup <- DT::renderDataTable({
     dt <- getNewestVersion("dt.nutrients.var", fileloc("mData"))
-    dt[, ft_acds_tot_trans_g := as.numeric(ft_acds_tot_trans_g)] #dt.nutrients.var comes in as chr because one entry is "ph (Aug 10, 2018)
+#    dt[, ft_acds_tot_trans_g := as.numeric(ft_acds_tot_trans_g)] #dt.nutrients.var comes in as chr because one entry is "ph (Aug 10, 2018); fixed Aug 12, 2018
     colsNotNumeric <- c("IMPACT_code",  "region_code.IMPACT159", "food_group_code", "staple_code")
     colsToRound3 <- names(dt)[!names(dt) %in% colsNotNumeric]
     # colsToRound3 <- c("phytate_mg", "protein_g", "fat_g", "carbohydrate_g", "totalfiber_g", "energy_kcal",
@@ -1062,7 +1069,8 @@ server <- function(input, output, session) {
                       "vit_e_mg_cr")
     dt[, (colsToRound3) := round(.SD, 3), .SDcols = colsToRound3]
     dt[, (colsToRound0) := round(.SD, 0), .SDcols = colsToRound0]
-
+    dt <- DT::datatable(dt, rownames = FALSE, options = list(pageLength = 25))
+    dt
   })
   output$downloadData.nutrients.adj <- downloadHandler(
     filename = function() {paste("dt.nutrients.adj_", Sys.Date(), '.csv', sep = '') },
@@ -1070,7 +1078,9 @@ server <- function(input, output, session) {
   )
   # file documentation -----
   output$fileDocumentation <- DT::renderDataTable({
-    getNewestVersion("resultFileLookup", fileloc("mData"))
+    dt <- getNewestVersion("resultFileLookup", fileloc("mData"))
+    dt <- DT::datatable(dt, rownames = FALSE, options = list(pageLength = 25))
+    dt
   })
   session$onSessionEnded(stopApp)
 }
