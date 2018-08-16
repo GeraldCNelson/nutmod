@@ -108,7 +108,7 @@ dataSetsToLoad.supplemental <- c("dt.nutrients_sum_FG.var")
 dataSetsToLoad.desc <- c("Food availability by food group", "Kilocalorie availability", "AMDR ratios", "Adequacy, macro",
                          "Adequacy, vitamins", "Adequacy, minerals", "Nutrient balance score", "Maximum recommended intake score", "Shannon diversity", "Share of kcals, nonstaples",
                          "Rao's QE", "Budget share")
-dataSetsToLoad.desc.supplemental <- c("Nutrient availability by food group")
+dataSetsToLoad.desc.supplemental <- c("Nutrient availability")
 
 datasetsToLoad.complete <- c(dataSetsToLoad, dataSetsToLoad.supplemental)
 datasetsToLoad.desc.complete <- c(dataSetsToLoad.desc, dataSetsToLoad.desc.supplemental)
@@ -180,6 +180,20 @@ ui <- fluidPage(
                                             list("SSP2-NoCC", "SSP2-HGEM", "SSP1-NoCC", "SSP3-NoCC"), inline = TRUE),
                                ggiraphOutput("availabilitySpiderGraphP1", height = "400px"),
                                DT::dataTableOutput("availabilityTableP1")))),
+          # Nut availability by food group tab panel ------
+          tabPanel(title = "Nutrient availability",
+                   sidebarLayout(
+                     sidebarPanel(width = 3,
+                                  selectizeInput(inputId = "FGcountryName", label = "Choose country", choices = countryNames),
+                                  selectizeInput(inputId = "nutrientGroup", label = "Choose a nutrient group", choices = c("vitamins", "minerals", "macronutrients")),
+                                  downloadButton("downloadData.nutAvailFG", "Download")),
+                     mainPanel(titlePanel("Nutrient availability"),
+                               includeHTML("www/foodGroupSpiderGraphText.html"),
+                               radioButtons("FGscenarioName", "Choose scenario (See glossary for details):",
+                                            list("SSP2-NoCC", "SSP2-HGEM", "SSP1-NoCC", "SSP3-NoCC"), inline = TRUE),
+                               uiOutput("plot.NutAvailFGbarGraphP1"),
+                               DT::dataTableOutput("NutAvailFGTable"),
+                               includeHTML("www/nutrientDescription.html")))),
 
           # Adequacy tab panel ------
           tabPanel(title = "Under- and over nutrition",
@@ -264,20 +278,7 @@ ui <- fluidPage(
                                 mainPanel(titlePanel("Shannon diversity index"),
                                           includeHTML("www/shannonDiversityText.html"),
                                           DT::dataTableOutput("diversityTable")))),
-                     # Nut availability by food group tab panel ------
-                     tabPanel(title = "Nutrient availability by food group",
-                              sidebarLayout(
-                                sidebarPanel(width = 3,
-                                             selectizeInput(inputId = "FGcountryName", label = "Choose country", choices = countryNames),
-                                             selectizeInput(inputId = "nutrientGroup", label = "Choose a nutrient group", choices = c("vitamins", "minerals", "macronutrients")),
-                                             downloadButton("downloadData.nutAvailFG", "Download")),
-                                mainPanel(titlePanel("Nutrient availability by food group"),
-                                          includeHTML("www/foodGroupSpiderGraphText.html"),
-                                          radioButtons("FGscenarioName", "Choose scenario (See glossary for details):",
-                                                       list("SSP2-NoCC", "SSP2-HGEM", "SSP1-NoCC", "SSP3-NoCC"), inline = TRUE),
-                                          uiOutput("plot.NutAvailFGbarGraphP1"),
-                                          DT::dataTableOutput("NutAvailFGTable"),
-                                          includeHTML("www/nutrientDescription.html")))),
+
                      # nonstaple energy share tab panel ------
                      tabPanel(title = "Nonstaple share of dietary energy",
                               sidebarLayout(
