@@ -352,7 +352,10 @@ ui <- fluidPage(
           # Acknowledgements -----
           tabPanel(title = "Acknowledgements",
                    mainPanel(
-                     includeHTML("www/acknowledgementsText.html")))
+                     includeHTML("www/acknowledgementsText.html"))),
+          tabPanel(title = "For further information",
+                   mainPanel(
+                     includeHTML("www/furtherInformation.html")))
         )
     )
   )
