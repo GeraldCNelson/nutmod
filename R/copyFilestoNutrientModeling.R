@@ -13,7 +13,7 @@
 #' resultFileLookup
 #' dt.nutrients.kcals
 #' dt.budgetShare
-#' dt.metadata
+#' dt.metadataTot
 #' dt.IMPACTgdxParams
 #' dt.foodGroupsInfo
 #' reqRatio_sum_RDA_macro
@@ -43,7 +43,7 @@ gdxChoice <- getGdxChoice()
 # #for testing
 # fileShortName <- "RDA.macro_sum_reqRatio"
 # sourceDir <- fileloc("resultsDir")
-destDir <- paste("nutrientModeling/data", getGdxChoice(), sep = "/")
+destDir <- paste("nutrientModeling/data", sep = "/")
 fileType <- "rds"
 
 #' function that copies files from one directory to another taking into account file name structure in nutrient modeling
@@ -78,7 +78,7 @@ for (switchloop in getSwitchChoice()) {
                                          "food_agg_AMDR_hi", "reqRatio_sum_RDA_macro", "reqRatio_sum_RDA_minrls",
                                          "reqRatio_sum_RDA_vits", "dt.foodAvail.foodGroup"), suffix, sep = ".")
   copyListFromSpecificResults <- c(copyListFromSpecificResults, "dt.budgetShare") # added because dt.budgetShare is identical for all suffixes
-  copyListFromSpecificResultsNoSuffix <- c("dt.metadata")
+  copyListFromSpecificResultsNoSuffix <- c("dt.metadataTot")
   copyListFromiData <- c("dt.IMPACTgdxParams", "dt.nutrients.var")
   copyListFromuData <- c("dt.regions.all")
   copyListFrommData <-c("dt.scenarioListIMPACT", "dt.foodGroupsInfo", "resultFileLookup")
@@ -94,8 +94,8 @@ for (switchloop in getSwitchChoice()) {
 
   #' copy from from results without suffix
   for (i in copyListFromSpecificResultsNoSuffix) {
-    print(sprintf("copying file %s from results to %s", i, destDir))
-    copyFile(i, fileloc("resultsDir"), destDir, "rds")
+    print(sprintf("copying file %s from %s to %s", i, fileloc("mData"), destDir))
+    copyFile(fileShortName = i, sourceDir = fileloc("mData"), destDir, fileType = fileType)
   }
 }
 

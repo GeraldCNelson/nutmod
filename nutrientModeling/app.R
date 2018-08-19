@@ -77,7 +77,7 @@ WBcountries <- list()
 region_name.WB <- c("Low income", "Lower middle income", "Upper middle income", "High income")
 dt <- data.table::copy(dt.regions.all)
 for (i in 1:length(region_name.WB)) {
-  dt <- dt.regions.all[region_name.WB %in% region_name.WB[i]]
+  dt <- dt.regions.all[region_name.WB.income %in% region_name.WB[i]]
   temp <- sort(unique(dt$region_name.IMPACT159))
   temp <- gsub(" plus", "", temp)
   temp <- temp[temp %in% countryNames]

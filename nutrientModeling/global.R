@@ -61,9 +61,9 @@ getGdxChoice <- function() {
 fileloc <- function(variableName) {
   gdxChoice <- paste0(getwd(), "/data/gdxInfo.csv")
   rawData <- "data-raw"
-  mData <- paste("data/", gdxChoice, sep = "")
-  gDir <- paste("graphics", gdxChoice, sep = "/")
-  iData <- paste(mData, "IMPACTData/", sep = "/")
+  mData <- "data"
+  gDir <- "graphics"
+  iData <- mData
   nutData <- "data-raw/NutrientData"
   resultsTop <- "results"
   # resultsDir <- paste("data/", gdxChoice, sep = "")
@@ -493,16 +493,13 @@ dt.foodGroupsInfo <- getNewestVersion("dt.foodGroupsInfo", fileloc("mData"))
 countryNamesPlus <- sort(unique(dt.regions.all$region_name.IMPACT159))
 countryNames <- gsub(" plus", "", countryNamesPlus)
 #' development files
-"dt.metadata" <- getNewestVersion("dt.metadata", fileloc("resultsDir"))
+"dt.metadata" <- getNewestVersion("dt.metadataTot", fileloc("mData"))
 "dt.IMPACTgdxParams" <- getNewestVersion("dt.IMPACTgdxParams", fileloc("mData"))
 FGreqChoices <- c("macro nutrients", "minerals", "vitamins")
 staplesReqChoices <- c("energy","macro nutrients", "minerals", "vitamins")
 initialCountryName <- "Afghanistan"
 initialCountryCode <- countryCodeLookup(initialCountryName, fileloc("mData"))
 
-# rsconnect::setAccountInfo(name = 'nutrientmodeling',
-#                           token = '3E8A9773C46C19C6EF42EE20C8C65BF0',
-#                           secret = 'hk4UOGDwRKr5Pkw2hKMzSxcRqL0GRsoU67shiwR/')
 # rsconnect::deployApp(appDir = paste(getwd(),"nutrientModeling", sep = "/"))
 
 spiderGraphData <- function(countryName, scenarioName, dt, displayColumnName) {

@@ -500,9 +500,6 @@ staplesReqChoices <- c("energy","macro nutrients", "minerals", "vitamins")
 initialCountryName <- "Afghanistan"
 initialCountryCode <- countryCodeLookup(initialCountryName, fileloc("mData"))
 
-# rsconnect::setAccountInfo(name = 'nutrientmodeling',
-#                           token = '3E8A9773C46C19C6EF42EE20C8C65BF0',
-#                           secret = 'hk4UOGDwRKr5Pkw2hKMzSxcRqL0GRsoU67shiwR/')
 # rsconnect::deployApp(appDir = paste(getwd(),"nutrientModeling", sep = "/"))
 
 spiderGraphData <- function(countryName, scenarioName, dt, displayColumnName) {
