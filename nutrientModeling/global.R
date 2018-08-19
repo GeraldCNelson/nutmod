@@ -21,21 +21,22 @@
 
 getGdxChoice <- function() {
   if (!"gdxChoice" %in% ls(envir = .GlobalEnv)) {
-    #this global.R file is for the nutrientModeling project so choice = 1
+    #this global.R file is for the nutrientPriorities project so choice = 3
     # cat("Choose the IMPACT project you are working on.\n")
     # cat("1. for the nutrient modeling paper\n")
     # cat("2. for the USAID nutrient modeling paper\n")
     # cat("3. for the USAID priority setting paper, 2018\n")
 
-    choice = 1
+    choice = 3
+    #  choice <- "1" # so there will be a definite value
     if (choice  %in% "1") {
-      gdxSwitchCombo <- read.csv(file = paste0(getwd(), "nutrientModeling/data/gdxInfo.csv"), header = TRUE, stringsAsFactors = FALSE)
+      gdxSwitchCombo <- read.csv(file = paste0(getwd(), "/data/gdxInfo.csv"), header = TRUE, stringsAsFactors = FALSE)
     }
     if (choice  %in% "2") {
-      gdxSwitchCombo <- read.csv(file = paste0(getwd(), "USAID/data/gdxInfo.csv"), header = TRUE, stringsAsFactors = FALSE)
+      gdxSwitchCombo <- read.csv(file = paste0(getwd(), "/data/gdxInfo.csv"), header = TRUE, stringsAsFactors = FALSE)
     }
     if (choice  %in% "3") {
-      gdxSwitchCombo <- read.csv(file = paste0(getwd(), "nutrientPriorities/data/gdxInfo.csv"), header = TRUE, stringsAsFactors = FALSE)
+      gdxSwitchCombo <- read.csv(file = paste0(getwd(), "/data/gdxInfo.csv"), header = TRUE, stringsAsFactors = FALSE)
     }
   }
   gdxChoice <- gdxSwitchCombo[,2]
