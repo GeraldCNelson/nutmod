@@ -41,7 +41,7 @@ library(shiny.router) # install using devtools::install_github("Appsilon/shiny.r
 source("global.R") # load all the background functions and install packages if not already done
 #note install packages feature in global.R is commented out
 options(repos = c(CRAN = "https://cran.rstudio.com"))
-gdxChoice <- getGdxChoice()
+gdxChoice <- paste0(getwd(), "/data/gdxInfo.csv")
 
 # router <- make_router(
 #   #  route("/", root_page),
