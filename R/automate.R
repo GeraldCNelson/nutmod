@@ -183,12 +183,6 @@ sourceFile <- "automate.R"
 cleanup(inDT, outName, fileloc("mData"), desc = desc)
 finalizeScriptMetadata(metadataDT, sourceFile)
 
-gdxChoice <- getGdxChoice()
-if (gdxChoice %in% "SSPs") { # copy files only if using the nutrient modeling gdx
-  sourceFile <- "copyFilestoNutrientModeling.R"
-  sourcer(sourceFile)  # move results needed for the shiny app.R in the nutrientModeling folder
-}
-
 #library(dtplyr)# generate graphs
 start_time <- Sys.time()
 sourceFile <- "aggRun.R"
@@ -200,4 +194,14 @@ sourcer(sourceFile)
 
 sourceFile <- "dataPrep.metadata.R"
 sourcer(sourceFile)
+
+gdxChoice <- getGdxChoice()
+if (gdxChoice %in% "SSPs") { # copy files only if using the nutrient modeling gdx
+  sourceFile <- "copyFilestoNutrientModeling.R"
+  sourcer(sourceFile)  # move results needed for the shiny app.R in the nutrientModeling folder
+}
+if (gdxChoice %in% "USAIDPriorities") { # copy files only if using the nutrient modeling gdx
+  sourceFile <- "copyFilestoNutrientPriorities.R"
+  sourcer(sourceFile)  # move results needed for the shiny app.R in the nutrientModeling folder
+}
 

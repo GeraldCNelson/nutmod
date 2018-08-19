@@ -31,9 +31,9 @@ createScriptMetaData()
 
 options(encoding = "UTF-8")
 
-# nutrients spreadsheet for the base runs. This should be fine because this script just needs the list of nutrients
-dt.nutrients <- getNewestVersion("dt.nutrients.base", fileloc("iData"))
-
+# nutrients spreadsheet for the base runs. This should be fine because this script just needs the list of nutrients.
+# better to use .var because base will be going away Aug 17, 2018
+dt.nutrients <- getNewestVersion("dt.nutrients.var", fileloc("iData"))
 
 # Read in and set up the nutrient requirements data -----
 

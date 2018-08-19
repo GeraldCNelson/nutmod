@@ -32,7 +32,19 @@ gamsSetup <- function(gdxFileName) {
     climModel <- "HGEM"
     dt.scenarioListIMPACT[, scenario := paste(SSPName, climModel, paste0("c", crop), sep = "-")]
     dt.scenarioListIMPACT[, crop := NULL]
+    }
+
+  if (gdxFileName %in% "Micronutrient-Inputs-7.1.2018.gdx") {
+    keepListCol <- "scenario"
+    dt.scenarioListIMPACT <- unique(dt.ptemp[, (keepListCol), with = FALSE])
+    dt.scenarioListIMPACT <- dt.scenarioListIMPACT[!scenario %in% c("GLOBE_SSP2-HGEM-bnpl-SG-25f", "GLOBE_SSP2-HGEM-puls-SG-25f")]
+    dt.scenarioListIMPACT[, crop := tstrsplit(scenario, "-", fixed = TRUE, keep = c(3))]
+    SSPName <- "SSP2"
+    climModel <- "HGEM"
+    dt.scenarioListIMPACT[, scenario := paste(SSPName, climModel, paste0("c", crop), sep = "-")]
+    dt.scenarioListIMPACT[, crop := NULL]
   }
+
 
   #cleanup scenario names
   dt.scenarioListIMPACT <- cleanupScenarioNames(dt.scenarioListIMPACT) # replaces - with _ in a couple of scenarios and removes 2 on a couple of USAID scenarios

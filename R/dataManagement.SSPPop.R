@@ -239,7 +239,7 @@ wbInfoGeneral[(nrow(wbInfoGeneral) + 1), ] <-
 
 #add a worksheet called IMPACTBaselist to the workbook wb = wbGeneral, with info on the commodities
 # in the base set and their nutrients
-dt.nutrients <- getNewestVersion("dt.nutrients.base", fileloc("iData"))
+dt.nutrients <- getNewestVersion("dt.nutrients.xxx", fileloc("iData")) # put xxx in the file name to make sure this is checked when called Aug 17, 2018
 
 openxlsx::addWorksheet(wb = wbGeneral, sheetName = "IMPACTBaselist")
 #commodityNames <- cbind(nutrients[c("Name","IMPACT_code")])

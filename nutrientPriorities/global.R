@@ -1,5 +1,5 @@
 #' Nutrient Modeling Functions for the shiny app
-#' title: "Global functions needed to make the nutrientModeling shiny app work"
+#' title: "Global functions needed to make the nutrientPriorities shiny app work"
 #' @keywords utilities, nutrient data management functions, shiny app
 #' @name global.R
 #' @author Gerald C. Nelson, \\email{nelson.gerald.c@@gmail.com}
@@ -21,21 +21,22 @@
 
 getGdxChoice <- function() {
   if (!"gdxChoice" %in% ls(envir = .GlobalEnv)) {
-    #this global.R file is for the nutrientModeling project so choice = 1
+    #this global.R file is for the nutrientPriorities project so choice = 3
     # cat("Choose the IMPACT project you are working on.\n")
     # cat("1. for the nutrient modeling paper\n")
     # cat("2. for the USAID nutrient modeling paper\n")
     # cat("3. for the USAID priority setting paper, 2018\n")
 
-    choice = 1
+    choice = 3
+    #  choice <- "1" # so there will be a definite value
     if (choice  %in% "1") {
-      gdxSwitchCombo <- read.csv(file = paste0(getwd(), "nutrientModeling/data/gdxInfo.csv"), header = TRUE, stringsAsFactors = FALSE)
+      gdxSwitchCombo <- read.csv(file = paste0(getwd(), "/data/gdxInfo.csv"), header = TRUE, stringsAsFactors = FALSE)
     }
     if (choice  %in% "2") {
-      gdxSwitchCombo <- read.csv(file = paste0(getwd(), "USAID/data/gdxInfo.csv"), header = TRUE, stringsAsFactors = FALSE)
+      gdxSwitchCombo <- read.csv(file = paste0(getwd(), "/data/gdxInfo.csv"), header = TRUE, stringsAsFactors = FALSE)
     }
     if (choice  %in% "3") {
-      gdxSwitchCombo <- read.csv(file = paste0(getwd(), "nutrientPriorities/data/gdxInfo.csv"), header = TRUE, stringsAsFactors = FALSE)
+      gdxSwitchCombo <- read.csv(file = paste0(getwd(), "/data/gdxInfo.csv"), header = TRUE, stringsAsFactors = FALSE)
     }
   }
   gdxChoice <- gdxSwitchCombo[,2]
@@ -58,44 +59,44 @@ getGdxChoice <- function() {
 # }
 
 fileloc <- function(variableName) {
-  gdxChoice <- getGdxChoice()
+  gdxChoice <- paste0(getwd(), "/data/gdxInfo.csv")
   rawData <- "data-raw"
-  mData <- paste("data/", gdxChoice, sep = "")
-  gDir <- paste("graphics", gdxChoice, sep = "/")
-  iData <- paste(mData, "IMPACTData/", sep = "/")
+  mData <- "data"
+  gDir <- "graphics"
+  iData <- mData
   nutData <- "data-raw/NutrientData"
   resultsTop <- "results"
-  resultsDir <- paste("data/", gdxChoice, sep = "")
-  resultsPaperDir <- "results/nutPaper"
-  shinyApp <- "nutrientModeling"
-  shinyAppData <- "nutrientModeling/data"
-  FBSData <- paste(rawData, "FBSData", sep = "/")
-  SSPData <- paste(rawData, "SSPData", sep = "/")
-  IMPACTRawData <- paste(rawData, "IMPACTData", sep = "/")
-  IMPACTCleanData <- paste(mData, "IMPACTData/", gdxChoice, sep = "/")
-  NutrientData <- paste(rawData, "NutrientData", sep = "/")
-  nutrientDataDetails <- paste(rawData, "NutrientData", "nutrientDetails", sep = "/")
-  if (variableName == "list") {
-    return(c(
-      "rawData",
-      "mData",
-      "iData",
-      "gDir",
-      "resultsDir",
-      "resultsTop",
-      "resultsPaperDir",
-      "shinyApp",
-      "shinyAppData",
-      "FBSData",
-      "IMPACTRawData",
-      "IMPACTCleanData",
-      "NutrientData",
-      "nutrientDataDetails",
-      "SSPData"
-    ))
-  } else {
-    return(eval(parse(text = variableName)))
-  }
+  #  resultsDir <- paste("data/", gdxChoice, sep = "")
+  #  resultsPaperDir <- "results/nutPaper"
+  #  shinyApp <- "nutrientPriorities"
+  #  shinyAppData <- "nutrientPriorities/data"
+  # FBSData <- paste(rawData, "FBSData", sep = "/")
+  # SSPData <- paste(rawData, "SSPData", sep = "/")
+  # IMPACTRawData <- paste(rawData, "IMPACTData", sep = "/")
+  # IMPACTCleanData <- paste(mData, "IMPACTData/", gdxChoice, sep = "/")
+  # NutrientData <- paste(rawData, "NutrientData", sep = "/")
+  # nutrientDataDetails <- paste(rawData, "NutrientData", "nutrientDetails", sep = "/")
+  # if (variableName == "list") {
+  #   return(c(
+  #     "rawData",
+  #     "mData",
+  #     "iData",
+  #     "gDir",
+  #   #   "resultsDir",
+  #   #   "resultsTop",
+  #   #   "resultsPaperDir",
+  #   #   "shinyApp",
+  #   #   "shinyAppData",
+  #   #   "FBSData",
+  #   #   "IMPACTRawData",
+  #   #   "IMPACTCleanData",
+  #   #   "NutrientData",
+  #   #   "nutrientDataDetails",
+  #   #   "SSPData"
+  #   # ))
+  # } else {
+  return(eval(parse(text = variableName)))
+  #  }
 }
 
 #' getNewestVersion
@@ -231,87 +232,87 @@ cleanupNutrientNamesFacetGraph <- function(nutList) {
 
 #' Title keyVariable - Return a key variable, or a list of all possibilities
 
-keyVariable <- function(variableName) {
-  region <- "region_code.IMPACT159"
-  keepYearList <- c("X2010", "X2015", "X2020", "X2025", "X2030", "X2035", "X2040", "X2045", "X2050")
-  keepYearList.FBS <- c("X2000", "X2001", "X2002", "X2003", "X2004", "X2005",
-                        "X2006", "X2007", "X2008", "X2009", "X2010", "X2011")
-  FBSyearsToAverage <- c("X2004", "X2005", "X2006")
-
-  #' note shrimp, tuna, and salmon are removed in dataManagement.fish.R
-  IMPACTfish_code <- c("c_Shrimp", "c_Crust", "c_Mllsc", "c_Salmon", "c_FrshD",
-                       "c_Tuna", "c_OPelag", "c_ODmrsl", "c_OMarn", "c_FshOil", "c_aqan",
-                       "c_aqpl")
-  IMPACTalcohol_code <- c("c_wine", "c_beer", "c_spirits")
-  IMPACTfoodCommodList <- sort(c("cbeef", "cpork", "clamb", "cpoul", "ceggs", "cmilk", "cbarl", "cmaiz",
-                                 "cmill", "crice", "csorg", "cwhea", "cocer", "ccass", "cpota", "cswpt",
-                                 "cyams", "corat", "cbean", "cchkp", "ccowp", "clent", "cpigp", "copul",
-                                 "cbana", "cplnt", "csubf", "ctemf", "cvege", "csugr", "cgrnd", "cgdol",
-                                 "crpol", "csoyb", "csbol", "csnfl", "csfol", "cplol", "cpkol", "crpsd",
-                                 "ctols", "ctool", "ccoco", "ccafe", "cteas", "cothr", IMPACTfish_code,
-                                 IMPACTalcohol_code))
-
-  #These are the scenario numbers for the IIASA data with population disaggregated.
-  scenarioListSSP.pop <- c("SSP1_v9_130115", "SSP2_v9_130115", "SSP3_v9_130115",
-                           "SSP4_v9_130115", "SSP5_v9_130115")
-  scenarioListSSP.GDP <- c("SSP1_v9_130325", "SSP2_v9_130325", "SSP3_v9_130325",
-                           "SSP4_v9_130325", "SSP5_v9_130325")
-
-  # scenarioListIMPACT <- as.character(read.csv(file = paste(fileloc("mData"),"scenarioListIMPACT.csv", sep = "/"), stringsAsFactors = FALSE)[,1])
-  DinY <- 365 #see http://stackoverflow.com/questions/9465817/count-days-per-year for a way to deal with leap years
-  #' #' countries to remove because of poor data
-  #' FSM - Micronesia, Federated States of
-  #' GRD - Grenada
-  #' PRK - Korea, Democratic People's Republic of
-  reqsList <-
-    c(
-      "req.EAR",
-      "req.RDA.vits",
-      "req.RDA.minrls",
-      "req.RDA.macro",
-      "req.UL.vits",
-      "req.UL.minrls",
-      "req.AMDR_hi",
-      "req.AMDR_lo",
-      "req.MRVs" # added March 24, 2017
-      # commmented out because as of Dec 25, 2016, PR requirements for iron and zinc are now in req.RDA.minrls
-      # ,
-      # "req.PR.iron",
-      # "req.PR.zinc"
-    )
-  reqsListPercap <- paste(reqsList,"_percap", sep = "")
-  reqsListSSP <- paste(reqsList,"_ssp", sep = "")
-  dropListCty <- c("GRL", "FSM", "GRD", "PRK")
-  commonList <- paste("common.", reqsList, sep = "")
-  c( "common.EAR", "common.RDA.vits", "common.RDA.minrls", "common.RDA.macro", "common.AMDR_hi", "common.AMDR_lo","common.UL.vits","common.UL.minrls")
-  userName <- "Gerald C. Nelson"
-  if (variableName == "list") {
-    return(
-      c(
-        "switch.fixFish",
-        "switch.changeElasticity",
-        "region",
-        "keepYearList",
-        "keepYearList.FBS",
-        "FBSyearsToAverage",
-        "IMPACTfish_code",
-        "IMPACTalcohol_code",
-        "IMPACTfoodCommodList",
-        "scenarioListSSP.pop",
-        "scenarioListSSP.GDP",
-        #        "scenarioListIMPACT",
-        "DinY",
-        "reqListSSP",
-        "switch.useCookingRetnValues",
-        "commonList",
-        "userName",
-        "dropListCty"
-      )
-    )
-  } else {
-    return(eval(parse(text = variableName)))
-  }
-}
+#' keyVariable <- function(variableName) {
+#'   region <- "region_code.IMPACT159"
+#'   keepYearList <- c("X2010", "X2015", "X2020", "X2025", "X2030", "X2035", "X2040", "X2045", "X2050")
+#'   keepYearList.FBS <- c("X2000", "X2001", "X2002", "X2003", "X2004", "X2005",
+#'                         "X2006", "X2007", "X2008", "X2009", "X2010", "X2011")
+#'   FBSyearsToAverage <- c("X2004", "X2005", "X2006")
+#'
+#'   #' note shrimp, tuna, and salmon are removed in dataManagement.fish.R
+#'   IMPACTfish_code <- c("c_Shrimp", "c_Crust", "c_Mllsc", "c_Salmon", "c_FrshD",
+#'                        "c_Tuna", "c_OPelag", "c_ODmrsl", "c_OMarn", "c_FshOil", "c_aqan",
+#'                        "c_aqpl")
+#'   IMPACTalcohol_code <- c("c_wine", "c_beer", "c_spirits")
+#'   IMPACTfoodCommodList <- sort(c("cbeef", "cpork", "clamb", "cpoul", "ceggs", "cmilk", "cbarl", "cmaiz",
+#'                                  "cmill", "crice", "csorg", "cwhea", "cocer", "ccass", "cpota", "cswpt",
+#'                                  "cyams", "corat", "cbean", "cchkp", "ccowp", "clent", "cpigp", "copul",
+#'                                  "cbana", "cplnt", "csubf", "ctemf", "cvege", "csugr", "cgrnd", "cgdol",
+#'                                  "crpol", "csoyb", "csbol", "csnfl", "csfol", "cplol", "cpkol", "crpsd",
+#'                                  "ctols", "ctool", "ccoco", "ccafe", "cteas", "cothr", IMPACTfish_code,
+#'                                  IMPACTalcohol_code))
+#'
+#'   # #These are the scenario numbers for the IIASA data with population disaggregated.
+#'   # scenarioListSSP.pop <- c("SSP1_v9_130115", "SSP2_v9_130115", "SSP3_v9_130115",
+#'   #                          "SSP4_v9_130115", "SSP5_v9_130115")
+#'   # scenarioListSSP.GDP <- c("SSP1_v9_130325", "SSP2_v9_130325", "SSP3_v9_130325",
+#'   #                          "SSP4_v9_130325", "SSP5_v9_130325")
+#'
+#'   # scenarioListIMPACT <- as.character(read.csv(file = paste(fileloc("mData"),"scenarioListIMPACT.csv", sep = "/"), stringsAsFactors = FALSE)[,1])
+#'   DinY <- 365 #see http://stackoverflow.com/questions/9465817/count-days-per-year for a way to deal with leap years
+#'   #' #' countries to remove because of poor data
+#'   #' FSM - Micronesia, Federated States of
+#'   #' GRD - Grenada
+#'   #' PRK - Korea, Democratic People's Republic of
+#'   reqsList <-
+#'     c(
+#'       "req.EAR",
+#'       "req.RDA.vits",
+#'       "req.RDA.minrls",
+#'       "req.RDA.macro",
+#'       "req.UL.vits",
+#'       "req.UL.minrls",
+#'       "req.AMDR_hi",
+#'       "req.AMDR_lo",
+#'       "req.MRVs" # added March 24, 2017
+#'       # commmented out because as of Dec 25, 2016, PR requirements for iron and zinc are now in req.RDA.minrls
+#'       # ,
+#'       # "req.PR.iron",
+#'       # "req.PR.zinc"
+#'     )
+#'   reqsListPercap <- paste(reqsList,"_percap", sep = "")
+#'   reqsListSSP <- paste(reqsList,"_ssp", sep = "")
+#'   dropListCty <- c("GRL", "FSM", "GRD", "PRK")
+#'   commonList <- paste("common.", reqsList, sep = "")
+#'   c( "common.EAR", "common.RDA.vits", "common.RDA.minrls", "common.RDA.macro", "common.AMDR_hi", "common.AMDR_lo","common.UL.vits","common.UL.minrls")
+#'   userName <- "Gerald C. Nelson"
+#'   if (variableName == "list") {
+#'     return(
+#'       c(
+#'         "switch.fixFish",
+#'         "switch.changeElasticity",
+#'         "region",
+#'         "keepYearList",
+#'         "keepYearList.FBS",
+#'         "FBSyearsToAverage",
+#'         "IMPACTfish_code",
+#'         "IMPACTalcohol_code",
+#'         "IMPACTfoodCommodList",
+#'         "scenarioListSSP.pop",
+#'         "scenarioListSSP.GDP",
+#'         #        "scenarioListIMPACT",
+#'         "DinY",
+#'         "reqListSSP",
+#'         "switch.useCookingRetnValues",
+#'         "commonList",
+#'         "userName",
+#'         "dropListCty"
+#'       )
+#'     )
+#'   } else {
+#'     return(eval(parse(text = variableName)))
+#'   }
+#' }
 
 countryNameLookup <- function(countryCode, directory) {
   if (missing(directory)) {mData <- fileloc("mData")} else {mData <- directory}
@@ -492,7 +493,7 @@ dt.foodGroupsInfo <- getNewestVersion("dt.foodGroupsInfo", fileloc("mData"))
 countryNamesPlus <- sort(unique(dt.regions.all$region_name.IMPACT159))
 countryNames <- gsub(" plus", "", countryNamesPlus)
 #' development files
-"dt.metadata" <- getNewestVersion("dt.metadata", fileloc("resultsDir"))
+"dt.metadata" <- getNewestVersion("dt.metadataTot", fileloc("mData"))
 "dt.IMPACTgdxParams" <- getNewestVersion("dt.IMPACTgdxParams", fileloc("mData"))
 FGreqChoices <- c("macro nutrients", "minerals", "vitamins")
 staplesReqChoices <- c("energy","macro nutrients", "minerals", "vitamins")
@@ -529,7 +530,7 @@ spiderGraphOutput <- function(spiderData, scenarioName) {
   countryCode <- unique(spiderData$region_code.IMPACT159)
   countryName <- countryNameLookup(countryCode)
   spiderData[, region_code.IMPACT159 := NULL]
-#  data.table::setnames(spiderData, old = names(spiderData), new = capwords(names(spiderData)))
+  #  data.table::setnames(spiderData, old = names(spiderData), new = capwords(names(spiderData)))
   titleText <- paste("Country: ", countryName, "Scenario: ", scenarioName)
   p <- ggRadar(data = spiderData, mapping = aes(colour = year),
                rescale = FALSE, interactive = FALSE, size = 2,
@@ -612,7 +613,7 @@ plotByRegionBarAMDR <- function(dt, fileName, plotTitle, yLab, yRange, aggChoice
     geom_hline(aes(yintercept = AMDR_hi,  color = "dark red")) +
     geom_text( aes(.75, AMDR_hi + 2, label = "High", color = "green"))
 
-#' code to save the plot for future use
+  #' code to save the plot for future use
   graphsListHolder[[fileName]] <- p
   assign("graphsListHolder", graphsListHolder, envir = .GlobalEnv)
   print(p)
@@ -643,7 +644,7 @@ load_data_special <- function(data_name) {
       temp <- getNewestVersion(data_name, fileloc("mData"))
       temp[, scenario := gsub("-REF", "", scenario)] # added Aug 12, 2018
       temp <- (temp[year %in% years &scenario %in% scenarioNames,])
-#      temp <- temp[scenario %in% scenarioNames]
+      #      temp <- temp[scenario %in% scenarioNames]
       assign(data_name, temp, envir = .GlobalEnv) # this puts the data sets into the global environment
       return(data_name)
     }

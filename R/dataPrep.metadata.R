@@ -10,5 +10,5 @@ outName <- "dt.metadataTot"
 desc <- "Metadata for all the files created"
 # next line is to keep cleanup happy
 metadataDT <<- data.table(outName = character(0), sourcecode = character(0), destDir = character(0), desc = character(0), colNames = character(0))
-cleanup(inDT, outName, destDir = "data/", "csv", desc = desc)
+cleanup(inDT, outName, destDir = fileloc("mData"), "csv", desc = desc)
 

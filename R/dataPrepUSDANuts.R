@@ -572,50 +572,51 @@ outName <- "dt.nutrients.var"
 desc <- "Nutrient composition of IMPACT food items, country-specific"
 cleanup(inDT, outName, fileloc("iData"), desc = desc)
 
-# now add supplementation. Add this to dt.nutrients.var
-dt.fortValues <- getNewestVersion(fileShortName = "dt.fortValues", fileloc("uData"))
-nutrientsList.fort <- unique(dt.fortValues$Nutrient)
-dt.fortValues[, Nutrient := paste0(Nutrient,".fort")]
+# now add supplementation. Add this to dt.nutrients.var if the switches say to do fortfication results
+if (getSwitchChoice() %in%"3") {
+  dt.fortValues <- getNewestVersion(fileShortName = "dt.fortValues", fileloc("uData"))
+  nutrientsList.fort <- unique(dt.fortValues$Nutrient)
+  dt.fortValues[, Nutrient := paste0(Nutrient,".fort")]
 
-formula.wide <- "region_code.IMPACT159 + IMPACT_code ~ Nutrient"
-dt.fortValues.wide <- data.table::dcast(
-  data = dt.fortValues,
-  formula = formula.wide,
-  value.var = "value")
+  formula.wide <- "region_code.IMPACT159 + IMPACT_code ~ Nutrient"
+  dt.fortValues.wide <- data.table::dcast(
+    data = dt.fortValues,
+    formula = formula.wide,
+    value.var = "value")
 
-dt.fortValues.wide[, (names(dt.fortValues.wide)) := lapply(.SD, function(x){x[is.na(x)] <- 0; x}), .SDcols = names(dt.fortValues.wide)]
-# for (j in names(dt.fortValues.wide)) set(dt.fortValues.wide,which(is.na(dt.fortValues.wide[[j]])),j,0)
-dt.nutrients.varFort <- merge(dt.fortValues.wide, dt.nutrients.var, by = c("IMPACT_code", "region_code.IMPACT159"), all.y = TRUE)
-dt.nutrients.varFort[, (names(dt.nutrients.varFort)) := lapply(.SD, function(x){x[is.na(x)] <- 0; x}), .SDcols = names(dt.nutrients.varFort)]
+  dt.fortValues.wide[, (names(dt.fortValues.wide)) := lapply(.SD, function(x){x[is.na(x)] <- 0; x}), .SDcols = names(dt.fortValues.wide)]
+  # for (j in names(dt.fortValues.wide)) set(dt.fortValues.wide,which(is.na(dt.fortValues.wide[[j]])),j,0)
+  dt.nutrients.varFort <- merge(dt.fortValues.wide, dt.nutrients.var, by = c("IMPACT_code", "region_code.IMPACT159"), all.y = TRUE)
+  dt.nutrients.varFort[, (names(dt.nutrients.varFort)) := lapply(.SD, function(x){x[is.na(x)] <- 0; x}), .SDcols = names(dt.nutrients.varFort)]
 
-#for (j in names(dt.nutrients.varFort)) set(dt.nutrients.varFort,which(is.na(dt.nutrients.varFort[[j]])),j,0)
+  #for (j in names(dt.nutrients.varFort)) set(dt.nutrients.varFort,which(is.na(dt.nutrients.varFort[[j]])),j,0)
 
-dt.nutrients.varFort[, `:=`(
-  calcium_mg = calcium_mg + calcium_mg.fort,
-  iron_mg = iron_mg + iron_mg.fort,
-  niacin_mg = niacin_mg + niacin_mg.fort,
-  riboflavin_mg = riboflavin_mg + riboflavin_mg.fort,
-  thiamin_mg = thiamin_mg + thiamin_mg.fort,
-  vit_a_rae_µg = vit_a_rae_µg + vit_a_rae_µg.fort,
-  vit_b12_µg = vit_b12_µg + vit_b12_µg.fort,
-  vit_b6_mg = vit_b6_mg + vit_b6_mg.fort,
-  vit_d_µg = vit_d_µg + vit_d_µg.fort,
-  vit_e_mg = vit_e_mg + vit_e_mg.fort,
-  zinc_mg = zinc_mg + zinc_mg.fort
-)]
-deleteListCol <- c("calcium_mg.fort", "folate_µg.fort", "iron_mg.fort", "niacin_mg.fort",
-                   "riboflavin_mg.fort", "thiamin_mg.fort", "vit_a_rae_µg.fort", "vit_b12_µg.fort",
-                   "vit_b6_mg.fort", "vit_d_µg.fort", "vit_e_mg.fort", "zinc_mg.fort")
-dt.nutrients.varFort[, (deleteListCol) := NULL]
-dt.nutrients.varFort <- unique(dt.nutrients.varFort)
+  dt.nutrients.varFort[, `:=`(
+    calcium_mg = calcium_mg + calcium_mg.fort,
+    iron_mg = iron_mg + iron_mg.fort,
+    niacin_mg = niacin_mg + niacin_mg.fort,
+    riboflavin_mg = riboflavin_mg + riboflavin_mg.fort,
+    thiamin_mg = thiamin_mg + thiamin_mg.fort,
+    vit_a_rae_µg = vit_a_rae_µg + vit_a_rae_µg.fort,
+    vit_b12_µg = vit_b12_µg + vit_b12_µg.fort,
+    vit_b6_mg = vit_b6_mg + vit_b6_mg.fort,
+    vit_d_µg = vit_d_µg + vit_d_µg.fort,
+    vit_e_mg = vit_e_mg + vit_e_mg.fort,
+    zinc_mg = zinc_mg + zinc_mg.fort
+  )]
+  deleteListCol <- c("calcium_mg.fort", "folate_µg.fort", "iron_mg.fort", "niacin_mg.fort",
+                     "riboflavin_mg.fort", "thiamin_mg.fort", "vit_a_rae_µg.fort", "vit_b12_µg.fort",
+                     "vit_b6_mg.fort", "vit_d_µg.fort", "vit_e_mg.fort", "zinc_mg.fort")
+  dt.nutrients.varFort[, (deleteListCol) := NULL]
+  dt.nutrients.varFort <- unique(dt.nutrients.varFort)
 
-inDT <- dt.nutrients.varFort
-# dt.nutrients.varFort[, usda_code := NULL] Not needed because usda_code deleted from dt.nutrients.var
-inDT[, (names(inDT)) := lapply(.SD, function(x){x[is.na(x)] <- 0; x}), .SDcols = names(inDT)]
-outName <- "dt.nutrients.varFort"
-desc <- "Nutrient composition of IMPACT food items, country-specific with fortification"
-cleanup(inDT, outName, fileloc("iData"), desc = desc)
-
+  inDT <- dt.nutrients.varFort
+  # dt.nutrients.varFort[, usda_code := NULL] Not needed because usda_code deleted from dt.nutrients.var
+  inDT[, (names(inDT)) := lapply(.SD, function(x){x[is.na(x)] <- 0; x}), .SDcols = names(inDT)]
+  outName <- "dt.nutrients.varFort"
+  desc <- "Nutrient composition of IMPACT food items, country-specific with fortification"
+  cleanup(inDT, outName, fileloc("iData"), desc = desc)
+}
 # create dt.nutrientNames_Units for use elsewhere
 
 dt.nutrientNames_Units <- openxlsx::read.xlsx("data-raw/NutrientData/nutrientNames_Units.xlsx", colNames = TRUE)

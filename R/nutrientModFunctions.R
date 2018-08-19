@@ -176,8 +176,7 @@ getNewestVersionIMPACT <- function(fileShortName) {
   getNewestVersion(fileShortName, fileloc("iData"))
 }
 
-#' Title removeOldVersions - removes old version of an rawData file
-#'
+#' Title removeOldVersions - removes old version of a rawData file
 #' @param fileShortName - short name of the file to be removed
 #' @param dir - directory of the file to be removed
 #' @export
@@ -1224,7 +1223,7 @@ gdxLibraryLocationCheck <- function() {
       cat("\nThe nutrient modeling software now thinks your GAMS liberary path is", gdxLibLoc)
       inDT <- dt.metadata
       outName <- dt.metadata.gdx
-      desc <- "Metadata on the gdx file with IMPACT result"
+      desc <- "Metadata on the gdx file with IMPACT results."
       cleanup(inDT, outName, fileloc("resultsDir"), desc = desc)
     }
   }
@@ -1233,11 +1232,10 @@ gdxLibraryLocationCheck <- function() {
 switchChoices <- function(switchChoice) {
   switch.useCookingRetnValues <- keyVariable("switch.useCookingRetnValues")
   switch.fixFish <- keyVariable("switch.fixFish") #get rid of nutrient info for shrimp, tuna, and salmon because they are not currently in the FBS data
-  switch.useCookingRetnValues <- keyVariable("switch.useCookingRetnValues")
-  switch.fixFish <- keyVariable("switch.fixFish") #get rid of nutrient info for shrimp, tuna, and salmon because they are not currently in the FBS data
   if (switchloop == 1) {switch.vars <- FALSE;  switch.fortification <- FALSE; suffix = "base"}
   if (switchloop == 2) {switch.vars <- TRUE;  switch.fortification <- FALSE; suffix = "var"}
   if (switchloop == 3) {switch.vars <- TRUE;  switch.fortification <- TRUE; suffix = "varFort"}
+  if (switchloop == 4) {switch.vars <- TRUE;  switch.fortification <- FALSE; suffix = "var"}
 }
 
 gdxFileNameChoice <- function() {
@@ -1267,15 +1265,16 @@ gdxFileNameChoice <- function() {
   cat("Choose the switches you want to use.\n")
   cat("1. Base nutrient data only.\n")
   cat("2. Base nutrient data and country specific varieties.\n")
-  cat("3. Base nutrient data,  country specific varieties, and selected fortification.\n")
-  choice <- readline(prompt = "Choose 1, 2, or 3. \n")
-  if (!choice %in% c(1,2,3)) {stop(sprintf("Your choice %s needs to be one of 1, 2, or 3", choice))}
+  cat("3. Base nutrient data, country specific varieties, and selected fortification.\n")
+  cat("4. Country specific varieties only.\n")
+  choice <- readline(prompt = "Choose 1, 2, 3 or 4. \n")
+  if (!choice %in% c(1,2,3,4)) {stop(sprintf("Your choice %s needs to be one of 1, 2, or 3", choice))}
 
   cat("\nDo you need to update any files that are not IMPACT specific (new SSP, nutrient composition, FBS data?")
   update <- readline(prompt = "Y/N. \n")
   gdxSwitchCombo <- cbind(gdxFileName, gdxChoice, choice, update)
 
-  write.csv(gdxSwitchCombo, file = paste0(getwd(), "/results/gdxInfo.csv"), row.names = FALSE)
+  write.csv(gdxSwitchCombo, file = paste0(getwd(), "/results/", gdxChoice, "/gdxInfo.csv"), row.names = FALSE)
   return(gdxSwitchCombo)
 }
 
@@ -1563,35 +1562,77 @@ truncateDT <- function(DT, fillLimits){ # function to make sure every country ge
   return(dt)
 }
 
+# getGdxChoice function updated Aug 18, 2018 to deal with separate projects
 getGdxChoice <- function() {
-  gdxSwitchCombo <- read.csv(file = paste0(getwd(), "/results/gdxInfo.csv"), header = TRUE, stringsAsFactors = FALSE)
-  gdxChoice <- gdxSwitchCombo[,2]
-  return(gdxChoice)
-}
+  if (!"gdxChoice" %in% ls(envir = .GlobalEnv)) {
+    cat("Choose the IMPACT project you are working on.\n")
+    cat("1. for the nutrient modeling paper\n")
+    cat("2. for the USAID nutrient modeling paper\n")
+    cat("3. for the USAID priority setting paper, 2018\n")
 
-getGdxFileName <- function() {
-  gdxSwitchCombo <- read.csv(file = paste0(getwd(), "/results/gdxInfo.csv"), header = TRUE, stringsAsFactors = FALSE)
-  gdxChoice <- gdxSwitchCombo[, 1]
-  return(gdxChoice)
-}
+    choice <- readline(prompt = "Choose the number of the gdx file you want to use. \n")
+    #  choice <- "1" # so there will be a definite value
+    if (choice  %in% "1") {
+      gdxSwitchCombo <- read.csv(file = paste0(getwd(), "/results/SSPs/gdxInfo.csv"), header = TRUE, stringsAsFactors = FALSE)
+    }
+    if (choice  %in% "2") {
+      gdxSwitchCombo <- read.csv(file = paste0(getwd(), "/results/USAID/gdxInfo.csv"), header = TRUE, stringsAsFactors = FALSE)
+    }
+    if (choice  %in% "3") {
+      gdxSwitchCombo <- read.csv(file = paste0(getwd(), "/results/USAIDPriorities/gdxInfo.csv"), header = TRUE, stringsAsFactors = FALSE)
+    }
 
-getSwitchChoice <- function() {
-  gdxSwitchCombo <- read.csv(file = paste0(getwd(), "/results/gdxInfo.csv"), header = TRUE, stringsAsFactors = FALSE)
-  gdxChoice <- gdxSwitchCombo[,3]
-  if (gdxChoice == 1) choice = 1
-  if (gdxChoice == 2) choice = c(1,2)
-  if (gdxChoice == 3) choice = c(1,2,3)
-  return(choice)
-}
+    gdxChoice <- gdxSwitchCombo[,2]
+    #    cat("gdxChoice is", gdxChoice)
+    }
+    return(gdxChoice)
+  }
 
-# # use this function to get a tablegrob. Which can then be placed in a plot. This is done in aggNorder.R
-g_legend <- function(plot.in) {
-  tmp <- ggplot2::ggplot_gtable(ggplot_build(plot.in))
-  leg <- which(sapply(tmp$grobs, function(x) x$name) == "guide-box")
-  legend <- tmp$grobs[[leg]]
-  return(legend)
-}
+  setGdxChoice <- function() {
+    cat("Choose the IMPACT project you are working on.\n")
+    cat("1. for the nutrient modeling paper\n")
+    cat("2. for the USAID nutrient modeling paper\n")
+    cat("3. for the USAID priority setting paper, 2018\n")
+    choice <- readline(prompt = "Choose the number of the gdx file you want to use. \n")
 
-fmt_dcimals <- function(decimals=0){
-  function(x) format(x,nsmall = decimals,scientific = FALSE)
-}
+    if (choice  %in% "1") {
+      gdxSwitchCombo <- read.csv(file = paste0(getwd(), "/results/SSPs/gdxInfo.csv"), header = TRUE, stringsAsFactors = FALSE)
+    }
+    if (choice  %in% "2") {
+      gdxSwitchCombo <- read.csv(file = paste0(getwd(), "/results/USAID/gdxInfo.csv"), header = TRUE, stringsAsFactors = FALSE)
+    }
+    if (choice  %in% "3") {
+      gdxSwitchCombo <- read.csv(file = paste0(getwd(), "/results/USAIDPriorities/gdxInfo.csv"), header = TRUE, stringsAsFactors = FALSE)
+    }
+    gdxChoice <- gdxSwitchCombo[,2]
+    cat("gdxChoice is", gdxChoice)
+    return(gdxChoice)
+  }
+
+  getGdxFileName <- function() {
+    gdxSwitchCombo <- read.csv(file = paste0(getwd(), "/results/gdxInfo.csv"), header = TRUE, stringsAsFactors = FALSE)
+    gdxChoice <- gdxSwitchCombo[, 1]
+    return(gdxChoice)
+  }
+
+  getSwitchChoice <- function() {
+    gdxSwitchCombo <- read.csv(file = paste0(getwd(), "/results/gdxInfo.csv"), header = TRUE, stringsAsFactors = FALSE)
+    gdxChoice <- gdxSwitchCombo[,3]
+    if (gdxChoice == 1) choice = 1
+    if (gdxChoice == 2) choice = c(1,2)
+    if (gdxChoice == 3) choice = c(1,2,3)
+    if (gdxChoice == 4) choice = c(4)
+    return(choice)
+  }
+
+  # # use this function to get a tablegrob. Which can then be placed in a plot. This is done in aggNorder.R
+  g_legend <- function(plot.in) {
+    tmp <- ggplot2::ggplot_gtable(ggplot_build(plot.in))
+    leg <- which(sapply(tmp$grobs, function(x) x$name) == "guide-box")
+    legend <- tmp$grobs[[leg]]
+    return(legend)
+  }
+
+  fmt_dcimals <- function(decimals=0){
+    function(x) format(x,nsmall = decimals,scientific = FALSE)
+  }

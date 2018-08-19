@@ -95,7 +95,9 @@ for (switchloop in getSwitchChoice()) {
   if (switchloop == 1) {switch.vars <- FALSE;  switch.fortification <- FALSE; suffix = "base"}
   if (switchloop == 2) {switch.vars <- TRUE;  switch.fortification <- FALSE; suffix = "var"}
   if (switchloop == 3) {switch.vars <- TRUE;  switch.fortification <- TRUE; suffix = "varFort"}
-  gc(verbose = FALSE) # garbage collection Not sure this makes any difference
+  if (switchloop == 4) {switch.vars <- TRUE;  switch.fortification <- FALSE; suffix = "var"}
+
+    gc(verbose = FALSE) # garbage collection Not sure this makes any difference
   # These cooking retention and fixFish switches are not needed here because this code only write out graphs files.
   # get the file that holds all the graphs produced for suffix
   newFile <- paste("graphsListHolder", suffix, sep = ".")

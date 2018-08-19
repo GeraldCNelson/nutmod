@@ -20,10 +20,12 @@
 #     but WITHOUT ANY WARRANTY; without even the implied warranty of
 #     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE, See the
 #     GNU General Public License for more details at http://www.gnu.org/licenses/.
-
+library(RColorBrewer)
 source("R/nutrientModFunctions.R")
-source("R/YieldDelta.R")
+sourceFile <- "YieldDelta.R"
+createScriptMetaData()
 
+gdxChoice <- getGdxChoice()
 dt.regions.all <- getNewestVersion("dt.regions.all", fileloc("uData"))
 dt.regions.ISO_A3 <- as.data.table(dt.regions.all[,ISO_code])
 setnames(dt.regions.ISO_A3, old = "V1", new = "ISO_code")
@@ -37,13 +39,12 @@ cropNames <- c("Banana", "Barley", "Beans", "Cassava", "Chickpea", "Cowpea", "Gr
 cropCategory <- c("Roots, Tubers & Bananas", "Cereal Grains", "Oilseeds & Pulses", "Roots, Tubers & Bananas", "Oilseeds & Pulses", "Oilseeds & Pulses", "Oilseeds & Pulses",
                   "Oilseeds & Pulses", "Cereal Grains", "Cereal Grains", "Oilseeds & Pulses", "Oilseeds & Pulses", "Roots, Tubers & Bananas", "Roots, Tubers & Bananas",
                   "Cereal Grains", "Cereal Grains", "Oilseeds & Pulses", "Roots, Tubers & Bananas", "Cereal Grains", "Roots, Tubers & Bananas")
-cropInfo <- data.table(cropList = cropList, cropNames = cropNames, cropCategory = cropCategory)
-
+cropInfo <- data.table(cropList = cropList, cropjList = cropjList, cropNames = cropNames, cropCategory = cropCategory)
 
 dt.YLDCTYX0 <- getNewestVersion("dt.YLDCTYX0", fileloc("iData"))
 dt.YLDCTYX0 <- dt.YLDCTYX0[IMPACT_code %in% cropjList]
-dt.yldRnfd <- dt.YLDCTYX0[year %in% c("X2010", "X2030") & !landUse %in% c("air", "gir")]
-dt.yldIrr <- dt.YLDCTYX0[year %in% c("X2010", "X2030") & !landUse %in% c("arf", "gir")]
+dt.yldRnfd <- dt.YLDCTYX0[year %in% c("X2015", "X2030") & !landUse %in% c("air", "gir")] # gir is an unused variable related to grassland irrigated
+dt.yldIrr <- dt.YLDCTYX0[year %in% c("X2015", "X2030") & !landUse %in% c("arf", "gir")]
 
 scenarioList <- c("SSP2-HGEM-cf", paste0("SSP2-HGEM-", cropList))
 scenarioList.crops <- scenarioList[!scenarioList %in% "SSP2-HGEM-cf"]
@@ -52,35 +53,56 @@ beginningCols <- c("region_code.IMPACT159", "year")
 
 worldMap <- getNewestVersion("worldMap", fileloc("uData")) # run storeWorldMapDF() if this is not available
 
-
 # work on facetmaps for 2030 yields by crop after investment
-DTorig <- copy(dt.yldRnfd)
-DTorig <- DTorig[year %in% "X2030",]
-facetColName <- "landUse"
-legendText <- "Rainfed Yield, 2030 (mt/ha)"
+graphsListHolder <- list()
+graphsListHolder.base <- list()
+for (k in c("dt.yldRnfd", "dt.yldIrr")){
+  DTorig <- copy(eval(parse(text = k)))
+  DTorig <- DTorig[year %in% "X2030",]
+  facetColName <- "landUse"
+  if (k %in% "dt.yldRnfd") {
+    legendText.base <- "Rainfed Yield, base, 2030 (mt/ha)"
+    fileelement <- "yld_rnfd_"
+  }
+  if (k %in% "dt.yldIrr") {
+    legendText <- "Irrigated Yield, 2030 (mt/ha)"
+    fileelement <- "yld_irr_"
+  }
+  for (i in 1:length(cropInfo$cropList)) {
+    j <- cropInfo$cropList[i]
+    jadj <- substring(j, 2) # get rid of c in front of crop name
+ #   DT <- copy(DTorig)
+    scenario.j <- paste0("SSP2-HGEM-", j)
+    crop.j <- gsub("^.", "j", j)
+    DT <- DTorig[scenario %in% scenario.j & IMPACT_code %in% crop.j]
+    DT.base <- DTorig[scenario %in% "SSP2-HGEM-cf" & IMPACT_code %in% crop.j]
+    DT <- countryCodeCleanup(DT) # converts IMPACT region codes to ISO3 codes for largest country in the region
+    DT.base <- countryCodeCleanup(DT.base) # converts IMPACT region codes to ISO3 codes for largest country in the region
+    DT <- merge(DT, dt.regions.ISO_A3, by.x = "region_code.IMPACT159", by.y = "ISO_code", all.y = TRUE)
+    DT.base <- merge(DT.base, dt.regions.ISO_A3, by.x = "region_code.IMPACT159", by.y = "ISO_code", all.y = TRUE)
+    setnames(DT, old = c("region_code.IMPACT159", "YLDCTYX0"), new = c("id", "value"))
+    setnames(DT.base, old = c("region_code.IMPACT159", "YLDCTYX0"), new = c("id", "value"))
+    DT[, scenario := scenario.j][, year := "X2030"][, IMPACT_code := crop.j]
+    DT.base[, scenario := scenario.j][, year := "X2030"][, IMPACT_code := crop.j]
+    DT[,landUse := paste(cropInfo$cropNames[i], ", ", legendText, ", w Productivity Increase", sep = "")]
+    DT.base[,landUse := paste(cropInfo$cropNames[i], ", ", legendText, ", base", sep = "")]
 
-for (j in cropList) {
-  DT <- copy(DTorig)
-  scenario.j <- paste0("SSP2-HGEM-", j)
-  crop.j <- gsub("^.", "j", j)
-  DT <- DT[scenario %in% scenario.j & IMPACT_code %in% crop.j]
-  DT <- countryCodeCleanup(DT) # converts IMPACT region codes to ISO3 codes for largest country in the region
-  DT <- merge(DT, dt.regions.ISO_A3, by.x = "region_code.IMPACT159", by.y = "ISO_code", all.y = TRUE)
-  setnames(DT, old = c("region_code.IMPACT159", "YLDCTYX0"), new = c("id", "value"))
-  DT[, scenario := scenario.j][, year := "X2030"][, IMPACT_code := crop.j]
-  DT[,landUse := paste("Rainfed Yield, 2030, ", j)]
+    fillLimits <- c(0, round(max(DT$value, na.rm = TRUE)))
 
-  fillLimits <- c(0, round(max(DT$value, na.rm = TRUE)))
-
-  DT <- truncateDT(DT, fillLimits =  fillLimits)
-  paletteType <- "Spectral"
-  breakValues <- generateBreakValues(fillLimits = fillLimits, decimals = 1)
-  # breakValues <- scales::rescale(c(breakValue.low, breakValue.low + fillRange/3, breakValue.low + fillRange/1.5, breakValue.high))
-  myPalette <- colorRampPalette(brewer.pal(11, paletteType))
-  palette <- myPalette(4)
-  graphsListHolder <- list()
-  displayOrder <- sort(unique(DT[,get(facetColName)]))
-  fileName <- paste("facetmap", "_yield_", j,  "_", "2030", sep = "")
-  desc <- paste("Rainfed yield in 2030 for ", j)
-  facetMaps(worldMap, DTfacetMap = DT, fileName, legendText, fillLimits, palette, facetColName, graphsListHolder, breakValues, displayOrder)
+ #   DT <- truncateDT(DT, fillLimits =  fillLimits)
+    paletteType <- "Spectral"
+    breakValues <- generateBreakValues(fillLimits = fillLimits, decimals = 1)
+    myPalette <- colorRampPalette(brewer.pal(11, paletteType))
+    palette <- myPalette(4)
+    displayOrder <- sort(unique(DT[,get(facetColName)]))
+    fileName <- paste("facetmap", fileelement, jadj,  "_", "2030", sep = "")
+    fileName.base <- paste("facetmap", fileelement, "base_", jadj,  "_", "2030", sep = "")
+    desc <- paste(legendText, cropInfo$cropNames[i])
+    facetMaps(worldMap, DTfacetMap = DT, fileName, legendText, fillLimits, palette, facetColName, graphsListHolder, breakValues, displayOrder)
+    facetMaps(worldMap, DTfacetMap = DT.base, fileName.base, legendText, fillLimits, palette, facetColName, graphsListHolder.base, breakValues, displayOrder)
+  }
 }
+inDT <- graphsListHolder
+outName <- "graphsListHolder.yields"
+desc <- "2030 yields of crops for USAID priorities project"
+cleanupGraphFiles(inDT, outName, fileloc("gDir"), desc = desc)

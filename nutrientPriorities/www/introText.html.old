@@ -1,0 +1,107 @@
+<h1>
+	Introduction to the Nutrient Modeling Website
+</h1>
+<p>
+	Draft, 6/24/17
+</p>
+<p>
+	This website presents detailed, country-specific information on affordability, nutrient availability and adequacy and dietary diversity for scenarios to 2050.
+</p>
+<p>
+	It is based on research that will be published in two papers&mdash;one substantive and one technical that includes the code and data. The tentative titles are
+</p>
+<ul>
+	<li>
+		Global Nutrition Security: Income dominates climate change effects to mid-century
+	</li>
+	<li>
+		Modeling nutrition security scenarios: Description of the technical process
+	</li>
+</ul>
+<p>
+	The website, and the results, are currently in development, and these tabs are likely to vary with each visit. Please treat this as work-in-progress and do not share. If you find something that seems wrong or is questionable, please email Gerald Nelson at 
+	<a href="mailto:nelson.gerald.c@gmail.com">
+		nelson.gerald.c@gmail.com</a>.
+</p>
+<p>
+	The website has a tabbed interface; one tab for each topic with sub-tabs to provide detail.
+</p>
+<p>
+	The current tabs and subtabs are
+</p>
+<ul>
+	<li>
+		Affordability
+	</li>
+	<li>
+		Availability
+	</li>
+	<li>
+		Under- and over nutrition
+	</li>
+	<ul>
+		<li>
+			Adequacy
+		</li>
+		<li>
+			AMDR&mdash;Acceptable Macronutrient Distribution Range
+		</li>
+		<li>
+			NB&mdash;Nutrient Balance Score
+		</li>
+		<li>
+			MRV&mdash;Maximum Recommended Intake
+		</li>
+	</ul>
+	<li>
+		Dietary diversity
+	</li>
+	<ul>
+	<li>
+	Shannon diversity index
+	</li>
+	<li>
+	Nutrient diversity by food group
+	</li>
+	<li>
+	Nonstaple share of dietary energy
+	</li>
+	<li>
+	Rao's quadratic entropy metric
+	</li>
+	</ul>
+	<li>Glossary</li>
+	<li>
+		Data and developer information
+	</li>
+	<ul>
+	<li>
+		Meta data for the project
+	</li>
+	<li>
+		Meta data for the IMPACT inputs
+	</li>
+	<li>
+		IMPACT commodity to food group lookup table
+	</li>
+	<li>
+		File documentation
+	</li>
+	</ul>
+	<li>Acknowledgements</>
+</ul>
+<p><b>Supporting institutions</b></p>
+<td>
+<tr>
+<a href="http://illinois.edu">
+<img src="logos/Illinois.png" alt="University of Illinois, Urbana-Champaign" height="50" target="_blank"/>
+</a>
+<a href="http://csiro.au">
+<img src="logos/csiro.png" alt="CSIRO" height="50" target="_blank"/>
+</a>
+<a href="http://ifpri.org">
+<img src="logos/ifpri.jpg" alt="International Food Policy Research Institute" height="50" target="_blank"/>
+</a>
+<a href="http://ucdavis.edu">
+<img src="logos/ucdavis.png" alt="University of California, Davis" height="50" target="_blank"/>
+</a>

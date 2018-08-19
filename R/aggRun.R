@@ -81,6 +81,7 @@ for (switchloop in getSwitchChoice()) {
   if (switchloop == 1) {switch.vars <- FALSE;  switch.fortification <- FALSE; suffix = "base"}
   if (switchloop == 2) {switch.vars <- TRUE;  switch.fortification <- FALSE; suffix = "var"}
   if (switchloop == 3) {switch.vars <- TRUE;  switch.fortification <- TRUE; suffix = "varFort"}
+  if (switchloop == 4) {switch.vars <- TRUE;  switch.fortification <- FALSE; suffix = "var"}
 
   # at the moment temp is here to remind me that the names in multipleNutsFileList need to correspond with those in multipleNutsListShortName
   temp <-  c("dt.nutrients_sum_all", "nutrients_avail",
