@@ -59,44 +59,44 @@ getGdxChoice <- function() {
 # }
 
 fileloc <- function(variableName) {
-  gdxChoice <- getGdxChoice()
+  gdxChoice <- paste0(getwd(), "/data/gdxInfo.csv")
   rawData <- "data-raw"
   mData <- paste("data/", gdxChoice, sep = "")
   gDir <- paste("graphics", gdxChoice, sep = "/")
   iData <- paste(mData, "IMPACTData/", sep = "/")
   nutData <- "data-raw/NutrientData"
   resultsTop <- "results"
-  resultsDir <- paste("data/", gdxChoice, sep = "")
-  resultsPaperDir <- "results/nutPaper"
-  shinyApp <- "nutrientModeling"
-  shinyAppData <- "nutrientModeling/data"
-  FBSData <- paste(rawData, "FBSData", sep = "/")
-  SSPData <- paste(rawData, "SSPData", sep = "/")
-  IMPACTRawData <- paste(rawData, "IMPACTData", sep = "/")
-  IMPACTCleanData <- paste(mData, "IMPACTData/", gdxChoice, sep = "/")
-  NutrientData <- paste(rawData, "NutrientData", sep = "/")
-  nutrientDataDetails <- paste(rawData, "NutrientData", "nutrientDetails", sep = "/")
-  if (variableName == "list") {
-    return(c(
-      "rawData",
-      "mData",
-      "iData",
-      "gDir",
-      "resultsDir",
-      "resultsTop",
-      "resultsPaperDir",
-      "shinyApp",
-      "shinyAppData",
-      "FBSData",
-      "IMPACTRawData",
-      "IMPACTCleanData",
-      "NutrientData",
-      "nutrientDataDetails",
-      "SSPData"
-    ))
-  } else {
+  # resultsDir <- paste("data/", gdxChoice, sep = "")
+  # resultsPaperDir <- "results/nutPaper"
+  # shinyApp <- "nutrientModeling"
+  # shinyAppData <- "nutrientModeling/data"
+  # FBSData <- paste(rawData, "FBSData", sep = "/")
+  # SSPData <- paste(rawData, "SSPData", sep = "/")
+  # IMPACTRawData <- paste(rawData, "IMPACTData", sep = "/")
+  # IMPACTCleanData <- paste(mData, "IMPACTData/", gdxChoice, sep = "/")
+  # NutrientData <- paste(rawData, "NutrientData", sep = "/")
+  # nutrientDataDetails <- paste(rawData, "NutrientData", "nutrientDetails", sep = "/")
+  # if (variableName == "list") {
+  #   return(c(
+  #     "rawData",
+  #     "mData",
+  #     "iData",
+  #     "gDir",
+  #     "resultsDir",
+  #     "resultsTop",
+  #     "resultsPaperDir",
+  #     "shinyApp",
+  #     "shinyAppData",
+  #     "FBSData",
+  #     "IMPACTRawData",
+  #     "IMPACTCleanData",
+  #     "NutrientData",
+  #     "nutrientDataDetails",
+  #     "SSPData"
+  #   ))
+  # } else {
     return(eval(parse(text = variableName)))
-  }
+#  }
 }
 
 #' getNewestVersion
@@ -232,87 +232,87 @@ cleanupNutrientNamesFacetGraph <- function(nutList) {
 
 #' Title keyVariable - Return a key variable, or a list of all possibilities
 
-keyVariable <- function(variableName) {
-  region <- "region_code.IMPACT159"
-  keepYearList <- c("X2010", "X2015", "X2020", "X2025", "X2030", "X2035", "X2040", "X2045", "X2050")
-  keepYearList.FBS <- c("X2000", "X2001", "X2002", "X2003", "X2004", "X2005",
-                        "X2006", "X2007", "X2008", "X2009", "X2010", "X2011")
-  FBSyearsToAverage <- c("X2004", "X2005", "X2006")
-
-  #' note shrimp, tuna, and salmon are removed in dataManagement.fish.R
-  IMPACTfish_code <- c("c_Shrimp", "c_Crust", "c_Mllsc", "c_Salmon", "c_FrshD",
-                       "c_Tuna", "c_OPelag", "c_ODmrsl", "c_OMarn", "c_FshOil", "c_aqan",
-                       "c_aqpl")
-  IMPACTalcohol_code <- c("c_wine", "c_beer", "c_spirits")
-  IMPACTfoodCommodList <- sort(c("cbeef", "cpork", "clamb", "cpoul", "ceggs", "cmilk", "cbarl", "cmaiz",
-                                 "cmill", "crice", "csorg", "cwhea", "cocer", "ccass", "cpota", "cswpt",
-                                 "cyams", "corat", "cbean", "cchkp", "ccowp", "clent", "cpigp", "copul",
-                                 "cbana", "cplnt", "csubf", "ctemf", "cvege", "csugr", "cgrnd", "cgdol",
-                                 "crpol", "csoyb", "csbol", "csnfl", "csfol", "cplol", "cpkol", "crpsd",
-                                 "ctols", "ctool", "ccoco", "ccafe", "cteas", "cothr", IMPACTfish_code,
-                                 IMPACTalcohol_code))
-
-  #These are the scenario numbers for the IIASA data with population disaggregated.
-  scenarioListSSP.pop <- c("SSP1_v9_130115", "SSP2_v9_130115", "SSP3_v9_130115",
-                           "SSP4_v9_130115", "SSP5_v9_130115")
-  scenarioListSSP.GDP <- c("SSP1_v9_130325", "SSP2_v9_130325", "SSP3_v9_130325",
-                           "SSP4_v9_130325", "SSP5_v9_130325")
-
-  # scenarioListIMPACT <- as.character(read.csv(file = paste(fileloc("mData"),"scenarioListIMPACT.csv", sep = "/"), stringsAsFactors = FALSE)[,1])
-  DinY <- 365 #see http://stackoverflow.com/questions/9465817/count-days-per-year for a way to deal with leap years
-  #' #' countries to remove because of poor data
-  #' FSM - Micronesia, Federated States of
-  #' GRD - Grenada
-  #' PRK - Korea, Democratic People's Republic of
-  reqsList <-
-    c(
-      "req.EAR",
-      "req.RDA.vits",
-      "req.RDA.minrls",
-      "req.RDA.macro",
-      "req.UL.vits",
-      "req.UL.minrls",
-      "req.AMDR_hi",
-      "req.AMDR_lo",
-      "req.MRVs" # added March 24, 2017
-      # commmented out because as of Dec 25, 2016, PR requirements for iron and zinc are now in req.RDA.minrls
-      # ,
-      # "req.PR.iron",
-      # "req.PR.zinc"
-    )
-  reqsListPercap <- paste(reqsList,"_percap", sep = "")
-  reqsListSSP <- paste(reqsList,"_ssp", sep = "")
-  dropListCty <- c("GRL", "FSM", "GRD", "PRK")
-  commonList <- paste("common.", reqsList, sep = "")
-  c( "common.EAR", "common.RDA.vits", "common.RDA.minrls", "common.RDA.macro", "common.AMDR_hi", "common.AMDR_lo","common.UL.vits","common.UL.minrls")
-  userName <- "Gerald C. Nelson"
-  if (variableName == "list") {
-    return(
-      c(
-        "switch.fixFish",
-        "switch.changeElasticity",
-        "region",
-        "keepYearList",
-        "keepYearList.FBS",
-        "FBSyearsToAverage",
-        "IMPACTfish_code",
-        "IMPACTalcohol_code",
-        "IMPACTfoodCommodList",
-        "scenarioListSSP.pop",
-        "scenarioListSSP.GDP",
-        #        "scenarioListIMPACT",
-        "DinY",
-        "reqListSSP",
-        "switch.useCookingRetnValues",
-        "commonList",
-        "userName",
-        "dropListCty"
-      )
-    )
-  } else {
-    return(eval(parse(text = variableName)))
-  }
-}
+#' keyVariable <- function(variableName) {
+#'   region <- "region_code.IMPACT159"
+#'   keepYearList <- c("X2010", "X2015", "X2020", "X2025", "X2030", "X2035", "X2040", "X2045", "X2050")
+#'   keepYearList.FBS <- c("X2000", "X2001", "X2002", "X2003", "X2004", "X2005",
+#'                         "X2006", "X2007", "X2008", "X2009", "X2010", "X2011")
+#'   FBSyearsToAverage <- c("X2004", "X2005", "X2006")
+#'
+#'   #' note shrimp, tuna, and salmon are removed in dataManagement.fish.R
+#'   IMPACTfish_code <- c("c_Shrimp", "c_Crust", "c_Mllsc", "c_Salmon", "c_FrshD",
+#'                        "c_Tuna", "c_OPelag", "c_ODmrsl", "c_OMarn", "c_FshOil", "c_aqan",
+#'                        "c_aqpl")
+#'   IMPACTalcohol_code <- c("c_wine", "c_beer", "c_spirits")
+#'   IMPACTfoodCommodList <- sort(c("cbeef", "cpork", "clamb", "cpoul", "ceggs", "cmilk", "cbarl", "cmaiz",
+#'                                  "cmill", "crice", "csorg", "cwhea", "cocer", "ccass", "cpota", "cswpt",
+#'                                  "cyams", "corat", "cbean", "cchkp", "ccowp", "clent", "cpigp", "copul",
+#'                                  "cbana", "cplnt", "csubf", "ctemf", "cvege", "csugr", "cgrnd", "cgdol",
+#'                                  "crpol", "csoyb", "csbol", "csnfl", "csfol", "cplol", "cpkol", "crpsd",
+#'                                  "ctols", "ctool", "ccoco", "ccafe", "cteas", "cothr", IMPACTfish_code,
+#'                                  IMPACTalcohol_code))
+#'
+#'   #These are the scenario numbers for the IIASA data with population disaggregated.
+#'   scenarioListSSP.pop <- c("SSP1_v9_130115", "SSP2_v9_130115", "SSP3_v9_130115",
+#'                            "SSP4_v9_130115", "SSP5_v9_130115")
+#'   scenarioListSSP.GDP <- c("SSP1_v9_130325", "SSP2_v9_130325", "SSP3_v9_130325",
+#'                            "SSP4_v9_130325", "SSP5_v9_130325")
+#'
+#'   # scenarioListIMPACT <- as.character(read.csv(file = paste(fileloc("mData"),"scenarioListIMPACT.csv", sep = "/"), stringsAsFactors = FALSE)[,1])
+#'   DinY <- 365 #see http://stackoverflow.com/questions/9465817/count-days-per-year for a way to deal with leap years
+#'   #' #' countries to remove because of poor data
+#'   #' FSM - Micronesia, Federated States of
+#'   #' GRD - Grenada
+#'   #' PRK - Korea, Democratic People's Republic of
+#'   reqsList <-
+#'     c(
+#'       "req.EAR",
+#'       "req.RDA.vits",
+#'       "req.RDA.minrls",
+#'       "req.RDA.macro",
+#'       "req.UL.vits",
+#'       "req.UL.minrls",
+#'       "req.AMDR_hi",
+#'       "req.AMDR_lo",
+#'       "req.MRVs" # added March 24, 2017
+#'       # commmented out because as of Dec 25, 2016, PR requirements for iron and zinc are now in req.RDA.minrls
+#'       # ,
+#'       # "req.PR.iron",
+#'       # "req.PR.zinc"
+#'     )
+#'   reqsListPercap <- paste(reqsList,"_percap", sep = "")
+#'   reqsListSSP <- paste(reqsList,"_ssp", sep = "")
+#'   dropListCty <- c("GRL", "FSM", "GRD", "PRK")
+#'   commonList <- paste("common.", reqsList, sep = "")
+#'   c( "common.EAR", "common.RDA.vits", "common.RDA.minrls", "common.RDA.macro", "common.AMDR_hi", "common.AMDR_lo","common.UL.vits","common.UL.minrls")
+#'   userName <- "Gerald C. Nelson"
+#'   if (variableName == "list") {
+#'     return(
+#'       c(
+#'         "switch.fixFish",
+#'         "switch.changeElasticity",
+#'         "region",
+#'         "keepYearList",
+#'         "keepYearList.FBS",
+#'         "FBSyearsToAverage",
+#'         "IMPACTfish_code",
+#'         "IMPACTalcohol_code",
+#'         "IMPACTfoodCommodList",
+#'         "scenarioListSSP.pop",
+#'         "scenarioListSSP.GDP",
+#'         #        "scenarioListIMPACT",
+#'         "DinY",
+#'         "reqListSSP",
+#'         "switch.useCookingRetnValues",
+#'         "commonList",
+#'         "userName",
+#'         "dropListCty"
+#'       )
+#'     )
+#'   } else {
+#'     return(eval(parse(text = variableName)))
+#'   }
+#' }
 
 countryNameLookup <- function(countryCode, directory) {
   if (missing(directory)) {mData <- fileloc("mData")} else {mData <- directory}
