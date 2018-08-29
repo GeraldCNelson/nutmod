@@ -43,66 +43,118 @@ cropInfo <- data.table(cropList = cropList, cropjList = cropjList, cropNames = c
 
 dt.YLDCTYX0 <- getNewestVersion("dt.YLDCTYX0", fileloc("iData"))
 dt.YLDCTYX0 <- dt.YLDCTYX0[IMPACT_code %in% cropjList]
-dt.yldRnfd <- dt.YLDCTYX0[year %in% c("X2015", "X2030") & !landUse %in% c("air", "gir")] # gir is an unused variable related to grassland irrigated
-dt.yldIrr <- dt.YLDCTYX0[year %in% c("X2015", "X2030") & !landUse %in% c("arf", "gir")]
+# dt.yldRnfd <- dt.YLDCTYX0[year %in% c("X2015", "X2030") & !landUse %in% c("air", "gir")] # gir is an unused variable related to grassland irrigated
+# dt.yldIrr <- dt.YLDCTYX0[year %in% c("X2015", "X2030") & !landUse %in% c("arf", "gir")]
 
-scenarioList <- c("SSP2-HGEM-cf", paste0("SSP2-HGEM-", cropList))
-scenarioList.crops <- scenarioList[!scenarioList %in% "SSP2-HGEM-cf"]
-cropRatios <- paste(scenarioList.crops, "ratio", sep = ".")
-beginningCols <- c("region_code.IMPACT159", "year")
+dt.yldRnfd <- dt.YLDCTYX0[year %in% c("X2030") & !landUse %in% c("air", "gir")] # gir is an unused variable related to grassland irrigated
+dt.yldIrr <- dt.YLDCTYX0[year %in% c("X2030") & !landUse %in% c("arf", "gir")]
 
-worldMap <- getNewestVersion("worldMap", fileloc("uData")) # run storeWorldMapDF() if this is not available
+formula.wide <- sprintf("region_code.IMPACT159 + year + IMPACT_code ~ %s", "scenario")
+valueVar = "YLDCTYX0"
+# add delta for rainfed
+dt.yldRnfd.wide <- dcast(data = dt.yldRnfd, formula = formula.wide, value.var = valueVar)
+#dt.yldRnfd.wide[, base := `SSP2-HGEM-cf`]
+prodCols <- names(dt.yldRnfd.wide)[!names(dt.yldRnfd.wide) %in% c("region_code.IMPACT159", "year", "IMPACT_code", "SSP2-HGEM-cf")]
+prodCols.delta <- paste0(prodCols, ".delta")
+dt.yldRnfd.wide[, (prodCols.delta) := lapply(.SD, `-`, `SSP2-HGEM-cf`), .SDcols = (prodCols)]
+dt.yldRnfd.wide[, (prodCols.delta) := lapply(.SD, `/`, `SSP2-HGEM-cf`/100), .SDcols = (prodCols.delta)]
 
-# work on facetmaps for 2030 yields by crop after investment
-graphsListHolder <- list()
-graphsListHolder.base <- list()
-for (k in c("dt.yldRnfd", "dt.yldIrr")){
-  DTorig <- copy(eval(parse(text = k)))
-  DTorig <- DTorig[year %in% "X2030",]
-  facetColName <- "landUse"
-  if (k %in% "dt.yldRnfd") {
-    legendText.base <- "Rainfed Yield, base, 2030 (mt/ha)"
-    fileelement <- "yld_rnfd_"
-  }
-  if (k %in% "dt.yldIrr") {
-    legendText <- "Irrigated Yield, 2030 (mt/ha)"
-    fileelement <- "yld_irr_"
-  }
-  for (i in 1:length(cropInfo$cropList)) {
-    j <- cropInfo$cropList[i]
-    jadj <- substring(j, 2) # get rid of c in front of crop name
- #   DT <- copy(DTorig)
-    scenario.j <- paste0("SSP2-HGEM-", j)
-    crop.j <- gsub("^.", "j", j)
-    DT <- DTorig[scenario %in% scenario.j & IMPACT_code %in% crop.j]
-    DT.base <- DTorig[scenario %in% "SSP2-HGEM-cf" & IMPACT_code %in% crop.j]
-    DT <- countryCodeCleanup(DT) # converts IMPACT region codes to ISO3 codes for largest country in the region
-    DT.base <- countryCodeCleanup(DT.base) # converts IMPACT region codes to ISO3 codes for largest country in the region
-    DT <- merge(DT, dt.regions.ISO_A3, by.x = "region_code.IMPACT159", by.y = "ISO_code", all.y = TRUE)
-    DT.base <- merge(DT.base, dt.regions.ISO_A3, by.x = "region_code.IMPACT159", by.y = "ISO_code", all.y = TRUE)
-    setnames(DT, old = c("region_code.IMPACT159", "YLDCTYX0"), new = c("id", "value"))
-    setnames(DT.base, old = c("region_code.IMPACT159", "YLDCTYX0"), new = c("id", "value"))
-    DT[, scenario := scenario.j][, year := "X2030"][, IMPACT_code := crop.j]
-    DT.base[, scenario := scenario.j][, year := "X2030"][, IMPACT_code := crop.j]
-    DT[,landUse := paste(cropInfo$cropNames[i], ", ", legendText, ", w Productivity Increase", sep = "")]
-    DT.base[,landUse := paste(cropInfo$cropNames[i], ", ", legendText, ", base", sep = "")]
+idVars <- c("region_code.IMPACT159", "IMPACT_code", "year")
+measureVars <- names(dt.yldRnfd.wide)[!names(dt.yldRnfd.wide) %in% idVars]
+dt.yldRnfd <- melt(
+  data = dt.yldRnfd.wide,
+  id.vars = idVars,
+  measure.vars = measureVars,
+  variable.name = "scenario",
+  value.name = "value",
+  variable.factor = FALSE
+)
+                   
+# add delta for irrigated
+dt.yldIrr.wide <- dcast(data = dt.yldIrr, formula = formula.wide, value.var = valueVar)
+#dt.yldIrr.wide[, base := `SSP2-HGEM-cf`]
+prodCols <- names(dt.yldIrr.wide)[!names(dt.yldIrr.wide) %in% c("region_code.IMPACT159", "year", "IMPACT_code", "SSP2-HGEM-cf")]
+prodCols.delta <- paste0(prodCols, ".delta")
+dt.yldIrr.wide[, (prodCols.delta) := lapply(.SD, `-`, `SSP2-HGEM-cf`), .SDcols = (prodCols)]
+dt.yldIrr.wide[, (prodCols.delta) := lapply(.SD, `/`, `SSP2-HGEM-cf`/100), .SDcols = (prodCols.delta)]
+measureVars <- names(dt.yldIrr.wide)[!names(dt.yldIrr.wide) %in% idVars]
+dt.yldIrr <- melt(
+  data = dt.yldIrr.wide,
+  id.vars = idVars,
+  measure.vars = measureVars,
+  variable.name = "scenario",
+  value.name = "value",
+  variable.factor = FALSE
+)
 
-    fillLimits <- c(0, round(max(DT$value, na.rm = TRUE)))
+inDT <- dt.yldRnfd
+outname <- "dt.yldRnfd.var"
+desc <- "rainfed yield data for productivity increase project"
+cleanup(inDT, outname, fileloc("gDir"), desc = desc)
 
- #   DT <- truncateDT(DT, fillLimits =  fillLimits)
-    paletteType <- "Spectral"
-    breakValues <- generateBreakValues(fillLimits = fillLimits, decimals = 1)
-    myPalette <- colorRampPalette(brewer.pal(11, paletteType))
-    palette <- myPalette(4)
-    displayOrder <- sort(unique(DT[,get(facetColName)]))
-    fileName <- paste("facetmap", fileelement, jadj,  "_", "2030", sep = "")
-    fileName.base <- paste("facetmap", fileelement, "base_", jadj,  "_", "2030", sep = "")
-    desc <- paste(legendText, cropInfo$cropNames[i])
-    facetMaps(worldMap, DTfacetMap = DT, fileName, legendText, fillLimits, palette, facetColName, graphsListHolder, breakValues, displayOrder)
-    facetMaps(worldMap, DTfacetMap = DT.base, fileName.base, legendText, fillLimits, palette, facetColName, graphsListHolder.base, breakValues, displayOrder)
-  }
-}
-inDT <- graphsListHolder
-outName <- "graphsListHolder.yields"
-desc <- "2030 yields of crops for USAID priorities project"
-cleanupGraphFiles(inDT, outName, fileloc("gDir"), desc = desc)
+inDT <- dt.yldIrr
+outname <- "dt.yldIrr.var"
+desc <- "irrigated yield data for productivity increase project"
+cleanup(inDT, outname, fileloc("gDir"), desc = desc)
+
+# 
+# scenarioList <- c("SSP2-HGEM-cf", paste0("SSP2-HGEM-", cropList))
+# scenarioList.crops <- scenarioList[!scenarioList %in% "SSP2-HGEM-cf"]
+# cropRatios <- paste(scenarioList.crops, "ratio", sep = ".")
+# beginningCols <- c("region_code.IMPACT159", "year")
+# 
+# worldMap <- getNewestVersion("worldMap", fileloc("uData")) # run storeWorldMapDF() if this is not available
+# 
+# # work on facetmaps for 2030 yields by crop after investment
+# graphsListHolder <- list()
+# facetColName <- "landUse" # - Needed for the use of the facetmap technology. It's the label for each facet map. In this script there is only one facet.
+# for (k in c("dt.yldRnfd", "dt.yldIrr")){
+#   DTorig <- copy(eval(parse(text = k)))
+#   DTorig[, year := NULL]
+#   if (k %in% "dt.yldRnfd") {
+#     legendText <- "Rainfed Yield, 2030 (mt/ha)"
+#     fileelement <- "yld_rnfd_"
+#   }
+#   if (k %in% "dt.yldIrr") {
+#     legendText <- "Irrigated Yield, 2030 (mt/ha)"
+#     fileelement <- "yld_irr_"
+#   }
+#   for (i in 1:length(cropInfo$cropList)) {
+#     j <- cropInfo$cropList[i]
+#     jadj <- substring(j, 2) # get rid of c in front of crop name
+#  #   DT <- copy(DTorig)
+#     scenario.j <- paste0("SSP2-HGEM-", j)
+#     crop.j <- gsub("^.", "j", j)
+#     DT <- DTorig[scenario %in% scenario.j & IMPACT_code %in% crop.j]
+#     DT.base <- DTorig[scenario %in% "SSP2-HGEM-cf" & IMPACT_code %in% crop.j]
+#     DT <- countryCodeCleanup(DT) # converts IMPACT region codes to ISO3 codes for largest country in the region
+#     DT.base <- countryCodeCleanup(DT.base) # converts IMPACT region codes to ISO3 codes for largest country in the region
+#     DT <- merge(DT, dt.regions.ISO_A3, by.x = "region_code.IMPACT159", by.y = "ISO_code", all.y = TRUE)
+#     DT.base <- merge(DT.base, dt.regions.ISO_A3, by.x = "region_code.IMPACT159", by.y = "ISO_code", all.y = TRUE)
+#     setnames(DT, old = c("region_code.IMPACT159", "YLDCTYX0"), new = c("id", "value"))
+#     setnames(DT.base, old = c("region_code.IMPACT159", "YLDCTYX0"), new = c("id", "value"))
+#     DT[, scenario := scenario.j][, IMPACT_code := crop.j]
+#     DT.base[, scenario := scenario.j][, IMPACT_code := crop.j]
+#     DT[,landUse := paste(cropInfo$cropNames[i], ", ", legendText, ", w Productivity Increase", sep = "")]
+#     DT.base[,landUse := paste(cropInfo$cropNames[i], ", ", legendText, ", base", sep = "")]
+# 
+#     fillLimits <- c(0, round(max(DT$value, na.rm = TRUE)))
+# 
+#  #   DT <- truncateDT(DT, fillLimits =  fillLimits)
+#     paletteType <- "Spectral"
+#     breakValues <- generateBreakValues(fillLimits = fillLimits, decimals = 1)
+#     myPalette <- colorRampPalette(brewer.pal(11, paletteType))
+#     palette <- myPalette(4)
+#     displayOrder <- sort(unique(DT[,get(facetColName)]))
+#     fileName <- paste("facetmap", fileelement, jadj,  "_", "2030", sep = "")
+#     fileName.base <- paste("facetmap", fileelement, "base_", jadj,  "_", "2030", sep = "")
+#     desc <- paste(legendText, cropInfo$cropNames[i])
+#     DT[, c("scenario", "IMPACT_code") := NULL]
+#     facetMaps(worldMap, DTfacetMap = DT, fileName = fileName, legendText, fillLimits, palette, facetColName, graphsListHolder, breakValues, displayOrder)
+#     facetMaps(worldMap, DTfacetMap = DT.base, fileName = fileName.base, legendText, fillLimits, palette, facetColName, graphsListHolder, breakValues, displayOrder)
+#   }
+# }
+# inDT <- graphsListHolder
+# outName <- "graphsListHolder.yields"
+# desc <- "2030 yields of crops for USAID priorities project"
+# cleanupGraphFiles(inDT, outName, fileloc("gDir"), desc = desc)

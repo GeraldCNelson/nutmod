@@ -1584,7 +1584,8 @@ getGdxChoice <- function() {
 
     gdxChoice <- gdxSwitchCombo[,2]
     #    cat("gdxChoice is", gdxChoice)
-    }
+    assign("gdxChoice", gdxChoice, envir = .GlobalEnv)
+  }
     return(gdxChoice)
   }
 
@@ -1606,7 +1607,9 @@ getGdxChoice <- function() {
     }
     gdxChoice <- gdxSwitchCombo[,2]
     cat("gdxChoice is", gdxChoice)
-    return(gdxChoice)
+    assign("gdxChoice", gdxChoice, envir = .GlobalEnv)
+
+#    return(gdxChoice)
   }
 
   getGdxFileName <- function() {

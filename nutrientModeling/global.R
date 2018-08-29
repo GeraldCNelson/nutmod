@@ -481,11 +481,12 @@ fmt_dcimals <- function(decimals=0){
 # code specifically for shiny app -----
 years <- c("X2010", "X2030", "X2050")
 yearsClean <- gsub("X", "", years)
-fontFamily <- "Times"
+fontFamily <- "Helvetica Neue"
 dt.scenarioListIMPACT <- getNewestVersion("dt.scenarioListIMPACT", fileloc("mData"))
 dt.scenarioListIMPACT <- dt.scenarioListIMPACT[,scenario := gsub("-REF", "", scenario)]
 scenarioNames <- unique(dt.scenarioListIMPACT$scenario)
 scenarioNames <- scenarioNames[!scenarioNames %in% c( "SSP2-IPSL", "SSP2-MIROC", "SSP2-GFDL")]
+scenarioList <- scenarioNames # added Aug 27, 2018 because scenarioList now used in the app. Might want to change this
 resultFileLookup <- getNewestVersion("resultFileLookup", fileloc("mData"))
 dt.regions.all <- getNewestVersion("dt.regions.all", fileloc("mData"))
 dt.regions.all[, region_name.IMPACT159 := gsub(" plus", "", region_name.IMPACT159)] # used to get to country code
@@ -508,7 +509,19 @@ spiderGraphData <- function(countryName, scenarioName, dt, displayColumnName) {
   dt[, scenario := gsub("-REF", "", scenario)]
   dt <- dt[region_code.IMPACT159 %in% countryCode & scenario %in% scenarioName,]
   dt[, year := gsub("X", "", year)]
-  formula.wide <- sprintf("scenario + region_code.IMPACT159 + year ~ %s", displayColumnName)
+  formula.wide <- sprintf("scenario + region_code.IMPACT159 + nutrientType + year ~ %s", displayColumnName)
+  dt <- dcast(data = dt, formula = formula.wide, value.var = "value")
+  return(dt)
+}
+
+spiderGraphData2 <- function(countryName, dt, displayColumnName) {
+  if (missing(displayColumnName)) displayColumnName <- "nutrient"
+  countryCode <- countryCodeLookup(countryName, fileloc("mData"))
+  dt[, scenario := gsub("-REF", "", scenario)]
+  dt <- dt[region_code.IMPACT159 %in% countryCode,]
+  dt[, year := gsub("X", "", year)]
+  formula.wide <- sprintf("scenario + region_code.IMPACT159 + nutrientType + year ~ %s", displayColumnName)
+  cat("\n", unique(dt$scenario), "\n")
   dt <- dcast(data = dt, formula = formula.wide, value.var = "value")
   return(dt)
 }
@@ -529,13 +542,13 @@ spiderGraphOutput <- function(spiderData, scenarioName) {
   spiderData[, region_code.IMPACT159 := NULL]
 #  data.table::setnames(spiderData, old = names(spiderData), new = capwords(names(spiderData)))
   titleText <- paste("Country: ", countryName, "Scenario: ", scenarioName)
-  p <- ggRadar(data = spiderData, mapping = aes(colour = year),
-               rescale = FALSE, interactive = FALSE, size = 2,
-               legend.position = "right")
-  p <- p + theme(plot.title = element_text(hjust = 0.5, size = 12, family = fontFamily,
+  p <- ggRadar2(data = spiderData, mapping = aes(colour = year, facet = "scenario"), nrow = 1, #, facet = "nutrientType"
+               rescale = FALSE, interactive = FALSE, size = 1,
+               legend.position = "bottom")
+  p <- p + theme(plot.title = element_text(hjust = 0.5, size = 10, family = fontFamily,
                                            face = "plain")) + ggtitle(titleText)
-  p <- p + theme(axis.text = element_text(size = 12, family = fontFamily, face = "plain"))
-  p <- p + theme(legend.text = element_text(size = 12, family = fontFamily, face = "plain"))
+  p <- p + theme(axis.text = element_text(size = 10, family = fontFamily, face = "plain"))
+  p <- p + theme(legend.text = element_text(size = 10, family = fontFamily, face = "plain"))
   return(p)
 }
 
@@ -650,7 +663,7 @@ load_data_special <- function(data_name) {
 
 pivotWideToWideYear <- function(inData) {
   dt <- data.table::copy(inData)
-  namelist <- names(dt)
+  namelist <- names(dt)[!names(dt) %in% "nutrientType"]
   idVars <- c("scenario", "region_code.IMPACT159", "year")
   measureVars <- namelist[!namelist %in% idVars]
   dt.long  <- data.table::melt(
@@ -700,14 +713,14 @@ facetGraphOutput <- function(inData, facetColumnName, displayColumnName, foodGro
     scale_fill_discrete(name = "Year") +
     geom_col(position = "dodge") + facet_wrap(~nutrient, scales = "free_x", ncol = 3) +
     coord_flip() # + theme(plot.margin = unit(c(1, 1, 1, 1), "null"))
-  p <- p + theme(plot.title = element_text(hjust = 0.5, size = 12, family = fontFamily,
+  p <- p + theme(plot.title = element_text(hjust = 0.5, size = 10, family = fontFamily,
                                            face = "plain")) + ggtitle(titleText)
-  p <- p + theme(axis.text.x = element_text(size = 12, family = fontFamily, face = "plain"))
-  p <- p + theme(axis.text.y = element_text(size = 12, family = fontFamily, face = "plain"))
-  p <- p + theme(axis.title.y = element_text(size = 12, family = fontFamily, face = "plain"))
-  p <- p + theme(legend.text = element_text(size = 12, family = fontFamily, face = "plain"))
-  p <- p + theme(legend.title = element_text(size = 12, family = fontFamily, face = "plain"))
-  p <- p + theme(strip.text.x = element_text(size = 12, family = fontFamily, face = "plain"))
+  p <- p + theme(axis.text.x = element_text(size = 10, family = fontFamily, face = "plain"))
+  p <- p + theme(axis.text.y = element_text(size = 10, family = fontFamily, face = "plain"))
+  p <- p + theme(axis.title.y = element_text(size = 10, family = fontFamily, face = "plain"))
+  p <- p + theme(legend.text = element_text(size = 10, family = fontFamily, face = "plain"))
+  p <- p + theme(legend.title = element_text(size = 10, family = fontFamily, face = "plain"))
+  p <- p + theme(strip.text.x = element_text(size = 10, family = fontFamily, face = "plain"))
   p <- p +  xlab("food group") + ylab(NULL)
   return(p)
 }

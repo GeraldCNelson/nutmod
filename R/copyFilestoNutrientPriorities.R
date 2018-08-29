@@ -1,9 +1,9 @@
-#' @title "Copy files needed to make the nutrientModeling shiny app work"
+#' @title "Copy files needed to make the nutrientPriorities shiny app work"
 #' @keywords utilities, copy files, nutrient modeling shiny app
-#' @name copyFilestoNutrientModeling.R
+#' @name copyFilestoNutrientPriorities.R
 #' @author Gerald C. Nelson, \\email{nelson.gerald.c@@gmail.com}
 #' @description
-#' copy files from the dir directory (typically results) to the nutrientModeling directory.
+#' copy files from the dir directory (typically results) to the nutrientPriorities/data directory.
 #' files to copy are
 #' dt.regions.all
 #' dt.scenarioListIMPACT
@@ -13,7 +13,7 @@
 #' resultFileLookup
 #' dt.nutrients.kcals
 #' dt.budgetShare
-#' dt.metadataTot
+#' dt.metadata
 #' dt.IMPACTgdxParams
 #' dt.foodGroupsInfo
 #' reqRatio_sum_RDA_macro
@@ -21,8 +21,11 @@
 #' reqRatio_sum_RDA_minrls
 #' gdxinfo.csv
 #' dt.nutrients
+#' worldMap
+#' dt.yldRnfd
+#' dt.yldIrr
 
-#Copyright (C) 2016 2018 Gerald C. Nelson, except where noted
+#Copyright (C) 2016, 2017 Gerald C. Nelson, except where noted
 
 #   This program is free software: you can redistribute it and/or modify it
 #   under the terms of the GNU General Public License as published by the Free
@@ -38,12 +41,13 @@
 #' @include workbookFunctions.R
 #' @include nutrientCalcFunctions.R
 source("R/nutrientModFunctions.R")
+
 gdxChoice <- getGdxChoice()
 
 # #for testing
 # fileShortName <- "RDA.macro_sum_reqRatio"
 # sourceDir <- fileloc("resultsDir")
-destDir <- paste("nutrientModeling/data", sep = "/")
+destDir <- "nutrientPriorities/data"
 fileType <- "rds"
 
 #' function that copies files from one directory to another taking into account file name structure in nutrient modeling
@@ -51,11 +55,11 @@ copyFile <- function(fileShortName, sourceDir, destDir, fileType) {
   regExp <- paste("(?=^", fileShortName, ")(?=.*",fileType,"$)", sep = "")
   oldVersionList <-
     grep(regExp, list.files(sourceDir), value = TRUE, perl = TRUE)
-  oldVersionListNutrientModeling <-
+  oldVersionListnutrientPriorities <-
     grep(regExp, list.files(destDir), value = TRUE, perl = TRUE)
 
-  if (length(oldVersionListNutrientModeling) > 0) {
-    file.remove(paste(destDir, oldVersionListNutrientModeling, sep = "/"))}
+  if (length(oldVersionListnutrientPriorities) > 0) {
+    file.remove(paste(destDir, oldVersionListnutrientPriorities, sep = "/"))}
   print(oldVersionList)
   file.copy(from = paste(sourceDir, oldVersionList, sep = "/"), to = destDir, overwrite = TRUE)
 }
@@ -67,8 +71,7 @@ for (switchloop in getSwitchChoice()) {
   if (switchloop == 2) {switch.vars <- TRUE;  switch.fortification <- FALSE; suffix = "var"}
   if (switchloop == 3) {switch.vars <- TRUE;  switch.fortification <- TRUE; suffix = "varFort"}
   if (switchloop == 4) {switch.vars <- TRUE;  switch.fortification <- FALSE; suffix = "var"}
-
-   #  dt.nutrients.adj <- getNewestVersion(paste("dt.nutrients.sum.all", suffix, sep = "."), fileloc("resultsDir"))
+  #  dt.nutrients.adj <- getNewestVersion(paste("dt.nutrients.sum.all", suffix, sep = "."), fileloc("resultsDir"))
   # dt.foodNnuts <- getNewestVersion("dt.foodNnuts", suffix, fileloc("resultsDir"))
   # dt.nutrients.sum.FG <- getNewestVersion("dt.nutrients.sum.FG", suffix, fileloc("resultsDir"))
   # dt.foodAvail.foodGroup <- getNewestVersion("dt.foodAvail.foodGroup", suffix, fileloc("resultsDir"))
@@ -80,17 +83,23 @@ for (switchloop in getSwitchChoice()) {
   copyListFromSpecificResults <- c(copyListFromSpecificResults, "dt.budgetShare") # added because dt.budgetShare is identical for all suffixes
   copyListFromSpecificResultsNoSuffix <- c("dt.metadataTot")
   copyListFromiData <- c("dt.IMPACTgdxParams", "dt.nutrients.var")
-  copyListFromuData <- c("dt.regions.all")
+  copyListFromuData <- c("dt.regions.all", "worldMap", "africaMap", "americasMap", "asiaMap")
   copyListFrommData <-c("dt.scenarioListIMPACT", "dt.foodGroupsInfo", "resultFileLookup")
+  copyListFromgDir <- c("dt.yldRnfd.var", "dt.yldIrr.var")
 
-  copyfacetMapListFromgDir <- c()
   #' special copy for the gdxInfo file which is just below results
-  invisible(file.copy("results/gdxInfo.csv", "nutrientModeling/data"))
+  invisible(file.copy("results/nutrientPriorities/gdxInfo.csv", "nutrientPriorities/data"))
 
   #' copy from results/gdxname
   for (i in copyListFromSpecificResults) {
-    print(sprintf("copying file %s from results to %s", i, destDir))
-    copyFile(i, fileloc("resultsDir"), destDir, "rds")
+    print(sprintf("copying file %s from %s to %s", i, fileloc("resultsDir"), destDir))
+    copyFile(fileShortName = i, sourceDir = fileloc("resultsDir"), destDir, fileType = fileType)
+  }
+
+  #' copy from graphics
+  for (i in copyListFromgDir) {
+    print(sprintf("copying file %s from %s to %s", i, fileloc("gDir"), destDir))
+    copyFile(i, fileloc("gDir"), destDir, "rds")
   }
 
   #' copy from from results without suffix
@@ -102,24 +111,24 @@ for (switchloop in getSwitchChoice()) {
 
 # copy data from the IMPACT directory
 for (i in copyListFromiData) {
-  print(sprintf("copying file %s from %s to nutrientModeling/data", i, fileloc("iData")))
-  copyFile(i, fileloc("iData"), destDir, "rds")
+  print(sprintf("copying file %s from %s to %s", i, fileloc("iData"), destDir))
+  copyFile(fileShortName = i, sourceDir = fileloc("iData"), destDir, fileType = fileType)
 }
 
 # copy data from the data directory
 for (i in copyListFrommData) {
-  print(sprintf("copying file %s from %s to nutrientModeling/data", i, fileloc("iData")))
-  copyFile(i, fileloc("mData"), destDir, "rds")
+  print(sprintf("copying file %s from %s to %s", i, fileloc("mData"), destDir))
+  copyFile(fileShortName = i, sourceDir = fileloc("mData"), destDir, fileType = fileType)
 }
 
 # copy data from the universal data directory
 for (i in copyListFromuData) {
-  print(sprintf("copying file %s from %s to nutrientModeling/data", i, fileloc("uData")))
-  copyFile(i, fileloc("uData"), destDir, "rds")
+  print(sprintf("copying file %s from %s to nutrientPriorities/data", i, fileloc("uData")))
+  copyFile(fileShortName = i, sourceDir = fileloc("uData"), destDir, fileType = fileType)
 }
 
 #' next line commented out because global.R diverges from nutrientModFunctions.R
-#file.copy("R/nutrientModFunctions.R", "nutrientModeling/global.R", overwrite = TRUE)
+#file.copy("R/nutrientModFunctions.R", "nutrientPriorities/global.R", overwrite = TRUE)
 
 # # zip up csv files in the results directory. commented out March 11, 2018
 # zipFileName <- paste("results/resultsCSVzip", suffix, Sys.Date(), "zip", sep = "_" )

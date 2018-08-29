@@ -75,7 +75,7 @@ userScenarioChoice <- initialScenarioName # until user chooses something differe
 #region groupings
 WBcountries <- list()
 region_name.WB <- c("Low income", "Lower middle income", "Upper middle income", "High income")
-dt <- data.table::copy(dt.regions.all)
+dt <- copy(dt.regions.all)
 for (i in 1:length(region_name.WB)) {
   dt <- dt.regions.all[region_name.WB.income %in% region_name.WB[i]]
   temp <- sort(unique(dt$region_name.IMPACT159))
@@ -121,21 +121,23 @@ foodGroupNamesNoWrap <- c("Beverages, alcoholic", "Beverages, nonalcoholic", "Ce
 foodGroupNamesWrap <- c("Beverages,\nalcoholic", "Beverages,\nnonalcoholic", "Cereals", "Dairy", "Eggs", "Fish", "Fruits", "Meats", "Nuts and\nseeds",
                         "Oils", "Pulses", "Roots and\nplantain", "Sweeteners", "Vegetables")
 codeNames.macro <- c("carbohydrate_g", "protein_g", "totalfiber_g")
-nutNamesNoUnitsWrap.macro <- c("Carbohydrate", "Protein", "Total fiber")
+nutNamesNoUnitsWrap.macro <- c("Carbo\nhydrate", "Protein", "Total fiber")
 codeNames.vits <- c("folate_µg", "niacin_mg", "riboflavin_mg", "thiamin_mg", "vit_a_rae_µg", "vit_b12_µg", "vit_b6_mg", "vit_c_mg",
                     "vit_d_µg", "vit_e_mg", "vit_k_µg")
-nutNamesNoUnitsWrap.vits <- c("Folate", "Niacin", "Riboflavin", "Thiamin", "Vitamin\nA RAE", "Vitamin\nB12", "Vitamin\nB6", "Vitamin\nC",
+nutNamesNoUnitsWrap.vits <- c("Folate", "Niacin", "Ribo\nflavin", "Thiamin", "Vitamin\nA RAE", "Vitamin\nB12", "Vitamin\nB6", "Vitamin\nC",
                               "Vitamin\nD", "Vitamin\nE", "Vitamin\nK")
 codeNames.minrls <- c("calcium_mg", "iron_mg", "magnesium_mg", "phosphorus_mg", "potassium_g", "zinc_mg")
-nutNamesNoUnitsWrap.minrls <- c("Calcium", "Iron", "Magnesium", "Phosphorus", "Potassium", "Zinc")
+nutNamesNoUnitsWrap.minrls <- c("Calcium", "Iron", "Mag\nnesium", "Phos\nphorus", "Potas\nsium", "Zinc")
+nutNamesNoUnitsWrap <- c(nutNamesNoUnitsWrap.macro, nutNamesNoUnitsWrap.vits, nutNamesNoUnitsWrap.minrls)
+codeNames.tot <- c(codeNames.macro, codeNames.vits, codeNames.minrls)
 
 # Define UI -----
 ui <- fluidPage(
   theme = shinytheme("sandstone"),
   title = "Nutrient modeling",
-
+  
   router_ui(), # needed for table of contents
-
+  
   useShinyjs(debug = TRUE),
   div(
     id = "loading_page",
@@ -147,18 +149,18 @@ ui <- fluidPage(
           # Introduction tab panel -----
           tabPanel(title = "Introduction",
                    sidebarLayout(
-                     sidebarPanel( #width = 2,
-                       includeHTML("www/countryChoice.html"),
-                       selectizeInput(inputId = "userCountryName", label = "Choose country", choices = countryNames, selected = NULL),
-                       selectizeInput(inputId = "userScenarioName", label = "Choose scenario", choices = scenarioNames, selected = initialScenarioName)),
+                     sidebarPanel( width = 3,
+                                   includeHTML("www/countryChoice.html"),
+                                   selectizeInput(inputId = "userCountryName", label = "Choose country", choices = countryNames, selected = NULL),
+                                   selectizeInput(inputId = "userScenarioName", label = "Choose scenario", choices = scenarioNames, selected = initialScenarioName)),
                      mainPanel(includeHTML("www/introText.html")))),
           # Affordability tab panel ------
           tabPanel(title = "Affordability",
                    sidebarLayout(
-                     sidebarPanel(
-                       selectizeInput(inputId = "affordabilityCountryName", label = "Choose country", choices = countryNames,
-                                      options = list(placeholder = "Select country")),
-                       downloadButton("downloadData.afford", "Download")),
+                     sidebarPanel(width = 3,
+                                  selectizeInput(inputId = "affordabilityCountryName", label = "Choose country", choices = countryNames,
+                                                 options = list(placeholder = "Select country")),
+                                  downloadButton("downloadData.afford", "Download")),
                      mainPanel(titlePanel("Food expenditure, per capita income and affordability"),
                                includeHTML("www/affordabilityText.html"),
                                DT::dataTableOutput("affordabilityTable"),
@@ -166,14 +168,14 @@ ui <- fluidPage(
           # availability tab panel ------
           tabPanel(title = "Food Availability",
                    sidebarLayout(
-                     sidebarPanel(
-                       selectizeInput(inputId = "availabilityCountryName", label = "Choose country",
-                                      choices = countryNames,
-                                      options = list(placeholder = "Select country")),
-
-                       # selectizeInput(inputId = "availabilityScenarioName", label = "Choose a scenario (see definition in glossary)",
-                       #                choices = scenarioNames),
-                       downloadButton("downloadData.avail", "Download")),
+                     sidebarPanel(width = 3,
+                                  selectizeInput(inputId = "availabilityCountryName", label = "Choose country",
+                                                 choices = countryNames,
+                                                 options = list(placeholder = "Select country")),
+                                  
+                                  # selectizeInput(inputId = "availabilityScenarioName", label = "Choose a scenario (see definition in glossary)",
+                                  #                choices = scenarioNames),
+                                  downloadButton("downloadData.avail", "Download")),
                      mainPanel(titlePanel("Average daily food availability by food group"),
                                includeHTML("www/availabilityText.html"),
                                radioButtons("availabilityScenarioName", "Choose scenario (See glossary for details):",
@@ -194,37 +196,44 @@ ui <- fluidPage(
                                uiOutput("plot.NutAvailFGbarGraphP1"),
                                DT::dataTableOutput("NutAvailFGTable"),
                                includeHTML("www/nutrientDescription.html")))),
-
+          
           # Adequacy tab panel ------
           tabPanel(title = "Under- and over nutrition",
                    tabsetPanel(
                      # adequacy tab panel -----
                      tabPanel(title = "Adequacy ratios",
                               sidebarLayout(
-                                sidebarPanel(width = 3,
+                                sidebarPanel(width = 2,
                                              selectizeInput(inputId = "adequacyCountryName", label = "Choose country", choices = countryNames),
                                              #                                            selectizeInput(inputId = "adequacyScenarioName", label = "Choose a scenario (see definition in glossary)", choices = scenarioNames),
-                                             downloadButton("downloadData.adequacy.macro", "Macro data"),
-                                             downloadButton("downloadData.adequacy.vits", "Vitamin data"),
-                                             downloadButton("downloadData.adequacy.minrls", "Minerals data"),
-                                             downloadButton("downloadData.energyRat", "Energy share data"),
-                                             downloadButton("downloadData.energyQ", "Kcal data")
+                                             downloadButton("downloadData.adequacy.macro", "Macro"),
+                                             downloadButton("downloadData.adequacy.vits", "Vitamins"),
+                                             downloadButton("downloadData.adequacy.minrls", "Minerals"),
+                                             downloadButton("downloadData.energyRat", "Energy share"),
+                                             downloadButton("downloadData.energyQ", "Kcals")
                                 ),
                                 mainPanel(titlePanel("Nutrient adequacy and kilocalorie availability"),
                                           includeHTML("www/adequacyText.html"),
                                           radioButtons("adequacyScenarioName", "Choose scenario (See glossary for details):",
                                                        list("SSP2-NoCC", "SSP2-HGEM", "SSP1-NoCC", "SSP3-NoCC"), inline = TRUE),
                                           fluidRow(
-                                            #   column(width = 6, ggiraphOutput("adequacySpiderGraphP1", height = "400px")),
-                                            #   column(width = 6, ggiraphOutput("adequacySpiderGraphP2", height = "400px"))),
-                                            column(width = 6, ggiraphOutput("adequacySpiderGraphP1")),
-                                            column(width = 6, ggiraphOutput("adequacySpiderGraphP2"))),
-                                          fluidRow(
-                                            # column(width = 6, ggiraphOutput("adequacySpiderGraphP3", height = "400px"))),
-                                            column(width = 6, ggiraphOutput("adequacySpiderGraphP3"))),
-                                          fluidRow(
-                                            column(width = 6, ggiraphOutput("energyQuantityBarPlot")),
-                                            column(width = 6, ggiraphOutput("energyShareBarPlot"))),
+                                            column(width = 12, plotOutput("adequacySpiderGraphtot"))),
+                                          # fluidRow(
+                                          #    column(width = 4, plotOutput("adequacySpiderGraphP1")),
+                                          #  column(width = 4, plotOutput("adequacySpiderGraphP2")),
+                                          #    column(width = 4, plotOutput("adequacySpiderGraphP3"))), #, height = "400px"
+                                          #                                           column(width = 6, ggiraphOutput("adequacySpiderGraphP3"))),
+                                          #           column(width = 12, plotOutput("adequacySpiderGraphP3", 
+                                          #                                         click = "plot_click",
+                                          #                                         dblclick = "plot_dblclick",
+                                          #                                         hover = "plot_hover",
+                                          #                                         brush = "plot_brush"))),
+                                          fluidRow(height = "200px",
+                                            column(width = 6, plotOutput("energyQuantityBarPlot")),
+                                            column(width = 6, plotOutput("energyShareBarPlot"))),
+                                          #                      dataTableOutput("adequacyTableP1"),
+                                          #                      dataTableOutput("adequacyTableP2"),
+                                          #                      dataTableOutput("adequacyTableP2")))),
                                           fluidRow(
                                             column(width = 12, DT::dataTableOutput("adequacyTableP1"))),
                                           fluidRow(
@@ -253,10 +262,9 @@ ui <- fluidPage(
                                 sidebarPanel(width = 3,
                                              selectizeInput(inputId = "nutbalCountryName", label = "Choose country", choices = countryNames),
                                              downloadButton("downloadData.nutbal", "Download")),
-                                mainPanel(
-                                  # titlePanel("Nutrient balance score"),
-                                  includeHTML("www/nutbalGraphText.html"),
-                                  DT::dataTableOutput("nutbalTableP1")))),
+                                mainPanel(titlePanel("Nutrient Balance Score"),
+                                          includeHTML("www/nutbalGraphText.html"),
+                                          DT::dataTableOutput("nutbalTableP1")))),
                      # MRV tab panel -----
                      tabPanel(title = "Maximum Recommended Intake",
                               sidebarLayout(
@@ -265,7 +273,7 @@ ui <- fluidPage(
                                              downloadButton("downloadData.MRV", "Download")),
                                 mainPanel(titlePanel("Maximum Recommended Intake (MRV) results"),
                                           includeHTML("www/MRVText.html"),
-                                          DT::dataTableOutput("MRVTableP1")))))),
+                                          DT::dataTableOutput("MRVTableP1")))))), # added  style='width: 1000px; height: 1000px' to try to reduce LR margins
           # Diversity tab panel, with tabset ------
           tabPanel("Dietary diversity",
                    tabsetPanel(
@@ -278,7 +286,7 @@ ui <- fluidPage(
                                 mainPanel(titlePanel("Shannon diversity index"),
                                           includeHTML("www/shannonDiversityText.html"),
                                           DT::dataTableOutput("diversityTable")))),
-
+                     
                      # nonstaple energy share tab panel ------
                      tabPanel(title = "Nonstaple share of dietary energy",
                               sidebarLayout(
@@ -363,6 +371,7 @@ ui <- fluidPage(
 
 server <- function(input, output, session) {
   load_data(dataSetsToLoad) # load most of the data. Big files can be loaded elsewhere
+  reqRatio_sum_RDA <- data.table::rbindlist(list(reqRatio_sum_RDA_macro.var, reqRatio_sum_RDA_vits.var, reqRatio_sum_RDA_minrls.var))
   #  router(input, output) # for table of contents
   #not sure this is the best place for this. Need to get crud out of budget share. Just do once
   # update Jan 28, 2018. I think this this code was written, dt.budgetShare is now already in long form with name changes done
@@ -388,13 +397,13 @@ server <- function(input, output, session) {
     dt.budgetShare.long,
     formula = formula.budgetShare,
     value.var = "value")
-
+  
   #' set up data download
-
+  
   # foodAfford reactive -----
   data.afford <- reactive({
     countryName <- input$affordabilityCountryName
-    dt <- data.table::copy(dt.budgetShare.wide)
+    dt <- copy(dt.budgetShare.wide)
     countryCode <- countryCodeLookup(countryName, fileloc("mData"))
     dt <- dt[region_code.IMPACT159 %in% countryCode, ]
     setnames(dt, old = "region_code.IMPACT159", new = "Country code")
@@ -402,7 +411,7 @@ server <- function(input, output, session) {
     #dt[, scenario := gsub("", "", scenario)]
     dt
   })
-
+  
   # country name choice observer -----
   observe({
     countryName <- input$userCountryName
@@ -417,7 +426,7 @@ server <- function(input, output, session) {
     updateSelectizeInput(session, "MRVCountryName", selected = countryName)
     updateSelectizeInput(session, "RaosQECountryName", selected = countryName)
     updateSelectizeInput(session, "FGcountryName", selected = countryName)
-
+    
     # scenario choice observer -----
     scenarioName <- input$userScenarioName
     # Can also set the label and select items
@@ -425,43 +434,56 @@ server <- function(input, output, session) {
     updateSelectizeInput(session, "adequacyScenarioName", selected = scenarioName)
     updateSelectizeInput(session, "FGscenarioName", selected = scenarioName)
   })
-
+  
   # food availability reactive -----
   data.foodAvail <- reactive({
     countryName <- input$availabilityCountryName
     scenarioName <- input$availabilityScenarioName
-    dt <- data.table::copy(dt.foodAvail_foodGroup.var)
+    dt <- copy(dt.foodAvail_foodGroup.var)
     spiderData <- spiderGraphData(countryName, scenarioName, dt, displayColumnName = "food_group_code")
   })
-
+  
+  reqRatio_sum_RDA
+  
+  # food adequacyreactive -----
+  data.adequacy.tot <- reactive({
+    countryName <- input$adequacyCountryName
+    scenarioName <- input$adequacyScenarioName
+    reqType <- reqRatio_sum_RDA
+    dt <- copy(reqType)
+    #    cat("\n", unique(dt$scenario), "\n")
+    
+    spiderData <- spiderGraphData2(countryName, dt, displayColumnName = "nutrient")
+  })
+  
   # food adequacy.macro reactive -----
   data.adequacy.macro <- reactive({
     countryName <- input$adequacyCountryName
     scenarioName <- input$adequacyScenarioName
     reqType <- reqRatio_sum_RDA_macro.var
-    dt <- data.table::copy(reqType)
+    dt <- copy(reqType)
     spiderData <- spiderGraphData(countryName, scenarioName, dt, displayColumnName = "nutrient")
   })
-
+  
   # food adequacy.vits reactive -----
   data.adequacy.vits <- reactive({
     countryName <- input$adequacyCountryName
     scenarioName <- input$adequacyScenarioName
     reqType <- reqRatio_sum_RDA_vits.var
-    dt <- data.table::copy(reqType)
+    dt <- copy(reqType)
     #  dt[, food_group_code := capwords(cleanupNutrientNames(nutrient))]
     spiderData <- spiderGraphData(countryName, scenarioName, dt, displayColumnName = "nutrient")
   })
-
+  
   # food adequacy.minrls reactive -----
   data.adequacy.minrls <- reactive({
     countryName <- input$adequacyCountryName
     scenarioName <- input$adequacyScenarioName
     reqType <- reqRatio_sum_RDA_minrls.var
-    dt <- data.table::copy(reqType)
+    dt <- copy(reqType)
     spiderData <- spiderGraphData(countryName, scenarioName, dt, displayColumnName = "nutrient")
   })
-
+  
   # energy.quantity reactive -----
   data.energy.quantity <- reactive({
     countryName <- input$adequacyCountryName
@@ -469,13 +491,13 @@ server <- function(input, output, session) {
     countryCode <- countryCodeLookup(countryName, fileloc("mData"))
     keepListRow <- c("kcalsPerDay_other", "kcalsPerDay_carbohydrate",
                      "kcalsPerDay_fat", "kcalsPerDay_protein")
-
-    dt <- data.table::copy(dt.nutrients_kcals.var)
+    
+    dt <- copy(dt.nutrients_kcals.var)
     dt <- dt[nutrient %in% keepListRow,]
     dt[, value := round(value, 1)][, nutrient := gsub("kcalsPerDay_", "", nutrient)]
     spiderData <- graphData(countryName, scenarioName, dt, displayColumnName = "nutrient")
   })
-
+  
   # energy.share reactive -----
   data.energy.share <- reactive({
     countryName <- input$adequacyCountryName
@@ -483,12 +505,12 @@ server <- function(input, output, session) {
     countryCode <- countryCodeLookup(countryName, fileloc("mData"))
     keepListRow <- c("kcalsPerDay_other_share", "kcalsPerDay_carbohydrate_share",
                      "kcalsPerDay_fat_share", "kcalsPerDay_protein_share")
-    dt <- data.table::copy(dt.nutrients_kcals.var)
+    dt <- copy(dt.nutrients_kcals.var)
     dt <- dt[scenario %in% scenarioName & nutrient %in% keepListRow,]
     dt[, value := round(value, 1)][, nutrient := gsub("kcalsPerDay_", "", nutrient)][, nutrient := gsub("_share", "", nutrient)]
     spiderData <- graphData(countryName, scenarioName, dt, displayColumnName = "nutrient")
   })
-
+  
   # nonStaple.share reactive -----
   data.nonStaple.share <- reactive({
     countryName <- input$nonstapleEnergyShareCountryName
@@ -499,26 +521,26 @@ server <- function(input, output, session) {
     dt[, year := gsub("X", "", year)]
     dt
   })
-
+  
   # MRV reactive -----
   data.MRV <- reactive({
     countryName <- input$MRVCountryName
     countryCode <- countryCodeLookup(countryName, fileloc("mData"))
-    dt <- data.table::copy(dt.MRVRatios.var)
+    dt <- copy(dt.MRVRatios.var)
     dt <- dt[region_code.IMPACT159 %in% countryCode ,]
-#    setnames(dt, old = "region_code.IMPACT159", new = "Country code")
+    #    setnames(dt, old = "region_code.IMPACT159", new = "Country code")
     dt[, value := round(value, 2)]
     dt[, year := gsub("X", "", year)]
     dt
   })
-
+  
   # AMDR reactive -----
   data.AMDR <- reactive({
     countryName <- input$AMDRCountryName
     barData <- barGraphData(countryName, inData = food_agg_AMDR_hi.var)
     barData[, scenario := gsub("", "", scenario)][, year := gsub("X", "", year)]
   })
-
+  
   # nutAvail reactive -----
   data.nutAvailFG <- reactive({
     countryName <- input$FGcountryName
@@ -529,19 +551,19 @@ server <- function(input, output, session) {
     if (reqName %in% "minerals") nutrientGroup <- c("calcium_mg", "iron_mg", "magnesium_mg", "phosphorus_mg", "potassium_g", "zinc_mg")
     if (reqName %in% "vitamins") nutrientGroup <- c("folate_µg", "niacin_mg", "riboflavin_mg", "thiamin_mg", "vit_a_rae_µg", "vit_b6_mg",
                                                     "vit_b12_µg", "vit_c_mg", "vit_d_µg",  "vit_e_mg", "vit_k_µg")
-    inData <- data.table::copy(dt.nutrients_sum_FG.var)
+    inData <- copy(dt.nutrients_sum_FG.var)
     inData[, year := gsub("X", "", year)]
     inData <- inData[nutrient %in% nutrientGroup]
     displayColumnName <- "food_group_code" # all these food groups are included in each spidergraph
     facetColumnName <- "nutrient" # one spider graph per facetColumnName
     spiderData <- facetGraphData(countryName, scenarioName, inData, facetColumnName, displayColumnName)
   })
-
+  
   # nutBalScore reactive -----
   data.nutBalScore <- reactive({
     countryName <- input$nutbalCountryName
     countryCode <- countryCodeLookup(countryName, fileloc("mData"))
-    dt <- data.table::copy(dt.nutBalScore.var)
+    dt <- copy(dt.nutBalScore.var)
     dt[, year := gsub("X", "", year)]
     dt <- dt[region_code.IMPACT159 == countryCode,]
     dt[, value := round(value, 2)]
@@ -552,12 +574,12 @@ server <- function(input, output, session) {
       formula = formula.wide,
       value.var = "value")
   })
-
+  
   # Shannon reactive -----
   data.ShannonDiv <- reactive({
     countryName <- input$diversityCountryName
     countryCode <- countryCodeLookup(countryName, fileloc("mData"))
-    dt <- data.table::copy(dt.shannonDiversity.var)
+    dt <- copy(dt.shannonDiversity.var)
     keepListCol <-  c("scenario","region_code.IMPACT159", "year", "SD", "SDnorm")
     dt <- dt[, keepListCol, with = FALSE]
     dt <- dt[region_code.IMPACT159 == countryCode,][, year := gsub("X", "", year)]
@@ -581,12 +603,12 @@ server <- function(input, output, session) {
     dt.wide[, scenario := factor(scenario, levels = scenarioNames)]
     dt.wide[, scenario := gsub("", "", scenario)]
   })
-
+  
   # RaosQE reactive -----
   data.RaosQE <- reactive({
     countryName <- input$RaosQECountryName
     countryCode <- countryCodeLookup(countryName, fileloc("mData"))
-    dt <- data.table::copy(dt.RAOqe.var)
+    dt <- copy(dt.RAOqe.var)
     dt <- dt[region_code.IMPACT159 == countryCode,]
     dt[, value := round(value, 2)]
     dt[, year := gsub("X", "", year)]
@@ -596,28 +618,33 @@ server <- function(input, output, session) {
       formula = formula.wide,
       value.var = "value")
   })
-
+  
   # full data set download reactive -----
   datasetInput <- reactive({
     # look up number of location of input value in the datasets name list
     get(datasetsToLoad.complete[match(input$dataset.full, datasetsToLoad.desc.complete)])
   })
-
+  
   # affordabilityTable -----
   output$affordabilityTable <- DT::renderDataTable({
-    dt <- data.table::copy(data.afford())
-    dt <- DT::datatable(dt, rownames = FALSE, options = list(pageLength = 25, dom = 't', filter = list(position = "top")))
-    dt
+    dt <- copy(data.afford())
+    colsToConvert <- c("2010", "2030", "2050")
+    dt[, (colsToConvert) := lapply(.SD, sprintf, fmt="%#.2f"), .SDcols = colsToConvert]
+    dt[, scenario := factor(scenario, levels =  scenarioList)]
+    
+    dt <- datatable(dt, rownames = FALSE, options = list(pageLength = 20, dom = 'iftp' ,
+                                                         columnDefs = list(list(className = 'dt-right', targets = 3:5)) # targets start at column 0
+    ))
   })
-
+  
   output$downloadData.afford <- downloadHandler(
     filename = function() {paste("afford_", "_", input$affordabilityCountryName, Sys.Date(), '.csv', sep = '') },
     content = function(file) {write.csv(data.afford(), file)}
   )
-
+  
   # availability graph server side -----
   output$availabilitySpiderGraphP1 <- renderggiraph({
-    dt <- data.table::copy(data.foodAvail())
+    dt <- copy(data.foodAvail())
     scenarioName <- unique(dt$scenario)
     #   dt[, region_code.IMPACT159 := NULL]
     #   data.table::setnames(dt, old = names(dt), new = capwords(names(dt)))
@@ -625,119 +652,162 @@ server <- function(input, output, session) {
     p <- spiderGraphOutput(dt, scenarioName)
     ggiraph(code = print(p), zoom_max = 1, selection_type = "single")
   })
-
+  
   # availability table server side -----
   output$availabilityTableP1 <- DT::renderDataTable({
-    dt <- data.table::copy(data.foodAvail())
+    dt <- copy(data.foodAvail())
     dt <- pivotWideToWideYear(dt)
     nutrient <- "food group"
-    data.table::setnames(dt, old = "nutrient_foodGroup", new = nutrient) # new depends on whether dt is for food groups or nutrients
+    setnames(dt, old = "nutrient_foodGroup", new = nutrient) # new depends on whether dt is for food groups or nutrients
     #dt[, scenario := gsub("", "", scenario)]
     colsToRound <- names(dt)[!names(dt) %in% c("scenario", "region_code.IMPACT159", "year", nutrient)]
     dt[,(colsToRound) := round(.SD,2), .SDcols = colsToRound]
     data.table::setnames(dt, old = "region_code.IMPACT159", new = "country code")
     data.table::setnames(dt, old = names(dt), new = capwords(names(dt)))
-    dt <- DT::datatable(dt, rownames = FALSE, options = list(pageLength = 25, dom = 't', filter = list(position = "top")))
-    dt
+    colsToConvert <- c("2010", "2030", "2050")
+    dt[, (colsToConvert) := lapply(.SD, sprintf, fmt="%#.2f"), .SDcols = colsToConvert]
+    #    dt[, scenario := factor(scenario, levels =  scenarioList)]
+    dt <- datatable(dt, rownames = FALSE, options = list(pageLength = 20, dom = 'iftp' ,
+                                                         columnDefs = list(list(className = 'dt-right', targets = 3:5)) # targets start at column 0
+    ))
   })
-
+  
   output$downloadData.avail <- downloadHandler(
     filename = function() {paste("foodavail_", "_", input$availabilityCountryName, Sys.Date(), '.csv', sep = '') },
     content = function(file) {write.csv(data.foodAvail(), file)}
   )
-
+  
   # adequacy graphs server side -----
-  output$adequacySpiderGraphP1 <- renderggiraph({
-    dt <- data.table::copy(data.adequacy.macro())
+  
+  output$adequacySpiderGraphtot <- renderPlot({
+    dt <- copy(data.adequacy.tot())
+    scenarioName <- unique(dt$scenario)
+    #dt[, scenario := gsub("", "", scenario)]
+    #   data.table::setnames(dt, old = names(dt), new = capwords(names(dt)))
+    data.table::setnames(dt, old = codeNames.tot, new = nutNamesNoUnitsWrap)
+    p <- spiderGraphOutput(dt, scenarioName)
+    print(p)
+    #   ggiraph(code = print(p), zoom_max = 1, selection_type = "single")
+  })
+  
+  
+  
+  output$adequacySpiderGraphP1 <- renderPlot({
+    dt <- copy(data.adequacy.macro())
     scenarioName <- unique(dt$scenario)
     #dt[, scenario := gsub("", "", scenario)]
     #   data.table::setnames(dt, old = names(dt), new = capwords(names(dt)))
     data.table::setnames(dt, old = codeNames.macro, new = nutNamesNoUnitsWrap.macro)
     p <- spiderGraphOutput(dt, scenarioName)
-    ggiraph(code = print(p), zoom_max = 1, selection_type = "single")
+    print(p)
+    #   ggiraph(code = print(p), zoom_max = 1, selection_type = "single")
   })
-
-  output$adequacySpiderGraphP2 <- renderggiraph({
-    dt <- data.table::copy(data.adequacy.vits())
+  
+  output$adequacySpiderGraphP2 <- renderPlot({
+    dt <- copy(data.adequacy.vits())
     scenarioName <- unique(dt$scenario)
     #dt[, scenario := gsub("", "", scenario)]
     #   data.table::setnames(dt, old = names(dt), new = capwords(names(dt)))
     data.table::setnames(dt, old = codeNames.vits, new = nutNamesNoUnitsWrap.vits)
     p <- spiderGraphOutput(dt, scenarioName)
-    ggiraph(code = print(p), zoom_max = 1, selection_type = "single")
+    print(p)
+    #   ggiraph(code = print(p), zoom_max = 1, selection_type = "single")
   })
-
-  output$adequacySpiderGraphP3 <- renderggiraph({
-    dt <- data.table::copy(data.adequacy.minrls())
+  
+  # output$adequacySpiderGraphP3 <- renderggiraph({
+  #   dt <- copy(data.adequacy.minrls())
+  #   scenarioName <- unique(dt$scenario)
+  #   #dt[, scenario := gsub("", "", scenario)]
+  #   #   data.table::setnames(dt, old = names(dt), new = capwords(names(dt)))
+  #   data.table::setnames(dt, old = codeNames.minrls, new = nutNamesNoUnitsWrap.minrls)
+  #   p <- spiderGraphOutput(dt, scenarioName)
+  #   ggiraph(code = print(p), zoom_max = 1, selection_type = "single")
+  # })
+  
+  output$adequacySpiderGraphP3 <- renderPlot({
+    dt <- copy(data.adequacy.minrls())
     scenarioName <- unique(dt$scenario)
     #dt[, scenario := gsub("", "", scenario)]
     #   data.table::setnames(dt, old = names(dt), new = capwords(names(dt)))
     data.table::setnames(dt, old = codeNames.minrls, new = nutNamesNoUnitsWrap.minrls)
     p <- spiderGraphOutput(dt, scenarioName)
-    ggiraph(code = print(p), zoom_max = 1, selection_type = "single")
+    print(p)
+    #    ggiraph(code = print(p), zoom_max = 1, selection_type = "single")
   })
-
+  
   # adequacy tables server side -----
   output$adequacyTableP1 <- DT::renderDataTable({
-    dt <- data.table::copy(data.adequacy.macro())
+    dt <- copy(data.adequacy.macro())
     dt <- pivotWideToWideYear(dt)
     nutrient <- "nutrient"
     data.table::setnames(dt, old = "nutrient_foodGroup", new = nutrient) # new depends on whether dt is for food groups or nutrients
     #dt[, scenario := gsub("", "", scenario)]
-    colsToRound <- names(dt)[!names(dt) %in% c("scenario", "region_code.IMPACT159", "year", nutrient)]
-    dt[,(colsToRound) := round(.SD,2), .SDcols = colsToRound]
+    #colsToRound <- names(dt)[!names(dt) %in% c("scenario", "region_code.IMPACT159", "year", nutrient)]
+    #dt[,(colsToRound) := round(.SD,2), .SDcols = colsToRound]
     data.table::setnames(dt, old = "region_code.IMPACT159", new = "country code")
     data.table::setnames(dt, old = names(dt), new = capwords(names(dt)))
-    dt <- DT::datatable(dt, rownames = FALSE, options = list(pageLength = 25, dom = 't', filter = list(position = "top")))
-    dt
+    colsToConvert <- c("2010", "2030", "2050")
+    dt[, (colsToConvert) := lapply(.SD, sprintf, fmt="%#.2f"), .SDcols = colsToConvert]
+    #   dt[, scenario := factor(scenario, levels =  scenarioList)]
+    dt <- datatable(dt, rownames = FALSE, options = list(pageLength = 20, dom = 'iftp' ,
+                                                         columnDefs = list(list(className = 'dt-right', targets = 3:5)) # targets start at column 0
+    ))
   })
-
+  
   output$downloadData.adequacy.macro <- downloadHandler(
     filename = function() {paste("adeq_macro_", input$adequacyCountryName, "_", Sys.Date(), '.csv', sep = '') },
     content = function(file) {write.csv(data.adequacy.macro(), file)}
   )
-
+  
   output$adequacyTableP2 <- DT::renderDataTable({
-    dt <- data.table::copy(data.adequacy.vits())
+    dt <- copy(data.adequacy.vits())
     dt <- pivotWideToWideYear(dt)
     nutrient <- "nutrient"
     data.table::setnames(dt, old = "nutrient_foodGroup", new = nutrient) # new depends on whether dt is for food groups or nutrients
     #dt[, scenario := gsub("", "", scenario)]
-    colsToRound <- names(dt)[!names(dt) %in% c("scenario", "region_code.IMPACT159", "year", nutrient)]
-    dt[,(colsToRound) := round(.SD,2), .SDcols = colsToRound]
+    #colsToRound <- names(dt)[!names(dt) %in% c("scenario", "region_code.IMPACT159", "year", nutrient)]
+    #dt[,(colsToRound) := round(.SD,2), .SDcols = colsToRound]
     data.table::setnames(dt, old = "region_code.IMPACT159", new = "country code")
     data.table::setnames(dt, old = names(dt), new = capwords(names(dt)))
-    dt <- DT::datatable(dt, rownames = FALSE, options = list(pageLength = 25, dom = 't', filter = list(position = "top")))
-    dt
+    colsToConvert <- c("2010", "2030", "2050")
+    dt[, (colsToConvert) := lapply(.SD, sprintf, fmt="%#.2f"), .SDcols = colsToConvert]
+    #   dt[, scenario := factor(scenario, levels =  scenarioList)]
+    dt <- datatable(dt, rownames = FALSE, options = list(pageLength = 20, dom = 'iftp' ,
+                                                         columnDefs = list(list(className = 'dt-right', targets = 3:5)) # targets start at column 0
+    ))
   })
-
+  
   output$downloadData.adequacy.vits <- downloadHandler(
     filename = function() {paste("adeq_vits_", input$adequacyCountryName, "_", Sys.Date(), '.csv', sep = '') },
     content = function(file) {write.csv(data.adequacy.vits(), file)}
   )
-
+  
   output$adequacyTableP3 <- DT::renderDataTable({
-    dt <- data.table::copy(data.adequacy.minrls())
+    dt <- copy(data.adequacy.minrls())
     dt <- pivotWideToWideYear(dt)
     nutrient <- "nutrient"
     data.table::setnames(dt, old = "nutrient_foodGroup", new = nutrient) # new depends on whether dt is for food groups or nutrients
     #dt[, scenario := gsub("", "", scenario)]
-    colsToRound <- names(dt)[!names(dt) %in% c("scenario", "region_code.IMPACT159", "year", nutrient)]
-    dt[,(colsToRound) := round(.SD,2), .SDcols = colsToRound]
+    #colsToRound <- names(dt)[!names(dt) %in% c("scenario", "region_code.IMPACT159", "year", nutrient)]
+    #dt[,(colsToRound) := round(.SD,2), .SDcols = colsToRound]
     data.table::setnames(dt, old = "region_code.IMPACT159", new = "country code")
     data.table::setnames(dt, old = names(dt), new = capwords(names(dt)))
-    dt <- DT::datatable(dt, rownames = FALSE, options = list(pageLength = 25, dom = 't', filter = list(position = "top")))
-    dt
+    colsToConvert <- c("2010", "2030", "2050")
+    dt[, (colsToConvert) := lapply(.SD, sprintf, fmt="%#.2f"), .SDcols = colsToConvert]
+    #    dt[, scenario := factor(scenario, levels =  scenarioList)]
+    dt <- datatable(dt, rownames = FALSE, options = list(pageLength = 20, dom = 'iftp' ,
+                                                         columnDefs = list(list(className = 'dt-right', targets = 3:5)) # targets start at column 0
+    ))
   })
-
+  
   output$downloadData.adequacy.minrls <- downloadHandler(
     filename = function() {paste("adeq_minrls_", input$adequacyCountryName, "_", Sys.Date(), '.csv', sep = '') },
     content = function(file) {write.csv(data.adequacy.minrls(), file)}
   )
-
+  
   # energy ratio bar chart -----
-  output$energyShareBarPlot <- renderggiraph({
-    dt <- data.table::copy(data.energy.share())
+  output$energyShareBarPlot <- renderPlot({
+    dt <- copy(data.energy.share())
     scenarioName <- unique(dt$scenario)
     countryCode <- unique(dt$region_code.IMPACT159)
     countryName <- countryNameLookup(countryCode)
@@ -753,12 +823,13 @@ server <- function(input, output, session) {
     p <- p + theme(axis.text = element_text(size = 12, family = fontFamily, face = "plain"))
     p <- p + theme(legend.text = element_text(size = 12, family = fontFamily, face = "plain")) +
       labs(y = yLab, x = NULL)
-    ggiraph(code = print(p), zoom_max = 1, selection_type = "single")
+    print(p)
+    #    ggiraph(code = print(p), zoom_max = 1, selection_type = "single")
   })
-
+  
   # energy quantity bar chart -----
-  output$energyQuantityBarPlot <- renderggiraph({
-    dt <- data.table::copy(data.energy.quantity())
+  output$energyQuantityBarPlot <- renderPlot({
+    dt <- copy(data.energy.quantity())
     scenarioName <- unique(dt$scenario)
     countryCode <- unique(dt$region_code.IMPACT159)
     countryName <- countryNameLookup(countryCode)
@@ -773,12 +844,13 @@ server <- function(input, output, session) {
     p <- p + theme(axis.text = element_text(size = 12, family = fontFamily, face = "plain"))
     p <- p + theme(legend.text = element_text(size = 12, family = fontFamily, face = "plain")) +
       labs(y = yLab, x = NULL)
-    ggiraph(code = print(p), zoom_max = 1, selection_type = "single")
+    print(p)
+    #    ggiraph(code = print(p), zoom_max = 1, selection_type = "single")
   })
-
+  
   # energy share table -----
   output$energyShareTable <- DT::renderDataTable({
-    dt.long <- data.table::copy(data.energy.share())
+    dt.long <- copy(data.energy.share())
     formula.wide <- paste("scenario + region_code.IMPACT159 + nutrient ~ year")
     dt <- data.table::dcast(
       data = dt.long,
@@ -789,23 +861,27 @@ server <- function(input, output, session) {
     #dt[, scenario := gsub("", "", scenario)]
     # formula.wide <- paste("scenario + region_code.IMPACT159 + ", nutrient, " ~ year")
     # dt <- data.table::dcast(data = dt, formula = formula.wide, value.var = "value")
-    colsToRound <- names(dt)[!names(dt) %in% c("scenario", "region_code.IMPACT159", "year", nutrient)]
-    dt[,(colsToRound) := round(.SD,2), .SDcols = colsToRound]
+    #colsToRound <- names(dt)[!names(dt) %in% c("scenario", "region_code.IMPACT159", "year", nutrient)]
+    #dt[,(colsToRound) := round(.SD,2), .SDcols = colsToRound]
     data.table::setnames(dt, old = "region_code.IMPACT159", new = "country code")
     #dt[, scenario := gsub("", "", scenario)]
     data.table::setnames(dt, old = names(dt), new = capwords(names(dt)))
-    dt <- DT::datatable(dt, rownames = FALSE, options = list(pageLength = 25, dom = 't', filter = list(position = "top")))
-    dt
+    colsToConvert <- c("2010", "2030", "2050")
+    dt[, (colsToConvert) := lapply(.SD, sprintf, fmt="%#.2f"), .SDcols = colsToConvert]
+    #    dt[, scenario := factor(scenario, levels =  scenarioList)]
+    dt <- datatable(dt, rownames = FALSE, options = list(pageLength = 20, dom = 'iftp' ,
+                                                         columnDefs = list(list(className = 'dt-right', targets = 3:5)) # targets start at column 0
+    ))
   })
-
+  
   output$downloadData.energyRat <- downloadHandler(
     filename = function() {paste("energyRatio", input$adequacyCountryName, "_", Sys.Date(), '.csv', sep = '') },
     content = function(file) {write.csv(data.energy.share(), file)}
   )
-
+  
   # energy quantity table -----
   output$energyQuantityTable <- DT::renderDataTable({
-    dt.long <- data.table::copy(data.energy.quantity())
+    dt.long <- copy(data.energy.quantity())
     formula.wide <- paste("scenario + region_code.IMPACT159 + nutrient ~ year")
     dt <- data.table::dcast(
       data = dt.long,
@@ -817,69 +893,81 @@ server <- function(input, output, session) {
     # formula.wide <- paste("scenario + region_code.IMPACT159 + ", nutrient, " ~ year")
     # dt <- data.table::dcast(data = dt, formula = formula.wide, value.var = "value")
     # colsToRound <- names(dt)[!names(dt) %in% c("scenario", "region_code.IMPACT159", "year", nutrient)]
-    colsToRound <- names(dt)[!names(dt) %in% c("scenario", "region_code.IMPACT159", "year", nutrient)]
-    dt[,(colsToRound) := round(.SD,1), .SDcols = colsToRound]
+    #colsToRound <- names(dt)[!names(dt) %in% c("scenario", "region_code.IMPACT159", "year", nutrient)]
+    #dt[,(colsToRound) := round(.SD,1), .SDcols = colsToRound]
     data.table::setnames(dt, old = "region_code.IMPACT159", new = "country code")
     #dt[, scenario := gsub("", "", scenario)]
     data.table::setnames(dt, old = names(dt), new = capwords(names(dt)))
-    dt <- DT::datatable(dt, rownames = FALSE, options = list(pageLength = 25, dom = 't', filter = list(position = "top")))
-    dt
+    colsToConvert <- c("2010", "2030", "2050")
+    dt[, (colsToConvert) := lapply(.SD, sprintf, fmt="%#.2f"), .SDcols = colsToConvert]
+    #    dt[, scenario := factor(scenario, levels =  scenarioList)]
+    dt <- datatable(dt, rownames = FALSE, options = list(pageLength = 20, dom = 'iftp' ,
+                                                         columnDefs = list(list(className = 'dt-right', targets = 3:5)) # targets start at column 0
+    ))
   })
-
+  
   output$downloadData.energyQ <- downloadHandler(
     filename = function() {paste("energyQ", input$adequacyCountryName, "_", Sys.Date(), '.csv', sep = '') },
     content = function(file) {write.csv(data.energy.quantity(), file)}
   )
-
+  
   # adequacy AMDR graph server side ------
   output$AMDRbarGraphP1 <- renderggiraph({
-    dt <- data.table::copy(data.AMDR())
+    dt <- copy(data.AMDR())
     p <- plotByRegionBarAMDRinShiny(dt, yLab = "share of total dietary energy (percent)")
     ggiraph(code = print(p), zoom_max = 1, selection_type = "single")
   })
-
+  
   # adequacy AMDR table server side ------
   output$AMDRTableP1 <- DT::renderDataTable({
-    dt <- data.table::copy(data.AMDR())
+    dt <- copy(data.AMDR())
     oldnames <- c("carbohydrate_g.kcalpercent", "fat_g.kcalpercent", "protein_g.kcalpercent")
     newnames <- c("carbohydrate", "protein", "fat")
     data.table::setnames(dt, old = oldnames, new = newnames)
     #    print(dt)
     dt <- pivotWideToWideYear(dt)
-    colsToRound <- c("2010", "2030", "2050")
-    dt[,(colsToRound) := round(.SD,2), .SDcols = colsToRound]
-
+    #colsToRound <- c("2010", "2030", "2050")
+    #dt[,(colsToRound) := round(.SD,2), .SDcols = colsToRound]
+    
     oldnames <- c("region_code.IMPACT159", "nutrient_foodGroup")
     newnames <- c("Country Code", "Nutrient")
     data.table::setnames(dt, old = oldnames, new = newnames)
-    dt <- DT::datatable(dt, rownames = FALSE, options = list(pageLength = 25, dom = 't', filter = list(position = "top")))
-    dt
+    colsToConvert <- c("2010", "2030", "2050")
+    dt[, (colsToConvert) := lapply(.SD, sprintf, fmt="%#.2f"), .SDcols = colsToConvert]
+    dt[, scenario := factor(scenario, levels =  scenarioList)]
+    dt <- datatable(dt, rownames = FALSE, options = list(pageLength = 20, dom = 'iftp' ,
+                                                         columnDefs = list(list(className = 'dt-right', targets = 3:5)) # targets start at column 0
+    ))
   })
-
+  
   output$downloadData.AMDR <- downloadHandler(
     filename = function() {paste("AMDR_", input$AMDRCountryName, "_", Sys.Date(), '.csv', sep = '') },
     content = function(file) {write.csv(data.AMDR(), file)}
   )
-
+  
   # adequacy nutrient balance table server side ------
   output$nutbalTableP1 <- DT::renderDataTable({
     dt <- data.nutBalScore()
-    colsToRound <- names(dt)[!names(dt) %in% c("scenario", "region_code.IMPACT159", "year")]
-    dt[,(colsToRound) := round(.SD,2), .SDcols = colsToRound]
+    #colsToRound <- names(dt)[!names(dt) %in% c("scenario", "region_code.IMPACT159", "year")]
+    #dt[,(colsToRound) := round(.SD,2), .SDcols = colsToRound]
     data.table::setnames(dt, old = "region_code.IMPACT159", new = "country code")
     data.table::setnames(dt, old = names(dt), new = capwords(names(dt)))
-    dt <- DT::datatable(dt, rownames = FALSE, options = list(pageLength = 25, dom = 't', filter = list(position = "top")))
-    dt
+    colsToConvert <- c("2010", "2030", "2050")
+    dt[, (colsToConvert) := lapply(.SD, sprintf, fmt="%#.2f"), .SDcols = colsToConvert]
+    #    dt[, scenario := factor(scenario, levels =  scenarioList)]
+    dt <- datatable(dt, rownames = FALSE, options = list(pageLength = 20, dom = 'iftp' ,
+                                                         columnDefs = list(list(className = 'dt-right', targets = 2:4)) # targets start at column 0
+    ))
   })
-
+  
   output$downloadData.nutbal <- downloadHandler(
     filename = function() {paste("nutbal_", input$nutbalCountryName, "_", Sys.Date(), '.csv', sep = '') },
     content = function(file) {write.csv(data.nutBalScore(), file)}
   )
-
+  
   # adequacy MRV table server side ------
   output$MRVTableP1 <- DT::renderDataTable({
-    dt <- data.table::copy(data.MRV())
+    dt <- copy(data.MRV())
     dt[,value := round(value, 2)]
     formula.wide <- paste("scenario + region_code.IMPACT159 + nutrient ~ year")
     dt <- data.table::dcast(
@@ -889,57 +977,69 @@ server <- function(input, output, session) {
     data.table::setnames(dt, old = "region_code.IMPACT159", new = "country code")
     #    dt[, nutrient := capwords(nutrient)]
     dt[, nutrient := capwords(cleanupNutrientNames(nutrient))]
-    dt <- DT::datatable(dt, rownames = FALSE, options = list(pageLength = 25, dom = 't', filter = list(position = "top")))
-    dt
+    colsToConvert <- c("2010", "2030", "2050")
+    dt[, (colsToConvert) := lapply(.SD, sprintf, fmt="%#.2f"), .SDcols = colsToConvert]
+    dt[, scenario := factor(scenario, levels =  scenarioList)]
+    dt <- datatable(dt, rownames = FALSE, options = list(pageLength = 20, dom = 'iftp' ,
+                                                         columnDefs = list(list(className = 'dt-right', targets = 3:5)) # targets start at column 0
+    ))
   })
-
+  
   output$downloadData.MRV <- downloadHandler(
     filename = function() {paste("MRV", input$MRVCountryName, "_", Sys.Date(), '.csv', sep = '') },
     content = function(file) {write.csv(data.MRV(), file)}
   )
-
+  
   # nonstaple share diversity metrics -----
   output$nonStapleEnergyShareTable <- DT::renderDataTable({
-    dt <- data.table::copy(data.nonStaple.share())
+    dt <- copy(data.nonStaple.share())
     formula.wide <- paste("scenario + region_code.IMPACT159 ~ year")
     dt <- data.table::dcast(
       data = dt,
       formula = formula.wide,
       value.var = "value")
-
+    
     colsToRound <- names(dt)[!names(dt) %in% c("scenario", "region_code.IMPACT159", "year")]
     dt[,(colsToRound) := round(.SD,2), .SDcols = colsToRound]
     data.table::setnames(dt, old = "region_code.IMPACT159", new = "country code")
     data.table::setnames(dt, old = names(dt), new = capwords(names(dt)))
-    dt <- DT::datatable(dt, rownames = FALSE, options = list(dom = 't', filter = list(position = "top")))
-    dt
+    colsToConvert <- c("2010", "2030", "2050")
+    dt[, (colsToConvert) := lapply(.SD, sprintf, fmt="%#.2f"), .SDcols = colsToConvert]
+    #    dt[, scenario := factor(scenario, levels =  scenarioList)]
+    dt <- datatable(dt, rownames = FALSE, options = list(pageLength = 20, dom = 'iftp' ,
+                                                         columnDefs = list(list(className = 'dt-right', targets = 2:4)) # targets start at column 0
+    ))
   })
-
+  
   output$downloadData.nonStapleShare <- downloadHandler(
     filename = function() {paste("nonStapleShare_", input$nonstapleEnergyShareCountryName, "_", Sys.Date(), '.csv', sep = '') },
     content = function(file) {write.csv(data.nonStaple.share(), file)}
   )
-
+  
   # Rao's QE metric -----
   output$RaosQETable <- DT::renderDataTable({
-    dt <- data.table::copy(data.RaosQE())
+    dt <- copy(data.RaosQE())
     formula.wide <- paste("year + region_code.IMPACT159 ~ scenario")
     colsToRound <- names(dt)[!names(dt) %in% c("scenario", "region_code.IMPACT159", "year")]
     dt[,(colsToRound) := round(.SD,2), .SDcols = colsToRound]
     data.table::setnames(dt, old = "region_code.IMPACT159", new = "country code")
     data.table::setnames(dt, old = names(dt), new = capwords(names(dt)))
-    dt <- DT::datatable(dt, rownames = FALSE, options = list(dom = 't', filter = list(position = "top")))
-    dt
+    colsToConvert <- c("2010", "2030", "2050")
+    dt[, (colsToConvert) := lapply(.SD, sprintf, fmt="%#.2f"), .SDcols = colsToConvert]
+    #   dt[, scenario := factor(scenario, levels =  scenarioList)]
+    dt <- datatable(dt, rownames = FALSE, options = list(pageLength = 20, dom = 'iftp' ,
+                                                         columnDefs = list(list(className = 'dt-right', targets = 2:4)) # targets start at column 0
+    ))
   })
-
+  
   output$downloadData.RaoQE <- downloadHandler(
     filename = function() {paste("RaosQE_", input$input$RaosQECountryName, "_", Sys.Date(), '.csv', sep = '') },
     content = function(file) {write.csv(data.RaosQE(), file)}
   )
-
+  
   # Shannon diversityTable -----
   output$diversityTable <- DT::renderDataTable({
-    dt <- data.table::copy(data.ShannonDiv())
+    dt <- copy(data.ShannonDiv())
     colsToRound <- names(dt)[!names(dt) %in% c("scenario", "region_code.IMPACT159", "year", "Variable")]
     dt[,(colsToRound) := round(.SD,2), .SDcols = colsToRound]
     #    formula.wide <- paste("year + region_code.IMPACT159 ~ scenario")
@@ -948,55 +1048,69 @@ server <- function(input, output, session) {
     newNames <- gsub("_", " \n", oldNames)
     setnames(dt, old = oldNames, new = newNames)
     data.table::setnames(dt, old = names(dt), new = capwords(names(dt)))
-    dt <- DT::datatable(dt, rownames = FALSE, options = list(dom = 't', filter = list(position = "top")))
-    dt
+    colsToConvert <- c("2010", "2030", "2050")
+    dt[, (colsToConvert) := lapply(.SD, sprintf, fmt="%#.2f"), .SDcols = colsToConvert]
+    #    dt[, scenario := factor(scenario, levels =  scenarioList)]
+    dt <- datatable(dt, rownames = FALSE, options = list(pageLength = 20, dom = 'iftp' ,
+                                                         columnDefs = list(list(className = 'dt-right', targets = 3:5)) # targets start at column 0
+    ))
   })
-
+  
   output$downloadData.ShannonDiversity <- downloadHandler(
     filename = function() {paste("Shannon_", input$diversityCountryName, "_", Sys.Date(), '.csv', sep = '') },
     content = function(file) {write.csv(data.ShannonDiv(), file)}
   )
-
+  
   # nutrient avail, FG horizontal graphs -----
   output$NutAvailFGbarGraphP1 <- renderPlot({
-    dt <- data.table::copy(data.nutAvailFG())
+    dt <- copy(data.nutAvailFG())
     #       print(head(dt))
     displayColumnName <- "food_group_code" # all these food groups are included in each bar chart
     facetColumnName <- "nutrient" # one spider graph per facetColumnName
     p <- facetGraphOutput(inData = dt, facetColumnName, displayColumnName, codeNames.foodGroups, foodGroupNamesNoWrap)
     p
   }, height = "auto")
-
+  
+  # output$plot.NutAvailFGbarGraphP1 <- renderUI({
+  #   if (input$nutrientGroup == "vitamins") plotHeight = "800px"
+  #   if (input$nutrientGroup == "macronutrients") plotHeight = "500px"
+  #   if (input$nutrientGroup == "minerals") plotHeight = "500px"
+  #   plotOutput("NutAvailFGbarGraphP1", width = "100%", height = plotHeight)
+  # })
+  
   output$plot.NutAvailFGbarGraphP1 <- renderUI({
-    if (input$nutrientGroup == "vitamins") plotHeight = "800px"
-    if (input$nutrientGroup == "macronutrients") plotHeight = "500px"
-    if (input$nutrientGroup == "minerals") plotHeight = "500px"
-    plotOutput("NutAvailFGbarGraphP1", width = "100%", height = plotHeight)
+    if (input$nutrientGroup == "vitamins") 
+      if (input$nutrientGroup == "macronutrients") 
+        if (input$nutrientGroup == "minerals") 
+          plotOutput("NutAvailFGbarGraphP1", width = "100%")
   })
-
+  
   # nutrient diversity FG Table -----
   output$NutAvailFGTable <- DT::renderDataTable({
-    dt <- data.table::copy(data.nutAvailFG())
+    dt <- copy(data.nutAvailFG())
     #    print(unique(dt$food_group_code))
     displayColumnName <- "food_group_code" # all these food groups are included in each spidergraph
     facetColumnName <- "nutrient" # one bar graph per facetColumnName
-    dt[, value := round(value, 2)]
+    #   dt[, value := round(value, 2)]
     formula.wide <- sprintf("scenario + region_code.IMPACT159 + %s + %s ~ year", facetColumnName, displayColumnName)
     dt <- data.table::dcast(data = dt, formula = formula.wide, value.var = "value")
     data.table::setnames(dt, old = "region_code.IMPACT159", new = "country code")
     names.new <- cleanupNutrientNames(names(dt))
     if (facetColumnName %in% "nutrient") dt[, nutrient := capwords(cleanupNutrientNames(nutrient))]
     data.table::setnames(dt, old = names(dt), new = capwords(names.new))
-    # dt <- DT::datatable(dt, rownames = FALSE, options = list(pageLength = 25, dom = 't', filter = list(position = "top")))
-    dt <- DT::datatable(dt, rownames = FALSE, options = list(pageLength = 25))
-    # dt
+    colsToConvert <- c("2010", "2030", "2050")
+    dt[, (colsToConvert) := lapply(.SD, sprintf, fmt="%#.2f"), .SDcols = colsToConvert]
+    #  dt[, scenario := factor(scenario, levels =  scenarioList)]
+    dt <- DT::datatable(dt, rownames = FALSE, options = list(pageLength = 25, dom = 'iftp',
+                                                             columnDefs = list(list(className = 'dt-right', targets = 4:6)) # targets start at column 0
+    ))
   })
-
+  
   output$downloaddata.nutAvailFG <- downloadHandler(
     filename = function() {paste("nutDiv_", "_", input$FGcountryName, Sys.Date(), '.csv', sep = '') },
     content = function(file) {write.csv(data.nutAvailFG(), file)}
   )
-
+  
   #view and download data ------
   output$table <- DT::renderDataTable({
     dt <- datasetInput()
@@ -1011,10 +1125,10 @@ server <- function(input, output, session) {
       dt <- DT::datatable(dt, rownames = FALSE, options = list(pageLength = 25)) %>% formatRound('value', 3)
     }
   })
-
+  
   output$downloadData.full <- downloadHandler(
     filename = function() { paste(input$dataset.full, "_", Sys.Date(), '.gz', sep = '') },
-
+    
     content = function(file) {
       write.csv(datasetInput(), file = gzfile(file))
       #   zip(zipfile = file, files = datasetInput())
@@ -1034,19 +1148,19 @@ server <- function(input, output, session) {
     #    },
     # contentType = "application/zip"
   )
-
+  
   # metadataTable ------
   output$metadataTable <- DT::renderDataTable({
     dt <- getNewestVersion("dt.metadata", fileloc("mData"))
     dt <- DT::datatable(dt, rownames = FALSE, options = list(pageLength = 25))
   })
-
+  
   # IMPACTmetadataTable ------
   output$IMPACTmetadataTable <- DT::renderDataTable({
     dt <- getNewestVersion("dt.IMPACTgdxParams", fileloc("mData"))
     dt <- DT::datatable(dt, rownames = FALSE, options = list(pageLength = 25))
   })
-
+  
   # IMPACTfoodgroupLookupTable ------
   output$IMPACTfoodgroupTable <- DT::renderDataTable({
     data.table::setnames(dt.foodGroupsInfo, old = names(dt.foodGroupsInfo), new = gsub("_", " ", names(dt.foodGroupsInfo)))
@@ -1054,11 +1168,11 @@ server <- function(input, output, session) {
     dt <- DT::datatable(dt, rownames = FALSE, options = list(pageLength = 25))
     dt
   })
-
+  
   # nutrient lookup -----
   output$nutrientLookup <- DT::renderDataTable({
     dt <- getNewestVersion("dt.nutrients.var", fileloc("mData"))
-#    dt[, ft_acds_tot_trans_g := as.numeric(ft_acds_tot_trans_g)] #dt.nutrients.var comes in as chr because one entry is "ph (Aug 10, 2018); fixed Aug 12, 2018
+    #    dt[, ft_acds_tot_trans_g := as.numeric(ft_acds_tot_trans_g)] #dt.nutrients.var comes in as chr because one entry is "ph (Aug 10, 2018); fixed Aug 12, 2018
     colsNotNumeric <- c("IMPACT_code",  "region_code.IMPACT159", "food_group_code", "staple_code")
     colsToRound3 <- names(dt)[!names(dt) %in% colsNotNumeric]
     # colsToRound3 <- c("phytate_mg", "protein_g", "fat_g", "carbohydrate_g", "totalfiber_g", "energy_kcal",
@@ -1085,6 +1199,25 @@ server <- function(input, output, session) {
     dt <- getNewestVersion("resultFileLookup", fileloc("mData"))
     dt <- DT::datatable(dt, rownames = FALSE, options = list(pageLength = 25))
     dt
+  })
+  
+  output$info <- renderText({
+    xy_str <- function(e) {
+      if(is.null(e)) return("NULL\n")
+      paste0("x=", round(e$x, 1), " y=", round(e$y, 1), "\n")
+    }
+    xy_range_str <- function(e) {
+      if(is.null(e)) return("NULL\n")
+      paste0("xmin=", round(e$xmin, 1), " xmax=", round(e$xmax, 1), 
+             " ymin=", round(e$ymin, 1), " ymax=", round(e$ymax, 1))
+    }
+    
+    paste0(
+      "click: ", xy_str(input$plot_click),
+      "dblclick: ", xy_str(input$plot_dblclick),
+      "hover: ", xy_str(input$plot_hover),
+      "brush: ", xy_range_str(input$plot_brush)
+    )
   })
   session$onSessionEnded(stopApp)
 }

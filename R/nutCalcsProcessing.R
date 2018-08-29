@@ -39,7 +39,7 @@ for (switchloop in getSwitchChoice()) {
 
   #do AMDRs as a special case
   for (i in AMDRs) {
-    cat("\n------ working on ", i)
+    cat("\n------ working on ", i, "\n")
     reqShortName <- gsub("req_", "", i)
     temp <- paste("food_agg_", reqShortName, ".", suffix, sep = "")
     DT <- getNewestVersion(temp, fileloc("resultsDir"))
@@ -148,7 +148,8 @@ for (switchloop in getSwitchChoice()) {
     outName <- paste("all_sum_", reqShortName, ".", suffix, sep = "")
     desc <- paste0("All sum for ", reqShortName)
     cleanup(inDT, outName, fileloc("resultsDir"),  desc = desc)
-
+# add column to indicate nutrient type. Added Aug 27, 2018
+    dt.sum_reqRatio_long[, nutrientType := reqShortName]
     inDT <- dt.sum_reqRatio_long
     inDT[, nutrient := gsub("_reqRatio", "", nutrient)]
     inDT <- unique(inDT)
@@ -297,8 +298,8 @@ for (switchloop in getSwitchChoice()) {
   cat("\n", suffix, "data")
 
   for (req in reqList) {
-    cat("\n------ working on ", req)
-    reqShortName <- gsub("req.", "", req)
+    cat("\n------ working on ", req, "\n")
+    reqShortName <- gsub("req.", "", req) # results in names like "RDA_vits
     temp <- paste("food_agg_", reqShortName, ".", suffix, sep = "")
     dt.food_agg.master <- getNewestVersion(temp, fileloc("resultsDir"))
     dt.food_agg.master[, scenario := gsub("IRREXP-WUE2", "IRREXP_WUE2", scenario)]

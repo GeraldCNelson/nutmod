@@ -19,6 +19,125 @@
 #     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE, See the
 #     GNU General Public License for more details at http://www.gnu.org/licenses/.
 
+ggRadar2 <- function (data, mapping = NULL, rescale = TRUE, legend.position = "top", 
+                      colour = "red", alpha = 0.3, size = 3, ylim = NULL, scales = "fixed", 
+                      use.label = FALSE, interactive = FALSE, nrow = 1, ...) 
+{
+  data = as.data.frame(data)
+  (groupname = setdiff(names(mapping), c("x", "y")))
+  groupname
+  mapping
+  length(groupname)
+  if (length(groupname) == 0) {
+    groupvar <- NULL
+  }
+  else {
+    groupvar = getMapping(mapping, groupname)
+  }
+  groupvar
+  facetname <- colorname <- NULL
+  if ("facet" %in% names(mapping)) {
+    facetname <- getMapping(mapping, "facet")
+  }
+  (colorname = setdiff(groupvar, facetname))
+  if ((length(colorname) == 0) & !is.null(facetname)) 
+    colorname <- facetname
+  data = num2factorDf(data, groupvar)
+  (select = sapply(data, is.numeric))
+  if ("x" %in% names(mapping)) {
+    xvars = getMapping(mapping, "x")
+    xvars
+    if (length(xvars) < 3) 
+      warning("At least three variables are required")
+  }
+  else {
+    xvars = colnames(data)[select]
+  }
+  (xvars = setdiff(xvars, groupvar))
+  if (rescale) 
+    data = rescale_df(data, groupvar)
+  temp = sjlabelled::get_label(data)
+  cols = ifelse(temp == "", colnames(data), temp)
+  if (is.null(groupvar)) {
+    id = newColName(data)
+    data[[id]] = 1
+    longdf = reshape2::melt(data, id.vars = id, measure.vars = xvars)
+  }
+  else {
+    cols = setdiff(cols, groupvar)
+    longdf = reshape2::melt(data, id.vars = groupvar, measure.vars = xvars)
+  }
+  temp = paste0("ddply(longdf,c(groupvar,'variable'),summarize,mean=mean(value,na.rm=TRUE))")
+  df = eval(parse(text = temp))
+  colnames(df)[length(df)] = "value"
+  df
+  groupvar
+  if (is.null(groupvar)) {
+    id2 = newColName(df)
+    df[[id2]] = "all"
+    id3 = newColName(df)
+    df[[id3]] = 1:nrow(df)
+    df$tooltip = paste0(df$variable, "=", round(df$value, 
+                                                1))
+    df$tooltip2 = paste0("all")
+    p <- ggplot(data = df, aes_string(x = "variable", y = "value", 
+                                      group = 1)) + geom_polygon_interactive(aes_string(tooltip = "tooltip2"), 
+                                                                             colour = colour, fill = colour, alpha = alpha) + 
+      geom_point_interactive(aes_string(data_id = id3, 
+                                        tooltip = "tooltip"), colour = colour, size = size)
+  }
+  else {
+    if (!is.null(colorname)) {
+      id2 = newColName(df)
+      df[[id2]] = df[[colorname]]
+    }
+    id3 = newColName(df)
+    df[[id3]] = 1:nrow(df)
+    df$tooltip = paste0(groupvar, "=", df[[colorname]], "<br>", 
+                        df$variable, "=", round(df$value, 1))
+    df$tooltip2 = paste0(groupvar, "=", df[[colorname]])
+    p <- ggplot(data = df, aes_string(x = "variable", y = "value", 
+                                      colour = colorname, fill = colorname, group = colorname)) + 
+      geom_polygon_interactive(aes_string(tooltip = "tooltip2"), 
+                               alpha = alpha) + geom_point_interactive(aes_string(data_id = id3, 
+                                                                                  tooltip = "tooltip"), size = size)
+  }
+  p
+  if (!is.null(facetname)) {
+    formula1 = as.formula(paste0("~", facetname))
+    p <- p + facet_wrap(formula1, scales = scales, nrow = 1)
+  }
+  p <- p + xlab("") + ylab("") + theme(legend.position = legend.position)
+  if (use.label) 
+    p <- p + scale_x_discrete(labels = cols)
+  p <- p + coord_radar()
+  if (!is.null(ylim)) 
+    p <- p + expand_limits(y = ylim)
+  p
+  if (interactive) {
+    tooltip_css <- "background-color:white;font-style:italic;padding:10px;border-radius:10px 20px 10px 20px;"
+    hover_css = "r:4px;cursor:pointer;stroke-width:6px;"
+    selected_css = "fill:#FF3333;stroke:black;"
+    p <- ggiraph(code = print(p), tooltip_extra_css = tooltip_css, 
+                 tooltip_opacity = 0.75, zoom_max = 10, hover_css = hover_css, 
+                 selected_css = selected_css)
+  }
+  p
+}
+
+
+
+generateBreakValues <- function(fillLimits, decimals) {
+  fillRange <- fillLimits[2] - fillLimits[1]
+  breakValue.low <- round(fillLimits[1], digits = decimals)
+  breakValue.high <- round(fillLimits[2], digits = decimals)
+  #' middle two values shift the palette gradient
+  #  breakValues <- scales::rescale(c(breakValue.low, breakValue.low + fillRange/3, breakValue.low + fillRange/1.5, breakValue.high))
+  breakValues <- round(c(breakValue.low, breakValue.low + fillRange/3, breakValue.low + fillRange/1.5, breakValue.high), digits = decimals)
+  #  breakValues <- rescale(breakValues, to = c(0,1)) # the break values MUST be from 0 to 1. Already done in facetMaps() July 10, 2018
+  return(breakValues)
+}
+
 getGdxChoice <- function() {
   if (!"gdxChoice" %in% ls(envir = .GlobalEnv)) {
     #this global.R file is for the nutrientPriorities project so choice = 3
@@ -40,7 +159,7 @@ getGdxChoice <- function() {
     }
   }
   gdxChoice <- gdxSwitchCombo[,2]
-  cat("gdxChoice is", gdxChoice)
+ # cat("gdxChoice is", gdxChoice)
   return(gdxChoice)
 }
 
@@ -314,6 +433,10 @@ cleanupNutrientNamesFacetGraph <- function(nutList) {
 #'   }
 #' }
 
+cropCodeLookup <- function(cropName, cropInfo){
+ cropID <- unique(cropInfo[cropNames == cropName, cropList])
+ }
+
 countryNameLookup <- function(countryCode, directory) {
   if (missing(directory)) {mData <- fileloc("mData")} else {mData <- directory}
   if (!countryCode %in% dt.regions.all$region_code.IMPACT159) {
@@ -371,7 +494,7 @@ generateWorldMaps <- function(spData, scenOrder, titleText, legendText, lowColor
     temp.sp <- as.data.frame(temp.sp)
     summary(temp.sp)
     plotName.new <- paste0("plot.", gsub("-", "_", scenOrder[j]))
-    print(plotName.new)
+ #   print(plotName.new)
     gg <- ggplot(temp.sp, aes(map_id = id))
     gg <- gg + geom_map(aes(fill = temp.sp$value), map = worldMap, color = "white")
     gg <- gg + expand_limits(x = worldMap$long, y = worldMap$lat)
@@ -412,33 +535,9 @@ generateWorldMaps <- function(spData, scenOrder, titleText, legendText, lowColor
   }
 }
 
-# store world map dataframe -----
-storeWorldMapDF <- function(){
-  #' naturalearth world map geojson
-  #world <- readOGR(dsn="https://raw.githubusercontent.com/nvkelso/natural-earth-vector/master/geojson/ne_50m_admin_0_countries.geojson", layer="OGRGeoJSON")
-  #world <- readOGR(dsn = "data-raw/spatialData/ne_50m_admin_0_countries.geojson", layer = "OGRGeoJSON")
-  world <- rgdal::readOGR(dsn = "data-raw/spatialData/ne_110m_admin_0_countries.geojson", layer = "OGRGeoJSON")
-
-  # remove antarctica and some other small countries
-  world <- world[!world$iso_a3 %in% c("ATA"),]
-  othersToRemove <- c("ABW", "AIA", "ALA", "AND", "ASM", "AFT")
-  world <- world[!world$iso_a3 %in% othersToRemove,]
-  world <- world[!world$type %in% "Dependency",]
-  world <- sp::spTransform(world, CRS("+proj=longlat"))
-
-  #world.simp <- gSimplify(world, tol = .1, topologyPreserve = TRUE)
-  #' alternative would be CRS("+proj=longlat")) for WGS 84
-  # dat_url <- getURL("https://gist.githubusercontent.com/hrbrmstr/7a0ddc5c0bb986314af3/raw/6a07913aded24c611a468d951af3ab3488c5b702/pop.csv")
-  # pop <- read.csv(text=dat_url, stringsAsFactors=FALSE, header=TRUE)
-  worldMap <- broom::tidy(world, region = "iso_a3")
-  indt <- worldMap
-  outName <- "worldMap"
-  cleanup(indt, outName, fileloc("mData"))
-}
-
 library(scales)
-facetMaps <- function(worldMap, DTfacetMap, fileName, legendText, fillLimits, palette, facetColName,
-                      graphsListHolder, breakValues, displayOrder, desc) {
+facetMaps <- function(mapFile, DTfacetMap, legendText, fillLimits, palette, facetColName,
+                      breakValues, displayOrder) {
   b <- rescale(breakValues, to = c(0,1)) # the values option in scale_fill_gradientn MUST be from 0 to 1
   f <- fillLimits
   p <- palette
@@ -446,24 +545,24 @@ facetMaps <- function(worldMap, DTfacetMap, fileName, legendText, fillLimits, pa
   d <- data.table::copy(DTfacetMap)
   d[, (n) := factor(get(n), levels = displayOrder)]
   gg <- ggplot(data = d, aes(map_id = id))
-  gg <- gg + geom_map(aes(fill = value), map = worldMap)
-  gg <- gg + expand_limits(x = worldMap$long, y = worldMap$lat)
+  gg <- gg + geom_map(data=mapFile, map=mapFile, aes(map_id=region))
+  gg <- gg + geom_map(aes(fill = value), map = mapFile, color="#2b2b2b")
+  gg <- gg + expand_limits(x = mapFile$long, y = mapFile$lat)
   gg <- gg + facet_wrap(facets = n)
   gg <- gg + theme(legend.position = "bottom")
   gg <- gg +  theme(axis.ticks = element_blank(),axis.title = element_blank(), axis.text.x = element_blank(),
                     axis.text.y = element_blank(), strip.text = element_text(family = "Times", face = "plain"))
-
+  
   gg <- gg + scale_fill_gradientn(colors = p, name = legendText,
                                   na.value = "grey50", values = b,
                                   guide = "colorbar", limits=f, labels = )
   #
-  gg
-
-  graphsListHolder[[fileName]] <- gg
-  assign("graphsListHolder", graphsListHolder, envir = .GlobalEnv)
-  ggsave(file = paste0(fileloc("gDir"),"/",fileName,".png"), plot = gg,
-         width = 7, height = 6)
-
+  return(gg)
+  
+  # graphsListHolder[[fileName]] <- gg
+  # assign("graphsListHolder", graphsListHolder, envir = .GlobalEnv)
+  # ggsave(file = paste0(fileloc("gDir"),"/",fileName,".png"), plot = gg,
+  #        width = 7, height = 6)
 }
 
 # # use this function to get a tablegrob. Which can then be placed in a plot. This is done in aggNorder.R
@@ -483,6 +582,7 @@ years <- c("X2010", "X2030", "X2050")
 yearsClean <- gsub("X", "", years)
 fontFamily <- "Times"
 dt.scenarioListIMPACT <- getNewestVersion("dt.scenarioListIMPACT", fileloc("mData"))
+worldMap <- getNewestVersion("worldMap", fileloc("mData"))
 dt.scenarioListIMPACT <- dt.scenarioListIMPACT[,scenario := gsub("-REF", "", scenario)]
 scenarioNames <- unique(dt.scenarioListIMPACT$scenario)
 scenarioNames <- scenarioNames[!scenarioNames %in% c( "SSP2-IPSL", "SSP2-MIROC", "SSP2-GFDL")]
@@ -543,13 +643,13 @@ load_data <- function(dataSetsToLoad) {
   #' load data that are not year or scenario specific; these are handled in the observe code in the server
   #' development files
   dt.metadata <- getNewestVersion("dt.metadata", fileloc("mData"))
-  dt.IMPACTgdxParams <- getNewestVersion("dt.IMPACTgdxParams", fileloc("mData"))
+  worldMap <- getNewestVersion("worldMap", fileloc("mData"))
 
   loadNresize <- function(dt) {
     temp <- getNewestVersion(dt, fileloc("mData"))
     temp <- (temp[year %in% years])
     temp[, scenario := gsub("-REF", "", scenario)] # added Aug 9, 2018
-    temp <- temp[scenario %in% scenarioNames]
+ #   temp <- temp[scenario %in% scenarioNames] commented out Aug 25 to keep the deltas
     assign(dt, temp, envir = .GlobalEnv) # this puts the data sets into the global environment
     return(temp) # changed to temp Aug 9, 2018
   }
