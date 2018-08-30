@@ -476,31 +476,31 @@ countryCodeCleanup <- function(dt) {
   return(dt)
 }
 
-# generateWorldMaps -----
-# code to generate choropleth world maps. In principle it should be able to handle an arbitrary number of scenarios
-generateWorldMaps <- function(spData, scenOrder, titleText, legendText, lowColor, highColor, fillLimits, fileName){
-  scenGraphs <- list()
-  for (j in 1:length(scenOrder)) {
-    #    titletext <- paste0(titleText, scenOrder[j])
-    titletext <- NULL
-    temp.sp <- spData[scenario %in% scenOrder[j],]    #    temp.sp[,scenario := NULL]
-    temp.sp <- as.data.frame(temp.sp)
-    summary(temp.sp)
-    plotName.new <- paste0("plot.", gsub("-", "_", scenOrder[j]))
-    print(plotName.new)
-    gg <- ggplot(temp.sp, aes(map_id = id))
-    gg <- gg + geom_map(aes(fill = temp.sp$value), map = worldMap, color = "white")
-    gg <- gg + expand_limits(x = worldMap$long, y = worldMap$lat)
-    gg <- gg + labs(title =  titletext, hjust = 0.5, x = NULL, y = NULL) +
-      theme(plot.title = element_text(size = 10, hjust = 0.5)) +
-      scale_fill_gradient(low = lowColor, high = highColor, guide = "legend", name = legendText, limits = fillLimits) +
-      labs(lText = legendText) +
-      #  theme(legend.position = "bottom") +
-      theme(legend.justification = c(0,0), legend.position = c(0,0)) +
-      # guides(lText = guide_legend(title.position="top", title.hjust = 0.5))  +
-      theme(axis.ticks = element_blank(),axis.title = element_blank(), axis.text.x = element_blank(),axis.text.y = element_blank())
-    scenGraphs[[plotName.new]] <- gg
-  }
+# # generateWorldMaps -----
+# # code to generate choropleth world maps. In principle it should be able to handle an arbitrary number of scenarios
+# generateWorldMaps <- function(spData, scenOrder, titleText, legendText, lowColor, highColor, fillLimits, fileName){
+#   scenGraphs <- list()
+#   for (j in 1:length(scenOrder)) {
+#     #    titletext <- paste0(titleText, scenOrder[j])
+#     titletext <- NULL
+#     temp.sp <- spData[scenario %in% scenOrder[j],]    #    temp.sp[,scenario := NULL]
+#     temp.sp <- as.data.frame(temp.sp)
+#     summary(temp.sp)
+#     plotName.new <- paste0("plot.", gsub("-", "_", scenOrder[j]))
+#     print(plotName.new)
+#     gg <- ggplot(temp.sp, aes(map_id = id))
+#     gg <- gg + geom_map(aes(fill = temp.sp$value), map = worldMap, color = "white")
+#     gg <- gg + expand_limits(x = worldMap$long, y = worldMap$lat)
+#     gg <- gg + labs(title =  titletext, hjust = 0.5, x = NULL, y = NULL) +
+#       theme(plot.title = element_text(size = 10, hjust = 0.5)) +
+#       scale_fill_gradient(low = lowColor, high = highColor, guide = "legend", name = legendText, limits = fillLimits) +
+#       labs(lText = legendText) +
+#       #  theme(legend.position = "bottom") +
+#       theme(legend.justification = c(0,0), legend.position = c(0,0)) +
+#       # guides(lText = guide_legend(title.position="top", title.hjust = 0.5))  +
+#       theme(axis.ticks = element_blank(),axis.title = element_blank(), axis.text.x = element_blank(),axis.text.y = element_blank())
+#     scenGraphs[[plotName.new]] <- gg
+#   }
 
   #' good source of information on using grid to place graphics - https://stat.ethz.ch/R-manual/R-devel/library/grid/doc/grid.pdf
   #' code below is modified from multiplot
