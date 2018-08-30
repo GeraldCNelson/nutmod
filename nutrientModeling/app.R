@@ -1078,10 +1078,10 @@ server <- function(input, output, session) {
   # })
   
   output$plot.NutAvailFGbarGraphP1 <- renderUI({
-    if (input$nutrientGroup == "vitamins") 
-      if (input$nutrientGroup == "macronutrients") 
-        if (input$nutrientGroup == "minerals") 
-          plotOutput("NutAvailFGbarGraphP1", width = "100%")
+    # if (input$nutrientGroup == "vitamins") 
+    #   if (input$nutrientGroup == "macronutrients") 
+    #     if (input$nutrientGroup == "minerals") 
+          plotOutput("NutAvailFGbarGraphP1", width = "100%", height = "600px")
   })
   
   # nutrient diversity FG Table -----
