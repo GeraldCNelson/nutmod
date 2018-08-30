@@ -67,7 +67,7 @@ ggRadar2 <- function (data, mapping = NULL, rescale = TRUE, legend.position = "t
     cols = setdiff(cols, groupvar)
     longdf = reshape2::melt(data, id.vars = groupvar, measure.vars = xvars)
   }
-  temp = paste0("ddply(longdf,c(groupvar,'variable'),summarize,mean=mean(value,na.rm=TRUE))")
+  temp = paste0("dbplyr(longdf,c(groupvar,'variable'),summarize,mean=mean(value,na.rm=TRUE))")
   df = eval(parse(text = temp))
   colnames(df)[length(df)] = "value"
   df
@@ -124,8 +124,6 @@ ggRadar2 <- function (data, mapping = NULL, rescale = TRUE, legend.position = "t
   }
   p
 }
-
-
 
 generateBreakValues <- function(fillLimits, decimals) {
   fillRange <- fillLimits[2] - fillLimits[1]

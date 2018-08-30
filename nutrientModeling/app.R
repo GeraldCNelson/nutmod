@@ -1,12 +1,12 @@
-#' Shiny app for the nutrient model results
-#' title: "Shiny app for the nutrient model results"
+#' Shiny app for the nutrient modelling results
+#' title: "Shiny app for the nutrient modelling results"
 #' @keywords shiny app
 #' @name app.R
 #' @author Gerald C. Nelson, \\email{nelson.gerald.c@@gmail.com}
 #' @description
 #' This script contains the shiny app for the nutrient modeling website
 
-#Copyright (C) 2015-2017 Gerald C,Nelson, except where noted
+#Copyright (C) 2015-2018 Gerald C,Nelson, except where noted
 
 #     This program is free software: you can redistribute it and/or modify
 #     it under the terms of the GNU General Public License as published by
@@ -25,6 +25,7 @@ library(shinyjs)
 library(ggplot2)
 #library(rsconnect)
 library(data.table)
+library(plyr)
 library(dplyr) # to do %>%
 library(dtplyr)
 library(DT) # needs to come after library(shiny)
@@ -56,7 +57,6 @@ menu <- (
     tags$li(a(class = "item", href = "/Affordability", "Affordability"))
   )
 )
-
 
 #' files for the development tab section
 FGreqChoices <- c("macro nutrients", "minerals", "vitamins")
@@ -212,12 +212,10 @@ ui <- fluidPage(
                                              downloadButton("downloadData.energyRat", "Energy share"),
                                              downloadButton("downloadData.energyQ", "Kcals")
                                 ),
-                                mainPanel(titlePanel("Nutrient adequacy and kilocalorie availability"),
+                                mainPanel(titlePanel("Nutrient adequacy and kilocalorie availability"), width = 10,
                                           includeHTML("www/adequacyText.html"),
-                                          radioButtons("adequacyScenarioName", "Choose scenario (See glossary for details):",
-                                                       list("SSP2-NoCC", "SSP2-HGEM", "SSP1-NoCC", "SSP3-NoCC"), inline = TRUE),
-                                          fluidRow(
-                                            column(width = 12, plotOutput("adequacySpiderGraphtot"))),
+                                         fluidRow(
+                                            column(width = 12, plotOutput("adequacySpiderGraphtot", height = "300px"))),
                                           # fluidRow(
                                           #    column(width = 4, plotOutput("adequacySpiderGraphP1")),
                                           #  column(width = 4, plotOutput("adequacySpiderGraphP2")),
@@ -228,9 +226,11 @@ ui <- fluidPage(
                                           #                                         dblclick = "plot_dblclick",
                                           #                                         hover = "plot_hover",
                                           #                                         brush = "plot_brush"))),
-                                          fluidRow(height = "200px",
-                                            column(width = 6, plotOutput("energyQuantityBarPlot")),
-                                            column(width = 6, plotOutput("energyShareBarPlot"))),
+                                          radioButtons("adequacyScenarioName", "Choose scenario (See glossary for details):",
+                                                       list("SSP2-NoCC", "SSP2-HGEM", "SSP1-NoCC", "SSP3-NoCC"), inline = TRUE),
+                                          fluidRow(
+                                            column(width = 6, plotOutput("energyQuantityBarPlot", height = "200px")),
+                                            column(width = 6, plotOutput("energyShareBarPlot", height = "200px"))),
                                           #                      dataTableOutput("adequacyTableP1"),
                                           #                      dataTableOutput("adequacyTableP2"),
                                           #                      dataTableOutput("adequacyTableP2")))),
@@ -451,8 +451,7 @@ server <- function(input, output, session) {
     scenarioName <- input$adequacyScenarioName
     reqType <- reqRatio_sum_RDA
     dt <- copy(reqType)
-    #    cat("\n", unique(dt$scenario), "\n")
-    
+
     spiderData <- spiderGraphData2(countryName, dt, displayColumnName = "nutrient")
   })
   

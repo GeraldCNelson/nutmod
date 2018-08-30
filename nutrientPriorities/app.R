@@ -1,5 +1,5 @@
-#' Shiny app for the nutrient model results
-#' title: "Shiny app for the nutrient model results"
+#' Shiny app for the nutrient priorities project
+#' title: "Shiny app for the nutrient productivities results"
 #' @keywords shiny app
 #' @name app.R
 #' @author Gerald C. Nelson, \\email{nelson.gerald.c@@gmail.com}
@@ -221,15 +221,15 @@ ui <- fluidPage(
                      # adequacy tab panel -----
                      tabPanel(title = "Adequacy ratios",
                               sidebarLayout(
-                                sidebarPanel(width = 3,
-                                             selectizeInput(inputId = "adequacyCountryName", label = "Choose country", choices = countryNames),
-                                             #                                            selectizeInput(inputId = "adequacyScenarioName", label = "Choose a scenario (see definition in glossary)", choices = scenarioNames),
-                                             downloadButton("downloadData.adequacy.macro", "Macro data"),
-                                             downloadButton("downloadData.adequacy.vits", "Vitamin data"),
-                                             downloadButton("downloadData.adequacy.minrls", "Minerals data"),
-                                             downloadButton("downloadData.energyRat", "Energy share data"),
-                                             downloadButton("downloadData.energyQ", "Kcal data")
-                                ),
+sidebarPanel(width = 2,
+selectizeInput(inputId = "adequacyCountryName", label = "Choose country", choices = countryNames),
+#                                            selectizeInput(inputId = "adequacyScenarioName", label = "Choose a scenario (see definition in glossary)", choices = scenarioNames),
+downloadButton("downloadData.adequacy.macro", "Macro"),
+downloadButton("downloadData.adequacy.vits", "Vitamins"),
+downloadButton("downloadData.adequacy.minrls", "Minerals"),
+downloadButton("downloadData.energyRat", "Energy share"),
+downloadButton("downloadData.energyQ", "Kcals")
+),
                                 mainPanel(titlePanel("Nutrient adequacy and kilocalorie availability"),
                                           includeHTML("www/adequacyText.html"),
                                           radioButtons("adequacyScenarioName", "Choose scenario (See glossary for details):",
@@ -583,7 +583,6 @@ server <- function(input, output, session) {
     dt[, landUse := paste(YieldCrop, ", ", legendText, ", ", prodInvest, sep = "")]
     dt[, scenario := factor(scenario, levels = scenarioList)]
     setorder(dt, scenario)
-#    dt
   })
   
   # yield legend reactive -----
@@ -723,7 +722,6 @@ server <- function(input, output, session) {
     dt <- datatable(dt, rownames = FALSE, options = list(pageLength = 20, dom = 'iftp' ,
                                                              columnDefs = list(list(className = 'dt-right', targets = 3:5)) # targets start at column 0
     ))
-    #  dt
   })
   
   # facetMapData -----
@@ -770,7 +768,6 @@ server <- function(input, output, session) {
     dt <- DT::datatable(dt, rownames = FALSE, options = list(pageLength = 25, dom = 'iftp' ,
                                                              columnDefs = list(list(className = 'dt-right', targets = 3:5)) # targets start at column 0
 ))
-  #   dt
   })
   
   output$downloadData.avail <- downloadHandler(

@@ -19,30 +19,146 @@
 #     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE, See the
 #     GNU General Public License for more details at http://www.gnu.org/licenses/.
 
-getGdxChoice <- function() {
-  if (!"gdxChoice" %in% ls(envir = .GlobalEnv)) {
-    #this global.R file is for the nutrientPriorities project so choice = 3
-    # cat("Choose the IMPACT project you are working on.\n")
-    # cat("1. for the nutrient modeling paper\n")
-    # cat("2. for the USAID nutrient modeling paper\n")
-    # cat("3. for the USAID priority setting paper, 2018\n")
-
-    choice = 3
-    #  choice <- "1" # so there will be a definite value
-    if (choice  %in% "1") {
-      gdxSwitchCombo <- read.csv(file = paste0(getwd(), "/data/gdxInfo.csv"), header = TRUE, stringsAsFactors = FALSE)
-    }
-    if (choice  %in% "2") {
-      gdxSwitchCombo <- read.csv(file = paste0(getwd(), "/data/gdxInfo.csv"), header = TRUE, stringsAsFactors = FALSE)
-    }
-    if (choice  %in% "3") {
-      gdxSwitchCombo <- read.csv(file = paste0(getwd(), "/data/gdxInfo.csv"), header = TRUE, stringsAsFactors = FALSE)
-    }
+ggRadar2 <- function (data, mapping = NULL, rescale = TRUE, legend.position = "top", 
+                      colour = "red", alpha = 0.3, size = 3, ylim = NULL, scales = "fixed", 
+                      use.label = FALSE, interactive = FALSE, nrow = 1, ...) 
+{
+  data = as.data.frame(data)
+  (groupname = setdiff(names(mapping), c("x", "y")))
+  groupname
+  mapping
+  length(groupname)
+  if (length(groupname) == 0) {
+    groupvar <- NULL
   }
-  gdxChoice <- gdxSwitchCombo[,2]
-  cat("gdxChoice is", gdxChoice)
-  return(gdxChoice)
+  else {
+    groupvar = getMapping(mapping, groupname)
+  }
+  groupvar
+  facetname <- colorname <- NULL
+  if ("facet" %in% names(mapping)) {
+    facetname <- getMapping(mapping, "facet")
+  }
+  (colorname = setdiff(groupvar, facetname))
+  if ((length(colorname) == 0) & !is.null(facetname)) 
+    colorname <- facetname
+  data = num2factorDf(data, groupvar)
+  (select = sapply(data, is.numeric))
+  if ("x" %in% names(mapping)) {
+    xvars = getMapping(mapping, "x")
+    xvars
+    if (length(xvars) < 3) 
+      warning("At least three variables are required")
+  }
+  else {
+    xvars = colnames(data)[select]
+  }
+  (xvars = setdiff(xvars, groupvar))
+  if (rescale) 
+    data = rescale_df(data, groupvar)
+  temp = sjlabelled::get_label(data)
+  cols = ifelse(temp == "", colnames(data), temp)
+  if (is.null(groupvar)) {
+    id = newColName(data)
+    data[[id]] = 1
+    longdf = reshape2::melt(data, id.vars = id, measure.vars = xvars)
+  }
+  else {
+    cols = setdiff(cols, groupvar)
+    longdf = reshape2::melt(data, id.vars = groupvar, measure.vars = xvars)
+  }
+  temp = paste0("ddply(longdf,c(groupvar,'variable'),summarize,mean=mean(value,na.rm=TRUE))")
+  df = eval(parse(text = temp))
+  colnames(df)[length(df)] = "value"
+  df
+  groupvar
+  if (is.null(groupvar)) {
+    id2 = newColName(df)
+    df[[id2]] = "all"
+    id3 = newColName(df)
+    df[[id3]] = 1:nrow(df)
+    df$tooltip = paste0(df$variable, "=", round(df$value, 
+                                                1))
+    df$tooltip2 = paste0("all")
+    p <- ggplot(data = df, aes_string(x = "variable", y = "value", 
+                                      group = 1)) + geom_polygon_interactive(aes_string(tooltip = "tooltip2"), 
+                                                                             colour = colour, fill = colour, alpha = alpha) + 
+      geom_point_interactive(aes_string(data_id = id3, 
+                                        tooltip = "tooltip"), colour = colour, size = size)
+  }
+  else {
+    if (!is.null(colorname)) {
+      id2 = newColName(df)
+      df[[id2]] = df[[colorname]]
+    }
+    id3 = newColName(df)
+    df[[id3]] = 1:nrow(df)
+    df$tooltip = paste0(groupvar, "=", df[[colorname]], "<br>", 
+                        df$variable, "=", round(df$value, 1))
+    df$tooltip2 = paste0(groupvar, "=", df[[colorname]])
+    p <- ggplot(data = df, aes_string(x = "variable", y = "value", 
+                                      colour = colorname, fill = colorname, group = colorname)) + 
+      geom_polygon_interactive(aes_string(tooltip = "tooltip2"), 
+                               alpha = alpha) + geom_point_interactive(aes_string(data_id = id3, 
+                                                                                  tooltip = "tooltip"), size = size)
+  }
+  p
+  if (!is.null(facetname)) {
+    formula1 = as.formula(paste0("~", facetname))
+    p <- p + facet_wrap(formula1, scales = scales, nrow = 1)
+  }
+  p <- p + xlab("") + ylab("") + theme(legend.position = legend.position)
+  if (use.label) 
+    p <- p + scale_x_discrete(labels = cols)
+  p <- p + coord_radar()
+  if (!is.null(ylim)) 
+    p <- p + expand_limits(y = ylim)
+  p
+  if (interactive) {
+    tooltip_css <- "background-color:white;font-style:italic;padding:10px;border-radius:10px 20px 10px 20px;"
+    hover_css = "r:4px;cursor:pointer;stroke-width:6px;"
+    selected_css = "fill:#FF3333;stroke:black;"
+    p <- ggiraph(code = print(p), tooltip_extra_css = tooltip_css, 
+                 tooltip_opacity = 0.75, zoom_max = 10, hover_css = hover_css, 
+                 selected_css = selected_css)
+  }
+  p
 }
+
+generateBreakValues <- function(fillLimits, decimals) {
+  fillRange <- fillLimits[2] - fillLimits[1]
+  breakValue.low <- round(fillLimits[1], digits = decimals)
+  breakValue.high <- round(fillLimits[2], digits = decimals)
+  #' middle two values shift the palette gradient
+  #  breakValues <- scales::rescale(c(breakValue.low, breakValue.low + fillRange/3, breakValue.low + fillRange/1.5, breakValue.high))
+  breakValues <- round(c(breakValue.low, breakValue.low + fillRange/3, breakValue.low + fillRange/1.5, breakValue.high), digits = decimals)
+  #  breakValues <- rescale(breakValues, to = c(0,1)) # the break values MUST be from 0 to 1. Already done in facetMaps() July 10, 2018
+  return(breakValues)
+}
+
+# getGdxChoice <- function() {
+#   if (!"gdxChoice" %in% ls(envir = .GlobalEnv)) {
+#     #this global.R file is for the nutrientPriorities project so choice = 3
+#     # cat("Choose the IMPACT project you are working on.\n")
+#     # cat("1. for the nutrient modeling paper\n")
+#     # cat("2. for the USAID nutrient modeling paper\n")
+#     # cat("3. for the USAID priority setting paper, 2018\n")
+# 
+#     choice = 3
+#     #  choice <- "1" # so there will be a definite value
+#     if (choice  %in% "1") {
+#       gdxSwitchCombo <- read.csv(file = paste0(getwd(), "/data/gdxInfo.csv"), header = TRUE, stringsAsFactors = FALSE)
+#     }
+#     if (choice  %in% "2") {
+#       gdxSwitchCombo <- read.csv(file = paste0(getwd(), "/data/gdxInfo.csv"), header = TRUE, stringsAsFactors = FALSE)
+#     }
+#     if (choice  %in% "3") {
+#       gdxSwitchCombo <- read.csv(file = paste0(getwd(), "/data/gdxInfo.csv"), header = TRUE, stringsAsFactors = FALSE)
+#     }
+#   }
+#   gdxChoice <- gdxSwitchCombo[,2]
+#   return(gdxChoice)
+# }
 
 #installation of missing required libraries. This doesn't work on shinyapps.io.
 #install needed packages
@@ -509,7 +625,7 @@ spiderGraphData <- function(countryName, scenarioName, dt, displayColumnName) {
   dt[, scenario := gsub("-REF", "", scenario)]
   dt <- dt[region_code.IMPACT159 %in% countryCode & scenario %in% scenarioName,]
   dt[, year := gsub("X", "", year)]
-  formula.wide <- sprintf("scenario + region_code.IMPACT159 + nutrientType + year ~ %s", displayColumnName)
+  formula.wide <- sprintf("scenario + region_code.IMPACT159 + year ~ %s", displayColumnName)
   dt <- dcast(data = dt, formula = formula.wide, value.var = "value")
   return(dt)
 }
@@ -521,7 +637,6 @@ spiderGraphData2 <- function(countryName, dt, displayColumnName) {
   dt <- dt[region_code.IMPACT159 %in% countryCode,]
   dt[, year := gsub("X", "", year)]
   formula.wide <- sprintf("scenario + region_code.IMPACT159 + nutrientType + year ~ %s", displayColumnName)
-  cat("\n", unique(dt$scenario), "\n")
   dt <- dcast(data = dt, formula = formula.wide, value.var = "value")
   return(dt)
 }
@@ -545,7 +660,7 @@ spiderGraphOutput <- function(spiderData, scenarioName) {
   p <- ggRadar2(data = spiderData, mapping = aes(colour = year, facet = "scenario"), nrow = 1, #, facet = "nutrientType"
                rescale = FALSE, interactive = FALSE, size = 1,
                legend.position = "bottom")
-  p <- p + theme(plot.title = element_text(hjust = 0.5, size = 10, family = fontFamily,
+  p <- p + theme(plot.title = element_text(hjust = 0.5, size = 12, family = fontFamily,
                                            face = "plain")) + ggtitle(titleText)
   p <- p + theme(axis.text = element_text(size = 10, family = fontFamily, face = "plain"))
   p <- p + theme(legend.text = element_text(size = 10, family = fontFamily, face = "plain"))
