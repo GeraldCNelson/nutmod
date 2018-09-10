@@ -85,8 +85,8 @@ for (switchloop in getSwitchChoice()) {
 
   copyfacetMapListFromgDir <- c()
   #' special copy for the gdxInfo file which is just below results
-  invisible(file.copy("results/gdxInfo.csv", "nutrientModeling/data"))
-
+    invisible(file.copy("results/nutrientPriorities/gdxInfo.csv", "nutrientPriorities/data"))
+  
   #' copy from results/gdxname
   for (i in copyListFromSpecificResults) {
     print(sprintf("copying file %s from results to %s", i, destDir))

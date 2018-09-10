@@ -28,8 +28,6 @@
 #   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 #   GNU General Public License for more details at http://www.gnu.org/licenses/.
 
-#' @include nutrientModFunctions.R
-#' @include workBookFunctions.R
 source("R/nutrientModFunctions.R")
 
 sourceFile <- "dataManagement.SSPPop.R"
@@ -327,4 +325,4 @@ openxlsx::saveWorkbook(wb = wbGeneral, xcelOutFileName, overwrite = TRUE)
 }
 
 finalizeScriptMetadata(metadataDT, sourceFile)
-sourcer <- clearMemory(sourceFile) # removes everything in memory and sources the sourcer function
+sourcer <- clearMemory(sourceFile, gdxChoice) # removes everything in memory and sources the sourcer function

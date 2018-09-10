@@ -136,44 +136,6 @@ generateBreakValues <- function(fillLimits, decimals) {
   return(breakValues)
 }
 
-# getGdxChoice <- function() {
-#   if (!"gdxChoice" %in% ls(envir = .GlobalEnv)) {
-#     #this global.R file is for the nutrientPriorities project so choice = 3
-#     # cat("Choose the IMPACT project you are working on.\n")
-#     # cat("1. for the nutrient modeling paper\n")
-#     # cat("2. for the USAID nutrient modeling paper\n")
-#     # cat("3. for the USAID priority setting paper, 2018\n")
-# 
-#     choice = 3
-#     #  choice <- "1" # so there will be a definite value
-#     if (choice  %in% "1") {
-#       gdxSwitchCombo <- read.csv(file = paste0(getwd(), "/data/gdxInfo.csv"), header = TRUE, stringsAsFactors = FALSE)
-#     }
-#     if (choice  %in% "2") {
-#       gdxSwitchCombo <- read.csv(file = paste0(getwd(), "/data/gdxInfo.csv"), header = TRUE, stringsAsFactors = FALSE)
-#     }
-#     if (choice  %in% "3") {
-#       gdxSwitchCombo <- read.csv(file = paste0(getwd(), "/data/gdxInfo.csv"), header = TRUE, stringsAsFactors = FALSE)
-#     }
-#   }
-#   gdxChoice <- gdxSwitchCombo[,2]
-#   return(gdxChoice)
-# }
-
-#installation of missing required libraries. This doesn't work on shinyapps.io.
-#install needed packages
-# list.of.packages <- c("shiny", "shinyjs", "data.table", "dplyr",
-# "dtplyr", "DT", "shinythemes", # devtools::install_github("strengejacke/strengejacke - installs latest versions of sjlabelled, sjmisc
-# "sjlabelled", "sjmisc", "ggiraphExtra", "ggiraph", "RColorBrewer", "Rcpp", "devtools")
-#
-# new.packages <- list.of.packages[!(list.of.packages %in% installed.packages()[,"Package"])]
-# if (length(new.packages)) install.packages(new.packages, dependencies = TRUE)
-#
-# if (packageVersion("data.table") < "1.9.7") {
-#   print("updating data.table")
-#   install.packages("data.table")
-# }
-
 fileloc <- function(variableName) {
   gdxChoice <- paste0(getwd(), "/data/gdxInfo.csv")
   rawData <- "data-raw"
@@ -504,29 +466,29 @@ countryCodeCleanup <- function(dt) {
 
   #' good source of information on using grid to place graphics - https://stat.ethz.ch/R-manual/R-devel/library/grid/doc/grid.pdf
   #' code below is modified from multiplot
-  cols <- 2
-  numPlots <- length(scenGraphs)
-  layout <- matrix(seq(1, cols * ceiling(numPlots/cols)),
-                   ncol = cols, nrow = ceiling(numPlots/cols), byrow = TRUE)
-  grid.newpage()
-  # +1 is for the title
-  rows <- nrow(layout) + 1
-  gridHeight <- unit(rep_len(1, rows), "null")
-  pushViewport(viewport(layout = grid.layout(rows, ncol(layout), widths = unit(rep_len(1, cols), "null"), heights = unit(c(1, 5,5,5), "null"))))
-  # title goes in the first row and across all columns
-  grid.text(titleText, vp = viewport(layout.pos.row = 1, layout.pos.col = 1:cols))
-
-  # Make each plot, in the correct location
-  for (i in 1:numPlots) {
-    # Get the i,j matrix positions of the regions that contain this subplot
-    matchidx <- as.data.frame(which(layout == i, arr.ind = TRUE))
-    pdf(paste(fileloc("gDir"), "/worldMaps", fileName, ".pdf", sep = ""), width = 7, height = 5.2, useDingbats = FALSE)
-
-    print(scenGraphs[[i]], vp = viewport(layout.pos.row = matchidx$row + 1,
-                                         layout.pos.col = matchidx$col))
-    dev.off()
-  }
-}
+#   cols <- 2
+#   numPlots <- length(scenGraphs)
+#   layout <- matrix(seq(1, cols * ceiling(numPlots/cols)),
+#                    ncol = cols, nrow = ceiling(numPlots/cols), byrow = TRUE)
+#   grid.newpage()
+#   # +1 is for the title
+#   rows <- nrow(layout) + 1
+#   gridHeight <- unit(rep_len(1, rows), "null")
+#   pushViewport(viewport(layout = grid.layout(rows, ncol(layout), widths = unit(rep_len(1, cols), "null"), heights = unit(c(1, 5,5,5), "null"))))
+#   # title goes in the first row and across all columns
+#   grid.text(titleText, vp = viewport(layout.pos.row = 1, layout.pos.col = 1:cols))
+# 
+#   # Make each plot, in the correct location
+#   for (i in 1:numPlots) {
+#     # Get the i,j matrix positions of the regions that contain this subplot
+#     matchidx <- as.data.frame(which(layout == i, arr.ind = TRUE))
+#     pdf(paste(fileloc("gDir"), "/worldMaps", fileName, ".pdf", sep = ""), width = 7, height = 5.2, useDingbats = FALSE)
+# 
+#     print(scenGraphs[[i]], vp = viewport(layout.pos.row = matchidx$row + 1,
+#                                          layout.pos.col = matchidx$col))
+#     dev.off()
+#   }
+# }
 
 # store world map dataframe -----
 storeWorldMapDF <- function(){

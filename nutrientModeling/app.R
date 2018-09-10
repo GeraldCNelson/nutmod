@@ -215,7 +215,7 @@ ui <- fluidPage(
                                 mainPanel(titlePanel("Nutrient adequacy and kilocalorie availability"), width = 10,
                                           includeHTML("www/adequacyText.html"),
                                          fluidRow(
-                                            column(width = 12, plotOutput("adequacySpiderGraphtot", height = "300px"))),
+                                            column(width = 12, plotOutput("adequacySpiderGraphtot", height = "400px"))),
                                           # fluidRow(
                                           #    column(width = 4, plotOutput("adequacySpiderGraphP1")),
                                           #  column(width = 4, plotOutput("adequacySpiderGraphP2")),
@@ -680,6 +680,13 @@ server <- function(input, output, session) {
   
   output$adequacySpiderGraphtot <- renderPlot({
     dt <- copy(data.adequacy.tot())
+    # order of nutrients in the spider graph
+    newOrder <- c("scenario", "region_code.IMPACT159", "nutrientType", "year", 
+                  "carbohydrate_g", "protein_g", "totalfiber_g",
+                  "calcium_mg", "iron_mg", "magnesium_mg",  "phosphorus_mg", "potassium_g", "zinc_mg", 
+                  "folate_µg", "riboflavin_mg", "thiamin_mg",  
+                  "vit_a_rae_µg", "vit_b12_µg", "vit_b6_mg", "vit_c_mg", "vit_d_µg", "vit_e_mg", "vit_k_µg")
+    setcolorder(dt, neworder = newOrder)
     scenarioName <- unique(dt$scenario)
     #dt[, scenario := gsub("", "", scenario)]
     #   data.table::setnames(dt, old = names(dt), new = capwords(names(dt)))
@@ -1070,18 +1077,11 @@ server <- function(input, output, session) {
     p
   }, height = "auto")
   
-  # output$plot.NutAvailFGbarGraphP1 <- renderUI({
-  #   if (input$nutrientGroup == "vitamins") plotHeight = "800px"
-  #   if (input$nutrientGroup == "macronutrients") plotHeight = "500px"
-  #   if (input$nutrientGroup == "minerals") plotHeight = "500px"
-  #   plotOutput("NutAvailFGbarGraphP1", width = "100%", height = plotHeight)
-  # })
-  
   output$plot.NutAvailFGbarGraphP1 <- renderUI({
-    # if (input$nutrientGroup == "vitamins") 
-    #   if (input$nutrientGroup == "macronutrients") 
-    #     if (input$nutrientGroup == "minerals") 
-          plotOutput("NutAvailFGbarGraphP1", width = "100%", height = "600px")
+    if (input$nutrientGroup == "vitamins") plotHeight = "800px"
+    if (input$nutrientGroup == "macronutrients") plotHeight = "500px"
+    if (input$nutrientGroup == "minerals") plotHeight = "500px"
+    plotOutput("NutAvailFGbarGraphP1", width = "100%", height = plotHeight)
   })
   
   # nutrient diversity FG Table -----

@@ -19,6 +19,24 @@
 #     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE, See the
 #     GNU General Public License for more details at http://www.gnu.org/licenses/.
 
+facetMapGeneration <- function(dt, cropCode, regionChoice, cropName, legendText){
+  fillLimits <- c(round(min(dt$value, na.rm = TRUE)), ceiling(max(dt$value, na.rm = TRUE)))
+  cat("fillLimits: ", fillLimits)
+  paletteType <- "Greys"
+  myPalette <- colorRampPalette(brewer.pal(9, paletteType)) # 9 is max for the Greys palleteType
+  palette <- myPalette(4)
+  facetColName <- "landUse"
+  numLimits <- 4
+  breakValues <- generateBreakValues(fillLimits = fillLimits, numLimits = numLimits, decimals = 1)
+  displayOrder <- sort(unique(dt[,get(facetColName)]))
+  dt[,landUse := paste(cropName, ", ", legendText, sep = "")]
+  if (regionChoice %in% "World") mapFile = worldMap
+  if (regionChoice %in% "Asia") mapFile = asiaMap
+  if (regionChoice %in% "Africa") mapFile = africaMap
+  g <- facetMaps(mapFile = mapFile, DTfacetMap = dt, legendText, fillLimits, palette, facetColName, breakValues, displayOrder)
+  return(g)
+}
+
 ggRadar2 <- function (data, mapping = NULL, rescale = TRUE, legend.position = "top", 
                       colour = "red", alpha = 0.3, size = 3, ylim = NULL, scales = "fixed", 
                       use.label = FALSE, interactive = FALSE, nrow = 1, ...) 
@@ -125,13 +143,19 @@ ggRadar2 <- function (data, mapping = NULL, rescale = TRUE, legend.position = "t
   p
 }
 
-generateBreakValues <- function(fillLimits, decimals) {
+generateBreakValues <- function(fillLimits, numLimits, decimals) {
   fillRange <- fillLimits[2] - fillLimits[1]
-  breakValue.low <- round(fillLimits[1], digits = decimals)
-  breakValue.high <- round(fillLimits[2], digits = decimals)
+  fillStep <- fillRange/numLimits
+  breakValues <- numeric(numLimits)
+  breakValues[1] <- round(fillLimits[1], digits = decimals)
+  breakValues[numLimits] <- round(fillLimits[2], digits = decimals)
+  for (i in 2:(numLimits - 1)) {
+    breakValues[i] <- breakValues[i-1] + fillStep
+
+  }
   #' middle two values shift the palette gradient
   #  breakValues <- scales::rescale(c(breakValue.low, breakValue.low + fillRange/3, breakValue.low + fillRange/1.5, breakValue.high))
-  breakValues <- round(c(breakValue.low, breakValue.low + fillRange/3, breakValue.low + fillRange/1.5, breakValue.high), digits = decimals)
+  # breakValues <- round(c(breakValue.low, breakValue.low + fillRange/3, breakValue.low + fillRange/1.5, breakValue.high), digits = decimals)
   #  breakValues <- rescale(breakValues, to = c(0,1)) # the break values MUST be from 0 to 1. Already done in facetMaps() July 10, 2018
   return(breakValues)
 }
@@ -433,7 +457,11 @@ cleanupNutrientNamesFacetGraph <- function(nutList) {
 
 cropCodeLookup <- function(cropName, cropInfo){
  cropID <- unique(cropInfo[cropNames == cropName, cropList])
- }
+}
+
+cropNameLookup <- function(cropCode, cropInfo){
+  cropName <- unique(cropInfo[cropList == cropCode, cropNames])
+}
 
 countryNameLookup <- function(countryCode, directory) {
   if (missing(directory)) {mData <- fileloc("mData")} else {mData <- directory}
@@ -510,51 +538,57 @@ countryCodeCleanup <- function(dt) {
 
   #' good source of information on using grid to place graphics - https://stat.ethz.ch/R-manual/R-devel/library/grid/doc/grid.pdf
   #' code below is modified from multiplot
-  cols <- 2
-  numPlots <- length(scenGraphs)
-  layout <- matrix(seq(1, cols * ceiling(numPlots/cols)),
-                   ncol = cols, nrow = ceiling(numPlots/cols), byrow = TRUE)
-  grid.newpage()
-  # +1 is for the title
-  rows <- nrow(layout) + 1
-  gridHeight <- unit(rep_len(1, rows), "null")
-  pushViewport(viewport(layout = grid.layout(rows, ncol(layout), widths = unit(rep_len(1, cols), "null"), heights = unit(c(1, 5,5,5), "null"))))
-  # title goes in the first row and across all columns
-  grid.text(titleText, vp = viewport(layout.pos.row = 1, layout.pos.col = 1:cols))
-
-  # Make each plot, in the correct location
-  for (i in 1:numPlots) {
-    # Get the i,j matrix positions of the regions that contain this subplot
-    matchidx <- as.data.frame(which(layout == i, arr.ind = TRUE))
-    pdf(paste(fileloc("gDir"), "/worldMaps", fileName, ".pdf", sep = ""), width = 7, height = 5.2, useDingbats = FALSE)
-
-    print(scenGraphs[[i]], vp = viewport(layout.pos.row = matchidx$row + 1,
-                                         layout.pos.col = matchidx$col))
-    dev.off()
-  }
-}
+#   cols <- 2
+#   numPlots <- length(scenGraphs)
+#   layout <- matrix(seq(1, cols * ceiling(numPlots/cols)),
+#                    ncol = cols, nrow = ceiling(numPlots/cols), byrow = TRUE)
+#   grid.newpage()
+#   # +1 is for the title
+#   rows <- nrow(layout) + 1
+#   gridHeight <- unit(rep_len(1, rows), "null")
+#   pushViewport(viewport(layout = grid.layout(rows, ncol(layout), widths = unit(rep_len(1, cols), "null"), heights = unit(c(1, 5,5,5), "null"))))
+#   # title goes in the first row and across all columns
+#   grid.text(titleText, vp = viewport(layout.pos.row = 1, layout.pos.col = 1:cols))
+# 
+#   # Make each plot, in the correct location
+#   for (i in 1:numPlots) {
+#     # Get the i,j matrix positions of the regions that contain this subplot
+#     matchidx <- as.data.frame(which(layout == i, arr.ind = TRUE))
+#     pdf(paste(fileloc("gDir"), "/worldMaps", fileName, ".pdf", sep = ""), width = 7, height = 5.2, useDingbats = FALSE)
+# 
+#     print(scenGraphs[[i]], vp = viewport(layout.pos.row = matchidx$row + 1,
+#                                          layout.pos.col = matchidx$col))
+#     dev.off()
+#   }
+# }
 
 library(scales)
 facetMaps <- function(mapFile, DTfacetMap, legendText, fillLimits, palette, facetColName,
                       breakValues, displayOrder) {
   b <- rescale(breakValues, to = c(0,1)) # the values option in scale_fill_gradientn MUST be from 0 to 1
   f <- fillLimits
+  cat("f :", f)
+  cat("b :", b)
   p <- palette
   n <- facetColName
   d <- data.table::copy(DTfacetMap)
-  d[, (n) := factor(get(n), levels = displayOrder)]
+#  d[, (n) := factor(get(n), levels = displayOrder)] commented out to see it does labels better
   gg <- ggplot(data = d, aes(map_id = id))
-  gg <- gg + geom_map(data=mapFile, map=mapFile, aes(map_id=region))
+  gg <- gg + geom_map(dat=worldMap, map = worldMap,
+                      aes(map_id=region), fill="white", color="black")
   gg <- gg + geom_map(aes(fill = value), map = mapFile, color="#2b2b2b")
   gg <- gg + expand_limits(x = mapFile$long, y = mapFile$lat)
   gg <- gg + facet_wrap(facets = n)
   gg <- gg + theme(legend.position = "bottom")
-  gg <- gg +  theme(axis.ticks = element_blank(),axis.title = element_blank(), axis.text.x = element_blank(),
-                    axis.text.y = element_blank(), strip.text = element_text(family = "Times", face = "plain"))
+#  gg <- gg + guides(colour = guide_legend(title.position = "top"))
+  # gg <- gg + guides(colour = guide_colourbar(title.position="top", title.hjust = 0.5),
+  #        size = guide_legend(title.position="top", title.hjust = 0.5))
+  gg <- gg +  theme(axis.ticks = element_blank(), axis.title = element_blank(), axis.text.x = element_blank(),
+                    axis.text.y = element_blank(), strip.text = element_text(family = fontFamily, face = "plain", size = 12))
   
   gg <- gg + scale_fill_gradientn(colors = p, name = legendText,
                                   na.value = "grey50", values = b,
-                                  guide = "colorbar", limits=f, labels = )
+                                  guide = "colorbar", limits = f, labels = f)
   #
   return(gg)
   
@@ -579,7 +613,7 @@ fmt_dcimals <- function(decimals=0){
 # code specifically for shiny app -----
 years <- c("X2010", "X2030", "X2050")
 yearsClean <- gsub("X", "", years)
-fontFamily <- "Times"
+fontFamily <- "Calibri"
 dt.scenarioListIMPACT <- getNewestVersion("dt.scenarioListIMPACT", fileloc("mData"))
 worldMap <- getNewestVersion("worldMap", fileloc("mData"))
 africaMap <- getNewestVersion("africaMap", fileloc("mData"))
@@ -699,11 +733,11 @@ plotByRegionBarAMDR <- function(dt, fileName, plotTitle, yLab, yRange, aggChoice
     geom_bar(stat = "identity", position = "dodge", color = "black") +
     #    theme(legend.position = "right") +
     theme(legend.position = "none") +
-    theme(axis.text.x = element_text(angle = 45, hjust = 1, family = "Times", face = "plain")) +
-    theme(axis.title.y = element_text(family = "Times", face = "plain")) +
+    theme(axis.text.x = element_text(angle = 45, hjust = 1, family = fontFamily, face = "plain")) +
+    theme(axis.title.y = element_text(family = fontFamily, face = "plain")) +
     # scale_y_continuous(limits = yRange) +
     scale_fill_manual(values = colorList) +
-    theme(plot.title = element_text(hjust = 0.5, size = 11, family = "Times", face = "plain")) +
+    theme(plot.title = element_text(hjust = 0.5, size = 11, family = fontFamily, face = "plain")) +
     ggtitle(plotTitle) +
     labs(y = yLab, x = NULL) +
     geom_hline(aes(yintercept = AMDR_lo,  color = "green")) +

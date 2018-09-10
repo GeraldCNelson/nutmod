@@ -135,4 +135,4 @@ outName <- "dt.fishStatData"
 desc <- "Production and edible share of fish species and which composite they are part of by country from FishStat"
 cleanup(inDT, outName, fileloc("iData"), desc = desc)
 finalizeScriptMetadata(metadataDT, sourceFile)
-sourcer <- clearMemory(sourceFile) # removes everything in memory and sources the sourcer function
+sourcer <- clearMemory(sourceFile, gdxChoice) # removes everything in memory and sources the sourcer function

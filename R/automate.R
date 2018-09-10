@@ -91,7 +91,7 @@ gdxLibraryLocationCheck()
 sourceFile <- "gdxrrwSetup.R"
 sourcer(sourceFile)
 
-if (oneTimeDataUpdate == 4){
+if (oneTimeDataUpdate %in% c("Y", "y")){
   # only needs to be run when a new SSP data file if obtained
   sourceFile <- "dataPrep.SSP.R"
   sourcer(sourceFile)

@@ -22,7 +22,7 @@ source("R/nutrientModFunctions.R")
 sourceFile <- "dataManagementVars.R" # would be better to figure out a way to get this automatically.
 createScriptMetaData()
 
-gdxSwitchCombo <- read.csv(file = paste0(getwd(), "/results/gdxInfo.csv"), header = TRUE, stringsAsFactors = FALSE)
+gdxSwitchCombo <- read.csv(file = paste0(getwd(), "/results/", gdxChoice, "/gdxInfo.csv"), header = TRUE, stringsAsFactors = FALSE)
 
 
 #get the country crop variety lookup data table

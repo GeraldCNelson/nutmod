@@ -188,4 +188,4 @@ ggsave(file = paste0(fileloc("gDir"),"/",fileName,".png"), plot = gg,
        width = 9, height = 6)
 
 finalizeScriptMetadata(metadataDT, sourceFile)
-sourcer <- clearMemory(sourceFile) # removes everything in memory and sources the sourcer function
+sourcer <- clearMemory(sourceFile, gdxChoice) # removes everything in memory and sources the sourcer function

@@ -7,7 +7,7 @@ createScriptMetaData()
 #IMPACTgdxfileName <- "Demand Results20150817.gdx" - old gdx
 #gdxFileName <- fileNameList("IMPACTgdxfileName")
 #gamsSetup() # to load GAMs stuff and create the initial list of IMPACT scenarios
-gdxFileName <- getGdxFileName()
+gdxFileName <- getGdxFileName(gdxChoice)
 gamsSetup <- function(gdxFileName) {
   # some of this code duplicates code in dataPrep.IMPACT.R. Not good.
   #  gdxrrw::igdx(gamsSysDir = fileNameList("R_GAMS_SYSDIR"), silent = TRUE)

@@ -167,17 +167,17 @@ ui <- fluidPage(
           tabPanel(title = "Introduction",
                    sidebarLayout(
                      sidebarPanel( width = 3,
-                       includeHTML("www/countryChoice.html"),
-                       selectizeInput(inputId = "userCountryName", label = "Choose country", choices = countryNames, selected = NULL),
-                       selectizeInput(inputId = "userScenarioName", label = "Choose scenario", choices = scenarioNames, selected = initialScenarioName)),
+                                   includeHTML("www/countryChoice.html"),
+                                   selectizeInput(inputId = "userCountryName", label = "Choose country", choices = countryNames, selected = NULL),
+                                   selectizeInput(inputId = "userScenarioName", label = "Choose scenario", choices = scenarioNames, selected = initialScenarioName)),
                      mainPanel(includeHTML("www/introText.html")))),
           # Affordability tab panel ------
           tabPanel(title = "Affordability",
                    sidebarLayout(
                      sidebarPanel(width = 3,
-                       selectizeInput(inputId = "affordabilityCountryName", label = "Choose country", choices = countryNames,
-                                      options = list(placeholder = "Select country")),
-                       downloadButton("downloadData.afford", "Download")),
+                                  selectizeInput(inputId = "affordabilityCountryName", label = "Choose country", choices = countryNames,
+                                                 options = list(placeholder = "Select country")),
+                                  downloadButton("downloadData.afford", "Download")),
                      mainPanel(titlePanel("Food expenditure, per capita income and affordability"),
                                includeHTML("www/affordabilityText.html"),
                                dataTableOutput("affordabilityTable"),
@@ -186,13 +186,13 @@ ui <- fluidPage(
           tabPanel(title = "Food Availability",
                    sidebarLayout(
                      sidebarPanel(width = 3,
-                       selectizeInput(inputId = "availabilityCountryName", label = "Choose country",
-                                      choices = countryNames,
-                                      options = list(placeholder = "Select country")),
-                       
-                       # selectizeInput(inputId = "availabilityScenarioName", label = "Choose a scenario (see definition in glossary)",
-                       #                choices = scenarioNames),
-                       downloadButton("downloadData.avail", "Download")),
+                                  selectizeInput(inputId = "availabilityCountryName", label = "Choose country",
+                                                 choices = countryNames,
+                                                 options = list(placeholder = "Select country")),
+                                  
+                                  # selectizeInput(inputId = "availabilityScenarioName", label = "Choose a scenario (see definition in glossary)",
+                                  #                choices = scenarioNames),
+                                  downloadButton("downloadData.avail", "Download")),
                      mainPanel(titlePanel("Average daily food availability by food group"),
                                includeHTML("www/availabilityText.html"),
                                radioButtons("availabilityScenarioName", "Choose scenario (See glossary for details):",
@@ -221,26 +221,23 @@ ui <- fluidPage(
                      # adequacy tab panel -----
                      tabPanel(title = "Adequacy ratios",
                               sidebarLayout(
-sidebarPanel(width = 2,
-selectizeInput(inputId = "adequacyCountryName", label = "Choose country", choices = countryNames),
-#                                            selectizeInput(inputId = "adequacyScenarioName", label = "Choose a scenario (see definition in glossary)", choices = scenarioNames),
-downloadButton("downloadData.adequacy.macro", "Macro"),
-downloadButton("downloadData.adequacy.vits", "Vitamins"),
-downloadButton("downloadData.adequacy.minrls", "Minerals"),
-downloadButton("downloadData.energyRat", "Energy share"),
-downloadButton("downloadData.energyQ", "Kcals")
-),
-                                mainPanel(titlePanel("Nutrient adequacy and kilocalorie availability"),
+                                sidebarPanel(width = 2,
+                                             selectizeInput(inputId = "adequacyCountryName", label = "Choose country", choices = countryNames),
+                                             #       selectizeInput(inputId = "adequacyScenarioName", label = "Choose a scenario (see definition in glossary)", choices = scenarioNames),
+                                             downloadButton("downloadData.adequacy.macro", "Macro"),
+                                             downloadButton("downloadData.adequacy.vits", "Vitamins"),
+                                             downloadButton("downloadData.adequacy.minrls", "Minerals"),
+                                             downloadButton("downloadData.energyRat", "Energy share"),
+                                             downloadButton("downloadData.energyQ", "Kcals")
+                                ),
+                                mainPanel(titlePanel("Nutrient adequacy and kilocalorie availability"), width = 10,
                                           includeHTML("www/adequacyText.html"),
                                           radioButtons("adequacyScenarioName", "Choose scenario (See glossary for details):",
                                                        choices = scenarioList, inline = TRUE),
                                           fluidRow(
-                                            #   column(width = 6, ggiraphOutput("adequacySpiderGraphP1", height = "400px")),
-                                            #   column(width = 6, ggiraphOutput("adequacySpiderGraphP2", height = "400px"))),
                                             column(width = 6, ggiraphOutput("adequacySpiderGraphP1")),
                                             column(width = 6, ggiraphOutput("adequacySpiderGraphP2"))),
                                           fluidRow(
-                                            # column(width = 6, ggiraphOutput("adequacySpiderGraphP3", height = "400px"))),
                                             column(width = 6, ggiraphOutput("adequacySpiderGraphP3"))),
                                           fluidRow(
                                             column(width = 6, ggiraphOutput("energyQuantityBarPlot")),
@@ -274,9 +271,9 @@ downloadButton("downloadData.energyQ", "Kcals")
                                              selectizeInput(inputId = "nutbalCountryName", label = "Choose country", choices = countryNames),
                                              downloadButton("downloadData.nutbal", "Download")),
                                 mainPanel(titlePanel("Nutrient Balance Score"),
-                                  # titlePanel("Nutrient balance score"),
-                                  includeHTML("www/nutbalGraphText.html"),
-                                  DT::dataTableOutput("nutbalTableP1")))),
+                                          # titlePanel("Nutrient balance score"),
+                                          includeHTML("www/nutbalGraphText.html"),
+                                          DT::dataTableOutput("nutbalTableP1")))),
                      # MRV tab panel -----
                      tabPanel(title = "Maximum Recommended Intake",
                               sidebarLayout(
@@ -306,9 +303,9 @@ downloadButton("downloadData.energyQ", "Kcals")
                                              selectizeInput(inputId = "nonstapleEnergyShareCountryName", label = "Choose country", choices = countryNames),
                                              downloadButton("downloadData.nonStapleShare", "Download")),
                                 mainPanel(titlePanel("Nonstaple share of dietary energy"),
-                                  includeHTML("www/nonStapleShareGraphText.html"),
-                                  DT::dataTableOutput("nonStapleEnergyShareTable"),
-                                  includeHTML("www/tableNote_nonstapleShare.html")))),
+                                          includeHTML("www/nonStapleShareGraphText.html"),
+                                          DT::dataTableOutput("nonStapleEnergyShareTable"),
+                                          includeHTML("www/tableNote_nonstapleShare.html")))),
                      # Rao's QE tab panel ------
                      tabPanel(title = "Rao's quadratic entropy metric",
                               sidebarLayout(
@@ -316,28 +313,34 @@ downloadButton("downloadData.energyQ", "Kcals")
                                              selectizeInput(inputId = "RaosQECountryName", label = "Choose country", choices = countryNames),
                                              downloadButton("downloadData.RaoQE", "Download")),
                                 mainPanel(titlePanel("Rao's quadratic entropy metric"),
-                                  includeHTML("www/RaosQEGraphText.html"),
-                                  DT::dataTableOutput("RaosQETable")))))),
+                                          includeHTML("www/RaosQEGraphText.html"),
+                                          DT::dataTableOutput("RaosQETable")))))),
           
           # yields facetMaps tab panel ------
           tabPanel(title = "Yield Maps",
-                   # sidebarLayout(
-                   # sidebarPanel(width = 3,
-                   #   selectizeInput(inputId = "YieldCrop", label = "Choose crop", choices = cropInfo$cropNames),
-                   #   selectizeInput(inputId = "YieldType", label = "Choose water control", choices = c("irrigated", "rainfed", "irrigated, delta", "rainfed, delta"))),
-                   
-                   mainPanel(titlePanel("Yield Maps"),
-                     includeHTML("www/yieldFacetMap.html"),
-                     radioButtons("YieldCrop", "Choose crop", choices = cropInfo$cropNames, inline = TRUE),
-                     radioButtons("YieldType", "Choose water control", choices = c("irrigated", "rainfed"), inline = TRUE),
-                     radioButtons("prodInvest", "Choose base yield or yield with productivity increase", choices = c("base", "productivity increase", "percent change with productivity increase"), inline = TRUE),
-                     ggiraphOutput("yieldFacetMap", width = "600px", height = "400px"),
-                     DT::dataTableOutput("facetMapDataTable"))),
+                   mainPanel(titlePanel("Yield Maps"), width = 12,
+                             includeHTML("www/yieldFacetMap.html"),
+                             radioButtons("regionChoice", "Choose a region to display:",
+                                          choices = c("World", "Africa", "Asia"), inline = TRUE),
+                             radioButtons("crop", "Choose crop", choices = cropInfo$cropNames, inline = TRUE),
+                             radioButtons("YieldType", "Choose water control", choices = c("irrigated", "rainfed"), inline = TRUE),
+                             #                             radioButtons("prodInvest", "Choose base yield or yield with productivity increase", choices = c("base", "productivity increase", "percent change with productivity increase"), inline = TRUE),
+                             fluidRow(
+                               column(width = 4, align="center", "Base yields, 2030"),
+                               column(width = 4, align="center", "Yields with productivity increase, 2030"),
+                               column(width = 4, align="center", "Percentage change with productivity increase, 2030")),
+                             fluidRow( #height = "500px",
+                               column(width = 4, align ="center", ggiraphOutput("yieldFacetMapBase")), #, width = "300px", height = "400px"
+                               column(width = 4, align="center", ggiraphOutput("yieldFacetMapProd")),
+                               column(width = 4, align="center", ggiraphOutput("yieldFacetMapDelta"))),
+                             
+                             #                            ggiraphOutput("yieldFacetMap", width = "600px", height = "400px"),
+                             DT::dataTableOutput("facetMapDataTable"))),
           
           # glossary tab panel ------
           tabPanel(title = "Glossary",
                    mainPanel(titlePanel("Glossary"),
-                     includeHTML("www/glossaryText.html"))),
+                             includeHTML("www/glossaryText.html"))),
           # data review and download tab panel ------
           tabPanel(title = "Data",
                    sidebarLayout(
@@ -362,28 +365,28 @@ downloadButton("downloadData.energyQ", "Kcals")
               # IMPACT metadata tab panel -----
               tabPanel(title = "IMPACT metadata",
                        mainPanel(titlePanel("IMPACT metadata"),
-                         fluidRow(column(width = 12, div(DT::dataTableOutput("IMPACTmetadataTable"), style = "font-size:80%", family = fontFamily))))),
+                                 fluidRow(column(width = 12, div(DT::dataTableOutput("IMPACTmetadataTable"), style = "font-size:80%", family = fontFamily))))),
               # Foodgroup lookup panel -----
               tabPanel(title = "Food group lookup table",
                        mainPanel(titlePanel("Food group lookup table"),
-                         fluidRow(column(width = 12, div(DT::dataTableOutput("IMPACTfoodgroupTable"), style = "font-size:80%", family = fontFamily))))),
+                                 fluidRow(column(width = 12, div(DT::dataTableOutput("IMPACTfoodgroupTable"), style = "font-size:80%", family = fontFamily))))),
               # nutrient lookup -----
               tabPanel(title = "Nutrient lookup table",
                        mainPanel(titlePanel("Nutrient lookup table"),
-                         includeHTML("www/nutrientLookupText.html"),
-                         downloadButton("downloadData.nutrients.adj", "Download"),
-                         fluidRow(column(width = 12, div(DT::dataTableOutput("nutrientLookup"), style = "font-size:80%", family = fontFamily))))),
+                                 includeHTML("www/nutrientLookupText.html"),
+                                 downloadButton("downloadData.nutrients.adj", "Download"),
+                                 fluidRow(column(width = 12, div(DT::dataTableOutput("nutrientLookup"), style = "font-size:80%", family = fontFamily))))),
               # File documentation -----
               tabPanel(title = "File documentation",
                        mainPanel(titlePanel("File documentation"),
-                         fluidRow(column(width = 12, div(DT::dataTableOutput("fileDocumentation"), style = "font-size:80%", family = fontFamily))))))),
+                                 fluidRow(column(width = 12, div(DT::dataTableOutput("fileDocumentation"), style = "font-size:80%", family = fontFamily))))))),
           # # Acknowledgements -----
           # tabPanel(title = "Acknowledgements",
           #          mainPanel(
           #            includeHTML("www/acknowledgementsText.html"))),
           tabPanel(title = "For further information",
                    mainPanel(titlePanel("For further information"),
-                     includeHTML("www/furtherInformation.html")))
+                             includeHTML("www/furtherInformation.html")))
         )
     )
   )
@@ -556,72 +559,143 @@ server <- function(input, output, session) {
   # yield facetmap reactive -----
   data.yield.facetmap <- reactive({
     YieldType <- input$YieldType
-    YieldCrop <- input$YieldCrop
-    cropCode <- cropCodeLookup(YieldCrop, cropInfo)
+    crop <- input$crop
+    cropCode <- cropCodeLookup(crop, cropInfo)
     legendText <- data.legend.facetmap()
-    #cat("YieldType:", YieldType, "\n")
-    prodInvest <- input$prodInvest
-    #cat("prodInvest:", prodInvest, "\n")
+    #    prodInvest <- input$prodInvest 
     if (YieldType %in% "irrigated") dt <- copy(dt.yldIrr.var)
     if (YieldType %in% "rainfed") dt <- copy(dt.yldRnfd.var)
-    
-    scenario.j <- paste0("SSP2-HGEM-", cropCode)
+    #     scenario.j <- paste0("SSP2-HGEM-", cropCode)
+    # if (prodInvest %in% "percent change with productivity increase") scenario.j <- paste0(scenario.j, ".delta")
+    # if(prodInvest %in% "base") scenario.j <- "SSP2-HGEM-cf"
+    # dt <- dt[scenario %in% scenario.j, ]
     crop.j <- gsub("^.", "j", cropCode)
-    #cat("crop.j :", crop.j, "\n")
-    if (prodInvest %in% "percent change with productivity increase") scenario.j <- paste0(scenario.j, ".delta")
-    #cat("scenario.j :", scenario.j, "\n")
-    #print(unique(dt$scenario))
-    dt <- dt[scenario %in% scenario.j, ]
     dt <- dt[IMPACT_code %in% crop.j, ]
-    #   dt[, scenario := scenario.j][, IMPACT_code := crop.j]
-    #print(head(dt))
     dt <- countryCodeCleanup(dt) # converts IMPACT region codes to ISO3 codes for largest country in the region
-    #print(head(dt))
-    #cat("dt Names1 :", names(dt), "\n")
     setnames(dt, old = c("region_code.IMPACT159"), new = c("id"))
-    #cat("landUseCode:", paste(YieldCrop, ", ", legendText, ", ", prodInvest, sep = ""), "\n")
-    dt[, landUse := paste(YieldCrop, ", ", legendText, ", ", prodInvest, sep = "")]
-    dt[, scenario := factor(scenario, levels = scenarioList)]
-    setorder(dt, scenario)
+    #    dt[, landUse := paste(crop, ", ", legendText, ", ", prodInvest, sep = "")]
+    # dt[, scenario := factor(scenario, levels = scenarioList)]
+    # print(head(dt))
+    # setorderv(dt, scenario)
+    # print(head(dt))
   })
   
   # yield legend reactive -----
   data.legend.facetmap <- reactive({
     YieldType <- input$YieldType
     prodInvest <- input$prodInvest
-    #cat("YieldType :", YieldType, "\n")
     if (YieldType %in% "irrigated") legendText <- "Irrigated Yield, 2030 (mt/ha)"
     if (YieldType %in% "rainfed") legendText <- "Rainfed Yield, 2030 (mt/ha)"
-    if (prodInvest  %in% "percent change with productivity increase") legendText <- "Yield change with productivity increase (%)"
+    #    if (prodInvest %in% "percent change with productivity increase") legendText <- "Yield change with productivity increase (%)"
     
     legendText
   })
   
   # yield crop reactive -----
   data.crop.facetmap <- reactive({
-    YieldCrop <- input$YieldCrop
-    #cat("YieldCrop :", YieldCrop, "\n")
-    cropCode <- cropCodeLookup(YieldCrop, cropInfo)
-    #cat("cropCode :", cropCode, "\n")
+    crop <- input$crop
+    cropCode <- cropCodeLookup(crop, cropInfo)
     cropCode
   })
   
   # yield facetmap renderPlot  -----
-  output$yieldFacetMap <- renderggiraph({
-    DT <- data.yield.facetmap()
-    cropName <- input$YieldCrop
-    #cat("Names DT:", names(DT), "\n")
+  output$yieldFacetMapBase <- renderggiraph({
+    dt <- copy(data.yield.facetmap())
+    cropName <- input$crop
+    regionChoice <- input$regionChoice # region of the world
     legendText <- data.legend.facetmap()
     cropCode <- data.crop.facetmap()
-    fillLimits <- c(0, round(max(DT$value, na.rm = TRUE)))
-    paletteType <- "Spectral"
-    myPalette <- colorRampPalette(brewer.pal(11, paletteType))
-    palette <- myPalette(4)
-    facetColName <- "landUse"
-    breakValues <- generateBreakValues(fillLimits = fillLimits, decimals = 1)
-    displayOrder <- sort(unique(DT[,get(facetColName)]))
-    DT[,landUse := paste(cropName, ", ", legendText, sep = "")]
-    g <- facetMaps(mapFile = worldMap, DTfacetMap = DT, legendText, fillLimits, palette, facetColName, breakValues, displayOrder)
+    scenario.j <- "SSP2-HGEM-cf"
+    dt <- dt[scenario %in% scenario.j, ]
+    dt[, scenario := factor(scenario, levels = scenarioList)]
+    dt[, landUse := paste(cropName, ", ", legendText, ", ", "base", sep = "")]
+    # fillLimits <- c(round(min(dt$value, na.rm = TRUE)), ceiling(max(dt$value, na.rm = TRUE)))
+    # paletteType <- "Spectral"
+    # myPalette <- colorRampPalette(brewer.pal(11, paletteType))
+    # palette <- myPalette(4)
+    # facetColName <- "landUse"
+    # numLimits <- 8
+    # breakValues <- generateBreakValues(fillLimits = fillLimits, numLimits = numLimits, decimals = 1)
+    # #    cat(breakValues, "\n")
+    # displayOrder <- sort(unique(dt[,get(facetColName)]))
+    # 
+    # dt[,landUse := paste(cropName, ", ", legendText, sep = "")]
+    # if (regionChoice %in% "World") mapFile = worldMap
+    # if (regionChoice %in% "Asia") mapFile = asiaMap
+    # if (regionChoice %in% "Africa") mapFile = africaMap
+    # facetMaps(mapFile = mapFile, DTfacetMap = dt, legendText, fillLimits, palette, facetColName, breakValues, displayOrder)
+    g <- facetMapGeneration(dt, cropCode, regionChoice, cropName = cropName, legendText = legendText)
+    ggiraph(code = print(g), zoom_max = 1, selection_type = "single")
+  })
+  
+  output$yieldFacetMapProd <- renderggiraph({
+    dt <- copy(data.yield.facetmap())
+    cropName <- input$crop
+    regionChoice <- input$regionChoice # region of the world
+    legendText <- data.legend.facetmap()
+    cropCode <- data.crop.facetmap()
+    scenario.j <- paste0("SSP2-HGEM-", cropCode)
+    dt <- dt[scenario %in% scenario.j, ]
+    dt[, scenario := factor(scenario, levels = scenarioList)]
+    dt[, landUse := paste(cropName, ", ", legendText, ", ", "productivity increase", sep = "")]
+    # #   fillLimits <- c(0, round(max(dt$value, na.rm = TRUE)))
+    # fillLimits <- c(round(min(dt$value, na.rm = TRUE)), ceiling(max(dt$value, na.rm = TRUE)))
+    # # cat("min:", min(dt$value, na.rm = TRUE), "\n")
+    # # cat("max:", max(dt$value, na.rm = TRUE), "\n")
+    # # cat("ceiling:", ceiling(max(dt$value, na.rm = TRUE)), "\n")
+    # # cat("fillLimits:", fillLimits, "\n")
+    # paletteType <- "Spectral"
+    # myPalette <- colorRampPalette(brewer.pal(11, paletteType))
+    # palette <- myPalette(4)
+    # facetColName <- "landUse"
+    # numLimits <- 8
+    # breakValues <- generateBreakValues(fillLimits = fillLimits, numLimits = numLimits, decimals = 1)
+    # #    cat(breakValues, "\n")
+    # displayOrder <- sort(unique(dt[,get(facetColName)]))
+    # 
+    # dt[,landUse := paste(cropName, ", ", legendText, sep = "")]
+    # if (regionChoice %in% "World") mapFile = worldMap
+    # if (regionChoice %in% "Asia") mapFile = asiaMap
+    # if (regionChoice %in% "Africa") mapFile = africaMap
+    # g <- facetMaps(mapFile = mapFile, DTfacetMap = dt, legendText, fillLimits, palette, facetColName, breakValues, displayOrder)
+    
+    g <- facetMapGeneration(dt, cropCode, regionChoice, cropName = cropName, legendText = legendText)
+    ggiraph(code = print(g), zoom_max = 1, selection_type = "single")
+  })
+  
+  output$yieldFacetMapDelta <- renderggiraph({
+    dt <- copy(data.yield.facetmap())
+    cropName <- input$crop
+    regionChoice <- input$regionChoice # region of the world
+    legendText <- "Yield change with productivity increase (%)"
+    cropCode <- data.crop.facetmap()
+    scenario.j <- paste0("SSP2-HGEM-", cropCode, ".delta")
+    # cat("\nnames dt: ", names(dt), "\n")
+    #     cat("scenarios: ",unique(dt$scenario), "\n")
+    dt <- dt[scenario %in% scenario.j, ]
+    dt[, scenario := factor(scenario, levels = scenarioListDelta)]
+    dt[, landUse := paste(cropName, ", ", legendText, ", ", "percent change with productivity increase", sep = "")]
+    # #   fillLimits <- c(0, round(max(dt$value, na.rm = TRUE)))
+    # fillLimits <- c(round(min(dt$value, na.rm = TRUE)), ceiling(max(dt$value, na.rm = TRUE)))
+    # # cat("min:", min(dt$value, na.rm = TRUE), "\n")
+    # # cat("max:", max(dt$value, na.rm = TRUE), "\n")
+    # # cat("ceiling:", ceiling(max(dt$value, na.rm = TRUE)), "\n")
+    # # cat("fillLimits:", fillLimits, "\n")
+    # paletteType <- "Spectral"
+    # myPalette <- colorRampPalette(brewer.pal(11, paletteType))
+    # palette <- myPalette(4)
+    # facetColName <- "landUse"
+    # numLimits <- 8
+    # breakValues <- generateBreakValues(fillLimits = fillLimits, numLimits = numLimits, decimals = 1)
+    # #    cat(breakValues, "\n")
+    # displayOrder <- sort(unique(dt[,get(facetColName)]))
+    # 
+    # dt[,landUse := paste(cropName, ", ", legendText, sep = "")]
+    # if (regionChoice %in% "World") mapFile = worldMap
+    # if (regionChoice %in% "Asia") mapFile = asiaMap
+    # if (regionChoice %in% "Africa") mapFile = africaMap
+    # g <- facetMaps(mapFile = mapFile, DTfacetMap = dt, legendText, fillLimits, palette, facetColName, breakValues, displayOrder)
+    g <- facetMapGeneration(dt, cropCode, regionChoice, cropName = cropName, legendText = legendText)
     ggiraph(code = print(g), zoom_max = 1, selection_type = "single")
   })
   
@@ -684,7 +758,6 @@ server <- function(input, output, session) {
       formula = formula.wide,
       value.var = "value")
     #' reorder scenarios in temp to be the same order as scenarioNames
-     cat(scenarioNames, sep = ", ")
     dt.wide[, scenario := factor(scenario, levels = scenarioNames)]
     dt.wide[, scenario := gsub("", "", scenario)]
     dt.wide[, scenario := factor(scenario, levels = scenarioList)]
@@ -720,17 +793,27 @@ server <- function(input, output, session) {
     dt[, scenario := factor(scenario, levels =  scenarioList)]
     
     dt <- datatable(dt, rownames = FALSE, options = list(pageLength = 20, dom = 'iftp' ,
-                                                             columnDefs = list(list(className = 'dt-right', targets = 3:5)) # targets start at column 0
+                                                         columnDefs = list(list(className = 'dt-right', targets = 3:5)) # targets start at column 0
     ))
   })
   
   # facetMapData -----
   output$facetMapDataTable <- DT::renderDataTable({
     dt <- copy(data.yield.facetmap())
-    # dt[,value := round(value,2)]
     colsToConvert <- c("value")
     dt[, (colsToConvert) := lapply(.SD, sprintf, fmt="%#.2f"), .SDcols = colsToConvert]
-    dt <- datatable(dt, rownames = FALSE, options = list(pageLength = 25, dom = 'iftp'))
+    dt[, scenario := gsub("SSP2-HGEM-", "", scenario)]
+    dt[, IMPACT_code := gsub("j", "c", IMPACT_code)]
+    dt <- dt[IMPACT_code == scenario | scenario == "cf" | gsub(".delta", "", scenario) == IMPACT_code]
+    dt[scenario %in% "cf", scenario := "base"]
+    dt[substring(scenario, nchar(scenario)-4, nchar(scenario)) %in% "delta", scenario := "percent change"]
+    dt[!scenario %in% c("percent change", "base"), scenario := "productivity increase"]
+    colOrder <- c("base", "productivity increase", "percent change")
+    formula.wide <-  "id + IMPACT_code ~ factor(scenario, levels=colOrder)"
+    dt.wide <- dcast(data = dt, formula = formula.wide, value.var = "value")
+    
+    # dt[,value := round(value,2)]
+    dt.wide <- datatable(dt.wide, rownames = FALSE, options = list(pageLength = 25, dom = 'iftp'))
   })
   
   output$downloadData.afford <- downloadHandler(
@@ -756,7 +839,7 @@ server <- function(input, output, session) {
     nutrient <- "food group"
     setnames(dt, old = "nutrient_foodGroup", new = nutrient) # new depends on whether dt is for food groups or nutrients
     colsToConvert <- c("2010", "2030", "2050")
-     dt[, (colsToConvert) := lapply(.SD, sprintf, fmt="%#.2f"), .SDcols = colsToConvert]
+    dt[, (colsToConvert) := lapply(.SD, sprintf, fmt="%#.2f"), .SDcols = colsToConvert]
     # colsToRound <- c("pcGDPX0", "budget.PCX0", "incShare.PCX0")
     # dt.budgetShare[, (colsToRound) := round(.SD, 2), .SDcols = colsToRound]
     # 
@@ -767,7 +850,7 @@ server <- function(input, output, session) {
     data.table::setnames(dt, old = names(dt), new = capwords(names(dt)))
     dt <- DT::datatable(dt, rownames = FALSE, options = list(pageLength = 25, dom = 'iftp' ,
                                                              columnDefs = list(list(className = 'dt-right', targets = 3:5)) # targets start at column 0
-))
+    ))
   })
   
   output$downloadData.avail <- downloadHandler(
@@ -819,11 +902,9 @@ server <- function(input, output, session) {
     data.table::setnames(dt, old = names(dt), new = capwords(names(dt)))
     colsToConvert <- c("2010", "2030", "2050")
     dt[, (colsToConvert) := lapply(.SD, sprintf, fmt="%#.2f"), .SDcols = colsToConvert]
-    # # cat(names(dt), sep = ", ")
     dt <- DT::datatable(dt, rownames = FALSE, options = list(pageLength = 25, dom = 'iftp' ,
                                                              columnDefs = list(list(className = 'dt-right', targets = 3:5)) # targets start at column 0
-))
-    #    dt
+    ))
   })
   
   output$downloadData.adequacy.macro <- downloadHandler(
@@ -843,7 +924,6 @@ server <- function(input, output, session) {
     data.table::setnames(dt, old = names(dt), new = capwords(names(dt)))
     colsToConvert <- c("2010", "2030", "2050")
     dt[, (colsToConvert) := lapply(.SD, sprintf, fmt="%#.2f"), .SDcols = colsToConvert]
-    # cat(names(dt), sep = ", ")
     dt <- DT::datatable(dt, rownames = FALSE, options = list(pageLength = 25, dom = 'iftp' ,
                                                              columnDefs = list(list(className = 'dt-right', targets = 3:5)) # targets start at column 0
     ))
@@ -867,11 +947,9 @@ server <- function(input, output, session) {
     data.table::setnames(dt, old = names(dt), new = capwords(names(dt)))
     colsToConvert <- c("2010", "2030", "2050")
     dt[, (colsToConvert) := lapply(.SD, sprintf, fmt="%#.2f"), .SDcols = colsToConvert]
-    # cat(names(dt), sep = ", ")
     dt <- DT::datatable(dt, rownames = FALSE, options = list(pageLength = 25, dom = 'iftp' ,
                                                              columnDefs = list(list(className = 'dt-right', targets = 3:5)) # targets start at column 0
     ))
-    #    dt
   })
   
   output$downloadData.adequacy.minrls <- downloadHandler(
@@ -940,11 +1018,9 @@ server <- function(input, output, session) {
     data.table::setnames(dt, old = names(dt), new = capwords(names(dt)))
     colsToConvert <- c("2010", "2030", "2050")
     dt[, (colsToConvert) := lapply(.SD, sprintf, fmt="%#.2f"), .SDcols = colsToConvert]
-    # cat(names(dt), sep = ", ")
     dt <- DT::datatable(dt, rownames = FALSE, options = list(pageLength = 25, dom = 'iftp' ,
                                                              columnDefs = list(list(className = 'dt-right', targets = 3:5)) # targets start at column 0
     ))
-    #    dt
   })
   
   output$downloadData.energyRat <- downloadHandler(
@@ -973,11 +1049,9 @@ server <- function(input, output, session) {
     data.table::setnames(dt, old = names(dt), new = capwords(names(dt)))
     colsToConvert <- c("2010", "2030", "2050")
     dt[, (colsToConvert) := lapply(.SD, sprintf, fmt="%#.2f"), .SDcols = colsToConvert]
-    # cat(names(dt), sep = ", ")
     dt <- DT::datatable(dt, rownames = FALSE, options = list(pageLength = 25, dom = 'iftp' ,
                                                              columnDefs = list(list(className = 'dt-right', targets = 3:5)) # targets start at column 0
     ))
-    #    dt
   })
   
   output$downloadData.energyQ <- downloadHandler(
@@ -1008,11 +1082,9 @@ server <- function(input, output, session) {
     data.table::setnames(dt, old = oldnames, new = newnames)
     colsToConvert <- c("2010", "2030", "2050")
     dt[, (colsToConvert) := lapply(.SD, sprintf, fmt="%#.2f"), .SDcols = colsToConvert]
-    # cat(names(dt), sep = ", ")
     dt <- DT::datatable(dt, rownames = FALSE, options = list(pageLength = 25, dom = 'iftp' ,
                                                              columnDefs = list(list(className = 'dt-right', targets = 3:5)) # targets start at column 0
     ))
-    #    dt
   })
   
   output$downloadData.AMDR <- downloadHandler(
@@ -1029,11 +1101,9 @@ server <- function(input, output, session) {
     data.table::setnames(dt, old = names(dt), new = capwords(names(dt)))
     colsToConvert <- c("2010", "2030", "2050")
     dt[, (colsToConvert) := lapply(.SD, sprintf, fmt="%#.2f"), .SDcols = colsToConvert]
-    # cat(names(dt), sep = ", ")
     dt <- DT::datatable(dt, rownames = FALSE, options = list(pageLength = 25, dom = 'iftp' ,
                                                              columnDefs = list(list(className = 'dt-right', targets = 2:4)) # targets start at column 0
     ))
-    #    dt
   })
   
   output$downloadData.nutbal <- downloadHandler(
@@ -1055,11 +1125,9 @@ server <- function(input, output, session) {
     dt[, nutrient := capwords(cleanupNutrientNames(nutrient))]
     colsToConvert <- c("2010", "2030", "2050")
     dt[, (colsToConvert) := lapply(.SD, sprintf, fmt="%#.2f"), .SDcols = colsToConvert]
-    # cat(names(dt), sep = ", ")
     dt <- DT::datatable(dt, rownames = FALSE, options = list(pageLength = 25, dom = 'iftp' ,
                                                              columnDefs = list(list(className = 'dt-right', targets = 3:5)) # targets start at column 0
     ))
-    #    dt
   })
   
   output$downloadData.MRV <- downloadHandler(
@@ -1082,11 +1150,9 @@ server <- function(input, output, session) {
     data.table::setnames(dt, old = names(dt), new = capwords(names(dt)))
     colsToConvert <- c("2010", "2030", "2050")
     dt[, (colsToConvert) := lapply(.SD, sprintf, fmt="%#.2f"), .SDcols = colsToConvert]
-    # cat(names(dt), sep = ", ")
     dt <- DT::datatable(dt, rownames = FALSE, options = list(pageLength = 25, dom = 'iftp' ,
                                                              columnDefs = list(list(className = 'dt-right', targets = 2:4)) # targets start at column 0
     ))
-    #    dt
   })
   
   output$downloadData.nonStapleShare <- downloadHandler(
@@ -1104,11 +1170,9 @@ server <- function(input, output, session) {
     data.table::setnames(dt, old = names(dt), new = capwords(names(dt)))
     colsToConvert <- c("2010", "2030", "2050")
     dt[, (colsToConvert) := lapply(.SD, sprintf, fmt="%#.2f"), .SDcols = colsToConvert]
-    # cat(names(dt), sep = ", ")
     dt <- DT::datatable(dt, rownames = FALSE, options = list(pageLength = 25, dom = 'iftp' ,
                                                              columnDefs = list(list(className = 'dt-right', targets = 2:4)) # targets start at column 0
     ))
-    #    dt
   })
   
   output$downloadData.RaoQE <- downloadHandler(
@@ -1129,11 +1193,9 @@ server <- function(input, output, session) {
     data.table::setnames(dt, old = names(dt), new = capwords(names(dt)))
     colsToConvert <- c("2010", "2030", "2050")
     dt[, (colsToConvert) := lapply(.SD, sprintf, fmt="%#.2f"), .SDcols = colsToConvert]
-    # cat(names(dt), sep = ", ")
     dt <- DT::datatable(dt, rownames = FALSE, options = list(pageLength = 25, dom = 'iftp' ,
                                                              columnDefs = list(list(className = 'dt-right', targets = 3:5)) # targets start at column 0
     ))
-    #    dt
   })
   
   output$downloadData.ShannonDiversity <- downloadHandler(
@@ -1160,10 +1222,9 @@ server <- function(input, output, session) {
   # nutrient diversity FG Table -----
   output$NutAvailFGTable <- DT::renderDataTable({
     dt <- copy(data.nutAvailFG())
-    #    print(unique(dt$food_group_code))
     displayColumnName <- "food_group_code" # all these food groups are included in each spidergraph
     facetColumnName <- "nutrient" # one bar graph per facetColumnName
-#    dt[, value := round(value, 2)]
+    #    dt[, value := round(value, 2)]
     formula.wide <- sprintf("scenario + region_code.IMPACT159 + %s + %s ~ year", facetColumnName, displayColumnName)
     dt <- data.table::dcast(data = dt, formula = formula.wide, value.var = "value")
     data.table::setnames(dt, old = "region_code.IMPACT159", new = "country code")
@@ -1172,12 +1233,9 @@ server <- function(input, output, session) {
     data.table::setnames(dt, old = names(dt), new = capwords(names.new))
     colsToConvert <- c("2010", "2030", "2050")
     dt[, (colsToConvert) := lapply(.SD, sprintf, fmt="%#.2f"), .SDcols = colsToConvert]
-    # cat(names(dt), sep = ", ")
-    # dt <- DT::datatable(dt, rownames = FALSE, options = list(pageLength = 25, dom = 't', filter = list(position = "top")))
     dt <- DT::datatable(dt, rownames = FALSE, options = list(pageLength = 25, dom = 'iftp',
-                        columnDefs = list(list(className = 'dt-right', targets = 4:6)) # targets start at column 0
+                                                             columnDefs = list(list(className = 'dt-right', targets = 4:6)) # targets start at column 0
     ))
-    # dt
   })
   
   output$downloaddata.nutAvailFG <- downloadHandler(

@@ -323,7 +323,7 @@ for (switchloop in getSwitchChoice()) {
 }
 
 finalizeScriptMetadata(metadataDT, sourceFile)
-sourcer <- clearMemory(sourceFile) # removes everything in memory and sources the sourcer function
+sourcer <- clearMemory(sourceFile, gdxChoice) # removes everything in memory and sources the sourcer function
 
 # kcals calculations -----
 # print("------ working on kcals")

@@ -85,7 +85,7 @@ data.table::setorder(dt.SSP.GDP.melt, scenario, ISO_code)
 dt.SSP.GDP.melt <- dt.SSP.GDP.melt[!ISO_code %in% keyVariable("dropListCty"),]
 inDT <- dt.SSP.GDP.melt
 outName <- "dt.SSPGDPClean"
-desc <- "GDP information by country and scenario with cleaned up column names"
+desc <- "GDP information by country and scenario with cleaned up column names. Units are billion US$2005/yr."
 cleanup(inDT,outName,fileloc("uData"), desc = desc)
 
 # create cleaned up population SSP data -----
@@ -135,7 +135,7 @@ data.table::setnames(dt.SSP.pop.tot.melt, old = "ISO_code", new = "region_code.S
 dt.SSP.pop.tot.melt <- dt.SSP.pop.tot.melt[!region_code.SSP %in% keyVariable("dropListCty"),]
 inDT <- dt.SSP.pop.tot.melt
 outName <- "dt.SSP.pop.tot"
-desc <- "Population information by country and scenario with cleaned up column names"
+desc <- "Population information by country and scenario with cleaned up column names. Units are million."
 cleanup(inDT,outName,fileloc("uData"), desc = desc)
 
 #' Remove the aggregates of

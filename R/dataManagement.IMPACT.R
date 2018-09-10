@@ -8,8 +8,6 @@ source("R/nutrientModFunctions.R")
 sourceFile <- "dataManagementIMPACT.R"
 createScriptMetaData()
 
-library(data.table)
-
 #Copyright (C) 2015 Gerald C. Nelson, except where noted
 
 #   This program is free software: you can redistribute it and/or modify it

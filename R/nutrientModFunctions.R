@@ -234,13 +234,15 @@ finalizeScriptMetadata <- function(metadataDT, sourceFile) {
   write.csv(metadataDT, file = paste("data/metadata", sourceFile, "csv", sep = "."), row.names = FALSE)
 }
 
-clearMemory <- function(sourceFile) {
-  cat("Clearing memory after running", sourceFile)
-  rm(list = ls(envir = as.environment(1)), envir = .GlobalEnv) # pos=1 says do this in the global environment
-  gc()
+clearMemory <- function(sourceFile, gdxChoice = gdxChoice) {
+  cat("Clearing memory after running", sourceFile, "\n")
+  rmList <- ls(envir = as.environment(1)) # pos=1 says do this in the global environment
+  rmList <- rmList[!rmList %in% "gdxChoice"]
+  rm(list = rmList, envir = as.environment(1))
+  
   # The sourcer function is run here in case the automate script is used to run all the R scripts
   sourcer <- function(sourceFile){
-    cat("\n\nRunning ", sourceFile, "\n")
+    cat("\nRunning ", sourceFile, "\n")
     sourceFile <- paste0("R/", sourceFile)
     source(sourceFile)
   }
@@ -1612,14 +1614,14 @@ getGdxChoice <- function() {
 #    return(gdxChoice)
   }
 
-  getGdxFileName <- function() {
-    gdxSwitchCombo <- read.csv(file = paste0(getwd(), "/results/gdxInfo.csv"), header = TRUE, stringsAsFactors = FALSE)
+  getGdxFileName <- function(gdxChoice) {
+    gdxSwitchCombo <- read.csv(file = paste0(getwd(), "/results/", gdxChoice, "/gdxInfo.csv"), header = TRUE, stringsAsFactors = FALSE)
     gdxChoice <- gdxSwitchCombo[, 1]
     return(gdxChoice)
   }
 
   getSwitchChoice <- function() {
-    gdxSwitchCombo <- read.csv(file = paste0(getwd(), "/results/gdxInfo.csv"), header = TRUE, stringsAsFactors = FALSE)
+    gdxSwitchCombo <- read.csv(file = paste0(getwd(), "/results/", gdxChoice, "/gdxInfo.csv"), header = TRUE, stringsAsFactors = FALSE)
     gdxChoice <- gdxSwitchCombo[,3]
     if (gdxChoice == 1) choice = 1
     if (gdxChoice == 2) choice = c(1,2)
