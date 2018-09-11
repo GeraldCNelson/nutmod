@@ -529,7 +529,7 @@ facetMaps <- function(worldMap, DTfacetMap, fileName, legendText, fillLimits, pa
   gg <- gg + facet_wrap(facets = n)
   gg <- gg + theme(legend.position = "bottom")
   gg <- gg +  theme(axis.ticks = element_blank(),axis.title = element_blank(), axis.text.x = element_blank(),
-                    axis.text.y = element_blank(), strip.text = element_text(family = "Times", face = "plain"))
+                    axis.text.y = element_blank(), strip.text = element_text(family = fontFamily, face = "plain"))
 
   gg <- gg + scale_fill_gradientn(colors = p, name = legendText,
                                   na.value = "grey50", values = b,
@@ -618,7 +618,7 @@ spiderGraphOutput <- function(spiderData, scenarioName) {
   countryName <- countryNameLookup(countryCode)
   spiderData[, region_code.IMPACT159 := NULL]
 #  data.table::setnames(spiderData, old = names(spiderData), new = capwords(names(spiderData)))
-  titleText <- paste("Country: ", countryName, "Scenario: ", scenarioName)
+  titleText <- paste("Country: ", countryName)
   p <- ggRadar2(data = spiderData, mapping = aes(colour = year, facet = "scenario"), nrow = 1, #, facet = "nutrientType"
                rescale = FALSE, interactive = FALSE, size = 1,
                legend.position = "bottom")
@@ -688,11 +688,11 @@ plotByRegionBarAMDR <- function(dt, fileName, plotTitle, yLab, yRange, aggChoice
     geom_bar(stat = "identity", position = "dodge", color = "black") +
     #    theme(legend.position = "right") +
     theme(legend.position = "none") +
-    theme(axis.text.x = element_text(angle = 45, hjust = 1, family = "Times", face = "plain")) +
-    theme(axis.title.y = element_text(family = "Times", face = "plain")) +
+    theme(axis.text.x = element_text(angle = 45, hjust = 1, family = fontFamily, face = "plain")) +
+    theme(axis.title.y = element_text(family = fontFamily, face = "plain")) +
     # scale_y_continuous(limits = yRange) +
     scale_fill_manual(values = colorList) +
-    theme(plot.title = element_text(hjust = 0.5, size = 11, family = "Times", face = "plain")) +
+    theme(plot.title = element_text(hjust = 0.5, size = 11, family = fontFamily, face = "plain")) +
     ggtitle(plotTitle) +
     labs(y = yLab, x = NULL) +
     geom_hline(aes(yintercept = AMDR_lo,  color = "green")) +

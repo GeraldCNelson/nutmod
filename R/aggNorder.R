@@ -59,7 +59,7 @@ updateLegendGrobs <- function(l, aggChoice, legendLoc, mergedVals) {
   p <- ggplot(DT, aes(x = region_name, y = value, fill = scenario, order = c("region_name") )) +
     geom_bar(stat = "identity", position = "dodge", color = "black") +
     theme(legend.position = legendLoc) +
-    theme(legend.text = element_text(size = 8, family = "Times", face = "plain")) +
+    theme(legend.text = element_text(size = 8, family = fontFamily, face = "plain")) +
     theme(legend.title = element_blank()) +
     scale_fill_manual(values = colorList)
   return(g_legend(p))
@@ -248,10 +248,10 @@ plotByRegionBar <- function(dt, fileName, plotTitle, yLab, yRange, aggChoice, su
     coord_cartesian(ylim = yRange) +
     theme(legend.position = "none") +
     labs(x = NULL, y = yLab) +
-    theme(axis.text.x = element_text(angle = 45, hjust = 1, family = "Times", face = "plain")) +
-    theme(axis.title.y = element_text(family = "Times", face = "plain")) +
+    theme(axis.text.x = element_text(angle = 45, hjust = 1, family = fontFamily, face = "plain")) +
+    theme(axis.title.y = element_text(family = fontFamily, face = "plain")) +
     scale_fill_manual(values = colorList) +
-    theme(plot.title = element_text(hjust = 0.5, size = 11, family = "Times", face = "plain")) +
+    theme(plot.title = element_text(hjust = 0.5, size = 11, family = fontFamily, face = "plain")) +
     ggtitle(plotTitle)
 
   #' the 'or' part of the if statement means don't draw the line if it's greater than ymax
@@ -321,10 +321,10 @@ plotByRegionStackedBar <- function(dt, fileName, plotTitle, yLab, yRange, aggCho
   p <- ggplot(temp, aes(as.numeric(interaction(scenario,region_name)), y = value, fill = nutrient, order = c("region_name") )) +
     geom_bar(stat = "identity", position = "stack", color = "black", width = .80, group = "scenario") +
     theme(legend.position = "right") +
-    theme(axis.text.x = element_text(angle = 70, hjust = 1, family = "Times", face = "plain")) +
-    theme(axis.title.y = element_text(family = "Times", face = "plain")) +
+    theme(axis.text.x = element_text(angle = 70, hjust = 1, family = fontFamily, face = "plain")) +
+    theme(axis.title.y = element_text(family = fontFamily, face = "plain")) +
     scale_fill_manual(values = colorList) +
-    theme(plot.title = element_text(hjust = 0.5, size = 11, family = "Times", face = "plain")) +
+    theme(plot.title = element_text(hjust = 0.5, size = 11, family = fontFamily, face = "plain")) +
     ggtitle(plotTitle) +
     labs(y = yLab, x = NULL)
 
@@ -375,10 +375,10 @@ plotByBoxPlot2050 <- function(dt, fileName, plotTitle, yLab, yRange, aggChoice, 
   # pdf(paste(fileloc("gDir"),"/", fileName, ".pdf", sep = ""), width = 7, height = 5.2)
   p <- ggplot(temp, aes(x = region_name, y = value)) +
     geom_boxplot(stat = "boxplot", position = "dodge", color = "black", outlier.shape = NA) + # outlier.shape = NA, gets rid of outlier dots
-    theme(axis.text.x = element_text(angle = 45, hjust = 1, family = "Times", face = "plain")) +
-    theme(axis.title.y = element_text(family = "Times", face = "plain")) +
+    theme(axis.text.x = element_text(angle = 45, hjust = 1, family = fontFamily, face = "plain")) +
+    theme(axis.title.y = element_text(family = fontFamily, face = "plain")) +
     scale_fill_manual(values = colorList) +
-    theme(plot.title = element_text(hjust = 0.5, size = 11, family = "Times", face = "plain")) +
+    theme(plot.title = element_text(hjust = 0.5, size = 11, family = fontFamily, face = "plain")) +
     ggtitle(plotTitle) +
     ylim(yRange) +
     labs(y = yLab, x = NULL)
@@ -459,11 +459,11 @@ plotByBoxPlot2050 <- function(dt, fileName, plotTitle, yLab, yRange, aggChoice, 
 #'   #' draw lines
 #'   temp2 <- temp[scenario %in% c("2010", "SSP2-NoCC") & region_code %in% "lowInc",]
 #'   ggplot(temp2, aes(x = region_name, y = value, fill = scenario, order = c("region_name") )) +
-#'     theme(axis.text.x = element_text(angle = 45, hjust = 1, family = "Times", face = "plain")) +
-#'     theme(axis.title.y = element_text(family = "Times", face = "plain")) +
+#'     theme(axis.text.x = element_text(angle = 45, hjust = 1, family = fontFamily, face = "plain")) +
+#'     theme(axis.title.y = element_text(family = fontFamily, face = "plain")) +
 #'     geom_line(aes(group = 1)) +
 #'     geom_point(size = 2) +
-#'     theme(plot.title = element_text(hjust = 0.5, size = 11, family = "Times", face = "plain")) +
+#'     theme(plot.title = element_text(hjust = 0.5, size = 11, family = fontFamily, face = "plain")) +
 #'     ggtitle(plotTitle) +
 #'     ylim(yRange) +
 #'     labs(y = yLab, x = NULL) +
@@ -508,10 +508,10 @@ plotByRegionBarAMDR <- function(dt, fileName, plotTitle, yLab, yRange, aggChoice
   p <- ggplot(temp, aes(x = region_name, y = value, fill = scenario, order = c("region_name") )) +
     geom_bar(stat = "identity", position = "dodge", color = "black") +
     theme(legend.position = "none") +
-    theme(axis.text.x = element_text(angle = 45, hjust = 1, family = "Times", face = "plain")) +
-    theme(axis.title.y = element_text(family = "Times", face = "plain")) +
+    theme(axis.text.x = element_text(angle = 45, hjust = 1, family = fontFamily, face = "plain")) +
+    theme(axis.title.y = element_text(family = fontFamily, face = "plain")) +
     scale_fill_manual(values = colorList) +
-    theme(plot.title = element_text(hjust = 0.5, size = 11, family = "Times", face = "plain")) +
+    theme(plot.title = element_text(hjust = 0.5, size = 11, family = fontFamily, face = "plain")) +
     ggtitle(plotTitle) +
     labs(y = yLab, x = NULL) +
     geom_hline(aes(yintercept = AMDR_lo), color = "darkgreen") +
@@ -523,7 +523,6 @@ plotByRegionBarAMDR <- function(dt, fileName, plotTitle, yLab, yRange, aggChoice
   geom_text(aes(label = formatC( round(value, roundVal), format='f', digits = roundVal),
                          x = factor(region_name), y = yval), position = position_dodge(0.9),
                      size = fontsize, angle = 90, color = "black")  # + vjust = "bottom", hjust = 'left', commented out April 8, 2018
-
 
   ggsave(filename = paste0(fileloc("gDir"),"/",fileName,".png"), plot = p,
          width = 7, height = 6)

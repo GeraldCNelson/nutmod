@@ -176,7 +176,7 @@ gg <- gg + geom_map(aes(fill = value), map = worldMap)
 # gg <- gg + facet_wrap(facets = n)
 # gg <- gg + theme(legend.position = "bottom")
 # gg <- gg +  theme(axis.ticks = element_blank(),axis.title = element_blank(), axis.text.x = element_blank(),
-#                   axis.text.y = element_blank(), strip.text = element_text(family = "Times", face = "plain"))
+#                   axis.text.y = element_blank(), strip.text = element_text(family = fontFamily, face = "plain"))
 # # gg <- gg + scale_fill_gradientn(colors = p, name = legendText,
 # #                                 na.value = "grey50", values = b,
 # #                                 guide = "colorbar", limits = f)

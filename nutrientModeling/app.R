@@ -214,7 +214,7 @@ ui <- fluidPage(
                                 ),
                                 mainPanel(titlePanel("Nutrient adequacy and kilocalorie availability"), width = 10,
                                           includeHTML("www/adequacyText.html"),
-                                         fluidRow(
+                                          fluidRow(
                                             column(width = 12, plotOutput("adequacySpiderGraphtot", height = "400px"))),
                                           # fluidRow(
                                           #    column(width = 4, plotOutput("adequacySpiderGraphP1")),
@@ -226,20 +226,27 @@ ui <- fluidPage(
                                           #                                         dblclick = "plot_dblclick",
                                           #                                         hover = "plot_hover",
                                           #                                         brush = "plot_brush"))),
-                                          radioButtons("adequacyScenarioName", "Choose scenario (See glossary for details):",
-                                                       list("SSP2-NoCC", "SSP2-HGEM", "SSP1-NoCC", "SSP3-NoCC"), inline = TRUE),
-                                          fluidRow(
-                                            column(width = 6, plotOutput("energyQuantityBarPlot", height = "200px")),
-                                            column(width = 6, plotOutput("energyShareBarPlot", height = "200px"))),
+                                          # radioButtons("adequacyScenarioName", "Choose scenario for energy bar plots ",
+                                          #              list("SSP2-NoCC", "SSP2-HGEM", "SSP1-NoCC", "SSP3-NoCC"), inline = TRUE),
+                                           fluidRow(
+                                            column(width = 2,  radioButtons("adequacyScenarioName", "Choose scenario for energy bar plots ",
+                                                                            list("SSP2-NoCC", "SSP2-HGEM", "SSP1-NoCC", "SSP3-NoCC"), inline = TRUE)),
+                                            column(width = 4, plotOutput("energyQuantityBarPlot", height = "200px")),
+                                            column(width = 4, plotOutput("energyShareBarPlot", height = "200px")),
+                                            column(width = 2)),
                                           #                      dataTableOutput("adequacyTableP1"),
                                           #                      dataTableOutput("adequacyTableP2"),
                                           #                      dataTableOutput("adequacyTableP2")))),
+                                          
+                                          
                                           fluidRow(
-                                            column(width = 12, DT::dataTableOutput("adequacyTableP1"))),
-                                          fluidRow(
-                                            column(width = 12, DT::dataTableOutput("adequacyTableP2"))),
-                                          fluidRow(
-                                            column(width = 12, DT::dataTableOutput("adequacyTableP3"))),
+                                            column(width = 12, DT::dataTableOutput("adequacyTableTot"))),
+                                          # fluidRow(
+                                          #   column(width = 12, DT::dataTableOutput("adequacyTableP1"))),
+                                          # fluidRow(
+                                          #   column(width = 12, DT::dataTableOutput("adequacyTableP2"))),
+                                          # fluidRow(
+                                          #   column(width = 12, DT::dataTableOutput("adequacyTableP3"))),
                                           fluidRow(
                                             column(width = 12, DT::dataTableOutput("energyQuantityTable"))),
                                           fluidRow(
@@ -451,7 +458,7 @@ server <- function(input, output, session) {
     scenarioName <- input$adequacyScenarioName
     reqType <- reqRatio_sum_RDA
     dt <- copy(reqType)
-
+    
     spiderData <- spiderGraphData2(countryName, dt, displayColumnName = "nutrient")
   })
   
@@ -687,7 +694,7 @@ server <- function(input, output, session) {
                   "folate_µg", "riboflavin_mg", "thiamin_mg",  
                   "vit_a_rae_µg", "vit_b12_µg", "vit_b6_mg", "vit_c_mg", "vit_d_µg", "vit_e_mg", "vit_k_µg")
     setcolorder(dt, neworder = newOrder)
-    scenarioName <- unique(dt$scenario)
+    scenarioName <- input$adequacyScenarioName
     #dt[, scenario := gsub("", "", scenario)]
     #   data.table::setnames(dt, old = names(dt), new = capwords(names(dt)))
     data.table::setnames(dt, old = codeNames.tot, new = nutNamesNoUnitsWrap)
@@ -744,6 +751,31 @@ server <- function(input, output, session) {
   # adequacy tables server side -----
   output$adequacyTableP1 <- DT::renderDataTable({
     dt <- copy(data.adequacy.macro())
+    dt <- pivotWideToWideYear(dt)
+    nutrient <- "nutrient"
+    data.table::setnames(dt, old = "nutrient_foodGroup", new = nutrient) # new depends on whether dt is for food groups or nutrients
+    #dt[, scenario := gsub("", "", scenario)]
+    #colsToRound <- names(dt)[!names(dt) %in% c("scenario", "region_code.IMPACT159", "year", nutrient)]
+    #dt[,(colsToRound) := round(.SD,2), .SDcols = colsToRound]
+    data.table::setnames(dt, old = "region_code.IMPACT159", new = "country code")
+    data.table::setnames(dt, old = names(dt), new = capwords(names(dt)))
+    colsToConvert <- c("2010", "2030", "2050")
+    dt[, (colsToConvert) := lapply(.SD, sprintf, fmt="%#.2f"), .SDcols = colsToConvert]
+    #   dt[, scenario := factor(scenario, levels =  scenarioList)]
+    dt <- datatable(dt, rownames = FALSE, options = list(pageLength = 20, dom = 'iftp' ,
+                                                         columnDefs = list(list(className = 'dt-right', targets = 3:5)) # targets start at column 0
+    ))
+  })
+  
+  output$adequacyTableTot <- DT::renderDataTable({
+    dt <- copy(data.adequacy.tot())
+    # order of nutrients in the spider graph
+    newOrder <- c("scenario", "region_code.IMPACT159", "nutrientType", "year", 
+                  "carbohydrate_g", "protein_g", "totalfiber_g",
+                  "calcium_mg", "iron_mg", "magnesium_mg",  "phosphorus_mg", "potassium_g", "zinc_mg", 
+                  "folate_µg", "riboflavin_mg", "thiamin_mg",  
+                  "vit_a_rae_µg", "vit_b12_µg", "vit_b6_mg", "vit_c_mg", "vit_d_µg", "vit_e_mg", "vit_k_µg")
+    setcolorder(dt, neworder = newOrder)
     dt <- pivotWideToWideYear(dt)
     nutrient <- "nutrient"
     data.table::setnames(dt, old = "nutrient_foodGroup", new = nutrient) # new depends on whether dt is for food groups or nutrients
