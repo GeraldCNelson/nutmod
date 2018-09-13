@@ -135,9 +135,9 @@ datasetsToLoad.desc.complete <- c(dataSetsToLoad.desc, dataSetsToLoad.desc.suppl
 #' foodGroupNames and foodGroupNamesNoWrap must align
 codeNames.foodGroups <- c("alcohol", "beverages", "cereals", "dairy", "eggs", "fish", "fruits", "meats", "nutsNseeds",
                           "oils", "pulses", "rootsNPlantain", "sweeteners", "vegetables")
-foodGroupNamesNoWrap <- c("Beverages, alcoholic", "Beverages, nonalcoholic", "Cereals", "Dairy", "Eggs", "Fish", "Fruits", "Meats", "Nuts and seeds",
+foodGroupNamesNoWrap <- c("Beverages, alcoholic", "Beverages, nonalcoholic", "Cereals", "Dairy", "Eggs", "Fish", "Fruits", "Meats", "Nuts and oilseeds",
                           "Oils", "Pulses", "Roots and plantain", "Sweeteners", "Vegetables")
-foodGroupNamesWrap <- c("Beverages,\nalcoholic", "Beverages,\nnonalcoholic", "Cereals", "Dairy", "Eggs", "Fish", "Fruits", "Meats", "Nuts and\nseeds",
+foodGroupNamesWrap <- c("Beverages,\nalcoholic", "Beverages,\nnonalcoholic", "Cereals", "Dairy", "Eggs", "Fish", "Fruits", "Meats", "Nuts and\noilseeds",
                         "Oils", "Pulses", "Roots and\nplantain", "Sweeteners", "Vegetables")
 codeNames.macro <- c("carbohydrate_g", "protein_g", "totalfiber_g")
 nutNamesNoUnitsWrap.macro <- c("Carbohydrate", "Protein", "Total fiber")

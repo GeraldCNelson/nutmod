@@ -4,8 +4,8 @@
 #' @name aggRun.R
 #' @include nutrientModFunctions.R
 
-#' @name aggNorder.R
-#' @keywords aggregate data, sort data
+#' @name aggRun.R
+#' @keywords aggregate, sort, and graph data
 #' @description
 #' This script generates graphs of nutrient information aggregated to various levels.
 
@@ -233,11 +233,11 @@ for (switchloop in getSwitchChoice()) {
       ylab <- "(percent)"
       fileName <- paste(gdxChoice, "_", l, "_",  "budgetShare", "_", aggChoice, ".", suffix, sep = "")
       if (ylab %in%  "(percent)") {yRangeMinMax <- c(0,100)} else {yRangeMinMax <- c(0, max(DT$value) )}
-      yRangeMinMax <- c(0,60) # custom for budgetShare
+      yRangeMinMax.budgetshare <- c(0,50) # custom for budgetShare
       plotErrorBars <- chooseErrorBars(suffix)
       # plotByRegionBar(dt = DT, fileName, plotTitle = "Food budget share of per capita income", # old version. New version has no plot title
       plotByRegionBar(dt = DT, fileName, plotTitle = "",
-                      yLab = ylab, yRange = yRangeMinMax, aggChoice, suffix, scenOrder = get(l), oneLine = FALSE, colorList,
+                      yLab = ylab, yRange = yRangeMinMax.budgetshare, aggChoice, suffix, scenOrder = get(l), oneLine = FALSE, colorList,
                       graphsListHolder, plotErrorBars)
       #  yLab = "(percent)", yRange = c(0, 50), aggChoice, oneLine = FALSE)
 
@@ -246,9 +246,9 @@ for (switchloop in getSwitchChoice()) {
       #     cat("\nWorking on bar chart for MFAD for", i)
       #     DT <- aggNorder(gdxChoice, DTglobal = "dt.MFAD", aggChoice, scenChoice = get(l), mergedVals)
       #     ylab <- "(percent)"
-      #     if (ylab %in%  "(percent)") {yRangeMinMax <- c(0,100)} else {yRangeMinMax <- c(0, max(DT$value) )}
+      #     if (ylab %in%  "(percent)") {yRangeMinMax.budgetshare <- c(0,100)} else {yRangeMinMax.budgetshare <- c(0, max(DT$value) )}
       #     plotByRegionBar(dt = DT, fileName = "MFAD", plotTitle = "Modified Functional Attribute Diversity",
-      #                     yLab = ylab, yRange = yRangeMinMax, aggChoice,  scenOrder, oneLine = FALSE, colorList)
+      #                     yLab = ylab, yRange = yRangeMinMax.budgetshare, aggChoice,  scenOrder, oneLine = FALSE, colorList)
       #   #  yLab = "(percent)", yRange = c(0, 100), aggChoice, oneLine = FALSE)
       # print(paste("Done with bar chart for MFAD for", i))
 
@@ -485,7 +485,8 @@ for (switchloop in getSwitchChoice()) {
     # scenario.base <- "SSP2-NoCC-REF"
     # DT <- DT[year == "X2050" & scenario == scenario.base]
     # DT[, c("year") := NULL]
-    plotByBoxPlot2050(dt = DT, fileName, plotTitle = plottitle, yLab = ylab, yRange = c(0,50), aggChoice, suffix)
+    
+    plotByBoxPlot2050(dt = DT, fileName, plotTitle = plottitle, yLab = ylab, yRange = yRangeMinMax.budgetshare, aggChoice, suffix)
   }
   #' the method commented out below to get the box plots stats doesn't work with geom_boxplot. The following link has a
   #' way to do this but I'm not going to implement right now.
@@ -591,7 +592,7 @@ for (switchloop in getSwitchChoice()) {
 
   DT <- countryCodeCleanup(DT) # converts IMPACT region codes to ISO3 codes for largest country in the region
   data.table::setnames(DT, old = "region_code.IMPACT159", new = "id")
-  DT[food_group_code %in% "nutsNseeds", food_group_code := "nuts and seeds"]
+  DT[food_group_code %in% "nutsNseeds", food_group_code := "nuts and oilseeds"]
   DT[food_group_code %in% "rootsNPlantain", food_group_code := "roots and plantain"]
 
   #DT is the starting point. Need temp versions for each of the facet maps
@@ -654,7 +655,7 @@ for (switchloop in getSwitchChoice()) {
   cat("\nWorking on adequacy facet maps for", suffix, "\n")
 
   #' use this both for the nutrients to keep and the order in which they should be displayed
-  keepListNuts <- c("protein_g", "carbohydrate_g", "calcium_mg", "iron_mg", "zinc_mg", "folate_µg", "vit_a_rae_µg",
+  keepListNuts <- c("carbohydrate_g", "protein_g", "calcium_mg", "iron_mg", "zinc_mg", "folate_µg", "vit_a_rae_µg",
                     "vit_d_µg", "vit_e_mg", "vit_b12_µg")
 
   # adequacy ratios by suffix (base, var, varFort) -----
@@ -775,7 +776,7 @@ for (switchloop in getSwitchChoice()) {
   palette <- myPalette(4)
   displayOrder <- capwords(cleanupNutrientNames(keepListNuts))
   fileName <- paste(gdxChoice, "_", l, "_", "facetmap", "_", "MRVRatio", "_", "2010", ".", suffix, sep = "")
-  facetMaps(worldMap, DTfacetMap = temp, fileName, legendText, fillLimits, palette, facetColName, graphsListHolder, breakValues, displayOrder)
+  facetMaps(worldMap, DTfacetMap = temp, fileName, legendText, fillLimits, palette, facetColName, graphsListHolder, breakValues, displayOrder, height = 3)
 
   # convert to wide to do operations aross scenarios
   formula.wide <- "id + nutrient ~ scenario"
@@ -798,7 +799,7 @@ for (switchloop in getSwitchChoice()) {
     palette <- myPalette(4)
     displayOrder <- capwords(cleanupNutrientNames(keepListNuts))
     fileName <- paste(gdxChoice, "_", l, "_", "facetmap", "_", "MRVRatio", "_","2050", "_", "noCC", ".", suffix, sep = "")
-    facetMaps(worldMap, DTfacetMap = temp, fileName, legendText, fillLimits, palette, facetColName, graphsListHolder, breakValues, displayOrder)
+    facetMaps(worldMap, DTfacetMap = temp, fileName, legendText, fillLimits, palette, facetColName, graphsListHolder, breakValues, displayOrder, height = 3)
 
     #facet map, climate change effect on disqualifying index ratio -----
     DT.wide[, value := 100 * (SSP2_HGEM_REF - get(scenario.base.converted)) / get(scenario.base.converted)]
@@ -812,7 +813,7 @@ for (switchloop in getSwitchChoice()) {
     palette <- myPalette(4)
     displayOrder <- capwords(cleanupNutrientNames(keepListNuts))
     fileName <- paste(gdxChoice, "_", l, "_", "facetmap", "_", "MRVRatioChange", "_", "climate", ".", suffix, sep = "")
-    facetMaps(worldMap, DTfacetMap = temp, fileName, legendText, fillLimits = fillLimits, palette, facetColName, graphsListHolder, breakValues, displayOrder)
+    facetMaps(worldMap, DTfacetMap = temp, fileName, legendText, fillLimits = fillLimits, palette, facetColName, graphsListHolder, breakValues, displayOrder, height = 3)
   }
   # increase in adequacy due to income growth -----
   DT.wide[, value := 100 * (get(scenario.base.converted) - X2010) / X2010]

@@ -389,7 +389,7 @@ cleanupNutrientNames <- function(nutList) {
   # nutList <- gsub("_share","",nutList)
   nutList <- gsub(".sum.all","",nutList)
   nutList <- gsub("rootsNPlantain","roots and plantain",nutList)
-  nutList <- gsub("nutsNseeds","nuts and seeds",nutList)
+  nutList <- gsub("nutsNseeds","nuts and oilseeds",nutList)
   nutList <- gsub("alcohol","alcoholic beverages",nutList)
   nutList <- gsub("beverages","nonalcoholic beverages",nutList)
   nutList <- gsub("alcoholic nonalcoholic beverages","alcoholic beverages",nutList)
@@ -1529,7 +1529,7 @@ generateBreakValues <- function(fillLimits, decimals) {
 
 library(scales)
 facetMaps <- function(worldMap, DTfacetMap, fileName, legendText, fillLimits, palette, facetColName,
-                      graphsListHolder, breakValues, displayOrder, desc) {
+                      graphsListHolder, breakValues, displayOrder, desc, height = 6, width = 7) {
   b <- rescale(breakValues, to = c(0,1)) # the values option in scale_fill_gradientn MUST be from 0 to 1
   f <- fillLimits
   p <- palette
@@ -1553,7 +1553,7 @@ facetMaps <- function(worldMap, DTfacetMap, fileName, legendText, fillLimits, pa
   graphsListHolder[[fileName]] <- gg
   assign("graphsListHolder", graphsListHolder, envir = .GlobalEnv)
   ggsave(file = paste0(fileloc("gDir"),"/",fileName,".png"), plot = gg,
-         width = 7, height = 6)
+         width = width, height = height)
 
 }
 

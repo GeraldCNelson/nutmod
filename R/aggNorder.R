@@ -54,7 +54,7 @@ updateLegendGrobs <- function(l, aggChoice, legendLoc, mergedVals) {
   DT[, scenario := factor(scenario, levels = scenarioNameOrder)]
   if (gdxChoice %in% "USAID")  DT <- renameUSAIDscenarios(DT)
   if (gdxChoice %in% "USAIDPriorities") DT[, scenario := gsub("SSP2-HGEM-", "", scenario)] # needed to shorten scenario names
-
+  
   #' draw bars to get the legend
   p <- ggplot(DT, aes(x = region_name, y = value, fill = scenario, order = c("region_name") )) +
     geom_bar(stat = "identity", position = "dodge", color = "black") +
@@ -114,7 +114,7 @@ aggNorder <- function(gdxChoice, DTaggNorder, aggChoice, scenChoice, mergedVals,
   if ("MFAD" %in% names(merged)) {
     data.table::setnames(merged, old = "MFAD", new = "value")
   }
-
+  
   #' aggregation takes place in the next lines of code.
   #' It says create the variable value from the old variable value, averaged by the region
   #' code and year (and other variables, in particular nutrient in some cases) using the popX) value as weights
@@ -125,12 +125,12 @@ aggNorder <- function(gdxChoice, DTaggNorder, aggChoice, scenChoice, mergedVals,
     merged <- merged[, sd.region := sd(value), by = mergedVals]
   }
   merged <- merged[, value := weighted.mean(value, PopX0), by = mergedVals]
-
+  
   # other potential stats to add
   # lower=quantile(value, .25, na.rm=TRUE),
   # middle=quantile(value, .50, na.rm=TRUE),
   # upper=quantile(value, .75, na.rm=TRUE),
-
+  
   keepListCol <- c(mergedVals, "region_name", "value", "min.region", "max.region", "sd.region")
   if(aggChoice %in% "tenregions") keepListCol <- c(mergedVals, "region_name", "value")
   if ("nutrient" %in% names(merged))  {
@@ -145,7 +145,7 @@ aggNorder <- function(gdxChoice, DTaggNorder, aggChoice, scenChoice, mergedVals,
   #' keep just the scenario.base scenario for 2010 and rename the scenario to 2010, then delete year column
   DT <- DT[year %in% "X2010" & scenario %in% scenario.base | year %in% "X2050",]
   DT <- DT[year %in% "X2010", scenario := "2010"][, year := NULL]
-
+  
   #' order of scenario and regions
   if (gdxChoice == "USAID") {
     #    DT <- renameUSAIDscenarios(DT)
@@ -165,12 +165,12 @@ aggNorder <- function(gdxChoice, DTaggNorder, aggChoice, scenChoice, mergedVals,
   if (gdxChoice == "SSPs") {
     # do manipulations on the gdx data that has the scenarios in scenChoice.
     scenOrder <- scenChoice
-
+    
     #' order by scenarios
     DT[, scenarioOrder := match(scenario, scenOrder)]
     data.table::setorder(DT, scenarioOrder)
     DT[, scenarioOrder := NULL]
-
+    
     #' order by nutrients
     if ("nutrient" %in% names(DT)) {
       DT[, nutOrder := match(nutrient, nutOrder)]
@@ -178,16 +178,16 @@ aggNorder <- function(gdxChoice, DTaggNorder, aggChoice, scenChoice, mergedVals,
       DT[, nutOrder := NULL]
     }
   }
-
+  
   if (gdxChoice == "USAIDPriorities") {
     # do manipulations on the gdx data that has the scenarios in scenChoice.
     scenOrder <- scenChoice
-
+    
     #' order by scenarios
     DT[, scenarioOrder := match(scenario, scenOrder)]
     data.table::setorder(DT, scenarioOrder)
     DT[, scenarioOrder := NULL]
-
+    
     #' order by nutrients
     if ("nutrient" %in% names(DT)) {
       DT[, nutOrder := match(nutrient, nutOrder)]
@@ -195,7 +195,7 @@ aggNorder <- function(gdxChoice, DTaggNorder, aggChoice, scenChoice, mergedVals,
       DT[, nutOrder := NULL]
     }
   }
-
+  
   #' order by regions
   DT <- orderRegions(DT, aggChoice)
   DT <- DT[, region_name := gsub(" plus", "", region_name)]
@@ -217,31 +217,31 @@ plotByRegionBar <- function(dt, fileName, plotTitle, yLab, yRange, aggChoice, su
   if (aggChoice %in% "AggReg1") regionNameOrder <- regionNames
   if (aggChoice %in% "tenregions") regionNameOrder <- regionNames
   scenarioNameOrder <- scenOrder
-
+  
   temp[, region_name := gsub(" income", "", region_name)]
   temp[, region_name := factor(region_name, levels =  regionNameOrder)]
   temp[, scenario := factor(scenario, levels = scenarioNameOrder)]
   if (gdxChoice %in% "USAID")  temp <- renameUSAIDscenarios(temp)
-
+  
   # if (round(max(temp$value)) - max(temp$value) > 0.08) yRange[2] <- round(max(temp$value) + 1, digits = 1) # will hopefully deal with rare situation. Commented out May 13, 2018
   #' use the standard deviation value to define ymax. Commented out April 3, 2018 because yminmax is now calculated in aggRun.
   # if (plotErrorBars == TRUE) {
   #   yRange[2] <- max(yRange[2], round(max(temp$sd.region + temp$value), digits = 1))
   # }
-
+  
   #    if (aggChoice %in% "tenregions") temp[, c("min.region", "max.region", "sd.region") := NULL] now done in aggNorder
   #' when all elements of value are the same as the max y range
   temp[, value := round(value, 2)]
-
+  
   # adjust font size for bars by aggchoice
   if (aggChoice %in% "tenregions") fontsize <- 1.5
   if (aggChoice %in% "WB") fontsize <- 2.5
-
+  
   # adjust location of bar label in the bar (yval) for graph type
   if (yLab %in% "(Adequacy ratio)") {roundVal = 2} else { roundVal = 1}
   # next line is supposed to put the label in the bar at 6.5 percent of the distance from the bottom
   # to the top of the bar. Commented out July 11, 2018
-   yval <- (yRange[2] - yRange[1]) *.065
+  yval <- (yRange[2] - yRange[1]) *.065
   #' draw bars
   p <- ggplot(data = temp, aes(x = factor(region_name), y = value, group = scenario)) +
     geom_col(aes(fill = scenario), position = "dodge", color = "black") +
@@ -253,7 +253,7 @@ plotByRegionBar <- function(dt, fileName, plotTitle, yLab, yRange, aggChoice, su
     scale_fill_manual(values = colorList) +
     theme(plot.title = element_text(hjust = 0.5, size = 11, family = fontFamily, face = "plain")) +
     ggtitle(plotTitle)
-
+  
   #' the 'or' part of the if statement means don't draw the line if it's greater than ymax
   if (oneLine == FALSE | oneLine > yRange[2]) {} else {
     p <- p + geom_hline(aes(yintercept = oneLine, color = "black"))
@@ -267,15 +267,15 @@ plotByRegionBar <- function(dt, fileName, plotTitle, yLab, yRange, aggChoice, su
   p <- p + geom_text(aes(label = formatC( round(value, roundVal), format='f', digits = roundVal),
                          x = factor(region_name), y = yval), position = position_dodge(0.9),
                      size = fontsize, angle = 90, color = "black")  # + vjust = "bottom", hjust = 'left', commented out April 8, 2018
-
+  
   ggsave(file = paste0(fileloc("gDir"),"/",fileName,".png"), plot = p, device = "png",
          width = 7, height = 6)
   # dev.off()
-
+  
   #' code to save the plot for future use
   graphsListHolder[[fileName]] <- p
   assign("graphsListHolder", graphsListHolder, envir = .GlobalEnv)
-
+  
   formula.wide <- "scenario ~ factor(region_code, levels = unique(region_code))"
   temp.wide <- data.table::dcast(
     data = temp,
@@ -285,7 +285,7 @@ plotByRegionBar <- function(dt, fileName, plotTitle, yLab, yRange, aggChoice, su
   data.table::setorder(temp.wide, scenarioOrder)
   temp.wide[, scenarioOrder := NULL]
   data.table::setnames(temp.wide, old = regionCodes, new = regionNames)
-
+  
   colsToRound <- names(temp.wide)[2:length(temp.wide)]
   temp.wide[,(colsToRound) := round(.SD,2), .SDcols = colsToRound]
   data.table::setnames(temp.wide, old = names(temp.wide), new = c("scenario", regionCodes))
@@ -299,7 +299,7 @@ plotByRegionStackedBar <- function(dt, fileName, plotTitle, yLab, yRange, aggCho
   regionCodes <- unique(temp$region_code)
   regionNames <- unique(temp$region_name)
   scenarios <- unique(temp$scenario)
-
+  
   temp[, scenario := gsub("-REF", "", scenario)]
   scenOrder <- gsub("-REF", "", scenOrder)
   # if (gdxChoice %in% "USAIDPriorities") scenOrder <- gsub("SSP2-HGEM-", "", scenOrder)
@@ -307,13 +307,13 @@ plotByRegionStackedBar <- function(dt, fileName, plotTitle, yLab, yRange, aggCho
   if (aggChoice %in% "AggReg1") regionNameOrder <- regionNames
   if (aggChoice %in% "tenregions") regionNameOrder <- regionNames
   scenarioNameOrder <- scenOrder
-
+  
   temp[, region_name := gsub(" income", "", region_name)]
   temp[, region_name := factor(region_name, levels =  regionNameOrder)]
   temp[, scenario := factor(scenario, levels = scenarioNameOrder)]
-
+  
   if (gdxChoice %in% "USAID")  temp <- renameUSAIDscenarios(temp)
-
+  
   #' draw bars
   pdfFileName <- paste(fileloc("gDir"),"/", fileName, ".png", sep = "")
   # pdf(file = pdfFileName, width = 7, height = 5.2,)
@@ -327,11 +327,11 @@ plotByRegionStackedBar <- function(dt, fileName, plotTitle, yLab, yRange, aggCho
     theme(plot.title = element_text(hjust = 0.5, size = 11, family = fontFamily, face = "plain")) +
     ggtitle(plotTitle) +
     labs(y = yLab, x = NULL)
-
+  
   if (oneLine == FALSE) {} else {p + geom_abline(intercept = oneLine, slope = 0)}
   ggsave(file = paste0(fileloc("gDir"),"/",fileName,".png"), plot = p,
          width = 7, height = 6)
-
+  
   #' code to save the plot for future use
   graphsListHolder[[fileName]] <- p
   assign("graphsListHolder", graphsListHolder, envir = .GlobalEnv)
@@ -345,7 +345,7 @@ plotByRegionStackedBar <- function(dt, fileName, plotTitle, yLab, yRange, aggCho
   data.table::setorder(temp.wide, scenarioOrder)
   temp.wide[, scenarioOrder := NULL]
   data.table::setnames(temp.wide, old = regionCodes, new = regionNames)
-
+  
   colsToRound <- names(temp.wide)[3:length(temp.wide)]
   temp.wide[,(colsToRound) := round(.SD,2), .SDcols = colsToRound]
   data.table::setnames(temp.wide, old = names(temp.wide), new = c("scenario", "nutrient", regionCodes))
@@ -364,13 +364,13 @@ plotByBoxPlot2050 <- function(dt, fileName, plotTitle, yLab, yRange, aggChoice, 
   if (aggChoice %in% "WB") regionNameOrder <- c("Low", "Lower middle", "Upper middle", "High")
   if (aggChoice %in% "AggReg1") regionNameOrder <- regionNames
   if (aggChoice %in% "tenregions") regionNameOrder <- regionNames
-
+  
   scenarioNameOrder <- scenOrder
   temp[, region_name := gsub(" income", "", region_name)]
   temp[, region_name := factor(region_name, levels =  regionNameOrder)]
   temp[, scenario := factor(scenario, levels = scenarioNameOrder)]
   if (gdxChoice %in% "USAID")  temp <- renameUSAIDscenarios(temp)
-
+  
   # draw boxplot
   # pdf(paste(fileloc("gDir"),"/", fileName, ".pdf", sep = ""), width = 7, height = 5.2)
   p <- ggplot(temp, aes(x = region_name, y = value)) +
@@ -497,10 +497,11 @@ plotByRegionBarAMDR <- function(dt, fileName, plotTitle, yLab, yRange, aggChoice
   if (yLab %in% "(Adequacy ratio)") {roundVal = 2} else { roundVal = 1}
   # next line is supposed to put the label in the bar at 6.5 percent of the distance from the bottom
   # to the top of the bar. Commented out July 11, 2018
-  yval <- (yRange[2] - yRange[1]) *.065
-  if (aggChoice %in% "tenregions") fontsize <- 1.5
+ # yval <- (yRange[2] - yRange[1]) * .02
+ yval = 1.5 # controls how far above the y axis bottom the vertical numbers are
+   if (aggChoice %in% "tenregions") fontsize <- 1.5
   if (aggChoice %in% "WB") fontsize <- 2.5
-
+  
   #' draw bars
   #  pdf(paste(fileloc("gDir"),"/", fileName, ".pdf", sep = ""), width = 7, height = 5.2)
   if (round(max(temp$value) - yRange[2]) == 0) yRange[2] <- max(temp$value) # will hopefully deal with rare situation
@@ -515,22 +516,21 @@ plotByRegionBarAMDR <- function(dt, fileName, plotTitle, yLab, yRange, aggChoice
     ggtitle(plotTitle) +
     labs(y = yLab, x = NULL) +
     geom_hline(aes(yintercept = AMDR_lo), color = "darkgreen") +
-    geom_text(aes(.6, AMDR_lo + 2.5, label = "Low"), color = "black") + # value after AMDR_lo shifts the label up or down
+    geom_text(aes(.6, AMDR_lo + 2.5, label = "Low", family = fontFamily), color = "black") + # value after AMDR_lo shifts the label up or down
     geom_hline(aes(yintercept = AMDR_hi),  color = "dark red") +
-    geom_text(aes(.6, AMDR_hi + 2.5, label = "High"), color = "black") +
-    # geom_text(aes(x = factor(region_name),  y=yval, label = round(value, 1)), position = position_dodge(0.9), size = 2.25, angle = 90,
-    #           color = "black", hjust = 'left') +
-  geom_text(aes(label = formatC( round(value, roundVal), format='f', digits = roundVal),
-                         x = factor(region_name), y = yval), position = position_dodge(0.9),
-                     size = fontsize, angle = 90, color = "black")  # + vjust = "bottom", hjust = 'left', commented out April 8, 2018
-
+    geom_text(aes(.6, AMDR_hi + 2.5, label = "High"), color = "black")
+  # next line adds the vertical numbers
+    p <- p + geom_text(aes(label = formatC( round(value, roundVal), format='f', digits = roundVal),
+                           x = factor(region_name), y = yval), position = position_dodge(0.9),
+                       size = fontsize, angle = 90, color = "black")  # + vjust = "bottom", hjust = 'left', commented out April 8, 2018
+  
   ggsave(filename = paste0(fileloc("gDir"),"/",fileName,".png"), plot = p,
          width = 7, height = 6)
   # # dev.off()
   #' code to save the plot for future use
   graphsListHolder[[fileName]] <- p
   assign("graphsListHolder", graphsListHolder, envir = .GlobalEnv)
-
+  
   # save data
   formula.wide <- "scenario ~ factor(region_code, levels = unique(region_code))"
   temp.wide <- data.table::dcast(
@@ -541,7 +541,7 @@ plotByRegionBarAMDR <- function(dt, fileName, plotTitle, yLab, yRange, aggChoice
   data.table::setorder(temp.wide, scenarioOrder)
   temp.wide[, scenarioOrder := NULL]
   data.table::setnames(temp.wide, old = regionCodes, new = regionNames)
-
+  
   colsToRound <- names(temp.wide)[2:length(temp.wide)]
   temp.wide[,(colsToRound) := round(.SD,2), .SDcols = colsToRound]
   data.table::setnames(temp.wide, old = names(temp.wide), new = c("scenario", regionCodes))

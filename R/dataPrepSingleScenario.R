@@ -18,21 +18,20 @@
 #' calculates the effects on the food budget share.
 #' @name dataPrep.SingleScenario.R
 #' @include nutrientModFunctions.R
-source("R/nutrientModFunctions.R")
-sourceFile <- "dataPrepSingleScenario.R"
-
 library(gdxrrw)
 library(RColorBrewer)
+source("R/nutrientModFunctions.R")
+sourceFile <- "dataPrepSingleScenario.R"
+createScriptMetaData()
 
 graphsListHolder <- list()
 
 gdxrrw::igdx(gamsSysDir = fileNameList("R_GAMS_SYSDIR"), silent = TRUE)
 
-
 # #gdxFileName <- "SSP2-HGEM2-WithGLOBE.gdx"
 # gdxFileName <- "SSP2-HGEM-WithoutGLOBE.gdx"
 singleScenario <- TRUE
-fileDest <- "data/IMPACTData/singleScenario"
+fileDest <- "data/SSPs/IMPACTData/CGEPEcompare"
 
 catList <- c("catNames.land", "catNames.commod", "catNames.region", "catNames.world")
 vars.land <- c("AREACTYX0", "YLDCTYX0", "ANMLNUMCTYX0")
@@ -207,12 +206,12 @@ sumStats <- openxlsx::createWorkbook()
 openxlsx::addWorksheet(wb = sumStats, sheetName = "stats")
 openxlsx::writeData(
   wb = sumStats, sheet = "stats", dt.50.summary.wide, rowNames = FALSE, colNames = TRUE, startCol = 1)
-openxlsx::saveWorkbook(wb = sumStats, file = paste(fileDest, "compareStats.xlsx", sep = "/"))
+openxlsx::saveWorkbook(wb = sumStats, file = paste(fileDest, "compareCGEPEStats.xlsx", sep = "/"), overwrite = TRUE)
 # low-income removal
 # noSom <- temp2[!region_code.IMPACT159 %in% c("SOM", "BDI", "LBR", "CAF", "NER", "RWA"),]
 
 # facet maps of deltas due to use of Globe
-cat("\n Working on facet maps")
+cat("\n Working on facet maps of deltas due to use of Globe\n")
 worldMap <- getNewestVersion("worldMap", fileloc("uData"))
 
 measureVars <- c("pcGDPX0_woGlobe", "pcGDPX0_wGlobe", "budget_woGlobe", "budget_wGlobe",
@@ -248,45 +247,55 @@ dt.50.long.share <- copy(dt.50.long)
     DT[metric %in% c("incRatio"), metric := "Income effect"]
     DT[metric %in% c("incShareRatio"), metric := "Food budget share of income effect"]
     legendText <- "(percent)"
-    fillLimits <- c(-5, 5)
+    fillLimits <- c(-10, 10)
   }
   DT <- countryCodeCleanup(DT) # converts IMPACT region codes to ISO3 codes for largest country in the region
   data.table::setnames(DT, old = "region_code.IMPACT159", new = "id")
   facetColName <- "metric"
-
   myPalette <- colorRampPalette(rev(brewer.pal(11, "Spectral")))
   palette <- myPalette(4)
   #' middle two values shift the palette gradient; the code below give a smooth change
   fillRange <- fillLimits[2] - fillLimits[1]
   breakValues <- scales::rescale(c(fillLimits[1], fillLimits[1] + fillRange/3, fillLimits[1] + fillRange/1.5, fillLimits[2]))
   displayOrder <- sort(unique(DT[, get(facetColName)])) # default - alphabetically sorted
-  fileName <- paste("facetmap", "macroMetrics", "2050", sep = "_")
+  prefix <- "SSPs_scenOrderSSP"
+  fileName <- paste(prefix,"facetmap", "macroMetrics", "2050", sep = "_")
   graphsListHolder <- list()
-  facetMaps(worldMap, DTfacetMap = DT, fileName, legendText, fillLimits, palette, facetColName, graphsListHolder, breakValues, displayOrder)
-  print(graphsListHolder)
-
-  b <- breakValues
-  f <- fillLimits
-  p <- palette
-  d <- DT
-  #d[, (n) := factor(get(n), levels = displayOrder)]
-  gg <- ggplot(data = d, aes(map_id = region_code.IMPACT159))
-  gg <- gg + geom_map(aes(fill = incShareRatio), map = worldMap)
-  # gg <- gg + expand_limits(x = worldMap$long, y = worldMap$lat)
-  #gg <- gg + facet_wrap(facets = n)
-  gg <- gg + theme(legend.position = "bottom")
-  gg <- gg +  theme(axis.ticks = element_blank(),axis.title = element_blank(), axis.text.x = element_blank(),
-                    axis.text.y = element_blank(), strip.text = element_text(family = fontFamily, face = "plain"))
-  gg <- gg + scale_fill_gradientn(colors = p, name = legendText,
-                                  na.value = "grey50", values = b,
-                                  guide = "colorbar", limits = f)
-  gg
+  facetMaps(worldMap, DTfacetMap = DT, fileName, legendText, fillLimits, palette, facetColName, graphsListHolder, breakValues, displayOrder, height = 3)
+  
+    
+ # # print(graphsListHolder)
+ # 
+ #  b <- breakValues
+ #  f <- fillLimits
+ #  p <- palette
+ #  d <- DT
+ #  #d[, (n) := factor(get(n), levels = displayOrder)]
+ #  gg.facet <- ggplot(data = d, aes(map_id = id))
+ #  gg.facet <- gg.facet + geom_map(aes(fill = value), map = worldMap)
+ #  gg <- gg + expand_limits(x = worldMap$long, y = worldMap$lat)
+ #  gg <- gg + facet_wrap(facets = "metric")
+ #  gg.facet <- gg.facet + theme(legend.position = "bottom")
+ #  gg.facet <- gg.facet +  theme(axis.ticks = element_blank(),axis.title = element_blank(), axis.text.x = element_blank(),
+ #                    axis.text.y = element_blank(), strip.text = element_text(family = fontFamily, face = "plain"))
+ #  gg.facet <- gg.facet + scale_fill_gradientn(colors = p, name = legendText,
+ #                                  na.value = "grey50", values = b,
+ #                                  guide = "colorbar", limits = f)
+ #  gg.facet
   }
+
+# ggsave(file = paste0(fileloc("gDir"),"/","facet_map_CGEeffects",".png"), plot = gg.facet,
+#        width = 7, height = 3)
+
 
 gg <- ggplot(data = dt.50, aes(incRatio, incShareRatio))
 gg <- gg + geom_point()
-gg <- gg + xlab("Change in per capita income (percent)") + ylab("Change in food budget share of per capita income (percent)")
+gg <- gg + xlab("Change in\nper capita income (percent)") + ylab("Change in\nfood budget share of per capita income (percent)")
 gg
+
+
+ggsave(file = paste0(fileloc("gDir"),"/", prefix,"_CGEeffects",".png"), plot = gg,
+       width = 4, height = 4)
 
 lmout <- lm(incShareRatio ~  incRatio, dt.50 )
 

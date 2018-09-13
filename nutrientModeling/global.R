@@ -298,7 +298,7 @@ cleanupNutrientNamesFacetGraph <- function(nutList) {
   nutList <- gsub(".sum.all","",nutList)
   nutList <- gsub("_sum.all","",nutList)
   nutList <- gsub("RootsNPlantain","Roots and plantain",nutList)
-  nutList <- gsub("NutsNseeds","Nuts and seeds",nutList)
+  nutList <- gsub("NutsNseeds","Nuts and oilseeds",nutList)
   nutList <- gsub("Beverages","Beverages, other",nutList)
   nutList <- gsub("Alcohol","Beverages, alcoholic",nutList)
   nutList <- gsub("alcoholic nonalcoholic beverages","alcoholic beverages",nutList)

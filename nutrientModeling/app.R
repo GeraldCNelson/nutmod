@@ -116,9 +116,9 @@ datasetsToLoad.desc.complete <- c(dataSetsToLoad.desc, dataSetsToLoad.desc.suppl
 #' foodGroupNames and foodGroupNamesNoWrap must align
 codeNames.foodGroups <- c("alcohol", "beverages", "cereals", "dairy", "eggs", "fish", "fruits", "meats", "nutsNseeds",
                           "oils", "pulses", "rootsNPlantain", "sweeteners", "vegetables")
-foodGroupNamesNoWrap <- c("Beverages, alcoholic", "Beverages, nonalcoholic", "Cereals", "Dairy", "Eggs", "Fish", "Fruits", "Meats", "Nuts and seeds",
+foodGroupNamesNoWrap <- c("Beverages, alcoholic", "Beverages, nonalcoholic", "Cereals", "Dairy", "Eggs", "Fish", "Fruits", "Meats", "Nuts and oilseeds",
                           "Oils", "Pulses", "Roots and plantain", "Sweeteners", "Vegetables")
-foodGroupNamesWrap <- c("Beverages,\nalcoholic", "Beverages,\nnonalcoholic", "Cereals", "Dairy", "Eggs", "Fish", "Fruits", "Meats", "Nuts and\nseeds",
+foodGroupNamesWrap <- c("Beverages,\nalcoholic", "Beverages,\nnonalcoholic", "Cereals", "Dairy", "Eggs", "Fish", "Fruits", "Meats", "Nuts and\noilseeds",
                         "Oils", "Pulses", "Roots and\nplantain", "Sweeteners", "Vegetables")
 codeNames.macro <- c("carbohydrate_g", "protein_g", "totalfiber_g")
 nutNamesNoUnitsWrap.macro <- c("Carbo\nhydrate", "Protein", "Total fiber")
@@ -196,61 +196,61 @@ ui <- fluidPage(
                                uiOutput("plot.NutAvailFGbarGraphP1"),
                                DT::dataTableOutput("NutAvailFGTable"),
                                includeHTML("www/nutrientDescription.html")))),
-          
+          # adequacy tab panel -----
+          tabPanel(title = "Nutrient Adequacy",
+                   sidebarLayout(
+                     sidebarPanel(width = 2,
+                                  selectizeInput(inputId = "adequacyCountryName", label = "Choose country", choices = countryNames),
+                                  #                                            selectizeInput(inputId = "adequacyScenarioName", label = "Choose a scenario (see definition in glossary)", choices = scenarioNames),
+                                  downloadButton("downloadData.adequacy.macro", "Macro"),
+                                  downloadButton("downloadData.adequacy.vits", "Vitamins"),
+                                  downloadButton("downloadData.adequacy.minrls", "Minerals"),
+                                  downloadButton("downloadData.energyRat", "Energy share"),
+                                  downloadButton("downloadData.energyQ", "Kcals")
+                     ),
+                     mainPanel(titlePanel("Nutrient adequacy and kilocalorie availability"), width = 10,
+                               includeHTML("www/adequacyText.html"),
+                               fluidRow(
+                                 column(width = 12, plotOutput("adequacySpiderGraphtot", height = "400px"))),
+                               # fluidRow(
+                               #    column(width = 4, plotOutput("adequacySpiderGraphP1")),
+                               #  column(width = 4, plotOutput("adequacySpiderGraphP2")),
+                               #    column(width = 4, plotOutput("adequacySpiderGraphP3"))), #, height = "400px"
+                               #                                           column(width = 6, ggiraphOutput("adequacySpiderGraphP3"))),
+                               #           column(width = 12, plotOutput("adequacySpiderGraphP3", 
+                               #                                         click = "plot_click",
+                               #                                         dblclick = "plot_dblclick",
+                               #                                         hover = "plot_hover",
+                               #                                         brush = "plot_brush"))),
+                               # radioButtons("adequacyScenarioName", "Choose scenario for energy bar plots ",
+                               #              list("SSP2-NoCC", "SSP2-HGEM", "SSP1-NoCC", "SSP3-NoCC"), inline = TRUE),
+                               fluidRow(
+                                 column(width = 2,  radioButtons("adequacyScenarioName", "Choose scenario for energy bar plots ",
+                                                                 list("SSP2-NoCC", "SSP2-HGEM", "SSP1-NoCC", "SSP3-NoCC"), inline = TRUE)),
+                                 column(width = 4, plotOutput("energyQuantityBarPlot", height = "200px")),
+                                 column(width = 4, plotOutput("energyShareBarPlot", height = "200px")),
+                                 column(width = 2)),
+                               #                      dataTableOutput("adequacyTableP1"),
+                               #                      dataTableOutput("adequacyTableP2"),
+                               #                      dataTableOutput("adequacyTableP2")))),
+                               
+                               
+                               fluidRow(
+                                 column(width = 12, DT::dataTableOutput("adequacyTableTot"))),
+                               # fluidRow(
+                               #   column(width = 12, DT::dataTableOutput("adequacyTableP1"))),
+                               # fluidRow(
+                               #   column(width = 12, DT::dataTableOutput("adequacyTableP2"))),
+                               # fluidRow(
+                               #   column(width = 12, DT::dataTableOutput("adequacyTableP3"))),
+                               fluidRow(
+                                 column(width = 12, DT::dataTableOutput("energyQuantityTable"))),
+                               fluidRow(
+                                 column(width = 12, DT::dataTableOutput("energyShareTable")))))),
           # Adequacy tab panel ------
-          tabPanel(title = "Under- and over nutrition",
+          tabPanel(title = "Nutrient Quality",
                    tabsetPanel(
-                     # adequacy tab panel -----
-                     tabPanel(title = "Adequacy ratios",
-                              sidebarLayout(
-                                sidebarPanel(width = 2,
-                                             selectizeInput(inputId = "adequacyCountryName", label = "Choose country", choices = countryNames),
-                                             #                                            selectizeInput(inputId = "adequacyScenarioName", label = "Choose a scenario (see definition in glossary)", choices = scenarioNames),
-                                             downloadButton("downloadData.adequacy.macro", "Macro"),
-                                             downloadButton("downloadData.adequacy.vits", "Vitamins"),
-                                             downloadButton("downloadData.adequacy.minrls", "Minerals"),
-                                             downloadButton("downloadData.energyRat", "Energy share"),
-                                             downloadButton("downloadData.energyQ", "Kcals")
-                                ),
-                                mainPanel(titlePanel("Nutrient adequacy and kilocalorie availability"), width = 10,
-                                          includeHTML("www/adequacyText.html"),
-                                          fluidRow(
-                                            column(width = 12, plotOutput("adequacySpiderGraphtot", height = "400px"))),
-                                          # fluidRow(
-                                          #    column(width = 4, plotOutput("adequacySpiderGraphP1")),
-                                          #  column(width = 4, plotOutput("adequacySpiderGraphP2")),
-                                          #    column(width = 4, plotOutput("adequacySpiderGraphP3"))), #, height = "400px"
-                                          #                                           column(width = 6, ggiraphOutput("adequacySpiderGraphP3"))),
-                                          #           column(width = 12, plotOutput("adequacySpiderGraphP3", 
-                                          #                                         click = "plot_click",
-                                          #                                         dblclick = "plot_dblclick",
-                                          #                                         hover = "plot_hover",
-                                          #                                         brush = "plot_brush"))),
-                                          # radioButtons("adequacyScenarioName", "Choose scenario for energy bar plots ",
-                                          #              list("SSP2-NoCC", "SSP2-HGEM", "SSP1-NoCC", "SSP3-NoCC"), inline = TRUE),
-                                           fluidRow(
-                                            column(width = 2,  radioButtons("adequacyScenarioName", "Choose scenario for energy bar plots ",
-                                                                            list("SSP2-NoCC", "SSP2-HGEM", "SSP1-NoCC", "SSP3-NoCC"), inline = TRUE)),
-                                            column(width = 4, plotOutput("energyQuantityBarPlot", height = "200px")),
-                                            column(width = 4, plotOutput("energyShareBarPlot", height = "200px")),
-                                            column(width = 2)),
-                                          #                      dataTableOutput("adequacyTableP1"),
-                                          #                      dataTableOutput("adequacyTableP2"),
-                                          #                      dataTableOutput("adequacyTableP2")))),
-                                          
-                                          
-                                          fluidRow(
-                                            column(width = 12, DT::dataTableOutput("adequacyTableTot"))),
-                                          # fluidRow(
-                                          #   column(width = 12, DT::dataTableOutput("adequacyTableP1"))),
-                                          # fluidRow(
-                                          #   column(width = 12, DT::dataTableOutput("adequacyTableP2"))),
-                                          # fluidRow(
-                                          #   column(width = 12, DT::dataTableOutput("adequacyTableP3"))),
-                                          fluidRow(
-                                            column(width = 12, DT::dataTableOutput("energyQuantityTable"))),
-                                          fluidRow(
-                                            column(width = 12, DT::dataTableOutput("energyShareTable")))))),
+                     
                      # AMDR tab panel -----
                      tabPanel(title = "Acceptable Macronutrient Distribution Range (AMDR)",
                               sidebarLayout(
@@ -320,22 +320,23 @@ ui <- fluidPage(
                    mainPanel(
                      titlePanel("Glossary"),
                      includeHTML("www/glossaryText.html"))),
-          # data review and download tab panel ------
-          tabPanel(title = "Data",
-                   sidebarLayout(
-                     sidebarPanel(width = 3,
-                                  selectizeInput("dataset.full", "Choose a dataset:",
-                                                 choices = datasetsToLoad.desc.complete),
-                                  downloadButton('downloadData.full', 'Download'),
-                                  includeHTML("www/downloadFullText.html")
-                     ),
-                     mainPanel(
-                       titlePanel("Data download"),
-                       DT::dataTableOutput('table')))),
+          
           # data and developer information tabs with tabset -----
           tabPanel(
             "Developer Info",
             tabsetPanel(
+              # data review and download tab panel ------
+              tabPanel(title = "Data",
+                       sidebarLayout(
+                         sidebarPanel(width = 3,
+                                      selectizeInput("dataset.full", "Choose a dataset:",
+                                                     choices = datasetsToLoad.desc.complete),
+                                      downloadButton('downloadData.full', 'Download'),
+                                      includeHTML("www/downloadFullText.html")
+                         ),
+                         mainPanel(
+                           titlePanel("Data download"),
+                           DT::dataTableOutput('table')))),
               # Metadata tab panel -----
               tabPanel(
                 title = "Files",
