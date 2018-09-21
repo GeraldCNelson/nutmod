@@ -1,4 +1,3 @@
-#' Copy files to shiny app directories
 #' @title "Management of SSP Population Data"
 #' @keywords data management, SSP, population data
 #' @name copyFilestoNutrientModeling.R

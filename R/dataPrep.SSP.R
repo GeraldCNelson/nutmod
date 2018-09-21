@@ -32,6 +32,7 @@ keepYearList <- c(year0,keepYearList)
 modelListGDP <-  fileNameList("modelListGDP")
 modelListPop <-   fileNameList("modelListPop")
 
+# note that most of the 2000 and 2005 population values are NA
 dt.SSP <- as.data.table(readr::read_csv(unz(SSPdataZip, filename = SSPcsv), col_names = TRUE, guess_max = 2000, cols(
   `2000` = col_double(),
   `2005` = col_double()
@@ -135,7 +136,7 @@ data.table::setnames(dt.SSP.pop.tot.melt, old = "ISO_code", new = "region_code.S
 dt.SSP.pop.tot.melt <- dt.SSP.pop.tot.melt[!region_code.SSP %in% keyVariable("dropListCty"),]
 inDT <- dt.SSP.pop.tot.melt
 outName <- "dt.SSP.pop.tot"
-desc <- "Population information by country and scenario with cleaned up column names. Units are million."
+desc <- "Population information by country and scenario with cleaned up column names. Units are million. Has 2005. Only used for fish and alc calculations"
 cleanup(inDT,outName,fileloc("uData"), desc = desc)
 
 #' Remove the aggregates of
@@ -200,6 +201,7 @@ dt.SSP.pop.step2.melt <- data.table::melt(
   variable.factor = FALSE
 )
 dt.SSP.pop.step2.melt <- dt.SSP.pop.step2.melt[!ISO_code %in% keyVariable("dropListCty"),]
+dt.SSP.pop.step2.melt <- dt.SSP.pop.step2.melt[!year %in% "X2005"]
 inDT <- dt.SSP.pop.step2.melt
 outName <- "dt.SSPPopClean"
 desc <- "Population information by country and scenario and age and gender with cleaned up column names"

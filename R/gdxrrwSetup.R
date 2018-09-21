@@ -45,6 +45,16 @@ gamsSetup <- function(gdxFileName) {
     dt.scenarioListIMPACT[, crop := NULL]
   }
 
+  if (gdxFileName %in% "BMGF-Africa-NutMod-Inputs-2018.09.21.gdx") {
+    keepListCol <- "scenario"
+    dt.scenarioListIMPACT <- unique(dt.ptemp[, (keepListCol), with = FALSE])
+#    print(dt.scenarioListIMPACT)
+ #   dt.scenarioListIMPACT[, crop := tstrsplit(scenario, "-", fixed = TRUE, keep = c(3))]
+    SSPName <- "SSP2"
+    climModel <- "HGEM"
+  #  dt.scenarioListIMPACT[, scenario := paste(SSPName, climModel, paste0("c", crop), sep = "-")]
+ #   dt.scenarioListIMPACT[, crop := NULL]
+  }
 
   #cleanup scenario names
   dt.scenarioListIMPACT <- cleanupScenarioNames(dt.scenarioListIMPACT) # replaces - with _ in a couple of scenarios and removes 2 on a couple of USAID scenarios

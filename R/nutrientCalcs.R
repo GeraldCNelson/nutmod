@@ -61,6 +61,7 @@ generateResults.dataPrep <- function(req, dt.foodNnuts, scenarioListIMPACT) {
       SSPName <- unlist(strsplit(scenName, "-"))[1] # get SSP abbrev
       climModel <- unlist(strsplit(scenName, "-"))[2] # get climate model abbrev
       experiment <- unlist(strsplit(scenName, "-"))[3]
+      temp.nuts[, scenario := paste(SSPName, climModel, experiment, sep = "-")]
     }
 
      if (gdxChoice %in% "USAIDPriorities") {
@@ -68,17 +69,30 @@ generateResults.dataPrep <- function(req, dt.foodNnuts, scenarioListIMPACT) {
        climModel <- "HGEM"
        crop <- unlist(strsplit(scenName, "-"))[3]
        experiment <- crop # this extracts the name of the food item and adds c onto the front of it
+       temp.nuts[, scenario := paste(SSPName, climModel, experiment, sep = "-")]
      }
+    
+    if (gdxChoice %in% "AfricanAgFutures") {
+      SSPName <- unlist(strsplit(scenName, "_"))[1] # get SSP abbrev
+      cat("SSPName: ", SSPName, "\n")
+      regionChoice <- unlist(strsplit(scenName, "_"))[2]
+      cat("regionChoice: ", regionChoice, "\n")
+      climModel <- unlist(strsplit(scenName, "_"))[4] # get climate model abbrev
+      cat("climModel: ", climModel, "\n")
+      RCP <- unlist(strsplit(scenName, "_"))[3]
+      cat("RCP: ", RCP, "\n")
+      temp.nuts[, scenario := paste(SSPName, climModel, RCP, sep = "-")]
+    }
+    # xxxx
     #' may need to add the RCP column later. Currently it's not included in the scenario name.
     # if (is.na(experiment)) {experiment <- "REF"}
     # print(experiment)
-    temp.nuts <- dt.nutsReqPerCap[scenario %in% SSPName, ]
+    temp.nuts <- dt.nutsReqPerCap[scenario %in% SSPName, ] 
     # if (is.na(experiment)) {
     # temp.nuts[,scenario := paste(scenario,climModel, sep = "-")]
     # } else {
     # temp.nuts[,scenario := paste(scenario,climModel, experiment, sep = "-")]
     # }
-    temp.nuts[, scenario := paste(SSPName, climModel, experiment, sep = "-")]
     dt.temp <- rbind(dt.temp, temp.nuts)
   }
 

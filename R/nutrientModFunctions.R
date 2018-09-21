@@ -1243,10 +1243,13 @@ switchChoices <- function(switchChoice) {
 }
 
 gdxFileNameChoice <- function() {
+  # this function needs to have the same choices as getGdxChoice
+  
   cat("Choose the IMPACT data gdx file you want to use.\n")
   cat("1. for the nutrient modeling paper\n")
   cat("2. for the USAID nutrient modeling paper\n")
   cat("3. for the USAID priority setting paper, 2018\n")
+  cat("4. for the African Agricultural Futures project")
   cat("Note: the relevant gdx file must be in the data-raw/IMPACTdata directory\n")
   choice <- readline(prompt = "Choose the number of the gdx file you want to use. \n")
   #  choice <- "1" # so there will be a definite value
@@ -1265,6 +1268,12 @@ gdxFileNameChoice <- function() {
     gdxFileName <- "Micronutrient-Inputs-7.1.2018.gdx"  #-  gdx for the USAID priority results
     gdxChoice <- "USAIDPriorities"
   }
+  
+  if (choice %in% "4") {
+    gdxFileName <- "BMGF-Africa-NutMod-Inputs-2018.09.21.gdx"  #-  gdx for the Gates African ag priorities  results
+    gdxChoice <- "AfricanAgFutures"
+  }
+  
   cat("\nYour gdx file name choice is ", gdxFileName, "\n")
   cat("Choose the switches you want to use.\n")
   cat("1. Base nutrient data only.\n")
@@ -1329,61 +1338,6 @@ multiplot <- function(plotlist=NULL, file, cols=1, layout=NULL) {
   }
 }
 
-# generateWorldMaps -----
-# code to generate choropleth world maps. In principle it should be able to handle an arbitrary number of scenarios
-generateWorldMaps <- function(spData, scenOrder, titleText, legendText, lowColor, highColor, fillLimits, fileName){
-  scenGraphs <- list()
-  for (j in 1:length(scenOrder)) {
-    #    titletext <- paste0(titleText, scenOrder[j])
-    titletext <- NULL
-    temp.sp <- spData[scenario %in% scenOrder[j],]
-    #    temp.sp[,scenario := NULL]
-    temp.sp <- as.data.frame(temp.sp)
-    summary(temp.sp)
-    plotName.new <- paste0("plot.", gsub("-", "_", scenOrder[j]))
-    print(plotName.new)
-    gg <- ggplot(temp.sp, aes(map_id = id))
-    gg <- gg + geom_map(aes(fill = temp.sp$value), map = worldMap, color = "white")
-    gg <- gg + expand_limits(x = worldMap$long, y = worldMap$lat)
-    gg <- gg + labs(title =  titletext, hjust = 0.5, x = NULL, y = NULL) +
-      theme(plot.title = element_text(size = 10, hjust = 0.5)) +
-      scale_fill_gradient(low = lowColor, high = highColor, guide = "legend", name = legendText, limits = fillLimits) +
-      labs(lText = legendText) +
-      #  theme(legend.position = "bottom") +
-      theme(legend.justification = c(0,0), legend.position = c(0,0)) +
-      # guides(lText = guide_legend(title.position="top", title.hjust = 0.5))  +
-      theme(axis.ticks = element_blank(),axis.title = element_blank(), axis.text.x = element_blank(),axis.text.y = element_blank())
-    scenGraphs[[plotName.new]] <- gg
-  }
-  # multiplot(plotlist = scenGraphs, cols = 2)
-
-  # good source of information on using grid to place graphics - https://stat.ethz.ch/R-manual/R-devel/library/grid/doc/grid.pdf
-
-  # code below is modified from multiplot
-  cols <- 2
-  numPlots <- length(scenGraphs)
-  layout <- matrix(seq(1, cols * ceiling(numPlots/cols)),
-                   ncol = cols, nrow = ceiling(numPlots/cols), byrow = TRUE)
-  grid.newpage()
-  # +1 is for the title
-  rows <- nrow(layout) + 1
-  gridHeight <- unit(rep_len(1, rows), "null")
-  pushViewport(viewport(layout = grid.layout(rows, ncol(layout), widths = unit(rep_len(1, cols), "null"), heights = unit(c(1, 5,5,5), "null"))))
-  # title goes in the first row and across all columns
-  grid.text(titleText, vp = viewport(layout.pos.row = 1, layout.pos.col = 1:cols))
-
-  # Make each plot, in the correct location
-  for (i in 1:numPlots) {
-    # Get the i,j matrix positions of the regions that contain this subplot
-    matchidx <- as.data.frame(which(layout == i, arr.ind = TRUE))
-    pdf(paste(fileloc("gDir"), "/worldMaps", fileName, ".pdf", sep = ""), width = 7, height = 5.2, useDingbats = FALSE)
-
-    print(scenGraphs[[i]], vp = viewport(layout.pos.row = matchidx$row + 1,
-                                         layout.pos.col = matchidx$col))
-    dev.off()
-  }
-}
-
 # store world map dataframe -----
 storeWorldMapDF <- function(){
   library(maptools)
@@ -1405,7 +1359,7 @@ storeWorldMapDF <- function(){
   fn <- file.path(filelocMap, "ne_50m_admin_0_countries.zip")
   cat("\n") # so the output from download.file starts on a new line
 
-  temp <- list.files(fileloc("uData"))
+ # temp <- list.files(fileloc("uData"))
 
   # if (length(grep("worldMap", temp)) == 0) { commented out July 22, 2018
   # on the assumption that this is only run when something is wrong with the existing map.
@@ -1414,10 +1368,10 @@ storeWorldMapDF <- function(){
 
   #   shpFile <- file.path(filelocMap, "ne_50m_admin_0_countries")
   world.raw <- rgdal::readOGR(dsn = filelocMap, layer = "ne_50m_admin_0_countries")
-  idList <- world.raw@data$ISO_A3
-  centroids.df <- as.data.frame(coordinates(world.raw))
-  names(centroids.df) <- c("Longitude", "Latitude")
-  # create new regions code is based on https://philmikejones.wordpress.com/2015/09/03/dissolve-polygons-in-r/
+  # centroids of interest if adding names to the center of a polygon. Not used at the moment
+  # centroids.df <- as.data.frame(coordinates(world.raw))
+  # names(centroids.df) <- c("Longitude", "Latitude")
+  # create new regions code is based on https://philmikejones.me/tutorials/2015-09-03-dissolve-polygons-in-r/
 
   #keep just the basic information needed
   regions.to.merge <- c("SSD", "SDN") # ISO codes for all the countries in the new region
@@ -1453,11 +1407,17 @@ storeWorldMapDF <- function(){
   world <- world.raw[!world.raw$ISO_A3 %in% c("ATA"),]
   othersToRemove <- c("ABW", "AIA", "ALA", "AND", "ASM", "AFT")
   world <- world[!world$ISO_A3 %in% othersToRemove,]
-  SSAafricaCodes <- c("AGO", "BDI", "BEN", "BFA", "BWA", "CAF", "CIV", "CMR",
+  SSAfricaCodes <- c("AGO", "BDI", "BEN", "BFA", "BWA", "CAF", "CIV", "CMR",
                       "COD", "COG", "DJI", "ERI", "ETH", "GAB", "GHA", "GIN",
-                      "GMB", "GNB", "GNQ", "KEN", "LBR", "LSO", "MDG", "MLI", "MOZ",
-                      "MWI", "NAM", "NER", "NGA", "OAO", "RWA", "SDP", "SEN", "SLE",
-                      "SOM", "SWZ", "TCD", "TGO", "TZA", "UGA", "ZAF", "ZMB", "ZWE")
+                      "GMB", "GNB", "GNQ", "KEN", "LBR", "LSO", "MDG", "MLI", "MOZ", "MRT", # removed "MOR". It's in north Africa. Added Mauritania
+                      "MWI", "NAM", "NER", "NGA", "RWA", "SDN", "SDP", "SEN", "SLE", #removed "OAO" other Atlantic Ocean
+                      "SOM", "SSD", "SWZ", "TCD", "TGO", "TZA", "UGA", "ZAF", "ZMB", "ZWE")
+  
+  AllAfricaCodes <- c("AGO", "BDI", "BEN", "BFA", "BWA", "CAF", "CIV", "CMR", "COD", "COG", "DJI", "DZA", 
+  "EGY", "ERI", "ETH", "GAB", "GHA", "GIN", "GMB", "GNB", "GNQ", "KEN", "LBR", "LBY", "LSO", "MDG", "MLI", 
+  "MOR", "MOZ", "MRT", "MWI", "NAM", "NER", "NGA", "RWA", "SDN", "SEN", "SLE", "SOM", "SWZ", "TCD", "TGO", 
+  "TUN", "TZA", "UGA", "ZAF", "ZMB", "ZWE")
+  
   africa <- world[world@data$REGION_UN == "Africa",]
   africa$REGION_UN <- factor(africa$REGION_UN)
   europe <-   world[world@data$REGION_UN  == "Europe",]
@@ -1466,18 +1426,55 @@ storeWorldMapDF <- function(){
   americas$REGION_UN <- factor(americas$REGION_UN)
   asia <- world[world@data$REGION_UN  == "Asia",]
   asia$REGION_UN <- factor(asia$REGION_UN)
+  
+  # alternate projections
+  projVal.longlat <- '+proj=longlat +datum=WGS84 +no_defs +ellps=WGS84  +towgs84=0,0,0'
+  # wintri projection
+  projVal.wintri <- "+proj=wintri +datum=WGS84 +no_defs +over" #this doesn't work when you try to create a shapefile with raster:shapefile
+  # mercator projection
+  projVal.mercat <- "+proj=merc +lon_0=0 +k=1 +x_0=0 +y_0=0 +ellps=WGS84 +datum=WGS84 +units=m +no_defs" 
+  #Robinson projection
+  projVal.robin <- "+proj=robin +datum=WGS84 +ellps=WGS84"
+  
+  defaultProj <- projVal.robin
+  
+  world <- sp::spTransform(world, CRSobj = defaultProj)
+  africa <- sp::spTransform(africa, CRSobj = defaultProj)
+  europe <- sp::spTransform(europe, CRSobj = defaultProj)
+  americas <- sp::spTransform(americas, CRSobj= defaultProj)
+  asia <- sp::spTransform(asia, CRSobj = defaultProj)
 
-  world <- sp::spTransform(world, CRSobj="+proj=longlat")
-  africa <- sp::spTransform(africa, CRSobj="+proj=longlat")
-  europe <- sp::spTransform(europe, CRSobj="+proj=longlat")
-  americas <- sp::spTransform(americas, CRSobj="+proj=longlat")
-  asia <- sp::spTransform(asia, CRSobj="+proj=longlat")
-
-  saveRDS(world, file = paste(filelocMap, "worldFile.RDS", sep = "/"))
-  saveRDS(africa, file = paste(filelocMap, "africaFile.RDS", sep = "/"))
-  saveRDS(europe, file = paste(filelocMap, "europeFile.RDS", sep = "/"))
-  saveRDS(americas, file = paste(filelocMap, "americasFile.RDS", sep = "/"))
-  saveRDS(asia, file = paste(filelocMap, "asiaFile.RDS", sep = "/"))
+  fpusMap <- readOGR(dsn = "data-raw/IMPACTData/IMPACT_FPU_Map", layer = "fpu2015_polygons_v3_multipart_polygons", stringsAsFactors = FALSE)
+  fpusMap <- sp::spTransform(fpusMap, CRSobj = defaultProj)
+  fpusMap <- gBuffer(fpusMap, byid=TRUE, width=0)
+  fpusMap$FPU2015 <- factor(fpusMap$FPU2015)
+  fpusMap$USAFPU <- factor(fpusMap$USAFPU)
+  
+  data.fpus <- fpusMap@data
+  data.fpus$region_code.IMPACT159 <- substring(data.fpus$FPU2015,5,7) # add region_code.IMPACT159 column to the fpusMap data frame
+  fpusMap@data <- data.fpus
+  fpusMap$region_code.IMPACT159 <- factor(fpusMap$region_code.IMPACT159)
+  
+  # keep only the SSAfrica countries for data.fpus.SSA
+  fpusMap_SSA <- subset(fpusMap, region_code.IMPACT159  %in% SSAfricaCodes)
+  # redo factor after subsetting
+  fpusMap_SSA$FPU2015 <- factor(fpusMap_SSA$FPU2015)
+  fpusMap_SSA$USAFPU <- factor(fpusMap_SSA$USAFPU)
+  fpusMap_SSA$region_code.IMPACT159 <- factor(fpusMap_SSA$region_code.IMPACT159)
+  
+  # raster::shapefile(fpusMap_SSA, "fpusMap_SSA.shp", overwrite = TRUE)
+  
+   # fpusMap_SSA@data <- data.fpus.SSA
+   
+  
+  # saveRDS(world, file = paste(filelocMap, "worldFile.RDS", sep = "/"))
+  # saveRDS(africa, file = paste(filelocMap, "africaFile.RDS", sep = "/"))
+  # saveRDS(europe, file = paste(filelocMap, "europeFile.RDS", sep = "/"))
+  # saveRDS(americas, file = paste(filelocMap, "americasFile.RDS", sep = "/"))
+  # saveRDS(asia, file = paste(filelocMap, "asiaFile.RDS", sep = "/"))
+  # saveRDS(fpusMap, file = paste(filelocMap, "fpusMap.RDS", sep = "/"))
+  # 
+  
   #world.simp <- gSimplify(world, tol = .1, topologyPreserve = TRUE)
   # alternative would be CRS("+proj=longlat")) for WGS 84
   # dat_url <- getURL("https://gist.githubusercontent.com/hrbrmstr/7a0ddc5c0bb986314af3/raw/6a07913aded24c611a468d951af3ab3488c5b702/pop.csv")
@@ -1513,49 +1510,114 @@ storeWorldMapDF <- function(){
   outName <- "asiaMap"
   desc <- "Asia map file used to create facet maps of Asia"
   cleanup(inDT, outName, fileloc("uData"), desc = desc)
+  
+  fpusMap <- broom::tidy(fpusMap, region = "FPU2015")
+  inDT <- fpusMap
+  outName <- "fpusMap"
+  desc <- "World map file with food production unit (FPU) polygons used to create facet maps of FPU level data"
+  cleanup(inDT, outName, fileloc("uData"), desc = desc)
+  
+  fpusMap_SSA <- broom::tidy(fpusMap_SSA, region = "FPU2015")
+  fpusMap_SSA$region <- fpusMap_SSA$id
+  inDT <- fpusMap_SSA
+  outName <- "fpusMap_SSA"
+  desc <- "Sub-Saharan AFrica map file with food production unit (FPU) polygons used to create facet maps of FPU level data"
+  cleanup(inDT, outName, fileloc("uData"), desc = desc)
+  
 }
 # }
 
-generateBreakValues <- function(fillLimits, decimals) {
+#' generateBreakValues <- function(fillLimits, decimals) {
+#'   fillRange <- fillLimits[2] - fillLimits[1]
+#'   breakValue.low <- round(fillLimits[1], digits = decimals)
+#'   breakValue.high <- round(fillLimits[2], digits = decimals)
+#'   #' middle two values shift the palette gradient
+#'   #  breakValues <- scales::rescale(c(breakValue.low, breakValue.low + fillRange/3, breakValue.low + fillRange/1.5, breakValue.high))
+#'   breakValues <- round(c(breakValue.low, breakValue.low + fillRange/3, breakValue.low + fillRange/1.5, breakValue.high), digits = decimals)
+#'   #  breakValues <- rescale(breakValues, to = c(0,1)) # the break values MUST be from 0 to 1. Already done in facetMaps() July 10, 2018
+#'   return(breakValues)
+#' }
+
+generateBreakValues <- function(fillLimits, numLimits, decimals) { # added Sep 13, 2018. May not be appropriate
   fillRange <- fillLimits[2] - fillLimits[1]
-  breakValue.low <- round(fillLimits[1], digits = decimals)
-  breakValue.high <- round(fillLimits[2], digits = decimals)
+  fillStep <- fillRange/numLimits
+  breakValues <- numeric(numLimits)
+  breakValues[1] <- round(fillLimits[1], digits = decimals)
+  breakValues[numLimits] <- round(fillLimits[2], digits = decimals)
+  for (i in 2:(numLimits - 1)) {
+    breakValues[i] <- breakValues[i-1] + fillStep
+  }
   #' middle two values shift the palette gradient
   #  breakValues <- scales::rescale(c(breakValue.low, breakValue.low + fillRange/3, breakValue.low + fillRange/1.5, breakValue.high))
-  breakValues <- round(c(breakValue.low, breakValue.low + fillRange/3, breakValue.low + fillRange/1.5, breakValue.high), digits = decimals)
+  # breakValues <- round(c(breakValue.low, breakValue.low + fillRange/3, breakValue.low + fillRange/1.5, breakValue.high), digits = decimals)
   #  breakValues <- rescale(breakValues, to = c(0,1)) # the break values MUST be from 0 to 1. Already done in facetMaps() July 10, 2018
   return(breakValues)
 }
 
 library(scales)
-facetMaps <- function(worldMap, DTfacetMap, fileName, legendText, fillLimits, palette, facetColName,
-                      graphsListHolder, breakValues, displayOrder, desc, height = 6, width = 7) {
+# facetMaps <- function(worldMap, DTfacetMap, fileName, legendText, fillLimits, palette, facetColName,
+#                       graphsListHolder, breakValues, displayOrder, desc, height = 6, width = 7) {
+#   b <- rescale(breakValues, to = c(0,1)) # the values option in scale_fill_gradientn MUST be from 0 to 1
+#   f <- fillLimits
+#   p <- palette
+#   n <- facetColName
+#   d <- data.table::copy(DTfacetMap)
+#   d[, (n) := factor(get(n), levels = displayOrder)]
+#   gg <- ggplot(data = d, aes(map_id = id))
+#   gg <- gg + geom_map(aes(fill = value), map = worldMap)
+#   gg <- gg + expand_limits(x = worldMap$long, y = worldMap$lat)
+#   gg <- gg + facet_wrap(facets = n)
+#   gg <- gg + theme(legend.position = "bottom")
+#   gg <- gg +  theme(axis.ticks = element_blank(),axis.title = element_blank(), axis.text.x = element_blank(),
+#                     axis.text.y = element_blank(), strip.text = element_text(family = fontFamily, face = "plain"))
+# 
+#   gg <- gg + scale_fill_gradientn(colors = p, name = legendText,
+#                                   na.value = "grey50", values = b,
+#                                   guide = "colorbar", limits=f, labels = )
+#   #
+#   gg
+# 
+#   graphsListHolder[[fileName]] <- gg
+#   assign("graphsListHolder", graphsListHolder, envir = .GlobalEnv)
+#   ggsave(file = paste0(fileloc("gDir"),"/",fileName,".png"), plot = gg,
+#          width = width, height = height)
+# }
+
+# new version that allows different maps, added Sep 13, 2108
+facetMaps <- function(mapFile, DTfacetMap, legendText, fillLimits, palette, facetColName,
+                      breakValues, displayOrder) {
   b <- rescale(breakValues, to = c(0,1)) # the values option in scale_fill_gradientn MUST be from 0 to 1
   f <- fillLimits
+   cat("f :", f, "\n")
+   cat("b :", b, "\n")
   p <- palette
   n <- facetColName
   d <- data.table::copy(DTfacetMap)
-  d[, (n) := factor(get(n), levels = displayOrder)]
-  gg <- ggplot(data = d, aes(map_id = id))
-  gg <- gg + geom_map(aes(fill = value), map = worldMap)
-  gg <- gg + expand_limits(x = worldMap$long, y = worldMap$lat)
+  #  d[, (n) := factor(get(n), levels = displayOrder)] commented out to see it does labels better
+  gg <- ggplot(data = d, aes(map_id = region))
+    gg <- gg + geom_map(aes(fill = value), map = mapFile, color="#ffffff")
+   gg <- gg + expand_limits(x = mapFile$long, y = mapFile$lat)
   gg <- gg + facet_wrap(facets = n)
   gg <- gg + theme(legend.position = "bottom")
-  gg <- gg +  theme(axis.ticks = element_blank(),axis.title = element_blank(), axis.text.x = element_blank(),
-                    axis.text.y = element_blank(), strip.text = element_text(family = fontFamily, face = "plain"))
-
+  #  gg <- gg + guides(colour = guide_legend(title.position = "top"))
+  # gg <- gg + guides(colour = guide_colourbar(title.position="top", title.hjust = 0.5),
+  #        size = guide_legend(title.position="top", title.hjust = 0.5))
+  gg <- gg +  theme(axis.ticks = element_blank(), axis.title = element_blank(), axis.text.x = element_blank(),
+                    axis.text.y = element_blank(), strip.text = element_text(family = fontFamily, face = "plain", size = 12))
+  
   gg <- gg + scale_fill_gradientn(colors = p, name = legendText,
                                   na.value = "grey50", values = b,
-                                  guide = "colorbar", limits=f, labels = )
+                                  guide = "colorbar", breaks = b, limits = f, labels = b)
   #
-  gg
-
-  graphsListHolder[[fileName]] <- gg
-  assign("graphsListHolder", graphsListHolder, envir = .GlobalEnv)
-  ggsave(file = paste0(fileloc("gDir"),"/",fileName,".png"), plot = gg,
-         width = width, height = height)
-
+  return(gg)
+  
+  # graphsListHolder[[fileName]] <- gg
+  # assign("graphsListHolder", graphsListHolder, envir = .GlobalEnv)
+  # ggsave(file = paste0(fileloc("gDir"),"/",fileName,".png"), plot = gg,
+  #        width = 7, height = 6)
 }
+
+
 
 # truncates the column value to the range of fillLimits
 truncateDT <- function(DT, fillLimits){ # function to make sure every country gets a color. The fillLimits values are identified ahead of time and entered manually into the code below
@@ -1567,13 +1629,15 @@ truncateDT <- function(DT, fillLimits){ # function to make sure every country ge
 }
 
 # getGdxChoice function updated Aug 18, 2018 to deal with separate projects
+# this function needs to have the same choices as gdxFileNameChoice
 getGdxChoice <- function() {
   if (!"gdxChoice" %in% ls(envir = .GlobalEnv)) {
     cat("Choose the IMPACT project you are working on.\n")
     cat("1. for the nutrient modeling paper\n")
     cat("2. for the USAID nutrient modeling paper\n")
     cat("3. for the USAID priority setting paper, 2018\n")
-
+    cat("4. for the African Agricultural Futures project")
+    
     choice <- readline(prompt = "Choose the number of the gdx file you want to use. \n")
     #  choice <- "1" # so there will be a definite value
     if (choice  %in% "1") {
@@ -1584,6 +1648,10 @@ getGdxChoice <- function() {
     }
     if (choice  %in% "3") {
       gdxSwitchCombo <- read.csv(file = paste0(getwd(), "/results/USAIDPriorities/gdxInfo.csv"), header = TRUE, stringsAsFactors = FALSE)
+    }
+    
+    if (choice %in% "4") {
+      gdxSwitchCombo <- read.csv(file = paste0(getwd(), "/results/AfricanAgFutures/gdxInfo.csv"), header = TRUE, stringsAsFactors = FALSE)
     }
 
     gdxChoice <- gdxSwitchCombo[,2]

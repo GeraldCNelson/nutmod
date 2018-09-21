@@ -23,8 +23,6 @@
 
 source("R/nutrientModFunctions.R")
 source("R/aggNorder.R") # needed to load function updateLegendGrobs. Could move this function elsewhere April 30, 2018
-
-library(data.table)
 library(RColorBrewer)
 # next 3 libraries needed for world maps
 library(sp)
@@ -572,7 +570,8 @@ for (switchloop in getSwitchChoice()) {
     legendText <- "Budget Share of Income, 2010 and 2050 scenarios"
     fillLimits <- c(0, 70)
     temp <- truncateDT(DT, fillLimits = fillLimits)
-    breakValues <- generateBreakValues(fillLimits = fillLimits, decimals = 0)
+    numLimits <- 4
+    breakValues <- generateBreakValues(fillLimits = fillLimits, numLimits = numLimits, decimals = 0)
     paletteType <- "Spectral"
     myPalette <- colorRampPalette(rev(brewer.pal(11, paletteType)))
     palette <- myPalette(4)
@@ -603,7 +602,8 @@ for (switchloop in getSwitchChoice()) {
     fillLimits <- c(0, 500)
     temp <- truncateDT(DT, fillLimits = fillLimits)
     temp <- temp[scenario %in% "SSP2_NoCC_REF"]
-    breakValues <- generateBreakValues(fillLimits = fillLimits, decimals = 0)
+    numLimits <- 4
+    breakValues <- generateBreakValues(fillLimits = fillLimits, numLimits = numLimits, decimals = 0)
     paletteType <- "Spectral"
     myPalette <- colorRampPalette(rev(brewer.pal(11, paletteType)))
     palette <- myPalette(4)
@@ -629,7 +629,8 @@ for (switchloop in getSwitchChoice()) {
     temp <- truncateDT(DT.wide, fillLimits = fillLimits)
     keepListCol <- c("id", facetColName, "value")
     temp[, setdiff(names(temp), keepListCol) := NULL]
-    breakValues <- generateBreakValues(fillLimits = fillLimits, decimals = 0)
+    numLimits <- 4
+    breakValues <- generateBreakValues(fillLimits = fillLimits, numLimits = numLimits, decimals = 0)
     paletteType <- "Reds"
     myPalette <- colorRampPalette(rev(brewer.pal(9, paletteType)))
     palette <- myPalette(4)
@@ -643,7 +644,8 @@ for (switchloop in getSwitchChoice()) {
   legendText <- "Income Growth Effect on Availability, \n2010-2050, (percent)"
   fillLimits <- c(-30, 100)
   temp <- truncateDT(DT.wide, fillLimits = fillLimits)
-  breakValues <- generateBreakValues(fillLimits = fillLimits, decimals = 0)
+  numLimits <- 4
+  breakValues <- generateBreakValues(fillLimits = fillLimits, numLimits = numLimits, decimals = 0)
   paletteType <- "Spectral"
   myPalette <- colorRampPalette(rev(brewer.pal(11, paletteType)))
   palette <- myPalette(4)
@@ -686,7 +688,8 @@ for (switchloop in getSwitchChoice()) {
   fillLimits <- c(0, 3) # changed from 5 May 29, 2018
   temp <- truncateDT(DT, fillLimits =  fillLimits)
   temp <- temp[scenario %in% "X2010",]
-  breakValues <- generateBreakValues(fillLimits = fillLimits, decimals = 0)
+  numLimits <- 4
+  breakValues <- generateBreakValues(fillLimits = fillLimits, numLimits = numLimits, decimals = 0)
   paletteType <- "Spectral"
   myPalette <- colorRampPalette(brewer.pal(11, paletteType))
   palette <- myPalette(4)
@@ -709,7 +712,8 @@ for (switchloop in getSwitchChoice()) {
     fillLimits <- c(0, 3) # changed from 5, May 29, 2018
     temp <- temp[scenario %in% "SSP2_NoCC_REF",]
     temp <- truncateDT(DT.wide, fillLimits)
-    breakValues <- generateBreakValues(fillLimits = fillLimits, decimals = 0)
+    numLimits <- 4
+    breakValues <- generateBreakValues(fillLimits = fillLimits, numLimits = numLimits, decimals = 0)
     paletteType <- "Spectral"
     myPalette <- colorRampPalette(brewer.pal(11, paletteType))
     palette <- myPalette(4)
@@ -723,7 +727,8 @@ for (switchloop in getSwitchChoice()) {
     legendText <- "Climate Change Effect on Adequacy, 2050, \n(percent)"
     fillLimits <- c(-10, 2)
     temp <- truncateDT(DT.wide, fillLimits = fillLimits)
-    breakValues <- generateBreakValues(fillLimits = fillLimits, decimals = 0)
+    numLimits <- 4
+    breakValues <- generateBreakValues(fillLimits = fillLimits, numLimits = numLimits, decimals = 0)
     paletteType <- "Spectral"
     myPalette <- colorRampPalette(brewer.pal(11, paletteType))
     palette <- myPalette(4)
@@ -737,7 +742,8 @@ for (switchloop in getSwitchChoice()) {
   legendText <- "Income Growth Effect, \n2010-2050, (percent)"
   fillLimits <- c(0, 100) # changed from 8 to 0 July 7, 2018
   temp <- truncateDT(DT.wide, fillLimits)
-  breakValues <- generateBreakValues(fillLimits = fillLimits, decimals = 0)
+  numLimits <- 4
+  breakValues <- generateBreakValues(fillLimits = fillLimits, numLimits = numLimits, decimals = 0)
   myPalette <- colorRampPalette(brewer.pal(9, paletteType))
   paletteType <- "Blues"
   palette <- myPalette(4)
@@ -769,7 +775,8 @@ for (switchloop in getSwitchChoice()) {
   fillLimits <- c(0, 4)
   temp <- truncateDT(DT, fillLimits =  fillLimits)
   temp <- temp[scenario %in% "X2010",]
-  breakValues <- generateBreakValues(fillLimits = fillLimits, decimals = 0)
+  numLimits <- 4
+  breakValues <- generateBreakValues(fillLimits = fillLimits, numLimits = numLimits, decimals = 0)
   paletteType <- "Spectral"
   #  breakValues <- scales::rescale(c(breakValue.low, 1, 2, breakValue.high))
   myPalette <- colorRampPalette(rev(brewer.pal(11, paletteType)))
@@ -793,7 +800,8 @@ for (switchloop in getSwitchChoice()) {
     fillLimits <- c(0, 4)
     temp <- temp[scenario %in% "SSP2_NoCC_REF"]
     temp <- truncateDT(DT, fillLimits)
-    breakValues <- generateBreakValues(fillLimits = fillLimits, decimals = 0)
+    numLimits <- 4
+    breakValues <- generateBreakValues(fillLimits = fillLimits, numLimits = numLimits, decimals = 0)
     paletteType <- "Spectral"
     myPalette <- colorRampPalette(brewer.pal(11, paletteType))
     palette <- myPalette(4)
@@ -808,7 +816,8 @@ for (switchloop in getSwitchChoice()) {
     fillLimits <- c(-3, 6)
     temp <- truncateDT(DT.wide, fillLimits = fillLimits)
     paletteType <- "Spectral"
-    breakValues <- generateBreakValues(fillLimits = fillLimits, decimals = 0)
+    numLimits <- 4
+    breakValues <- generateBreakValues(fillLimits = fillLimits, numLimits = numLimits, decimals = 0)
     myPalette <- colorRampPalette(rev(brewer.pal(11, paletteType)))
     palette <- myPalette(4)
     displayOrder <- capwords(cleanupNutrientNames(keepListNuts))
@@ -821,7 +830,8 @@ for (switchloop in getSwitchChoice()) {
   legendText <- "Income Growth Effect on adequacy, \n2010-2050, (percent)"
   fillLimits <- c(-20, 75)
   temp <- truncateDT(DT.wide, fillLimits)
-  breakValues <- generateBreakValues(fillLimits = fillLimits, decimals = 0)
+  numLimits <- 4
+  breakValues <- generateBreakValues(fillLimits = fillLimits, numLimits = numLimits, decimals = 0)
   paletteType <- "Reds"
   myPalette <- colorRampPalette(brewer.pal(9, paletteType))
   palette <- myPalette(4)

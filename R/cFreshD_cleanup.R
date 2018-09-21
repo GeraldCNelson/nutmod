@@ -25,7 +25,7 @@ CL_FI_SPECIES_GROUPS <- fread("data-raw/FAOSTAT/FishStatData/GlobalProuction_201
 keepListCol <- c("3Alpha_Code", "Taxonomic_Code", "Name_en",  "Major_Group", "ISSCAAP_Group", "CPC_Group", "CPCdiv_Group")
 CL_FI_SPECIES_GROUPS <- CL_FI_SPECIES_GROUPS[, (keepListCol), with = FALSE]
 
-dt.compositesLU <- data.table::as.data.table(openxlsx::read.xlsx("data-raw/NutrientData/nutrientDetails/composites.fish.Lookup.xlsx"))
+dt.compositesLU <- data.table::as.data.table(openxlsx::read.xlsx("data-raw/NutrientData/nutrientDetails/composites.lookup.fish.xlsx"))
 dt.c_freshD <- dt.compositesLU[composite %in% "c_FreshD",]
 dt.c_freshD[, item_code := NULL]
 setnames(CL_FI_SPECIES_GROUPS, old = c("3Alpha_Code", "Name_en"), new = c("item_code", "item_name"))

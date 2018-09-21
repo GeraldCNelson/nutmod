@@ -101,8 +101,7 @@ req_MRVs <-
   data.table::as.data.table(openxlsx::read.xlsx(reqsFile, startRow = 1, colNames = TRUE, sheet = "MRVs"))
 req_MRVs[, c("status_group", "age_group") := NULL]
 
-reqsList <- c("req_EAR","req_RDA_vits","req_RDA_minrls","req_RDA_macro","req_UL_vits","req_UL_minrls",
-              "req_AMDR_hi", "req_AMDR_lo","req_MRVs")
+reqsList <- keyVariable("reqsList")
 
 # create lists of nutrients common to the food nutrient and  requirements lists ------
 # keep only the common nutrients in the req list---
@@ -172,4 +171,4 @@ for (i in reqsList) {
   cleanup(inDT,outName,fileloc("mData"), desc = desc)
 }
 finalizeScriptMetadata(metadataDT, sourceFile)
-sourcer <- clearMemory(sourceFile, gdxChoice) # removes everything in memory and sources the sourcer function
+# sourcer <- clearMemory(sourceFile, gdxChoice) # removes everything in memory and sources the sourcer function

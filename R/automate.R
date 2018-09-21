@@ -74,10 +74,6 @@ source("R/nutrientModFunctions.R")
 createScriptMetaData()
 
 gdxrrwExistenceCheck() #checks if the gdxrrw package is installed; if not, prints directions on how to install and stops.
-#choose between 1 of 2 possible gdx files.
-# 1 -  Micronutrient-Inputs-07252016.gdx;
-# 2 - Micronutrient-Inputs-USAID.gdx
-# 3 - Micronutrient-Inputs-2018.22.05.gdx
 
 gdxCombo <- gdxFileNameChoice() # asks what you want to do
 gdxFileName <- gdxCombo[1]
@@ -105,8 +101,9 @@ if (oneTimeDataUpdate %in% c("Y", "y")){
   sourceFile <- "dataManagement.fishnAlc.R"
   sourcer(sourceFile)
   # Just need to do this for Fresh fish. c_FrshD. Not needed because results already recorded in dt.compositesLU file.
-  sourceFile <- "c_FrshD_cleanup.R"
-  sourcer(sourceFile) ## match up item name and item codes. The item names are in the comp recalc spreadsheets but item code is not.
+# next two lines commented out Sep 20, 2018. the c_FrshD_cleanup.R just writes a csv file out the base directory. Hard to see what it is for.
+    # sourceFile <- "c_FrshD_cleanup.R"
+  # sourcer(sourceFile) ## match up item name and item codes. The item names are in the comp recalc spreadsheets but item code is not.
   # only needs to be run if changes to the script are made
   sourceFile <- "dataPrep.ODBCaccess.R"
   sourcer(sourceFile) # reads in nutrient data from the USDA nutrient composition access database

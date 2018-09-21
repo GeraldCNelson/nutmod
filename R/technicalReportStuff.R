@@ -37,7 +37,8 @@ for (j in keepListNuts) {
     fillLimits <- c(0, 75)
     DT <- truncateDT(DT, fillLimits =  fillLimits)
     paletteType <- "Spectral"
-    breakValues <- generateBreakValues(fillLimits = fillLimits, decimals = 0)
+    numLimits <- 4
+    breakValues <- generateBreakValues(fillLimits = fillLimits, numLimits = numLimits, decimals = 0)
     myPalette <- colorRampPalette(brewer.pal(11, paletteType))
     palette <- myPalette(4)
     displayOrder <- capwords(cleanupNutrientNames(get(j)))
@@ -76,7 +77,8 @@ for (j in keepListNuts) {
   fillLimits <- c(-50, 75)
   DT <- truncateDT(DT, fillLimits =  fillLimits)
   paletteType <- "Spectral"
-  breakValues <- generateBreakValues(fillLimits = fillLimits, decimals = 0)
+  numLimits <- 4
+  breakValues <- generateBreakValues(fillLimits = fillLimits, numLimits = numLimits, decimals = 0)
   myPalette <- colorRampPalette(brewer.pal(11, paletteType))
   palette <- myPalette(4)
   displayOrder <- capwords(cleanupNutrientNames(get(j)))
@@ -118,7 +120,8 @@ for (j in keepListNuts) {
   fillLimits <- c(-0, 200)
   DT <- truncateDT(DT, fillLimits =  fillLimits)
   paletteType <- "Spectral"
-  breakValues <- generateBreakValues(fillLimits = fillLimits, decimals = 0)
+  numLimits <- 4
+  breakValues <- generateBreakValues(fillLimits = fillLimits, numLimits = numLimits, decimals = 0)
   myPalette <- colorRampPalette(brewer.pal(11, paletteType))
   palette <- myPalette(4)
   displayOrder <- capwords(cleanupNutrientNames(get(j)))
