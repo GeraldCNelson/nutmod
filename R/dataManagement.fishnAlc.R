@@ -37,40 +37,51 @@ FBSyearsToAverage.baseyear <- keyVariable("FBSyearsToAverage.baseyear") # years 
 FBSyearsToAverage.startyear <- keyVariable("FBSyearsToAverage.startyear") # years over which the FBS data should be averaged to create starting values, currently 2010
 keepYearList <- keyVariable("keepYearList") # list of years we need to keep for later use between 2010 and 2050
 
-#load the SSP GDP and population data -----
-dt.SSPGDP <- getNewestVersion("dt.SSPGDPClean", fileloc("uData"))
-dt.SSPPop <- getNewestVersion("dt.SSP.pop.tot", fileloc("uData"))
+#load the SSP GDP and population data ----- may not be necessary because using pcGDP from IMPACT directly Oct 11, 2018
+# dt.SSPGDP <- getNewestVersion("dt.SSPGDPClean", fileloc("uData"))
+# dt.SSPGDP[,scenario := substring(scenario, 1,4)]
+
+#dt.SSPPop <- getNewestVersion("dt.SSP.pop.tot", fileloc("uData")) # old code to read in ssp population data
+# Read in the cleaned up population data ----
+if (!gdxChoice %in% "AfricanAgFutures") {
+  dt.pop <- getNewestVersion("dt.SSPPopClean", fileloc("uData"))
+}else{
+  dt.pop <- getNewestVersion("dt.pop.AfrAgFutures", fileloc("uData"))
+}
+dt.GDPperCap <- getNewestVersion("dt.pcGDPX0", fileloc("iData"))
+
+# convert FBS data to IMPACT regions
 dt.regions.all <- getNewestVersion("dt.regions.all", fileloc("uData"))
+regionList.missing.FBS <- sort(regionList.ISO[!regionList.ISO %in% regionList.FBS]) # regions in ISO but not in FBS
+# 'big' countries without FBS data are Burundi, Bahrain, Bermuda, Bhutan, Congo (Democratic Republic aka Zaire), Equatorial Guinea,
+# Greenland, Libya, Papua New Guinea, Somalia, Syria, Taiwan - as of May 12, 2018
+dt.regions.all <- dt.regions.all[!region_code.IMPACT159 %in% keyVariable("dropListCty"),]
 
 dt.FBS <- getNewestVersion("dt.FBS", fileloc("uData"))
 # various lists of countries
 regionList.FBS <- sort(unique(dt.FBS$ISO_code)) # Regions with FBS data
 regionList.IMPACT <- sort(unique(dt.regions.all$region_code.IMPACT159)) # IMPACT regions
 regionList.ISO <- sort(unique(dt.regions.all$ISO_code)) # ISO regions
-regionList.missing.FBS <- sort(regionList.ISO[!regionList.ISO %in% regionList.FBS]) # regions in ISO but not in FBS
-# 'big' countries without FBS data are Burundi, Bahrain, Bermuda, Bhutan, Congo (Democratic Republic aka Zaire), Equatorial Guinea,
-# Greenland, Libya, Papua New Guinea, Somalia, Syria, Taiwan - as of May 12, 2018
-
-dt.regions.all <- dt.regions.all[!region_code.IMPACT159 %in% keyVariable("dropListCty"),]
 
 # as of July 24, 2018 FBS also has KcalPerCapPerDay; remove it here for this script
 dt.FBS <- dt.FBS[!variable %in% "KcalPerCapPerDay", ]
+
+#keep just the IMPACT fish and alcohol names in the FBS data and the base and start years to average
 dt.FBS <- dt.FBS[IMPACT_code %in% fishNalcNames & year %in% c(FBSyearsToAverage.baseyear, FBSyearsToAverage.startyear)]
 
-# the value variable in dt.FBS is in kg per person per year. Convert to per day here. It is converted back to per year below to align with other food items from IMPACT.
+# the value variable in dt.FBS is in kg per person per year. Convert to per day here. 
+# It is converted back to per year below to align with other food items from IMPACT.
 dt.FBS[, value := value/keyVariable("DinY")]
 dt.FBS[variable %in% "kgPerCapPerYear", variable := "kgPerCapPerDay"]
 
-# Get the middle of the total number of FBS yearsToAverage. middleYear is what we'll average on for the first two observations in calculating future food availability
+# Get the middle of the total number of FBS yearsToAverage. 
+# middleYear is what we'll average on for the first two observations in calculating future food availability
 middleYear.baseyear <- FBSyearsToAverage.baseyear[as.integer(length(FBSyearsToAverage.baseyear) / 2) + 1]
 middleYear.startyear <- FBSyearsToAverage.startyear[as.integer(length(FBSyearsToAverage.startyear) / 2) + 1]
 
 # do some data preparation
 # remove text after SSPx to make sure the scenario names are only of the SSP scenarios (eg, SSP1, SSP2, ...)
-dt.SSPPop[,scenario := substring(scenario, 1,4)]
-dt.SSPGDP[,scenario := substring(scenario, 1,4)]
-# scenarioListSSP.GDP <- substring(scenarioListSSP.GDP, 1,4) # keep only SSP1, SSP2, etc. if there are multiple versions
-# scenarioListSSP.pop <- substring(scenarioListSSP.pop, 1,4)
+# dt.pop[,scenario := substring(scenario, 1,4)] Not needed because Ag pop data has different scenarios and SSP pop data already only SSP1, etc.
 
 # identify the n-1 year for the elasticity calculations. If the start year is X2010 and the interval is 5 years, the year0 is X2005
 year1 <- as.numeric(substr(keepYearList[1], 2, 5)); year2 <- as.numeric(substr(keepYearList[2], 2, 5))
@@ -78,50 +89,59 @@ year0 <- year1 - (year2 - year1)
 year0 <- paste("X",year0, sep = "")
 keepYearList <- c(year0,keepYearList)
 
-# merge GDP and population data to calculate per capita values
-dt.SSPGDPperCap <- merge(dt.SSPGDP, dt.SSPPop, by.x = c("scenario", "ISO_code", "year"),
-                         by.y = c( "scenario", "region_code.SSP", "year"))
-
-# convert ISO to region_code.IMPACT159
-# keepListCol <- c("ISO_code", "region_code.SSP", "region_code.IMPACT159", "region_code.IMPACT115") commented out because dt.regions.all only has the elements in keepListCol May 31, 2018
-# dt.regions.all[, setdiff(names(dt.regions.all), keepListCol) := NULL]
-dt.SSPGDPperCap <- merge(dt.regions.all, dt.SSPGDPperCap, by = c("ISO_code"), all.x = TRUE)
-dt.SSPGDPperCap <- dt.SSPGDPperCap[is.na(value.GDP), value.GDP := 0] # get rid of some NAs in the small countries
-dt.SSPGDPperCap <- dt.SSPGDPperCap[is.na(value.pop), value.pop := 0]
-
-#' aggregate smaller countries to their IMPACT159 regions. To check if this works, change value.GDP = to something like temp.GDP.
-dt.SSPGDPperCap[, `:=`(
-  value.GDP = sum(value.GDP),
-  value.pop = sum(value.pop)),
-  by = c("scenario", "year", "region_code.IMPACT159")]
-
-keepListCol <- c( "region_code.IMPACT159", "scenario", "year","value.GDP", "value.pop")
-dt.SSPGDPperCap[, setdiff(names(dt.SSPGDPperCap), keepListCol) := NULL]
-dt.SSPGDPperCap <- unique(dt.SSPGDPperCap)
-# convert SSP GDP total value to per capita by dividing by population
-dt.SSPGDPperCap[, value.perCapGDP := (value.GDP/value.pop) * 1000] # * 1000 because pop is in millions and value is in billions
-keepListCol <- c("region_code.IMPACT159", "scenario", "year", "value.perCapGDP")
-dt.SSPGDPperCap[, setdiff(names(dt.SSPGDPperCap), keepListCol) := NULL]
+# a big chunk of code below was used to calculate pcGDP. We're now just reading in these data from the gdx. Oct 11, 2018
+#' # merge GDP and population data to calculate per capita values
+#' dt.GDPperCap <- merge(dt.SSPGDP, dt.pop, by.x = c("scenario", "ISO_code", "year"),
+#'                          by.y = c( "scenario", "region_code.SSP", "year"))
+#' 
+#' # convert ISO to region_code.IMPACT159
+#' # keepListCol <- c("ISO_code", "region_code.SSP", "region_code.IMPACT159", "region_code.IMPACT115") commented out because dt.regions.all only has the elements in keepListCol May 31, 2018
+#' # dt.regions.all[, setdiff(names(dt.regions.all), keepListCol) := NULL]
+#' dt.GDPperCap <- merge(dt.regions.all, dt.GDPperCap, by = c("ISO_code"), all.x = TRUE)
+#' dt.GDPperCap <- dt.GDPperCap[is.na(value.GDP), value.GDP := 0] # get rid of some NAs in the small countries
+#' dt.GDPperCap <- dt.GDPperCap[is.na(value.pop), value.pop := 0]
+#' 
+#' 
+#' #' aggregate smaller countries to their IMPACT159 regions. To check if this works, change value.GDP = to something like temp.GDP.
+#' dt.GDPperCap[, `:=`(
+#'   value.GDP = sum(value.GDP),
+#'   value.pop = sum(value.pop)),
+#'   by = c("scenario", "year", "region_code.IMPACT159")]
+#' 
+#' keepListCol <- c( "region_code.IMPACT159", "scenario", "year","value.GDP", "value.pop")
+#' dt.GDPperCap[, setdiff(names(dt.GDPperCap), keepListCol) := NULL]
+#' dt.GDPperCap <- unique(dt.GDPperCap)
+#' # convert SSP GDP total value to per capita by dividing by population
+#' dt.GDPperCap[, value.perCapGDP := (value.GDP/value.pop) * 1000] # * 1000 because pop is in millions and value is in billions
+#' keepListCol <- c("region_code.IMPACT159", "scenario", "year", "value.perCapGDP")
+#' dt.GDPperCap[, setdiff(names(dt.GDPperCap), keepListCol) := NULL]
 
 # lag and difference SSP GDP ----- switching to per cap GDP April 23, 2018
-# dt.SSPGDPperCap[,GDP.lag1 := data.table::shift(value.GDP, type = "lag"), by = c("region_code.IMPACT159", "scenario")]
-# dt.SSPGDPperCap[,delta.GDP := value.GDP - GDP.lag1]
-dt.SSPGDPperCap[, value.perCapGDP.lag1 := data.table::shift(value.perCapGDP, type = "lag"), by = c("region_code.IMPACT159", "scenario")]
-dt.SSPGDPperCap[, delta.GDP := value.perCapGDP - value.perCapGDP.lag1]
-dt.SSPGDPperCap[,GDPRatio := delta.GDP/(value.perCapGDP + value.perCapGDP.lag1)] # is this needed? Seems to be.
+# dt.GDPperCap[,GDP.lag1 := data.table::shift(value.GDP, type = "lag"), by = c("region_code.IMPACT159", "scenario")]
+# dt.GDPperCap[,delta.GDP := value.GDP - GDP.lag1]
+# next few lines replaced by their equivalent below Oct 11, 2018
+# dt.GDPperCap[, value.perCapGDP.lag1 := data.table::shift(value.perCapGDP, type = "lag"), by = c("region_code.IMPACT159", "scenario")]
+# dt.GDPperCap[, delta.GDP := value.perCapGDP - value.perCapGDP.lag1]
+# dt.GDPperCap[,GDPRatio := delta.GDP/(value.perCapGDP + value.perCapGDP.lag1)] # is this needed? Seems to be.
+# keepListCol <- c("region_code.IMPACT159", "scenario", "year","delta.GDP", "GDPRatio")
+# dt.GDPperCap[, setdiff(names(dt.GDPperCap), keepListCol) := NULL]
+
+dt.GDPperCap[, pcGDPX0.lag1 := data.table::shift(pcGDPX0, type = "lag"), by = c("region_code.IMPACT159", "scenario")]
+dt.GDPperCap[, delta.GDP := pcGDPX0 - pcGDPX0.lag1]
+dt.GDPperCap[,GDPRatio := delta.GDP/(pcGDPX0 - pcGDPX0.lag1)] # is this needed? Seems to be.
 keepListCol <- c("region_code.IMPACT159", "scenario", "year","delta.GDP", "GDPRatio")
-dt.SSPGDPperCap[, setdiff(names(dt.SSPGDPperCap), keepListCol) := NULL]
+dt.GDPperCap[, setdiff(names(dt.GDPperCap), keepListCol) := NULL]
 
 # prepare the FBS per capita food availability data -----
 # SSPpop data are by SSP regions
 # FBS data are by ISO regions
 # aggregate FBS data to region_code.IMPACT159; mean of per capita availability weighted by population shares in middleYear.startyear
 #  keep population data by  ISO code for middleYear.startyear
-dt.SSPPop.middleYear <- dt.SSPPop[year %in% middleYear.startyear,]
-dt.SSPPop.middleYear <- merge (dt.regions.all, dt.SSPPop.middleYear, by = c("region_code.SSP"))
-#dt.SSPPop.middleYear[, sum.pop := sum(value.pop), by = c("year", "scenario", "region_code.SSP")]
-dt.SSPPop.middleYear[, c("scenario", "region_code.SSP", "region_code.IMPACT115","region_code.IMPACT159", "year") := NULL]
-dt.SSPPop.middleYear <- unique(dt.SSPPop.middleYear)
+dt.pop.middleYear <- dt.pop[year %in% middleYear.startyear,]
+dt.pop.middleYear <- merge (dt.regions.all, dt.pop.middleYear, by = c("region_code.SSP"))
+#dt.pop.middleYear[, sum.pop := sum(value.pop), by = c("year", "scenario", "region_code.SSP")]
+dt.pop.middleYear[, c("scenario", "region_code.SSP", "region_code.IMPACT115","region_code.IMPACT159", "year") := NULL]
+dt.pop.middleYear <- unique(dt.pop.middleYear)
 
 #  get FBS data by both ISO code and IMPACT region code
 dt.FBS <- merge(dt.regions.all, dt.FBS, by = c("ISO_code"), all.x = TRUE)
@@ -131,7 +151,7 @@ dt.FBS[, setdiff(names(dt.FBS), keepListCol) := NULL]
 
 # Note: as of May 10, 2018, the code below excludes FBS info for  "ATG" "DMA" "GRD" "KIR" "KNA" because the SSP population data set doesn't have any info for these countries. They are tiny.
 # combine FBS data with SSP population data for the middleYear.startyear
-dt.FBS <- merge(dt.FBS, dt.SSPPop.middleYear, by = "ISO_code", all.x = TRUE)
+dt.FBS <- merge(dt.FBS, dt.pop.middleYear, by = "ISO_code", all.x = TRUE)
 dt.FBS <- dt.FBS[is.na(value.pop), value.pop := 0]
 dt.FBS[, value := weighted.mean(value, value.pop), by = c("year", "region_code.IMPACT159", "IMPACT_code")]
 keepListCol <- c("region_code.IMPACT159", "IMPACT_code", "year", "value")
@@ -304,7 +324,7 @@ dt.incElas.fishnalc <- merge(dt.incElas.fish, dt.incElas.alc, by = c("region_cod
 
 # Combine GDP and FBS data
 # remove X2010 data from dt.FBS.wide because only the X2005 data are used for projection. Not currently being done, July 25, 2018
-dt.GDPFBS <- merge(dt.SSPGDPperCap, dt.FBS.wide, by = c("region_code.IMPACT159", "year"), all.x = TRUE)
+dt.GDPFBS <- merge(dt.GDPperCap, dt.FBS.wide, by = c("region_code.IMPACT159", "year"), all.x = TRUE)
 
 # add income elasticity data to the GDP and FBS data
 dt.GDPFBSelas <- merge(dt.GDPFBS, dt.incElas.fishnalc, by = c("region_code.IMPACT159", "year"), allow.cartesian=TRUE)

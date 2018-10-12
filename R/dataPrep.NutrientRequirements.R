@@ -143,8 +143,8 @@ for (i in reqsList) {
   if (length(deleteListCol) > 0) dt[, (deleteListCol) := NULL]
   dt[is.na(dt)] = 0
   # now do the adjustment for the differences in infant age group
-  # Note combo of melt and dcast
-  req.transpose <- dcast(data.table::melt(dt,
+  # Note combo of melt and dcast. Hmmm, when I ran this on Oct 7, 2018, I had to add data.table:: in front of dcast. It was already in front of melt
+  req.transpose <- data.table::dcast(data.table::melt(dt,
                                           id.vars = "ageGenderCode",
                                           measure.vars = nutList,
                                           variable.name = "nutrient"),

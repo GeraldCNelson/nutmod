@@ -217,7 +217,7 @@ plotByRegionBar <- function(dt, fileName, plotTitle, yLab, yRange, aggChoice, su
   if (aggChoice %in% "AggReg1") regionNameOrder <- regionNames
   if (aggChoice %in% "tenregions") regionNameOrder <- regionNames
   scenarioNameOrder <- scenOrder
-  
+  if ("2010" %in% scenarios & !"2010" %in% scenarioNameOrder) scenarioNameOrder <- c("2010", scenarioNameOrder)
   temp[, region_name := gsub(" income", "", region_name)]
   temp[, region_name := factor(region_name, levels =  regionNameOrder)]
   temp[, scenario := factor(scenario, levels = scenarioNameOrder)]
@@ -281,7 +281,7 @@ plotByRegionBar <- function(dt, fileName, plotTitle, yLab, yRange, aggChoice, su
     data = temp,
     formula = formula.wide,
     value.var = "value")
-  temp.wide[, scenarioOrder := match(scenario, gsub("-REF","",scenarios))]
+  temp.wide[, scenarioOrder := match(scenario, scenarioNameOrder)]
   data.table::setorder(temp.wide, scenarioOrder)
   temp.wide[, scenarioOrder := NULL]
   data.table::setnames(temp.wide, old = regionCodes, new = regionNames)
@@ -307,6 +307,7 @@ plotByRegionStackedBar <- function(dt, fileName, plotTitle, yLab, yRange, aggCho
   if (aggChoice %in% "AggReg1") regionNameOrder <- regionNames
   if (aggChoice %in% "tenregions") regionNameOrder <- regionNames
   scenarioNameOrder <- scenOrder
+  if ("2010" %in% scenarios & !"2010" %in% scenarioNameOrder) scenarioNameOrder <- c("2010", scenarioNameOrder)
   
   temp[, region_name := gsub(" income", "", region_name)]
   temp[, region_name := factor(region_name, levels =  regionNameOrder)]
@@ -341,7 +342,7 @@ plotByRegionStackedBar <- function(dt, fileName, plotTitle, yLab, yRange, aggCho
     data = temp,
     formula = formula.wide,
     value.var = "value")
-  temp.wide[, scenarioOrder := match(scenario, scenarios)]
+  temp.wide[, scenarioOrder := match(scenario, scenarioNameOrder)]
   data.table::setorder(temp.wide, scenarioOrder)
   temp.wide[, scenarioOrder := NULL]
   data.table::setnames(temp.wide, old = regionCodes, new = regionNames)

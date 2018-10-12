@@ -122,7 +122,7 @@ fileloc <- function(variableName) {
 getNewestVersion <- function(fileShortName, directory, fileType) {
   if (missing(directory)) {mData <- fileloc("mData")} else {mData <- directory}
   if (missing(fileType)) {fileType <- "rds"}
-
+  
   # see
   # http://stackoverflow.com/questions/7381641/regex-matching-beginning-and-end-strings
   # for an explanation of this regex expression
@@ -138,7 +138,7 @@ getNewestVersion <- function(fileShortName, directory, fileType) {
   # cat("\nfileShortNameTest ", fileShortNameTest)
   filesofFileType <- list.files(mData)[grep(fileType,list.files(mData))]
   #  cat("\nfilesofFileType ", filesofFileType)
-
+  
   # Note: added grepteststring, changed grep to grepl and fixed to FALSE June 14, 2018
   greptestString <- paste0("^", fileShortNameTest)
   fileLongName <- filesofFileType[grepl(greptestString, filesofFileType, fixed = FALSE)]
@@ -151,7 +151,7 @@ getNewestVersion <- function(fileShortName, directory, fileType) {
   #        perl = TRUE)
   # print(filesList)
   # newestFile <- filesList[length(filesList)]
-
+  
   #  if (length(newestFile) == 0) {
   # check to see if the short file name is in the list from the relevant directory
   # cat("\nfileShortName is ", fileShortName))
@@ -261,7 +261,7 @@ cleanup <- function(inDT, outName, destDir, writeFiles, desc) {
   sourceFile <- get("sourceFile", envir = .GlobalEnv)
   if (missing(writeFiles)) {writeFiles = "xlsx"}
   if (missing(destDir)) {destDir = fileloc("mData")}
-
+  
   colNames <- paste(colnames(inDT), collapse = ", ")
   outInfo <- list(outName, sourceFile, destDir, desc, colNames)
   metadataDT <<- rbind(metadataDT, outInfo)
@@ -274,7 +274,7 @@ cleanup <- function(inDT, outName, destDir, writeFiles, desc) {
     data.table::setcolorder(inDT,c(startOrder,remainder))
     data.table::setorderv(inDT,c(startOrder,remainder))
   }
-
+  
   removeOldVersions(outName, destDir)
   sprintf("\nWriting the rds for %s to %s ", outName, destDir)
   # print(proc.time())
@@ -282,7 +282,7 @@ cleanup <- function(inDT, outName, destDir, writeFiles, desc) {
   data.table::setkey(inDT, NULL)
   outFile <- paste(destDir, "/", outName, "_", Sys.Date(), ".rds", sep = "")
   saveRDS(inDT, file = outFile)
-
+  
   # # update files documentation -----
   # Note: fileDocumentation.csv is currently not being used.
   # fileDoc <- data.table::as.data.table(read.csv(paste(fileloc("rawData"), "fileDocumentation.csv", sep = "/"),
@@ -308,20 +308,20 @@ cleanup <- function(inDT, outName, destDir, writeFiles, desc) {
     longName <- outName
     outName <- strtrim(outName, c(31))
     openxlsx::addWorksheet(wb = wbGeneral, sheetName = outName)
-
+    
     openxlsx::writeDataTable(
       wbGeneral,
       inDT,  sheet = outName, startRow = 1, startCol = 1, rowNames = FALSE,
       colNames = TRUE, withFilter = TRUE)
-
+    
     openxlsx::setColWidths(
       wbGeneral, sheet = outName, cols = 1:ncol(inDT), widths = "auto" )
-
+    
     numStyle <- openxlsx::createStyle(numFmt = "0.000")
     openxlsx::addStyle(
       wbGeneral, sheet = outName, style = numStyle, rows = 1:nrow(inDT) + 1, cols = 2:ncol(inDT), # +1 added Mar 24, 2017
       gridExpand = TRUE )
-
+    
     xcelOutFileName = paste(destDir, "/", longName, "_", Sys.Date(), ".xlsx", sep = "") # added longName functionality June 20, 2018
     openxlsx::saveWorkbook(wbGeneral, xcelOutFileName, overwrite = TRUE)
     #   cat("\nDone writing the xlsx for ", outName, sep = "")
@@ -334,18 +334,18 @@ cleanupGraphFiles <- function(inGraphFile, outName, destDir, desc) {
   sourceFile <- get("sourceFile", envir = .GlobalEnv)
   removeOldVersions(outName, destDir)
   if (missing(destDir)) {destDir = fileloc("mData")}
-
+  
   colNames <- paste(inDT$names, collapse = ", ")
   outInfo <- list(outName, sourceFile, destDir, desc, colNames)
   metadataDT <<- rbind(metadataDT, outInfo)
-
+  
   sprintf("\nWriting the rds for %s to %s ", outName, destDir)
   # print(proc.time())
   # next line removes any key left in the inDT data table; this may be an issue if a df is used
   data.table::setkey(inDT, NULL)
   outFile <- paste(destDir, "/", outName, "_", Sys.Date(), ".rds", sep = "")
   saveRDS(inGraphFile, file = outFile)
-
+  
   # # update files documentation -----
   # Note: fileDocumentation.csv is currently not being used.
   # fileDoc <- data.table::as.data.table(read.csv(paste(fileloc("rawData"), "fileDocumentation.csv", sep = "/"),
@@ -421,6 +421,8 @@ cleanupNutrientNames <- function(nutList) {
 #' @param switch.changeElasticity - if TRUE, set max fish income elasticities to 1
 #' @param commonList - names of the lists of nutrient names common to the nutrient lookup table and the requirements
 #' @param dropListCty
+#' @param allAfricaCodes
+#' @param SSAfricaCodes
 #' @return list of key variables
 #' @export
 keyVariable <- function(variableName) {
@@ -450,7 +452,7 @@ keyVariable <- function(variableName) {
                                  "crpol", "csoyb", "csbol", "csnfl", "csfol", "cplol", "cpkol", "crpsd",
                                  "ctols", "ctool", "ccoco", "ccafe", "cteas", "cothr", "ctoml", IMPACTfish_code, #ctoml added May 31 to be consistent with IFPRI list. FAO includes this as a food item.
                                  IMPACTalcohol_code))
-
+  
   macronutrients <- c("carbohydrate_g", "fat_g",  "protein_g", "totalfiber_g")
   vitamins <- c("vit_a_rae_µg", "vit_b6_mg", "vit_b12_µg", "vit_c_mg", "vit_d_µg", "vit_e_mg", "vit_k_µg",
                 "folate_µg", "niacin_mg", "riboflavin_mg", "thiamin_mg")
@@ -473,7 +475,16 @@ keyVariable <- function(variableName) {
                            "SSP4_v9_130115", "SSP5_v9_130115")
   scenarioListSSP.GDP <- c("SSP1_v9_130325", "SSP2_v9_130325", "SSP3_v9_130325",
                            "SSP4_v9_130325", "SSP5_v9_130325")
-
+  SSAfricaCodes <- c("AGO", "BDI", "BEN", "BFA", "BWA", "CAF", "CIV", "CMR",
+                     "COD", "COG", "DJI", "ERI", "ETH", "GAB", "GHA", "GIN",
+                     "GMB", "GNB", "GNQ", "KEN", "LBR", "LSO", "MDG", "MLI", "MOZ", "MRT", # removed "MOR". It's in north Africa. Added Mauritania
+                     "MWI", "NAM", "NER", "NGA", "RWA", "SDN", "SDP", "SEN", "SLE", #removed "OAO" other Atlantic Ocean
+                     "SOM", "SSD", "SWZ", "TCD", "TGO", "TZA", "UGA", "ZAF", "ZMB", "ZWE")
+  
+  allAfricaCodes <- c("AGO", "BDI", "BEN", "BFA", "BWA", "CAF", "CIV", "CMR", "COD", "COG", "DJI", "DZA", 
+                      "EGY", "ERI", "ETH", "GAB", "GHA", "GIN", "GMB", "GNB", "GNQ", "KEN", "LBR", "LBY", "LSO", "MDG", "MLI", 
+                      "MOR", "MOZ", "MRT", "MWI", "NAM", "NER", "NGA", "RWA", "SDN", "SEN", "SLE", "SOM", "SWZ", "TCD", "TGO", 
+                      "TUN", "TZA", "UGA", "ZAF", "ZMB", "ZWE")
   # scenarioListIMPACT <- as.character(read.csv(file = paste(fileloc("mData"),"scenarioListIMPACT.csv", sep = "/"), stringsAsFactors = FALSE)[,1])
   DinY <- 365 #see http://stackoverflow.com/questions/9465817/count-days-per-year for a way to deal with leap years
   #' #' countries to remove because of poor data
@@ -494,12 +505,12 @@ keyVariable <- function(variableName) {
       "req_MRVs" # added March 24, 2017
     )
   # ,
-
+  
   # commmented out because as of Dec 25, 2016, PR requirements for iron and zinc are now in req.RDA.minrls
   # ,
   # "req.PR.iron",
   # "req.PR.zinc"
-
+  
   reqsListPercap <- paste(reqsList,"_percap", sep = "")
   reqsListSSP <- paste(reqsList,"_ssp", sep = "")
   dropListCty <- c("GRL", "FSM", "GRD", "PRK")
@@ -537,7 +548,9 @@ keyVariable <- function(variableName) {
         "energy",
         "fattyAcids",
         "other",
-        "addedSugar"
+        "addedSugar",
+        "allAfricaCodes", 
+        "SSAfricaCodes"
       )
     )
   } else {
@@ -613,7 +626,7 @@ metadata <- function() {
   metadata[(nrow(metadata) + 1), ] <-
     c(filelocFBS("ISOCodes"),
       "List of all ISO 3 codes and the names of the countries they represent")
-
+  
   inDT <- data.table::as.data.table(metadata)
   outName <- "dt.metadata"
   desc <- "Metadata of various kinds"
@@ -784,7 +797,7 @@ filelocFBS <- function(variableName) {
     paste(FBSData, FAOCountryNameCodeLookupFile, sep = "/")
   ISOCodesFile <- "ISOCountrycodes.xlsx"
   ISOCodes <- paste(rawData, ISOCodesFile, sep = "/")
-
+  
   #These regions are reported as their individual member countries during the relevant
   # time period (e.g. after 1999 for Belgium-Luxembourg). Their data entries are all NA.
   # Although Ethiopia PDR doesn't have data, Ethiopia does.
@@ -792,7 +805,7 @@ filelocFBS <- function(variableName) {
                         "Montenegro", "Serbia", "Serbia and Montenegro", "Yugoslav SFR", "Europe",
                         "Eastern Europe", "Southern Europe", "Western Europe", "European Union",
                         "USSR", "World", "Netherlands Antilles (former)", "Caribbean")
-
+  
   if (variableName == "list") {
     return(
       #list of variables that can be returned
@@ -897,7 +910,7 @@ countryCodeCleanup <- function(DT) {
   DT <- DT[region_code.IMPACT159 %in% "BLX", region_code.IMPACT159 := "BEL"]
   DT <- DT[region_code.IMPACT159 %in% "SDP", region_code.IMPACT159 := "SDN"]
   DT <- DT[region_code.IMPACT159 %in% "RAP", region_code.IMPACT159 := "ARE"]
-
+  
   DT <- DT[region_code.IMPACT159 %in% "GSA", region_code.IMPACT159 := "SUR"]
   DT <- DT[region_code.IMPACT159 %in% "CRB", region_code.IMPACT159 := "TTO"]
   DT <- DT[region_code.IMPACT159 %in% "OSA", region_code.IMPACT159 := "SIN"]
@@ -921,7 +934,7 @@ nutReqDataPrep <- function(reqTypeChoice, countryCode, scenarioName, years, dir)
   experiment <- stringi::stri_split_fixed(scenarioName, "-", simplify = TRUE)[3]
   #if (is.na(experiment)) {experiment <- "REF"}
   if (is.na(experiment)) {scenarioName <- paste(scenarioName, "-REF", sep = "")}
-
+  
   fileName <- resultFileLookup[reqTypeName == reqTypeChoice, fileName]
   if (length(fileName) == "0") print(paste(reqTypeChoice, "is not a valid choice", sep = " "))
   reqRatios.long <- getNewestVersion(reqTypeChoice, dir)
@@ -934,7 +947,7 @@ nutReqDataPrep <- function(reqTypeChoice, countryCode, scenarioName, years, dir)
     reqRatios.long,
     formula = formula.ratios,
     value.var = "value")
-
+  
   # i <- countryCode; j <- SSPname; k <- climModel; m <- experiment; l <- years
   #
   # reqRatios.nuts <-
@@ -945,21 +958,21 @@ nutReqDataPrep <- function(reqTypeChoice, countryCode, scenarioName, years, dir)
   reqRatios.wide[,(deleteListCol) := NULL]
   spokeCols <- names(reqRatios.wide)
   #  nutListShort <- cleanupNutrientNames(spokeCols)
-
+  
   reqRatios.wide[is.nan(get(spokeCols)),  (spokeCols) := 0]
   reqRatios.wide <- reqRatios.wide[,(spokeCols) := round(.SD,2), .SDcols = spokeCols]
-
+  
   # radarchart- If maxmin is TRUE, this must include maximum values as row 1 and minimum values as row 2 for each variables
   colMins <- as.list(c(rep.int(0,ncol(reqRatios.wide))))
   reqRatios.wide[, nmax := max(.SD), .SDcols = spokeCols]
   cMax <- round(reqRatios.wide[1,nmax])
   colMaxs <- as.list(c(rep.int(cMax,ncol(reqRatios.wide) - 1))) # -1 because nmax is a temporary column
   reqRatios.wide[,nmax := NULL]
-
+  
   # include the requirement ratio of 1
   reqRatioRow <- as.list(c(rep(1,ncol(reqRatios.wide))))
   reqRatios.wide <- rbind(colMaxs, colMins, reqRatioRow, reqRatios.wide)
-
+  
   reqRatios.wide[, (spokeCols) := lapply(.SD, as.numeric), .SDcols = spokeCols]
   reqRatios.wide[is.nan(get(spokeCols)),  (spokeCols) := 0]
   data.table::setnames(reqRatios.wide, old = names(reqRatios.wide), new = cleanupNutrientNames(names(reqRatios.wide)))
@@ -984,15 +997,15 @@ nutReqSpiderGraph <- function(reqTypeName, countryCode, scenarioName, years, dir
   #
   # reqRatios <- reqRatios[, keepListCol, with = FALSE]
   description <- resultFileLookup[reqTypeName == reqTypeChoice, description]
-
+  
   chartTitle <- description
-
+  
   #temp1 <- rbind(colMins, colMaxs, reqRatioRow, reqRatios.wide.nuts)
-
+  
   legendText <- c("REQ",years)
   colors_border <- c(  "black", rgb(0.2,0.5,0.5,0.9), rgb(0.8,0.2,0.5,0.9), rgb(0.7,0.5,0.1,0.9) )
   colors_in <- c( "black", rgb(0.2,0.5,0.5,0.4), rgb(0.8,0.2,0.5,0.4), rgb(0.7,0.5,0.1,0.4) )
-
+  
   lineType <- c(3, 1, 1, 1)
   plot.new()
   par(mar = c(1, 2, 2, 1))
@@ -1009,7 +1022,7 @@ nutReqSpiderGraph <- function(reqTypeName, countryCode, scenarioName, years, dir
              vlcex = 0.8,
              maxmin = TRUE
   )
-
+  
   legend(x = "bottomright", y = NULL, legend = legendText, bty = "n", pch = 20,
          col = colors_in, text.col = "black", cex = .9, pt.cex = .9, pt.lwd = 1,
          y.intersp = .9)
@@ -1027,14 +1040,14 @@ nutshareSpiderGraph <- function(reqFileName, countryCode, scenario, years, dir) 
   climModel <- stringi::stri_split_fixed(scenarioName, "-", simplify = TRUE)[2]
   experiment <- stringi::stri_split_fixed(scenarioName, "-", simplify = TRUE)[3]
   if (is.na(experiment)) {experiment <- "REF"}
-
+  
   #  fileName <- resultFileLookup[reqType == reqTypeName, fileName]
   shareRatios <- getNewestVersion(reqFileName, dir)
   # keepListCol <- c("scenario", "SSP", "climate_model", "experiment", "RCP", "region_code.IMPACT159",
   keepListCol <- c("scenario", "SSP", "climate_model", "experiment", "region_code.IMPACT159",
                    "nutrient", years)
   idVars <- c("scenario", "SSP", "climate_model", "experiment", "region_code.IMPACT159", "nutrient")
-
+  
   if ("food_group_code" %in% names(shareRatios)) {
     #    keepListCol <- c("scenario", "SSP", "climate_model", "experiment", "RCP", "region_code.IMPACT159",
     keepListCol <- c("scenario", "SSP", "climate_model", "experiment", "region_code.IMPACT159",
@@ -1051,20 +1064,20 @@ nutshareSpiderGraph <- function(reqFileName, countryCode, scenario, years, dir) 
   }
   shareRatios <- shareRatios[, keepListCol, with = FALSE]
   description <- resultFileLookup[reqTypeName == reqTypeChoice, description]
-
+  
   #  measureVars <- keyVariable("keepYearList")
   measureVars <- years
   shareRatios.long <- data.table::melt(
     data = shareRatios, id.vars = idVars, measure.vars = measureVars, variable.name = "year",
     value.name = "value", variable.factor = FALSE)
-
+  
   shareRatios.wide <- data.table::dcast(
     shareRatios.long,
     formula = formula.ratios,
     value.var = "value")
-
+  
   i <- countryCode; j <- SSP; k <- climModel; m <- experiment; l <- years
-
+  
   shareRatios.nuts <-
     shareRatios.wide[region_code.IMPACT159 %in% i & SSP %in% j & climate_model %in% k &
                        experiment == m]
@@ -1086,22 +1099,22 @@ nutshareSpiderGraph <- function(reqFileName, countryCode, scenario, years, dir) 
   # }
   shareRatios.nuts[is.nan(get(spokeCols)),  (spokeCols) := 0, with = FALSE]
   shareRatios.nuts <- shareRatios.nuts[,(spokeCols) := round(.SD,2), .SDcols = spokeCols]
-
+  
   #temp1 <- rbind(colMins, colMaxs, reqRatioRow, shareRatios.wide.nuts)
-
+  
   legendText <- years
   colors_border <- c(rgb(0.2,0.5,0.5,0.9), rgb(0.8,0.2,0.5,0.9), rgb(0.7,0.5,0.1,0.9) )
   colors_in <- c(rgb(0.2,0.5,0.5,0.4), rgb(0.8,0.2,0.5,0.4), rgb(0.7,0.5,0.1,0.4) )
-
+  
   lineType <- c(3, 1, 1, 1)
   plot.new()
   title(description)
-
+  
   nutrientList <- sort(unique(shareRatios.nuts$nutrient))
   par(mar = c(1, 2, 2, 1))
   nrowsGraphs = round(length(nutrientList)/2)
   par(mfrow = c(nrowsGraphs,2))
-
+  
   for (i in nutrientList) {
     temp <- copy(shareRatios.nuts[nutrient %in% i, ])# radarchart- If maxmin is TRUE, this must include maximum values as row 1 and minimum values as row 2 for each variables
     temp[, nmax := max(.SD), .SDcols = spokeCols]
@@ -1109,17 +1122,17 @@ nutshareSpiderGraph <- function(reqFileName, countryCode, scenario, years, dir) 
     colMaxs <- as.list(c(rep.int(cMax,ncol(temp) - 1))) # -1 because nmax is a temporary column
     temp[,nmax := NULL]
     colMins <- as.list(c(rep.int(0,ncol(temp))))
-
+    
     temp <- rbind(colMaxs, colMins, temp)
     temp[, (spokeCols) := lapply(.SD, as.numeric), .SDcols = spokeCols]
     temp[is.nan(get(spokeCols)),  (spokeCols) := 0, with = FALSE]
     temp[, nutrient := NULL]
-
+    
     vnames <- vector(mode = "character", length = length(foodGroupShort))
     for (j in 1:length(foodGroupShort)) {
       vnames[j] <- as.character(dt.foodGroupLU[food_group_codes == foodGroupShort[j], food_groups])
     }
-
+    
     radarchart(temp, axistype = 2,
                title = i,
                vlabels = vnames,
@@ -1132,7 +1145,7 @@ nutshareSpiderGraph <- function(reqFileName, countryCode, scenario, years, dir) 
                vlcex = 0.8,
                maxmin = TRUE
     )
-
+    
     legend(x = "bottomright", y = NULL, legend = legendText, bty = "n", pch = 20,
            col = colors_in, text.col = "black", cex = .6, pt.cex = .8, pt.lwd = 1,
            y.intersp = .8)
@@ -1154,7 +1167,7 @@ regionAgg <- function(aggChoice) {
   regionNamesAggReg2 <- unique(dt.regions.all$region_name.AggReg2)
   regionNamestwoEconGroup <- unique(dt.regions.all$region_name.EconGroup)
   regionNamesWB <- unique(dt.regions.all$region_name.WB)
-
+  
   # regionCodestenregions
   if (aggChoice == "tenregions") {
     keepListCol <- c("region_code.IMPACT159", "region_code", "region_name.IMPACT159")
@@ -1192,7 +1205,7 @@ gdxrrwExistenceCheck <- function(){
   gdxrrwText <- 'The gdxrrw package is needed to run this. It is not available from CRAN; use this url:
 https://support.gams.com/gdxrrw:interfacing_gams_and_r. Download the relevant file and use the following command to install
 - install.packages("gdxrrw_1.0.4.tgz",repos = NULL). Replace gdxrrw_1.0.4.tgz with the
-name of the file you downloaded. Note that if you need the source version, download and install gdxrrw_1.0.4.tar.gz If you put it in the main directory of your project, the install.packages command will find it.
+name of the file you downloaded. Note that if you need the source version, download and install gdxrrw_1.0.4.tar.gz or a newer version. If you put it in the main directory of your project, the install.packages command will find it.
 After GAMS is installed you need to tell R where the GAMS library is located. Here are some examples
 - mac installation - /Applications/GAMS/gams24.5_osx_x64_64_sfx
 - linux installation - /opt/gams/gams24.3_linux_x64_64_sfx
@@ -1200,11 +1213,11 @@ After GAMS is installed you need to tell R where the GAMS library is located. He
   Sometimes there is a problem with the way the package has been zipped. If you get a message like
 rawToChar(block[seq_len(ns)], run the following commands in a shell.
 
-- mv gdxrrw_1.0.2.tar.gz foo.tar.gz
+- mv gdxrrw_1.0.4.tar.gz foo.tar.gz
 - gunzip foo.tar.gz
 - tar xf foo.tar
-- tar czf gdxrrw_1.0.2.tar.gz gdxrrw'
-
+- tar czf gdxrrw_1.0.4.tar.gz gdxrrw'
+  
   new.packages <- list.of.packages[!(list.of.packages %in% installed.packages()[,"Package"])]
   list.of.packages <- c("gdxrrw")
   new.packages <- list.of.packages[!(list.of.packages %in% installed.packages()[,"Package"])]
@@ -1282,11 +1295,11 @@ gdxFileNameChoice <- function() {
   cat("4. Country specific varieties only.\n")
   choice <- readline(prompt = "Choose 1, 2, 3 or 4. \n")
   if (!choice %in% c(1,2,3,4)) {stop(sprintf("Your choice %s needs to be one of 1, 2, or 3", choice))}
-
-  cat("\nDo you need to update any files that are not IMPACT specific (new SSP, nutrient composition, FBS data?")
+  
+  cat("\nDo you need to update any files that are not IMPACT specific (new population data, nutrient composition, FBS data?")
   update <- readline(prompt = "Y/N. \n")
   gdxSwitchCombo <- cbind(gdxFileName, gdxChoice, choice, update)
-
+  
   write.csv(gdxSwitchCombo, file = paste0(getwd(), "/results/", gdxChoice, "/gdxInfo.csv"), row.names = FALSE)
   return(gdxSwitchCombo)
 }
@@ -1304,12 +1317,12 @@ gdxFileNameChoice <- function() {
 #
 multiplot <- function(plotlist=NULL, file, cols=1, layout=NULL) {
   library(grid)
-
+  
   # Make a list from the ... arguments and plotlist
   # plots <- c(list(...), plotlist)
   plots <- plotlist
   numPlots = length(plots)
-
+  
   # If layout is NULL, then use 'cols' to determine layout
   if (is.null(layout)) {
     # Make the panel
@@ -1318,20 +1331,20 @@ multiplot <- function(plotlist=NULL, file, cols=1, layout=NULL) {
     layout <- matrix(seq(1, cols * ceiling(numPlots/cols)),
                      ncol = cols, nrow = ceiling(numPlots/cols))
   }
-
+  
   if (numPlots==1) {
     print(plots[[1]])
-
+    
   } else {
     # Set up the page
     grid.newpage()
     pushViewport(viewport(layout = grid.layout(nrow(layout), ncol(layout))))
-
+    
     # Make each plot, in the correct location
     for (i in 1:numPlots) {
       # Get the i,j matrix positions of the regions that contain this subplot
       matchidx <- as.data.frame(which(layout == i, arr.ind = TRUE))
-
+      
       print(plots[[i]], vp = viewport(layout.pos.row = matchidx$row,
                                       layout.pos.col = matchidx$col))
     }
@@ -1349,30 +1362,30 @@ storeWorldMapDF <- function(){
   # check to see if worldMap already exists
   # naturalearth world map geojson
   # updated source of data is http://www.naturalearthdata.com/downloads/50m-cultural-vectors/
-
+  
   #world <- readOGR(dsn="https://raw.githubusercontent.com/nvkelso/natural-earth-vector/master/geojson/ne_50m_admin_0_countries.geojson", layer="OGRGeoJSON")
   #world <- readOGR(dsn = "data-raw/spatialData/ne_50m_admin_0_countries.geojson", layer = "OGRGeoJSON")
   #  world <- rgdal::readOGR(dsn = "data-raw/spatialData/ne_110m_admin_0_countries.geojson", layer = "OGRGeoJSON")
-
+  
   # changed to uDir June 9, 2018  filelocMap <- "data-raw/spatialData"
   filelocMap <- fileloc("uData")
   fn <- file.path(filelocMap, "ne_50m_admin_0_countries.zip")
   cat("\n") # so the output from download.file starts on a new line
-
- # temp <- list.files(fileloc("uData"))
-
+  
+  # temp <- list.files(fileloc("uData"))
+  
   # if (length(grep("worldMap", temp)) == 0) { commented out July 22, 2018
   # on the assumption that this is only run when something is wrong with the existing map.
   suppressMessages(download.file("http://www.naturalearthdata.com/http//www.naturalearthdata.com/download/50m/cultural/ne_50m_admin_0_countries.zip", fn))
   unzip(fn, exdir = filelocMap)
-
+  
   #   shpFile <- file.path(filelocMap, "ne_50m_admin_0_countries")
   world.raw <- rgdal::readOGR(dsn = filelocMap, layer = "ne_50m_admin_0_countries")
   # centroids of interest if adding names to the center of a polygon. Not used at the moment
   # centroids.df <- as.data.frame(coordinates(world.raw))
   # names(centroids.df) <- c("Longitude", "Latitude")
   # create new regions code is based on https://philmikejones.me/tutorials/2015-09-03-dissolve-polygons-in-r/
-
+  
   #keep just the basic information needed
   regions.to.merge <- c("SSD", "SDN") # ISO codes for all the countries in the new region
   dataToKeep <- c("ISO_A3", "NAME_EN", "REGION_UN") # get the complete list with names(world.raw)
@@ -1383,40 +1396,32 @@ storeWorldMapDF <- function(){
   lu <- data.frame(ISO_A3 = ISOcode.newRegion,
                    NAME_EN = name.newRegion,
                    REGION_UN = REGION_UN.newRegion) # data frame to be added to the new region polygon
-
+  
   world.raw@data <- world.raw@data[,dataToKeep]
   world.raw.subset <- subset(world.raw, ISO_A3 %in% regions.to.merge)
-
+  
   # add a column to disolve over with gUnaryUnion
   world.raw.subset@data$region.new <- name.newRegion
   world.raw.subset <- gUnaryUnion(world.raw.subset, id = world.raw.subset@data$region.new)
-
+  
   #now add back in the descriptive data data frame
   # If you want to recreate an object with a data frame
   # make sure row names match
   row.names(world.raw.subset) <- as.character(1:length(world.raw.subset))
   world.raw.subset <- SpatialPolygonsDataFrame(world.raw.subset, lu)
-
+  
   # now remove the merged regions from the original file
   temp <- subset(world.raw, !ISO_A3 %in% regions.to.merge)
-
+  
   # now add back the new region
   world.raw <- rbind(temp, world.raw.subset)
-
+  
   # remove antarctica and some other small countries
   world <- world.raw[!world.raw$ISO_A3 %in% c("ATA"),]
   othersToRemove <- c("ABW", "AIA", "ALA", "AND", "ASM", "AFT")
   world <- world[!world$ISO_A3 %in% othersToRemove,]
-  SSAfricaCodes <- c("AGO", "BDI", "BEN", "BFA", "BWA", "CAF", "CIV", "CMR",
-                      "COD", "COG", "DJI", "ERI", "ETH", "GAB", "GHA", "GIN",
-                      "GMB", "GNB", "GNQ", "KEN", "LBR", "LSO", "MDG", "MLI", "MOZ", "MRT", # removed "MOR". It's in north Africa. Added Mauritania
-                      "MWI", "NAM", "NER", "NGA", "RWA", "SDN", "SDP", "SEN", "SLE", #removed "OAO" other Atlantic Ocean
-                      "SOM", "SSD", "SWZ", "TCD", "TGO", "TZA", "UGA", "ZAF", "ZMB", "ZWE")
-  
-  AllAfricaCodes <- c("AGO", "BDI", "BEN", "BFA", "BWA", "CAF", "CIV", "CMR", "COD", "COG", "DJI", "DZA", 
-  "EGY", "ERI", "ETH", "GAB", "GHA", "GIN", "GMB", "GNB", "GNQ", "KEN", "LBR", "LBY", "LSO", "MDG", "MLI", 
-  "MOR", "MOZ", "MRT", "MWI", "NAM", "NER", "NGA", "RWA", "SDN", "SEN", "SLE", "SOM", "SWZ", "TCD", "TGO", 
-  "TUN", "TZA", "UGA", "ZAF", "ZMB", "ZWE")
+  SSAfricaCodes <- keyVariable("SSAfricaCodes")
+  allAfricaCodes <- keyVariable("allAfricaCodes")
   
   africa <- world[world@data$REGION_UN == "Africa",]
   africa$REGION_UN <- factor(africa$REGION_UN)
@@ -1443,7 +1448,7 @@ storeWorldMapDF <- function(){
   europe <- sp::spTransform(europe, CRSobj = defaultProj)
   americas <- sp::spTransform(americas, CRSobj= defaultProj)
   asia <- sp::spTransform(asia, CRSobj = defaultProj)
-
+  
   fpusMap <- readOGR(dsn = "data-raw/IMPACTData/IMPACT_FPU_Map", layer = "fpu2015_polygons_v3_multipart_polygons", stringsAsFactors = FALSE)
   fpusMap <- sp::spTransform(fpusMap, CRSobj = defaultProj)
   fpusMap <- gBuffer(fpusMap, byid=TRUE, width=0)
@@ -1464,8 +1469,8 @@ storeWorldMapDF <- function(){
   
   # raster::shapefile(fpusMap_SSA, "fpusMap_SSA.shp", overwrite = TRUE)
   
-   # fpusMap_SSA@data <- data.fpus.SSA
-   
+  # fpusMap_SSA@data <- data.fpus.SSA
+  
   
   # saveRDS(world, file = paste(filelocMap, "worldFile.RDS", sep = "/"))
   # saveRDS(africa, file = paste(filelocMap, "africaFile.RDS", sep = "/"))
@@ -1486,25 +1491,26 @@ storeWorldMapDF <- function(){
   outName <- "worldMap"
   desc <- "World map file used to create facet maps of the world"
   cleanup(inDT, outName, fileloc("uData"), desc = desc)
-
+  
   africaMap <- broom::tidy(africa, region = "ISO_A3")
+  africaMap$region <- africaMap$id # added Juy 22, 2018 to get rid of warning about a missing region column
   inDT <- africaMap
   outName <- "africaMap"
   desc <- "Africa map file used to create facet maps of Africa"
   cleanup(inDT, outName, fileloc("uData"), desc = desc)
-
+  
   europeMap <- broom::tidy(europe, region = "ISO_A3")
   inDT <- europeMap
   outName <- "europeMap"
   desc <- "Europe map file used to create facet maps of Europe"
   cleanup(inDT, outName, fileloc("uData"), desc = desc)
-
+  
   americasMap <- broom::tidy(americas, region = "ISO_A3")
   inDT <- americasMap
   outName <- "americasMap"
   desc <- "Americas map file used to create facet maps of Americas"
   cleanup(inDT, outName, fileloc("uData"), desc = desc)
-
+  
   asiaMap <- broom::tidy(asia, region = "ISO_A3")
   inDT <- asiaMap
   outName <- "asiaMap"
@@ -1583,20 +1589,22 @@ library(scales)
 #          width = width, height = height)
 # }
 
-# new version that allows different maps, added Sep 13, 2108
-facetMaps <- function(mapFile, DTfacetMap, legendText, fillLimits, palette, facetColName,
-                      breakValues, displayOrder) {
-  b <- rescale(breakValues, to = c(0,1)) # the values option in scale_fill_gradientn MUST be from 0 to 1
+# new version that allows different maps, added Sep 13, 2108. Not sure why graphsListHolder left out. Added back in Oct 8, 2018
+facetMaps <- function(mapFile, DTfacetMap, fileName, legendText, fillLimits, palette, facetColName, graphsListHolder, displayOrder, width, height) {
+  #b <- rescale(breakValues, to = c(0,1)) # the values option in scale_fill_gradientn MUST be from 0 to 1
+  numLimits = 4
+  bb <- generateBreakValues(fillLimits = fillLimits, numLimits = numLimits, decimals = 0)
+  b <- rescale(bb, to = c(0,1))
   f <- fillLimits
-   cat("f :", f, "\n")
-   cat("b :", b, "\n")
+  cat("f :", f, "\n")
+  cat("b :", b, "\n")
   p <- palette
   n <- facetColName
   d <- data.table::copy(DTfacetMap)
   #  d[, (n) := factor(get(n), levels = displayOrder)] commented out to see it does labels better
-  gg <- ggplot(data = d, aes(map_id = region))
-    gg <- gg + geom_map(aes(fill = value), map = mapFile, color="#ffffff")
-   gg <- gg + expand_limits(x = mapFile$long, y = mapFile$lat)
+  gg <- ggplot(data = d, aes(map_id = id))
+  gg <- gg + geom_map(aes(fill = value), map = mapFile, color="#ffffff")
+  gg <- gg + expand_limits(x = mapFile$long, y = mapFile$lat)
   gg <- gg + facet_wrap(facets = n)
   gg <- gg + theme(legend.position = "bottom")
   #  gg <- gg + guides(colour = guide_legend(title.position = "top"))
@@ -1606,15 +1614,14 @@ facetMaps <- function(mapFile, DTfacetMap, legendText, fillLimits, palette, face
                     axis.text.y = element_blank(), strip.text = element_text(family = fontFamily, face = "plain", size = 12))
   
   gg <- gg + scale_fill_gradientn(colors = p, name = legendText,
-                                  na.value = "grey50", values = b,
-                                  guide = "colorbar", breaks = b, limits = f, labels = b)
-  #
-  return(gg)
+                                  na.value = "grey50",
+                                  guide = "colorbar") #, values = bb, breaks = f, limits = f, labels = f, aesthetics = "fill")
   
-  # graphsListHolder[[fileName]] <- gg
-  # assign("graphsListHolder", graphsListHolder, envir = .GlobalEnv)
-  # ggsave(file = paste0(fileloc("gDir"),"/",fileName,".png"), plot = gg,
-  #        width = 7, height = 6)
+  graphsListHolder[[fileName]] <- gg
+  assign("graphsListHolder", graphsListHolder, envir = .GlobalEnv)
+  ggsave(file = paste0(fileloc("gDir"),"/",fileName,".png"), plot = gg,
+         width = 7, height = 6)
+  return(gg)
 }
 
 
@@ -1653,61 +1660,64 @@ getGdxChoice <- function() {
     if (choice %in% "4") {
       gdxSwitchCombo <- read.csv(file = paste0(getwd(), "/results/AfricanAgFutures/gdxInfo.csv"), header = TRUE, stringsAsFactors = FALSE)
     }
-
+    
     gdxChoice <- gdxSwitchCombo[,2]
     #    cat("gdxChoice is", gdxChoice)
     assign("gdxChoice", gdxChoice, envir = .GlobalEnv)
   }
-    return(gdxChoice)
+  return(gdxChoice)
+}
+
+# added Oct 8, 2018 so that everytime this function is sourced it checks for a gdxChoice value in the global environment
+gdxChoice <- getGdxChoice()
+
+setGdxChoice <- function() {
+  cat("Choose the IMPACT project you are working on.\n")
+  cat("1. for the nutrient modeling paper\n")
+  cat("2. for the USAID nutrient modeling paper\n")
+  cat("3. for the USAID priority setting paper, 2018\n")
+  choice <- readline(prompt = "Choose the number of the gdx file you want to use. \n")
+  
+  if (choice  %in% "1") {
+    gdxSwitchCombo <- read.csv(file = paste0(getwd(), "/results/SSPs/gdxInfo.csv"), header = TRUE, stringsAsFactors = FALSE)
   }
-
-  setGdxChoice <- function() {
-    cat("Choose the IMPACT project you are working on.\n")
-    cat("1. for the nutrient modeling paper\n")
-    cat("2. for the USAID nutrient modeling paper\n")
-    cat("3. for the USAID priority setting paper, 2018\n")
-    choice <- readline(prompt = "Choose the number of the gdx file you want to use. \n")
-
-    if (choice  %in% "1") {
-      gdxSwitchCombo <- read.csv(file = paste0(getwd(), "/results/SSPs/gdxInfo.csv"), header = TRUE, stringsAsFactors = FALSE)
-    }
-    if (choice  %in% "2") {
-      gdxSwitchCombo <- read.csv(file = paste0(getwd(), "/results/USAID/gdxInfo.csv"), header = TRUE, stringsAsFactors = FALSE)
-    }
-    if (choice  %in% "3") {
-      gdxSwitchCombo <- read.csv(file = paste0(getwd(), "/results/USAIDPriorities/gdxInfo.csv"), header = TRUE, stringsAsFactors = FALSE)
-    }
-    gdxChoice <- gdxSwitchCombo[,2]
-    cat("gdxChoice is", gdxChoice)
-    assign("gdxChoice", gdxChoice, envir = .GlobalEnv)
-
-#    return(gdxChoice)
+  if (choice  %in% "2") {
+    gdxSwitchCombo <- read.csv(file = paste0(getwd(), "/results/USAID/gdxInfo.csv"), header = TRUE, stringsAsFactors = FALSE)
   }
-
-  getGdxFileName <- function(gdxChoice) {
-    gdxSwitchCombo <- read.csv(file = paste0(getwd(), "/results/", gdxChoice, "/gdxInfo.csv"), header = TRUE, stringsAsFactors = FALSE)
-    gdxChoice <- gdxSwitchCombo[, 1]
-    return(gdxChoice)
+  if (choice  %in% "3") {
+    gdxSwitchCombo <- read.csv(file = paste0(getwd(), "/results/USAIDPriorities/gdxInfo.csv"), header = TRUE, stringsAsFactors = FALSE)
   }
+  gdxChoice <- gdxSwitchCombo[,2]
+  cat("gdxChoice is", gdxChoice)
+  assign("gdxChoice", gdxChoice, envir = .GlobalEnv)
+  
+  #    return(gdxChoice)
+}
 
-  getSwitchChoice <- function() {
-    gdxSwitchCombo <- read.csv(file = paste0(getwd(), "/results/", gdxChoice, "/gdxInfo.csv"), header = TRUE, stringsAsFactors = FALSE)
-    gdxChoice <- gdxSwitchCombo[,3]
-    if (gdxChoice == 1) choice = 1
-    if (gdxChoice == 2) choice = c(1,2)
-    if (gdxChoice == 3) choice = c(1,2,3)
-    if (gdxChoice == 4) choice = c(4)
-    return(choice)
-  }
+getGdxFileName <- function(gdxChoice) {
+  gdxSwitchCombo <- read.csv(file = paste0(getwd(), "/results/", gdxChoice, "/gdxInfo.csv"), header = TRUE, stringsAsFactors = FALSE)
+  gdxChoice <- gdxSwitchCombo[, 1]
+  return(gdxChoice)
+}
 
-  # # use this function to get a tablegrob. Which can then be placed in a plot. This is done in aggNorder.R
-  g_legend <- function(plot.in) {
-    tmp <- ggplot2::ggplot_gtable(ggplot_build(plot.in))
-    leg <- which(sapply(tmp$grobs, function(x) x$name) == "guide-box")
-    legend <- tmp$grobs[[leg]]
-    return(legend)
-  }
+getSwitchChoice <- function() {
+  gdxSwitchCombo <- read.csv(file = paste0(getwd(), "/results/", gdxChoice, "/gdxInfo.csv"), header = TRUE, stringsAsFactors = FALSE)
+  gdxChoice <- gdxSwitchCombo[,3]
+  if (gdxChoice == 1) choice = 1
+  if (gdxChoice == 2) choice = c(1,2)
+  if (gdxChoice == 3) choice = c(1,2,3)
+  if (gdxChoice == 4) choice = c(4)
+  return(choice)
+}
 
-  fmt_dcimals <- function(decimals=0){
-    function(x) format(x,nsmall = decimals,scientific = FALSE)
-  }
+# # use this function to get a tablegrob. Which can then be placed in a plot. This is done in aggNorder.R
+g_legend <- function(plot.in) {
+  tmp <- ggplot2::ggplot_gtable(ggplot_build(plot.in))
+  leg <- which(sapply(tmp$grobs, function(x) x$name) == "guide-box")
+  legend <- tmp$grobs[[leg]]
+  return(legend)
+}
+
+fmt_dcimals <- function(decimals=0){
+  function(x) format(x,nsmall = decimals,scientific = FALSE)
+}

@@ -78,7 +78,10 @@ combineIMPACTData <- function() {
       dt.fishnAlcScenarios <- rbind(dt.fishnAlcScenarios, temp)
     }
   }
-
+  
+  if (gdxChoice %in% "AfricanAgFutures"){
+    dt.fishnAlcScenarios <- dt.fishnAlcScenarios[scenario %in% c("SSP2")]
+    
   #' add fish and alcohol via dt.fishnAlcScenarios to dt.FoodAvail, which has all the other commodities
   dtList <- list(dt.FoodAvail, dt.fishnAlcScenarios)
   dt.FoodAvail <- data.table::rbindlist(dtList, use.names = TRUE)

@@ -439,33 +439,39 @@ countryCodeCleanup <- function(dt) {
 }
 
 library(scales)
-facetMaps <- function(worldMap, DTfacetMap, fileName, legendText, fillLimits, palette, facetColName,
-                      graphsListHolder, breakValues, displayOrder, desc) {
+facetMaps <- function(mapFile, DTfacetMap, legendText, fillLimits, palette, facetColName,
+                      breakValues, displayOrder) {
   b <- rescale(breakValues, to = c(0,1)) # the values option in scale_fill_gradientn MUST be from 0 to 1
   f <- fillLimits
+  cat("f :", f)
+  cat("b :", b)
   p <- palette
   n <- facetColName
   d <- data.table::copy(DTfacetMap)
-  d[, (n) := factor(get(n), levels = displayOrder)]
+  #  d[, (n) := factor(get(n), levels = displayOrder)] commented out to see it does labels better
   gg <- ggplot(data = d, aes(map_id = id))
-  gg <- gg + geom_map(aes(fill = value), map = worldMap)
-  gg <- gg + expand_limits(x = worldMap$long, y = worldMap$lat)
+  gg <- gg + geom_map(dat=worldMap, map = worldMap,
+                      aes(map_id=region), fill="white", color="black")
+  gg <- gg + geom_map(aes(fill = value), map = mapFile, color="#2b2b2b")
+  gg <- gg + expand_limits(x = mapFile$long, y = mapFile$lat)
   gg <- gg + facet_wrap(facets = n)
   gg <- gg + theme(legend.position = "bottom")
-  gg <- gg +  theme(axis.ticks = element_blank(),axis.title = element_blank(), axis.text.x = element_blank(),
-                    axis.text.y = element_blank(), strip.text = element_text(family = fontFamily, face = "plain"))
-
+  #  gg <- gg + guides(colour = guide_legend(title.position = "top"))
+  # gg <- gg + guides(colour = guide_colourbar(title.position="top", title.hjust = 0.5),
+  #        size = guide_legend(title.position="top", title.hjust = 0.5))
+  gg <- gg +  theme(axis.ticks = element_blank(), axis.title = element_blank(), axis.text.x = element_blank(),
+                    axis.text.y = element_blank(), strip.text = element_text(family = fontFamily, face = "plain", size = 12))
+  
   gg <- gg + scale_fill_gradientn(colors = p, name = legendText,
                                   na.value = "grey50", values = b,
-                                  guide = "colorbar", limits=f, labels = )
+                                  guide = "colorbar", limits = f, labels = f)
   #
-  gg
-
-  graphsListHolder[[fileName]] <- gg
-  assign("graphsListHolder", graphsListHolder, envir = .GlobalEnv)
-  ggsave(file = paste0(fileloc("gDir"),"/",fileName,".png"), plot = gg,
-         width = 7, height = 6)
-
+  return(gg)
+  
+  # graphsListHolder[[fileName]] <- gg
+  # assign("graphsListHolder", graphsListHolder, envir = .GlobalEnv)
+  # ggsave(file = paste0(fileloc("gDir"),"/",fileName,".png"), plot = gg,
+  #        width = 7, height = 6)
 }
 
 # # use this function to get a tablegrob. Which can then be placed in a plot. This is done in aggNorder.R

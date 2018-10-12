@@ -4,7 +4,7 @@
 #' @name dataPrep.IMPACT.R
 #' @include nutrientModFunctions.R
 source("R/nutrientModFunctions.R")
-
+library(readxl)
 gdxrrw::igdx(gamsSysDir = fileNameList("R_GAMS_SYSDIR"), silent = TRUE)
 sourceFile <- "dataPrep.IMPACT.R"
 createScriptMetaData()
@@ -27,7 +27,7 @@ createScriptMetaData()
 #' The gdxrrw package is needed to run this. It is available at this url, not from CRAN.
 #' @source \url{https://support.gams.com/gdxrrw:interfacing_gams_and_r}
 #' Download the relevant file and use the following command to install
-#' install.packages("gdxrrw_1.0.0.tgz",repos=NULL). Replace gdxrrw_1.0.0.tgz with the
+#' install.packages("gdxrrw_1.0.4.tgz",repos=NULL). Replace gdxrrw_1.0.4.tgz with the
 #' name of the file you downloaded. If you put it in the main directory of your project,
 #' the install.packages command will find it.
 #' @import gdxrrw
@@ -61,30 +61,42 @@ gdxChoice <- getGdxChoice()
 #' @return null
 #' @export
 
+if (gdxChoice %in% "AfricanAgFutures") { # needed to clean up the scenario names in the gdx
+  dt.scenariosLookup  <- as.data.table(read_excel("data-raw/AfricanAgFutures/scenlookupAfrAgFutures.xlsx")) 
+  dt.scenarioListIMPACT <- getNewestVersion("dt.scenarioListIMPACT", fileloc("mData"))
+}
+keepYearList <- keyVariable("keepYearList")
+
 processIMPACT159Data <- function(gdxFileName, varName, catNames) {
   # dt.regions.all <- getNewestVersion("dt.regions.all", fileloc("uData"))
   # IMPACTgdx <- gdxFileName
   dt.ptemp <- data.table::as.data.table(gdxrrw::rgdx.param(gdxFileLoc, varName,
                                                            ts = TRUE, names = catNames))
   dt.ptemp <- data.table::as.data.table(rapply(dt.ptemp, as.character, classes = "factor", how = "replace"))
-
+  
   if (gdxChoice %in% "SSPs") {
     dt.ptemp[scenario %in% c("SSP1-NoCC", "SSP2-GFDL", "SSP2-HGEM","SSP2-HGEM2", "SSP2-IPSL", "SSP2-IPSL2",
                              "SSP2-MIROC", "SSP2-NoCC", "SSP3-NoCC"),
              scenario := paste(scenario, "-REF", sep = "")]
   }
   if (gdxChoice %in% "USAIDPriorities") {
-      dt.ptemp[, crop := tstrsplit(scenario, "-", fixed = TRUE, keep = c(3))]
-      SSPName <- "SSP2"
-      climModel <- "HGEM"
-      dt.ptemp[, scenario := paste(SSPName, climModel, paste0("c", crop), sep = "-")]
-      dt.ptemp[, crop := NULL]
+    dt.ptemp[, crop := tstrsplit(scenario, "-", fixed = TRUE, keep = c(3))]
+    SSPName <- "SSP2"
+    climModel <- "HGEM"
+    dt.ptemp[, scenario := paste(SSPName, climModel, paste0("c", crop), sep = "-")]
+    dt.ptemp[, crop := NULL]
     # SSPName <- "SSP2"
     # climModel <- "HGEM"
     # dt.ptemp[, scenario := paste(SSPName, climModel, paste0("c", tstrsplit(scenario, "-", fixed = TRUE, keep = c(3))), sep = "-")]
     # dt.ptemp[, crop := NULL]
   }
-  keepYearList <- keyVariable("keepYearList")
+  
+  if (gdxChoice %in% "AfricanAgFutures") { # cleanup the scenario names
+    for (i in 1:nrow(dt.scenariosLookup)) {
+      dt.ptemp <- dt.ptemp[scenario %in% dt.scenariosLookup$basicNames[i], scenario := dt.scenariosLookup$substantiveNames[i]]
+    }
+    dt.ptemp <- dt.ptemp[!scenario %in% c("SSP3Afr_base_CC", "SSP1Afr_base_CC")]
+  }
   # dt.temp <- dt.regions.all[,c("region_code.IMPACT159","region_name.IMPACT159"), with = FALSE]
   # data.table::setkey(dt.temp,region_code.IMPACT159)
   # dt.IMPACTregions <- unique(dt.temp)
@@ -94,7 +106,7 @@ processIMPACT159Data <- function(gdxFileName, varName, catNames) {
     dt.ptemp[region_code.IMPACT159 == "SDN", region_code.IMPACT159 := "SDP"]
   }
   dt.ptemp[,year := paste("X",year, sep = "")]
-  dt.ptemp <- dt.ptemp[year %in% keepYearList]
+  dt.ptemp <- dt.ptemp[year %in% c("X2005", keepYearList)] # adding x2005 here to keep the 2005 data for the fishnalc calculations
   #setorder(dt.temp, scenario, IMPACT_code, region_code.IMPACT159, year)
   data.table::setorderv(dt.ptemp, cols = catNames)
   data.table::setnames(dt.ptemp, "value", varName)

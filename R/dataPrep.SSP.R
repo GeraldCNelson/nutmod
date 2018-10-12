@@ -148,49 +148,33 @@ dt.SSP.pop.step1 <- dt.SSP.pop[!variable %in% deleteListRow,]
 #' split the variable names apart where there is a |
 #' (eg. X|Y becomes X and Y and new columns are created)
 dt.SSP.pop.step2 <-
-  splitstackshape::cSplit(dt.SSP.pop.step1,
-                          'variable',
-                          sep = "|",
-                          type.convert = FALSE)
+  splitstackshape::cSplit(dt.SSP.pop.step1,  'variable', sep = "|", type.convert = FALSE)
 
 #' name the new columns created by the spliting process above
-oldNames <-
-  c("variable_1", "variable_2", "variable_3", "variable_4")
+oldNames <- c("variable_1", "variable_2", "variable_3", "variable_4")
 newNames <- c("population", "gender", "ageGenderCode", "education")
 data.table::setnames(dt.SSP.pop.step2, oldNames, newNames)
 
 #' rename variables to align with the requirements names
-dt.SSP.pop.step2$ageGenderCode <-
-  gsub("Aged", "", dt.SSP.pop.step2$ageGenderCode)
-dt.SSP.pop.step2$ageGenderCode[dt.SSP.pop.step2$gender == "Female"] <-
-  paste("F",
-        dt.SSP.pop.step2$ageGenderCode[dt.SSP.pop.step2$gender == "Female"],
-        sep = "")
-dt.SSP.pop.step2$ageGenderCode[dt.SSP.pop.step2$gender == "Male"] <-
-  paste("M",
-        dt.SSP.pop.step2$ageGenderCode[dt.SSP.pop.step2$gender == "Male"],
-        sep = "")
-dt.SSP.pop.step2$ageGenderCode <-
-  gsub("-", "_", dt.SSP.pop.step2$ageGenderCode)
-dt.SSP.pop.step2$ageGenderCode <-
-  gsub("\\+", "Plus", dt.SSP.pop.step2$ageGenderCode)
-dt.SSP.pop.step2 <-
-  dt.SSP.pop.step2[order(dt.SSP.pop.step2$ISO_code),]
+dt.SSP.pop.step2$ageGenderCode <- gsub("Aged", "", dt.SSP.pop.step2$ageGenderCode)
+dt.SSP.pop.step2$ageGenderCode[dt.SSP.pop.step2$gender == "Female"] <- paste("F", dt.SSP.pop.step2$ageGenderCode[dt.SSP.pop.step2$gender == "Female"], sep = "")
+dt.SSP.pop.step2$ageGenderCode[dt.SSP.pop.step2$gender == "Male"] <-   paste("M", dt.SSP.pop.step2$ageGenderCode[dt.SSP.pop.step2$gender == "Male"], sep = "")
+dt.SSP.pop.step2$ageGenderCode <- gsub("-", "_", dt.SSP.pop.step2$ageGenderCode)
+dt.SSP.pop.step2$ageGenderCode <- gsub("\\+", "Plus", dt.SSP.pop.step2$ageGenderCode)
+dt.SSP.pop.step2 <- dt.SSP.pop.step2[order(dt.SSP.pop.step2$ISO_code),]
 
-#' remove rows that breakdown an age group by education
+#' remove rows that breakdown on age group by education
 removeRowList <-
   c("No Education",
     "Primary Education",
     "Secondary Education",
     "Tertiary Education")
-dt.SSP.pop.step2 <-
-  dt.SSP.pop.step2[!dt.SSP.pop.step2$education %in% removeRowList,]
+dt.SSP.pop.step2 <- dt.SSP.pop.step2[!dt.SSP.pop.step2$education %in% removeRowList,]
 
 #' remove extraneous columns and keep only the ones needed
 # this keepYearList includes year 0 (X2005) because it is needed for the fish and alcohol consumption calcs
 keepList <- c("scenario", "ISO_code", "ageGenderCode", keepYearList)
-deleteListCol <-
-  c("model", "gender", "education", "population", "unit")
+deleteListCol <- c("model", "gender", "education", "population", "unit")
 dt.SSP.pop.step2[, (deleteListCol) := NULL]
 idVars <- c("scenario", "ISO_code", "ageGenderCode")
 dt.SSP.pop.step2.melt <- data.table::melt(
@@ -202,9 +186,20 @@ dt.SSP.pop.step2.melt <- data.table::melt(
 )
 dt.SSP.pop.step2.melt <- dt.SSP.pop.step2.melt[!ISO_code %in% keyVariable("dropListCty"),]
 dt.SSP.pop.step2.melt <- dt.SSP.pop.step2.melt[!year %in% "X2005"]
+
+# convert from ISO to region_code.IMPACT159. Added Oct 2, 2018
+dt.regions.all <- getNewestVersion("dt.regions.all", fileloc("uData"))
+dt.SSP.pop.step2.melt <- merge(dt.SSP.pop.step2.melt, dt.regions.all, by = "ISO_code", all.y = TRUE) #something adds 60 rows of NAs Oct 2, 2018
+keepListCol <- c("scenario","ageGenderCode","year", "value", "region_code.IMPACT159")
+dt.SSP.pop.step2.melt[, setdiff(names(dt.SSP.pop.step2.melt), keepListCol) := NULL]
+dt.SSP.pop.step2.melt <- dt.SSP.pop.step2.melt[!is.na(scenario),]
+dt.SSP.pop.step2.melt[, value := sum(value), by = c("scenario","ageGenderCode", "year", "region_code.IMPACT159")]
+dt.SSP.pop.step2.melt <- unique(dt.SSP.pop.step2.melt)
+dt.SSP.pop.step2.melt[,scenario := substr((scenario),1,4)] # keep just the SSP names
+dt.SSP.pop.step2.melt <- unique(dt.SSP.pop.step2.melt)
 inDT <- dt.SSP.pop.step2.melt
 outName <- "dt.SSPPopClean"
-desc <- "Population information by country and scenario and age and gender with cleaned up column names"
+desc <- "Population information by country (IMPACT region) and scenario and age and gender with cleaned up column names"
 cleanup(inDT,outName,fileloc("uData"), desc = desc)
 
 finalizeScriptMetadata(metadataDT, sourceFile)

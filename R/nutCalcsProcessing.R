@@ -306,8 +306,14 @@ for (switchloop in getSwitchChoice()) {
     dt.food_agg.master[, scenario := gsub("PHL-DEV2", "PHL_DEV2", scenario)]
     # get list of nutrients from dt.nutsReqPerCap for the req set of requirements
     # moving the reqs per cap files to uData June 5, 2018
+    # Oct 8, 2108, need to have gdx specific file locations. the AfrAgFutures reqs files are in mData
  #   dt.nutsReqPerCap <- getNewestVersion(paste(req,"percap",sep = "_"))
-    dt.nutsReqPerCap <- getNewestVersion(paste(req,"percap",sep = "_"), fileloc("uData"))
+    if (!gdxChoice %in% "AfricanAgFutures") {
+      dt.nutsReqPerCap <- getNewestVersion(paste(req,"percap",sep = "_"), fileloc("uData"))
+    }else{
+      dt.nutsReqPerCap <- getNewestVersion(paste(req,"percap",sep = "_"), fileloc("mData"))
+    }
+    
     nutList <- names(dt.nutsReqPerCap)[4:length(names(dt.nutsReqPerCap))]
     basicKey <- c("scenario", "region_code.IMPACT159", "year")
     cols.all <- names(dt.food_agg.master)[grep("_all", names(dt.food_agg.master))]

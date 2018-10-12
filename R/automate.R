@@ -61,12 +61,12 @@ if (packageVersion("openxlsx") < "4.0.17") {
   install_github("awalker89/openxlsx")
 }
 
-if (packageVersion("data.table") < "1.10.0") {
+if (packageVersion("data.table") < "1.11.0") {
   print("updating data.table")
   install.packages("data.table")
 }
 
-# the source code needs to be below the install code so R doesn't have to restart
+# the source command for the nutrient modeling code needs to be below the install code so R doesn't have to restart
 # print(paste("start time is " , proc.time(), sep = ""))
 cat("Running nutrientModFunctions.R\n")
 source("R/nutrientModFunctions.R")
@@ -108,7 +108,9 @@ if (oneTimeDataUpdate %in% c("Y", "y")){
   sourceFile <- "dataPrep.ODBCaccess.R"
   sourcer(sourceFile) # reads in nutrient data from the USDA nutrient composition access database
   #commented out because only needs to run when new SSP data are used. June 5, 2018
-  sourceFile <- "dataManagement.SSPPop.R"
+  sourceFile <- "dataPrep.Unscenarios.R" 
+  sourcer(sourceFile) #paste(gsub("_ssp","",nutReqName),"percap",sep = "_"), mData - Nutrient requirements adjusted for population distribution, example is req.EAR.percap.2016-06-24.rds
+  sourceFile <- "dataManagement.Pop.R" #name changed from dataManagement.SSPPop.R Oct 5, 2018 to reflect the fact that this also handles the combine UN/SSP age gender info
   sourcer(sourceFile) #paste(gsub("_ssp","",nutReqName),"percap",sep = "_"), mData - Nutrient requirements adjusted for population distribution, example is req.EAR.percap.2016-06-24.rds
 }
 
@@ -180,10 +182,17 @@ sourceFile <- "automate.R"
 cleanup(inDT, outName, fileloc("mData"), desc = desc)
 finalizeScriptMetadata(metadataDT, sourceFile)
 
-#library(dtplyr)# generate graphs
+if (!gdxChoice %in% "AfricanAgFutures") {
 start_time <- Sys.time()
 sourceFile <- "aggRun.R"
 sourcer(sourceFile)
+}
+
+if (gdxChoice %in% "AfricanAgFutures") {
+  start_time <- Sys.time()
+  sourceFile <- "aggRun.AfrAgFutures.R"
+  sourcer(sourceFile)
+}
 
 start_time <- Sys.time()
 sourceFile <- "finalGraphCreation.R"

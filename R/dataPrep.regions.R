@@ -152,7 +152,6 @@ finalizeScriptMetadata(metadataDT, sourceFile)
 #   merge(regions.IMPACT115, regions.IMPACT159, by = "ISO_code")
 # }
 #
-# dt.SSP <- getNewestVersion("dt.SSPPopClean")
 # # SSP regions loading -----
 # #' @param regions.SSP SSP regions
 # regions.SSP <-

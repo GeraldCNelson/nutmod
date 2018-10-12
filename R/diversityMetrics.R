@@ -15,7 +15,7 @@
 
 #' @description Calculated diversity and nutrient benefit metrics.
 #'
-library(data.table)
+# library(data.table)
 # library(maps)
 
 #' @include nutrientModFunctions.R
@@ -117,9 +117,7 @@ for (switchloop in getSwitchChoice()) {
   dt.ratio.sum <- dt.ratio.sum[year %in% keepYearList, ]
   dt.ratio[, nutrient := gsub(".reqRatio.all", "", nutrient)]
   nutList <- unique(dt.ratio$nutrient)
-  regionList <- unique(dt.ratio$region_code.IMPACT159)
-  commodityList <- unique(dt.ratio$IMPACT_code)
-
+ 
   # make columns for each of the nutrients at the individual food item level
   formula.wide <- paste("scenario + region_code.IMPACT159 + year +  IMPACT_code ~ nutrient")
   dt.adequateRatio.nuts <- data.table::dcast(
