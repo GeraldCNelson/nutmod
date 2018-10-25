@@ -3,7 +3,7 @@ source("R/nutrientModFunctions.R")
 sourceFile <- "gdxrrwSetup.R"
 createScriptMetaData()
 library(gdxrrw)
-
+library(readxl)
 #IMPACTgdxfileName <- "Demand Results20150817.gdx" - old gdx
 #gdxFileName <- fileNameList("IMPACTgdxfileName")
 #gamsSetup() # to load GAMs stuff and create the initial list of IMPACT scenarios
@@ -25,9 +25,9 @@ gamsSetup <- function(gdxFileName) {
     keepListCol <- "scenario"
     dt.scenarioListIMPACT <- unique(dt.ptemp[, (keepListCol), with = FALSE])
   }
- # if (gdxFileName %in% "Micronutrient-Inputs-2018.21.06.gdx") {
-    if (gdxFileName %in% "Micronutrient-Inputs-7.1.2018.gdx") {
-      keepListCol <- "scenario"
+  # if (gdxFileName %in% "Micronutrient-Inputs-2018.21.06.gdx") {
+  if (gdxFileName %in% "Micronutrient-Inputs-7.1.2018.gdx") {
+    keepListCol <- "scenario"
     dt.scenarioListIMPACT <- unique(dt.ptemp[, (keepListCol), with = FALSE])
     dt.scenarioListIMPACT <- dt.scenarioListIMPACT[!scenario %in% c("GLOBE_SSP2-HGEM-bnpl-SG-25f", "GLOBE_SSP2-HGEM-puls-SG-25f")]
     dt.scenarioListIMPACT[, crop := tstrsplit(scenario, "-", fixed = TRUE, keep = c(3))]
@@ -35,23 +35,24 @@ gamsSetup <- function(gdxFileName) {
     climModel <- "HGEM"
     dt.scenarioListIMPACT[, scenario := paste(SSPName, climModel, paste0("c", crop), sep = "-")]
     dt.scenarioListIMPACT[, crop := NULL]
-    }
-
-  if (gdxFileName %in% "BMGF-Africa-NutMod-Inputs-2018.09.21.gdx") {
+  }
+  
+  # if (gdxFileName %in% "BMGF-Africa-NutMod-Inputs-2018.09.21.gdx") {
+  if (gdxFileName %in% "BMGF-Africa-NutMod-Inputs-1018.10.21.gdx") {
     keepListCol <- "scenario"
     dt.scenariosLookup  <- as.data.table(read_excel("data-raw/AfricanAgFutures/scenlookupAfrAgFutures.xlsx")) 
     dt.scenarioListIMPACT <- dt.scenariosLookup[, "substantiveNames"][!substantiveNames %in% c("SSP3Afr_base_CC", "SSP1Afr_base_CC"),]
-  setnames(dt.scenarioListIMPACT, old = "substantiveNames", new = "scenario")
-  # dt.ptemp <- dt.ptemp[!scenario %in% c("AfrAgFutures_scnr09", "AfrAgFutures_scnr10")]
-  # for (i in 1:nrow(dt.scenariosLookup)) {
-  # dt.ptemp <- dt.ptemp[scenario %in% dt.scenariosLookup$basicNames[i], scenario := dt.scenariosLookup$substantiveNames[i]]
-  # }
-  # SSPName <- "SSP2"
+    setnames(dt.scenarioListIMPACT, old = "substantiveNames", new = "scenario")
+    # dt.ptemp <- dt.ptemp[!scenario %in% c("AfrAgFutures_scnr09", "AfrAgFutures_scnr10")]
+    # for (i in 1:nrow(dt.scenariosLookup)) {
+    # dt.ptemp <- dt.ptemp[scenario %in% dt.scenariosLookup$basicNames[i], scenario := dt.scenariosLookup$substantiveNames[i]]
+    # }
+    # SSPName <- "SSP2"
     # climModel <- "HGEM"
-  #  dt.scenarioListIMPACT[, scenario := paste(SSPName, climModel, paste0("c", crop), sep = "-")]
- #   dt.scenarioListIMPACT[, crop := NULL]
+    #  dt.scenarioListIMPACT[, scenario := paste(SSPName, climModel, paste0("c", crop), sep = "-")]
+    #   dt.scenarioListIMPACT[, crop := NULL]
   }
-
+  
   #cleanup scenario names
   dt.scenarioListIMPACT <- cleanupScenarioNames(dt.scenarioListIMPACT) # replaces - with _ in a couple of scenarios and removes 2 on a couple of USAID scenarios
   #  scenarioComponents <- c("SSP", "climate_model", "experiment")
@@ -70,7 +71,7 @@ gamsSetup <- function(gdxFileName) {
   outName <- "dt.scenarioListIMPACT"
   desc <- paste0("List of scenarios that can be used with ", gdxFileName)
   cleanup(inDT, outName, fileloc("mData"), "csv", desc = desc)
-
+  
   # create list of IMPACT gdx params
   temp <- gdxrrw::gdxInfo(
     gdxName = gdxFileLoc, dump = FALSE, returnList = FALSE, returnDF = TRUE)
@@ -84,7 +85,7 @@ gamsSetup <- function(gdxFileName) {
   outName <- "dt.IMPACTgdxParams"
   desc <- paste0("Parameters from the gdx file", gdxFileName, "with IMPACT results. Creates scenarios list.")
   cleanup(inDT,outName, fileloc("iData"), desc = desc)
-  }
+}
 
 #getGDXmetaData(gdxFileName)
 gamsSetup(gdxFileName)

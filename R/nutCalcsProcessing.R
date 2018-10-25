@@ -55,6 +55,7 @@ for (switchloop in getSwitchChoice()) {
     DT.long[, nutrient := gsub("_reqRatio_all", "", nutrient)]
     inDT <- unique(DT.long)
     outName <- paste("reqRatio_sum_", reqShortName, ".", suffix, sep = "")
+    cat("outName:", outName, "\n")
     desc <- paste0("Adequacy ratios for ", reqShortName)
     cleanup(inDT, outName, fileloc("resultsDir"),  desc = desc)
   }
@@ -146,6 +147,7 @@ for (switchloop in getSwitchChoice()) {
 
     inDT <- unique(dt.all_sum.long)
     outName <- paste("all_sum_", reqShortName, ".", suffix, sep = "")
+    cat("outName:", outName, "\n")
     desc <- paste0("All sum for ", reqShortName)
     cleanup(inDT, outName, fileloc("resultsDir"),  desc = desc)
 # add column to indicate nutrient type. Added Aug 27, 2018
@@ -154,12 +156,14 @@ for (switchloop in getSwitchChoice()) {
     inDT[, nutrient := gsub("_reqRatio", "", nutrient)]
     inDT <- unique(inDT)
     outName <- paste("reqRatio_sum_", reqShortName, ".", suffix, sep = "")
+    cat("outName:", outName, "\n")
     desc <- paste0("Adequacy ratios by country for ", reqShortName)
     cleanup(inDT, outName, fileloc("resultsDir"),  desc = desc)
 
 # used in dt.diversityMetrics.R
     inDT <- unique(dt.all_ratio.long)
     outName <- paste("ratio_all_" ,reqShortName, ".", suffix, sep = "")
+    cat("outName:", outName, "\n")
     desc <- paste0("'All ratios by food item for ", reqShortName)
     cleanup(inDT, outName, fileloc("resultsDir"),  desc = desc)
 
@@ -168,6 +172,7 @@ for (switchloop in getSwitchChoice()) {
     inDT <- unique(inDT)
 #    outName <- paste(reqShortName, "_all_reqRatio", ".", suffix, sep = "")
     outName <- paste("reqRatio_all_", reqShortName, ".", suffix, sep = "")
+    cat("outName:", outName, "\n")
     desc <- paste0("Adequacy ratios by food item for ", reqShortName)
     cleanup(inDT, outName, fileloc("resultsDir"),  desc = desc)
   }
@@ -217,6 +222,7 @@ for (switchloop in getSwitchChoice()) {
 
     inDT <- unique(dt.foodGroup_reqRatio_long)
     outName <- paste(reqShortName, "_FG_reqRatio", ".", suffix, sep = "")
+    cat("outName:", outName, "\n")
     desc <- paste0("Food group adequacy ratio for ", reqShortName)
     cleanup(inDT, outName, fileloc("resultsDir"),  desc = desc)
   }
@@ -292,6 +298,7 @@ for (switchloop in getSwitchChoice()) {
     #  inDT <- dt.staples_reqRatio_wide
     inDT <- unique(dt.staples_reqRatio_long)
     outName <- paste(reqShortName, "_staples_reqRatio", ".", suffix, sep = "")
+    cat("outName:", outName, "\n")
     desc <- paste0("Staples adequacy ratio for ", reqShortName)
     cleanup(inDT, outName, fileloc("resultsDir"),  desc = desc)
   }
@@ -308,11 +315,12 @@ for (switchloop in getSwitchChoice()) {
     # moving the reqs per cap files to uData June 5, 2018
     # Oct 8, 2108, need to have gdx specific file locations. the AfrAgFutures reqs files are in mData
  #   dt.nutsReqPerCap <- getNewestVersion(paste(req,"percap",sep = "_"))
-    if (!gdxChoice %in% "AfricanAgFutures") {
-      dt.nutsReqPerCap <- getNewestVersion(paste(req,"percap",sep = "_"), fileloc("uData"))
-    }else{
+    # as of at least Oct 21, 2018, all req information is in mData regardless of gdx
+    # if (!gdxChoice %in% "AfricanAgFutures") {
+    #   dt.nutsReqPerCap <- getNewestVersion(paste(req,"percap",sep = "_"), fileloc("uData"))
+    # }else{
       dt.nutsReqPerCap <- getNewestVersion(paste(req,"percap",sep = "_"), fileloc("mData"))
-    }
+  #  }
     
     nutList <- names(dt.nutsReqPerCap)[4:length(names(dt.nutsReqPerCap))]
     basicKey <- c("scenario", "region_code.IMPACT159", "year")
@@ -329,7 +337,7 @@ for (switchloop in getSwitchChoice()) {
 }
 
 finalizeScriptMetadata(metadataDT, sourceFile)
-sourcer <- clearMemory(sourceFile, gdxChoice) # removes everything in memory and sources the sourcer function
+# sourcer <- clearMemory(sourceFile, gdxChoice) # removes everything in memory and sources the sourcer function
 
 # kcals calculations -----
 # print("------ working on kcals")

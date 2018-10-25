@@ -174,7 +174,7 @@ dt.SSP2_SSP2_CC <- copy(dt.SSP2_SSP2_noCC)
 dt.Med_base_NoCC[, scenario := "Med_base_NoCC"]
 dt.Med_base_CC[, scenario := "Med_base_CC"]
 dt.Med_pes_CC[, scenario := "Med_pes_CC"]
-dt.Med_opt_CC[, scenario := " Med_opt_CC"]
+dt.Med_opt_CC[, scenario := "Med_opt_CC"]
 dt.HighAfr_pes_CC[, scenario := "HighAfr_pes_CC"]
 dt.LowAfr_opt_CC[, scenario := "LowAfr_opt_CC"]
 dt.SSP2_SSP2_noCC[, scenario := "SSP2_SSP2_noCC"]
@@ -215,7 +215,6 @@ ggplot(data = countryDataSubset,
 library(XML)
 library(reshape2)
 library(rCharts)
-library(plyr)
 library(gganimate) # needs to be installed with devtools::install_github('thomasp85/gganimate'); get info at https://github.com/thomasp85/gganimate
 
 getAgeTable <- function(country, year, dt.popcombo, scenario) {

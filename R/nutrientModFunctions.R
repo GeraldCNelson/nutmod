@@ -22,9 +22,11 @@
 
 source("R/workbookFunctions.R")
 source("R/nutrientCalcFunctions.R")
-
+library(plyr)
+library(dtplyr)
 library(tidyverse) # includes ggplot2, tibble, tidyr, and readr
 library(data.table) # this is needed everywhere and currently some scripts don't call it
+library(ggthemes)
 
 fontFamily <- "Calibri"
 # .onLoad <- function(libname, pkgname) {
@@ -423,6 +425,9 @@ cleanupNutrientNames <- function(nutList) {
 #' @param dropListCty
 #' @param allAfricaCodes
 #' @param SSAfricaCodes
+#' @param regions.AfricanAgFutures
+#' @param tenregions
+
 #' @return list of key variables
 #' @export
 keyVariable <- function(variableName) {
@@ -485,6 +490,9 @@ keyVariable <- function(variableName) {
                       "EGY", "ERI", "ETH", "GAB", "GHA", "GIN", "GMB", "GNB", "GNQ", "KEN", "LBR", "LBY", "LSO", "MDG", "MLI", 
                       "MOR", "MOZ", "MRT", "MWI", "NAM", "NER", "NGA", "RWA", "SDN", "SEN", "SLE", "SOM", "SWZ", "TCD", "TGO", 
                       "TUN", "TZA", "UGA", "ZAF", "ZMB", "ZWE")
+  regions.AfricanAgFutures <- c("ETH", "NGA", "MWI", "MOZ", "ZMB", "ZWE")
+  tenregions <- sort(c("NIC", "BRA", "CHM", "ETH", "IND", "GHA", "TZA", "FRP", "VNM", "USA"))
+  
   # scenarioListIMPACT <- as.character(read.csv(file = paste(fileloc("mData"),"scenarioListIMPACT.csv", sep = "/"), stringsAsFactors = FALSE)[,1])
   DinY <- 365 #see http://stackoverflow.com/questions/9465817/count-days-per-year for a way to deal with leap years
   #' #' countries to remove because of poor data
@@ -874,7 +882,7 @@ colMin <- function(dataIn) {
 
 countryNameLookup <- function(countryCode, directory) {
   if (missing(directory)) {mData <- fileloc("mData")} else {mData <- directory}
-  dt.regions <- getNewestVersion('dt.regions.all', fileloc("mData"))
+  dt.regions <- getNewestVersion('dt.regions.all', fileloc("uData"))
   if (!countryCode %in% dt.regions$region_code.IMPACT159) {
     stop(sprintf("The country code you entered (%s) is not in the lookup table", countryCode))
   } else {
@@ -884,7 +892,7 @@ countryNameLookup <- function(countryCode, directory) {
 }
 countryCodeLookup <- function(countryName, directory) {
   if (missing(directory)) {mData <- fileloc("mData")} else {mData <- directory}
-  dt.regions <- getNewestVersion('dt.regions.all', fileloc("mData"))
+  dt.regions <- getNewestVersion('dt.regions.all', fileloc("uData"))
   if (!countryName %in% dt.regions$region_name.IMPACT159) {
     stop(sprintf("The country name you entered (%s) is not in the lookup table", countryName))
   } else {
@@ -1157,7 +1165,16 @@ regionAgg <- function(aggChoice) {
   # region info setup for aggregating -----
   dt.regions.all <- getNewestVersion("dt.regions.all", fileloc("uData"))
   I3regions <- sort(unique(dt.regions.all$region_code.IMPACT159))
-  tenregions <- sort(c("NIC", "BRA", "CHM", "ETH", "IND", "GHA", "TZA", "FRP", "VNM", "USA"))
+  tenregions <- keyVariable("tenregions") # returns country codes
+  regions.AfricanAgFutures <- keyVariable("regions.AfricanAgFutures") # returns country codes
+  AfricaNorth <- c()
+  AfricaSouth <- c()
+  AfricaWest <- c("Benin", "Burkina Faso", "Cape Verde", "Ivory Coast", "Gambia", "Ghana", "Guinea", "Guinea-Bissau", 
+                  "Liberia", "Mali", "Mauritania", "Niger", "Nigeria", "Senegal", "Sierra Leone", "Togo")
+  dropList.AfricaWest <- c("Cape Verde", "Gambia", "Guinea", "Guinea-Bissau", "Mauritania")
+  AfricaEast <- sort(c("Tanzania", "Kenya", "Uganda", "Rwanda", "Burundi", "South Sudan", "Djibouti", "Eritrea", "Ethiopia", 
+                       "Somalia", "Comoros", "Mauritius", "Seychelles", "Mozambique", "Madagascar", "Malawi", "Zambia", "Sudan"))
+  dropList.AfricaEast <- c("Comoros", "Djibouti", "Eritrea", "Seychelles", "Somalia", "South Sudan")
   AggReg1 <- sort(unique(dt.regions.all$region_code.AggReg1))
   AggReg2 <- sort(unique(dt.regions.all$region_code.AggReg2))
   twoEconGroup <- sort(unique(dt.regions.all$region_code.EconGroup))
@@ -1172,6 +1189,12 @@ regionAgg <- function(aggChoice) {
   if (aggChoice == "tenregions") {
     keepListCol <- c("region_code.IMPACT159", "region_code", "region_name.IMPACT159")
     dt.regions.all <- dt.regions.all[region_code.IMPACT159 %in% tenregions,]
+    dt.regions.all <- dt.regions.all[, region_code := region_code.IMPACT159]
+  }
+  # regionCodes regions.AfricanAgFutures
+  if (aggChoice == "regions.AfricanAgFutures") {
+    keepListCol <- c("region_code.IMPACT159", "region_code", "region_name.IMPACT159")
+    dt.regions.all <- dt.regions.all[region_code.IMPACT159 %in% regions.AfricanAgFutures,]
     dt.regions.all <- dt.regions.all[, region_code := region_code.IMPACT159]
   }
   # regionCodesI3regions
@@ -1283,7 +1306,8 @@ gdxFileNameChoice <- function() {
   }
   
   if (choice %in% "4") {
-    gdxFileName <- "BMGF-Africa-NutMod-Inputs-2018.09.21.gdx"  #-  gdx for the Gates African ag priorities  results
+    #    gdxFileName <- "BMGF-Africa-NutMod-Inputs-2018.09.21.gdx"  #-  gdx for the Gates African ag priorities  results
+    gdxFileName <- "BMGF-Africa-NutMod-Inputs-1018.10.21.gdx"  #-  gdx for the Gates African ag priorities  results
     gdxChoice <- "AfricanAgFutures"
   }
   
@@ -1353,7 +1377,7 @@ multiplot <- function(plotlist=NULL, file, cols=1, layout=NULL) {
 
 # store world map dataframe -----
 storeWorldMapDF <- function(){
-  library(maptools)
+  library("maptools")
   require("rgdal")
   require("rgeos")
   require("dplyr")
@@ -1452,9 +1476,9 @@ storeWorldMapDF <- function(){
   fpusMap <- readOGR(dsn = "data-raw/IMPACTData/IMPACT_FPU_Map", layer = "fpu2015_polygons_v3_multipart_polygons", stringsAsFactors = FALSE)
   fpusMap <- sp::spTransform(fpusMap, CRSobj = defaultProj)
   fpusMap <- gBuffer(fpusMap, byid=TRUE, width=0)
-  fpusMap$FPU2015 <- factor(fpusMap$FPU2015)
-  fpusMap$USAFPU <- factor(fpusMap$USAFPU)
-  
+  # fpusMap$FPU2015 <- factor(fpusMap$FPU2015)
+  # fpusMap$USAFPU <- factor(fpusMap$USAFPU)
+  # 
   data.fpus <- fpusMap@data
   data.fpus$region_code.IMPACT159 <- substring(data.fpus$FPU2015,5,7) # add region_code.IMPACT159 column to the fpusMap data frame
   fpusMap@data <- data.fpus
@@ -1466,6 +1490,14 @@ storeWorldMapDF <- function(){
   fpusMap_SSA$FPU2015 <- factor(fpusMap_SSA$FPU2015)
   fpusMap_SSA$USAFPU <- factor(fpusMap_SSA$USAFPU)
   fpusMap_SSA$region_code.IMPACT159 <- factor(fpusMap_SSA$region_code.IMPACT159)
+  
+  # all the fpus on the African continent
+  allAfricaCodes <- keyVariable("allAfricaCodes")
+  fpusMap_allAfrica <- subset(fpusMap, region_code.IMPACT159  %in% allAfricaCodes)
+  # redo factor after subsetting
+  fpusMap_allAfrica$FPU2015 <- factor(fpusMap_allAfrica$FPU2015)
+  fpusMap_allAfrica$USAFPU <- factor(fpusMap_allAfrica$USAFPU)
+  fpusMap_allAfrica$region_code.IMPACT159 <- factor(fpusMap_allAfrica$region_code.IMPACT159)
   
   # raster::shapefile(fpusMap_SSA, "fpusMap_SSA.shp", overwrite = TRUE)
   
@@ -1530,6 +1562,12 @@ storeWorldMapDF <- function(){
   desc <- "Sub-Saharan AFrica map file with food production unit (FPU) polygons used to create facet maps of FPU level data"
   cleanup(inDT, outName, fileloc("uData"), desc = desc)
   
+  fpusMap_allAfrica <- broom::tidy(fpusMap_allAfrica, region = "FPU2015")
+  fpusMap_allAfrica$region <- fpusMap_allAfrica$id
+  inDT <- fpusMap_allAfrica
+  outName <- "fpusMap_allAfrica"
+  desc <- "All AFrica map file with food production unit (FPU) polygons used to create facet maps of FPU level data"
+  cleanup(inDT, outName, fileloc("uData"), desc = desc)
 }
 # }
 
@@ -1596,18 +1634,23 @@ facetMaps <- function(mapFile, DTfacetMap, fileName, legendText, fillLimits, pal
   bb <- generateBreakValues(fillLimits = fillLimits, numLimits = numLimits, decimals = 0)
   b <- rescale(bb, to = c(0,1))
   f <- fillLimits
-  cat("f :", f, "\n")
-  cat("b :", b, "\n")
+  cat("fillLimits :", f, "\n")
+  cat("breaks :", b, "\n")
   p <- palette
   n <- facetColName
+  displayOrder <- gsub("X", "", displayOrder)
   d <- data.table::copy(DTfacetMap)
-  #  d[, (n) := factor(get(n), levels = displayOrder)] commented out to see it does labels better
+  d[, (n) := factor(get(n), levels = displayOrder)] 
+  keepListCol <- c("id", facetColName, "value")
+  d[, setdiff(names(d), keepListCol) := NULL]
+  d <- unique(d)
   gg <- ggplot(data = d, aes(map_id = id))
-  gg <- gg + geom_map(aes(fill = value), map = mapFile, color="#ffffff")
+  gg <- gg + geom_map(aes(fill = value), map = mapFile, color=NA, size = 0.5) # "#ffffff" is white
   gg <- gg + expand_limits(x = mapFile$long, y = mapFile$lat)
+  gg <- gg + ggthemes::theme_map()
   gg <- gg + facet_wrap(facets = n)
   gg <- gg + theme(legend.position = "bottom")
-  #  gg <- gg + guides(colour = guide_legend(title.position = "top"))
+  #  gg <- gg + geom_point(data = xd, aes(size="xx.sub1", shape = NA), colour = "grey50")#  gg <- gg + guides(colour = guide_legend(title.position = "top"))
   # gg <- gg + guides(colour = guide_colourbar(title.position="top", title.hjust = 0.5),
   #        size = guide_legend(title.position="top", title.hjust = 0.5))
   gg <- gg +  theme(axis.ticks = element_blank(), axis.title = element_blank(), axis.text.x = element_blank(),
@@ -1621,7 +1664,14 @@ facetMaps <- function(mapFile, DTfacetMap, fileName, legendText, fillLimits, pal
   assign("graphsListHolder", graphsListHolder, envir = .GlobalEnv)
   ggsave(file = paste0(fileloc("gDir"),"/",fileName,".png"), plot = gg,
          width = 7, height = 6)
-  return(gg)
+ # use scenarios as columns. Not sure this will work for all files. Oct 22, 2018
+  formula.wide <- paste0("id ~ ", facetColName)
+  temp <- dcast(data = d, formula = formula.wide, value.var = "value")
+  inDT <- d
+  outName <- paste(fileName, "_data")
+  desc <- paste("data for ", fileName )
+  cleanup(inDT, outName, fileloc("gDir"), "csv", desc = desc)
+  return(gg) # If this is returned and not captured by gg <- xxx then it appears in the plot window of rstudio
 }
 
 

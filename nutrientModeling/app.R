@@ -22,14 +22,17 @@
 # the 'Run App' button in RStudio
 library(shiny)
 library(shinyjs)
-library(ggplot2)
+library(shinythemes)
+library(shiny.router) # install using devtools::install_github("Appsilon/shiny.router"); using for table of contents
+library(DT) # needs to come after library(shiny)
 #library(rsconnect)
 library(data.table)
 library(plyr)
 library(dplyr) # to do %>%
 library(dtplyr)
-library(DT) # needs to come after library(shiny)
-library(shinythemes)
+library(tidyverse) # includes ggplot2, tibble, tidyr, and readr
+library(data.table) # this is needed everywhere and currently some scripts don't call it
+
 # devtools::install_github("strengejacke
 # library(sjlabelled)
 # library(sjmisc)
@@ -38,7 +41,6 @@ library(ggiraphExtra) #to do the interactive spider graphs. As of May 27, 2017, 
 #library(markdown)
 require(ggiraph)
 library(RColorBrewer)
-library(shiny.router) # install using devtools::install_github("Appsilon/shiny.router"); using for table of contents
 source("global.R") # load all the background functions and install packages if not already done
 #note install packages feature in global.R is commented out
 options(repos = c(CRAN = "https://cran.rstudio.com"))

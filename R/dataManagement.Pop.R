@@ -153,7 +153,7 @@ repCons <- function(dt.pop, nutReqName) {
   finlist <- paste(common.nut, "fin", sep = "_")
   #divide every element in sumlist by pop.value and put in corresponding variable in finlist
   # cat("\n\n", names(dt.temp.sum))
-  dt.temp.sum[,(finlist) := lapply(.SD,"/",dt.temp.sum$pop.value_sum),.SDcols = sumlist]
+  dt.temp.sum[,(finlist) := lapply(.SD, "/", dt.temp.sum$pop.value_sum), .SDcols = sumlist]
   dt.temp.sum[, c("pop.value_sum", sumlist) := NULL]
   # change column names back to just nutrient names
   data.table::setnames(dt.temp.sum,old = finlist, new = common.nut)
