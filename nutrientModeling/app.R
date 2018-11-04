@@ -280,7 +280,7 @@ ui <- fluidPage(
                                 sidebarPanel(width = 3,
                                              selectizeInput(inputId = "MRVCountryName", label = "Choose country", choices = countryNames),
                                              downloadButton("downloadData.MRV", "Download")),
-                                mainPanel(titlePanel("Maximum Recommended Intake (MRV) results"),
+                                mainPanel(titlePanel("Maximum Recommended Intake (MRV) ratios"),
                                           includeHTML("www/MRVText.html"),
                                           DT::dataTableOutput("MRVTableP1")))))), # added  style='width: 1000px; height: 1000px' to try to reduce LR margins
           # Diversity tab panel, with tabset ------
@@ -450,6 +450,7 @@ server <- function(input, output, session) {
     countryName <- input$availabilityCountryName
     scenarioName <- input$availabilityScenarioName
     dt <- copy(dt.foodAvail_foodGroup.var)
+    #    cat("food avail", str(dt), "\n")
     spiderData <- spiderGraphData(countryName, scenarioName, dt, displayColumnName = "food_group_code")
   })
   
@@ -653,19 +654,25 @@ server <- function(input, output, session) {
   
   # availability graph server side -----
   output$availabilitySpiderGraphP1 <- renderggiraph({
-    dt <- copy(data.foodAvail())
+    dt <- as.data.table(copy(data.foodAvail())) # I don't understand how this becomes a dataframe
     scenarioName <- unique(dt$scenario)
-    #   dt[, region_code.IMPACT159 := NULL]
-    #   data.table::setnames(dt, old = names(dt), new = capwords(names(dt)))
-    data.table::setnames(dt, old = codeNames.foodGroups, new = foodGroupNamesWrap)
+    # cat("scenarioName:", scenarioName, "\n")
+    # #   dt[, region_code.IMPACT159 := NULL]
+    # #   data.table::setnames(dt, old = names(dt), new = capwords(names(dt)))
+    # cat("spiderG:", names(dt), "\n")
+    # cat(str(dt), "\n")
+    # data.table::setnames(dt, old = codeNames.foodGroups, new = foodGroupNamesWrap)
     p <- spiderGraphOutput(dt, scenarioName)
     ggiraph(code = print(p), zoom_max = 1, selection_type = "single")
   })
   
   # availability table server side -----
   output$availabilityTableP1 <- DT::renderDataTable({
-    dt <- copy(data.foodAvail())
+    dt <- as.data.table(copy(data.foodAvail()))
+    # cat("str(tablep1:", str(dt), "\n")
+    # cat("availTableP1", names(dt), "\n")
     dt <- pivotWideToWideYear(dt)
+#    cat("pivoted: ", names(dt), "\n")
     nutrient <- "food group"
     setnames(dt, old = "nutrient_foodGroup", new = nutrient) # new depends on whether dt is for food groups or nutrients
     #dt[, scenario := gsub("", "", scenario)]
@@ -689,7 +696,7 @@ server <- function(input, output, session) {
   # adequacy graphs server side -----
   
   output$adequacySpiderGraphtot <- renderPlot({
-    dt <- copy(data.adequacy.tot())
+    dt <- as.data.table(copy(data.adequacy.tot()))
     # order of nutrients in the spider graph
     newOrder <- c("scenario", "region_code.IMPACT159", "nutrientType", "year", 
                   "carbohydrate_g", "protein_g", "totalfiber_g",
@@ -709,7 +716,8 @@ server <- function(input, output, session) {
   
   
   output$adequacySpiderGraphP1 <- renderPlot({
-    dt <- copy(data.adequacy.macro())
+    dt <- as.data.table(copy(data.adequacy.macro()))
+    cat("adequacy macro": str(dt))
     scenarioName <- unique(dt$scenario)
     #dt[, scenario := gsub("", "", scenario)]
     #   data.table::setnames(dt, old = names(dt), new = capwords(names(dt)))
@@ -720,7 +728,7 @@ server <- function(input, output, session) {
   })
   
   output$adequacySpiderGraphP2 <- renderPlot({
-    dt <- copy(data.adequacy.vits())
+    dt <- as.data.table(copy(data.adequacy.vits()))
     scenarioName <- unique(dt$scenario)
     #dt[, scenario := gsub("", "", scenario)]
     #   data.table::setnames(dt, old = names(dt), new = capwords(names(dt)))
@@ -741,7 +749,7 @@ server <- function(input, output, session) {
   # })
   
   output$adequacySpiderGraphP3 <- renderPlot({
-    dt <- copy(data.adequacy.minrls())
+    dt <- as.data.table(copy(data.adequacy.minrls()))
     scenarioName <- unique(dt$scenario)
     #dt[, scenario := gsub("", "", scenario)]
     #   data.table::setnames(dt, old = names(dt), new = capwords(names(dt)))
@@ -753,7 +761,7 @@ server <- function(input, output, session) {
   
   # adequacy tables server side -----
   output$adequacyTableP1 <- DT::renderDataTable({
-    dt <- copy(data.adequacy.macro())
+    dt <- as.data.table(copy(data.adequacy.macro()))
     dt <- pivotWideToWideYear(dt)
     nutrient <- "nutrient"
     data.table::setnames(dt, old = "nutrient_foodGroup", new = nutrient) # new depends on whether dt is for food groups or nutrients
@@ -771,7 +779,7 @@ server <- function(input, output, session) {
   })
   
   output$adequacyTableTot <- DT::renderDataTable({
-    dt <- copy(data.adequacy.tot())
+    dt <- as.data.table(copy(data.adequacy.tot()))
     # order of nutrients in the spider graph
     newOrder <- c("scenario", "region_code.IMPACT159", "nutrientType", "year", 
                   "carbohydrate_g", "protein_g", "totalfiber_g",
@@ -801,7 +809,7 @@ server <- function(input, output, session) {
   )
   
   output$adequacyTableP2 <- DT::renderDataTable({
-    dt <- copy(data.adequacy.vits())
+    dt <- as.data.table(copy(data.adequacy.vits()))
     dt <- pivotWideToWideYear(dt)
     nutrient <- "nutrient"
     data.table::setnames(dt, old = "nutrient_foodGroup", new = nutrient) # new depends on whether dt is for food groups or nutrients
@@ -955,7 +963,8 @@ server <- function(input, output, session) {
   # adequacy AMDR graph server side ------
   output$AMDRbarGraphP1 <- renderggiraph({
     dt <- copy(data.AMDR())
-    p <- plotByRegionBarAMDRinShiny(dt, yLab = "share of total dietary energy (percent)")
+ #   cat(str(dt))
+    p <- plotByRegionBarAMDRinShiny(barData = dt, yLab = "share of total dietary energy (percent)")
     ggiraph(code = print(p), zoom_max = 1, selection_type = "single")
   })
   

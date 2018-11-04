@@ -32,6 +32,7 @@ gdxChoice <- getGdxChoice()
 #' population data set used for weighting by population -----
 dt.pop <- getNewestVersion("dt.PopX0", fileloc("iData"))
 dt.pop[, scenario := gsub("-", "_", scenario)]
+dt.pop[, scenario := gsub("_REF", "", scenario)] # added for final version of paper Nov 3, 2018
 
 getRegionOrder <- function(aggChoice, regionNames){
   regionNameOrder <- character(0)
@@ -62,13 +63,13 @@ updateLegendGrobs <- function(l, aggChoice, legendLoc, mergedVals) {
   # use an arbitrary file to construct the grob. This code modified from aggRun.R
   DTGlobal <- getNewestVersion("dt.budgetShare", fileloc("resultsDir"))
   DTGlobal[, scenario := gsub("-", "_", scenario)]
+  DTGlobal[, scenario := gsub("_REF", "", scenario)] # added for final version of paper Nove 3, 2018
   DT <- aggNorder(gdxChoice, DTaggNorder = DTGlobal, aggChoice, scenChoice = get(l), mergedVals, plotErrorBars) # returns a scenario list with 2010
   ylab <- "(percent)"
   cat("\nCreating legend grob for ", aggChoice, ",", l, "and", legendLoc, "\n")
   regionCodes <- unique(DT$region_code)
   regionNames <- unique(DT$region_name)
   scenarios <- unique(DT$scenario)
-  DT[, scenario := gsub("-REF", "", scenario)]
   scenOrder <- get(l) # returns a scenario list with X2010
   scenOrder <- gsub("X", "", scenOrder) # gets rid of the X in 2010 so the legend is ordered properly
   regionNameOrder <- getRegionOrder(aggChoice, regionNames)
@@ -77,8 +78,9 @@ updateLegendGrobs <- function(l, aggChoice, legendLoc, mergedVals) {
   DT[, region_name := factor(region_name, levels =  regionNameOrder)]
   DT[, scenario := factor(scenario, levels = scenarioNameOrder)]
   if (gdxChoice %in% "USAID")  DT <- renameUSAIDscenarios(DT)
-  if (gdxChoice %in% "USAIDPriorities") DT[, scenario := gsub("SSP2-HGEM-", "", scenario)] # needed to shorten scenario names
-  if (gdxChoice %in% "AfricanAgFutures") DT[, scenario := gsub("SSP2-HGEM-", "", scenario)] 
+  # next two lines not needed as of Nov 3, 2018
+  # if (gdxChoice %in% "USAIDPriorities") DT[, scenario := gsub("SSP2-HGEM-", "", scenario)] # needed to shorten scenario names
+  # if (gdxChoice %in% "AfricanAgFutures") DT[, scenario := gsub("SSP2-HGEM-", "", scenario)] 
   
   #' draw bars to get the legend
   p <- ggplot(DT, aes(x = region_name, y = value, fill = scenario, order = c("region_name") )) +
@@ -102,6 +104,7 @@ orderRegions <- function(DT, aggChoice) {
     #' percap GDP data for ordering by income
     dt.pcGDPX0 <- getNewestVersionIMPACT("dt.pcGDPX0")
     dt.pcGDPX0[, scenario := gsub("-", "_", scenario)]
+    DTGlobal[, scenario := gsub("_REF", "", scenario)] # added for final version of paper Nove 3, 2018
     dt.pcGDPX0 <- dt.pcGDPX0[year %in% c("X2010","X2050"), ]
     #data.table::setkeyv(dt.GDP,c("region_code.IMPACT159"))
     dt.pcGDPX0 <- dt.pcGDPX0[,growthRate :=  lapply(.SD, function(x)((x/shift(x))^(1/(2050 - 2010)) - 1) * 100),
@@ -236,8 +239,9 @@ plotByRegionBar <- function(dt, fileName, plotTitle, yLab, yRange, aggChoice, su
   regionCodes <- unique(temp$region_code)
   regionNames <- unique(temp$region_name)
   scenarios <- unique(temp$scenario)
-  temp[, scenario := gsub("-REF", "", scenario)]
-  scenOrder <- gsub("-REF", "", scenOrder)
+  # next two lines not needed as of Nov 3, 2018
+  # temp[, scenario := gsub("-REF", "", scenario)]
+  # scenOrder <- gsub("-REF", "", scenOrder)
   regionNameOrder <- getRegionOrder(aggChoice, regionNames)
   scenarioNameOrder <- scenOrder
   if ("2010" %in% scenarios & !"2010" %in% scenarioNameOrder) scenarioNameOrder <- c("2010", scenarioNameOrder)
@@ -272,20 +276,38 @@ plotByRegionBar <- function(dt, fileName, plotTitle, yLab, yRange, aggChoice, su
   legendLoc <- "right"
   height = 5
   width = 7
-  yvalSupplment = 0
+  yDelta <- max(temp$value) - min(temp$value)
+  yvalSupplment <- yDelta * .04
+  roundVal = 2
+  
+  if (max(temp$value) > 20) {roundVal = 1} # for text in the bars
+  if (max(temp$value) > 99) {roundVal = 1} # for text in the bars
+  if (max(temp$value) > 999) {roundVal = 0} # for text in the bars
   
   if (!aggChoice %in% "regions.AfricanAgFutures") {
+    legendLoc <- "none"
     p <- ggplot(data = temp, aes(x = factor(region_name), y = value, group = scenario)) +
       geom_col(aes(fill = scenario), position = "dodge", color = "black") +
       coord_cartesian(ylim = yRange) +
+      theme( # remove the vertical grid lines
+        panel.grid.major.x = element_blank() ,
+        # explicitly set the horizontal lines (or they will disappear too)
+        panel.grid.major.y = element_line( size=.1, color="black", ), 
+        panel.background = element_blank(),
+        axis.line.y = element_line(colour = 'black', size=0.1, linetype='solid'),
+        axis.line.x = element_line(colour = 'black', size=0.1, linetype='solid')
+      ) +
       theme(legend.position = legendLoc, legend.text=element_text(size=10)) +
       labs(x = NULL, y = yLab) +
       theme(axis.text.x = element_text(angle = 45, hjust = 1, family = fontFamily, face = "plain")) +
       theme(axis.title.y = element_text(family = fontFamily, face = "plain")) +
       scale_fill_manual(values = colorList) +
       theme(plot.title = element_text(hjust = 0.5, size = 11, family = fontFamily, face = "plain")) +
-      ggtitle(plotTitle)
-    
+      ggtitle(plotTitle) 
+    # p <- p + geom_text(aes(label = formatC(round(value, roundVal), format='f', digits = roundVal),
+    #               x = factor(scenario), y = yval + yvalSupplment), position = position_dodge(0.9),
+    #           size = fontsize, angle = 90, color = "black")
+    #   
     #' the 'or' part of the if statement means don't draw the line if it's greater than ymax
     if (oneLine == FALSE | oneLine > yRange[2]) {} else {
       p <- p + geom_hline(aes(yintercept = oneLine, color = "black"), show.legend = FALSE)
@@ -298,15 +320,11 @@ plotByRegionBar <- function(dt, fileName, plotTitle, yLab, yRange, aggChoice, su
     }
     p <- p + geom_text(aes(label = formatC( round(value, roundVal), format='f', digits = roundVal),
                            x = factor(region_name), y = yval), position = position_dodge(0.9),
-                       size = fontsize, angle = 90, color = "black")  # + vjust = "bottom", hjust = 'left', commented out April 8, 2018
+                       size = fontsize, angle = 90, color = "black")
   }
   
   if (aggChoice %in% "regions.AfricanAgFutures"){ 
     nrow = 1; legendLoc = "bottom"; height = 3; fontsize = 3
-    if (max(temp$value) > 50) {roundVal = 1; yvalSupplment = 15} # for text in the bars
-    if (max(temp$value) > 99) {roundVal = 1; yvalSupplment = 30} # for text in the bars
-    if (max(temp$value) > 999) {roundVal = 0; yvalSupplment = 300} # for text in the bars
-    
     yDelta <- max(temp$value) - min(temp$value)
     yvalSupplment <- yDelta * .04
     
@@ -321,11 +339,14 @@ plotByRegionBar <- function(dt, fileName, plotTitle, yLab, yRange, aggChoice, su
       theme(axis.title.x=element_blank(),
             axis.text.x=element_blank(),
             axis.ticks.x=element_blank()) +
-      theme(panel.background = element_blank(),
-            # remove the vertical grid lines
-            panel.grid.major.x = element_blank() ,
-            # explicitly set the horizontal lines (or they will disappear too)
-            panel.grid.major.y = element_line(size=.1, color="black" )) +
+      theme( # remove the vertical grid lines
+        panel.grid.major.x = element_blank() ,
+        # explicitly set the horizontal lines (or they will disappear too)
+        panel.grid.major.y = element_line( size=.1, color="black", ), 
+        panel.background = element_blank(),
+        axis.line.y = element_line(colour = 'black', size=0.1, linetype='solid'),
+        axis.line.x = element_line(colour = 'black', size=0.1, linetype='solid')
+      ) +
       # the commented out code puts the scenario names below the x axis, slightly rotated
       # theme(axis.text.x = element_text(angle = 70, hjust = 1, family = fontFamily, face = "plain")) +
       # theme(axis.title.y = element_text(family = fontFamily, face = "plain")) +
@@ -350,6 +371,7 @@ plotByRegionBar <- function(dt, fileName, plotTitle, yLab, yRange, aggChoice, su
                              position = position_dodge(.9), color = "grey")
     }
   }
+
   ggsave(file = paste0(fileloc("gDir"),"/",fileName,".png"), plot = p, device = "png",
          width = width, height = height)
   
@@ -371,6 +393,7 @@ plotByRegionBar <- function(dt, fileName, plotTitle, yLab, yRange, aggChoice, su
   temp.wide[,(colsToRound) := round(.SD,2), .SDcols = colsToRound]
   data.table::setnames(temp.wide, old = names(temp.wide), new = c("scenario", regionCodes))
   write.csv(temp.wide, file = paste(fileloc("gDir"),"/", fileName, ".csv", sep = ""))
+  return(p)
 }
 
 plotByRegionStackedBar <- function(dt, fileName, plotTitle, yLab, yRange, aggChoice, suffix, scenOrder, oneLine, colorList, graphsListHolder) {
@@ -390,8 +413,9 @@ plotByRegionStackedBar <- function(dt, fileName, plotTitle, yLab, yRange, aggCho
   # to the top of the bar. Commented out July 11, 2018
   yval <- (yRange[2] - yRange[1]) *.065
   
-  temp[, scenario := gsub("-REF", "", scenario)]
-  scenOrder <- gsub("-REF", "", scenOrder)
+  # Next two lines not needed as of Nov 3, 2018
+#  temp[, scenario := gsub("-REF", "", scenario)] 
+#  scenOrder <- gsub("-REF", "", scenOrder)
   regionNameOrder <- getRegionOrder(aggChoice, regionNames)  
   scenarioNameOrder <- scenOrder
   if ("2010" %in% scenarios & !"2010" %in% scenarioNameOrder) scenarioNameOrder <- c("2010", scenarioNameOrder)
@@ -426,18 +450,20 @@ plotByRegionStackedBar <- function(dt, fileName, plotTitle, yLab, yRange, aggCho
   if (aggChoice %in% c("regions.AfricanAgFutures")){ nrow = 1;  height = 4; width = 8}
   p <- ggplot(data=temp, aes(scenario, y = value, fill = nutrient, levels =  region_name, position_dodge(preserve = "total"))) +
     geom_bar(stat = "identity", position = "stack", color = "black", width = .80, group = "region_name") +
+    theme( # remove the vertical grid lines
+      panel.grid.major.x = element_blank() ,
+      # explicitly set the horizontal lines (or they will disappear too)
+      panel.grid.major.y = element_line( size=.1, color="black", ), 
+      panel.background = element_blank(),
+      axis.line.y = element_line(colour = 'black', size=0.1, linetype='solid'),
+      axis.line.x = element_line(colour = 'black', size=0.1, linetype='solid')
+    ) +
     theme(legend.position = legendLoc) +
     theme(legend.title=element_blank()) + 
     labs(x = NULL, y = yLab) +
     theme(axis.text.x = element_text(angle = 70, hjust = 1, family = fontFamily, face = "plain")) +
     theme(axis.title.y = element_text(family = fontFamily, face = "plain")) +
     theme(plot.title = element_text(hjust = 0.5, size = 11, family = fontFamily, face = "plain")) +
-    theme(panel.background = element_blank(),
-          # remove the vertical grid lines
-          panel.grid.major.x = element_blank() ,
-          # explicitly set the horizontal lines (or they will disappear too)
-          panel.grid.major.y = element_line(size=.1, color="black" )) + #scale_fill_manual(values = colorList) +
-    # theme(plot.title = element_text(hjust = 0.5, size = 11, family = fontFamily, face = "plain")) +
     scale_fill_manual(values = colorList) +
     ggtitle(plotTitle) +
     facet_wrap(~ region_name, nrow = nrow) +
@@ -483,8 +509,9 @@ plotByBoxPlot2050 <- function(dt, fileName, plotTitle, yLab, yRange, aggChoice, 
   temp <- copy(dt)
   regionCodes <- unique(temp$region_code)
   regionNames <- unique(temp$region_name)
-  temp[, scenario := gsub("-REF", "", scenario)]
-  scenOrder <- gsub("-REF", "", scenOrder)
+  # Next two lines not needed as of Nov 3, 2018
+  #  temp[, scenario := gsub("-REF", "", scenario)] 
+  #  scenOrder <- gsub("-REF", "", scenOrder)
   regionNameOrder <- getRegionOrder(aggChoice, regionNames)  
   
   scenarioNameOrder <- scenOrder
@@ -501,6 +528,14 @@ plotByBoxPlot2050 <- function(dt, fileName, plotTitle, yLab, yRange, aggChoice, 
     theme(axis.title.y = element_text(family = fontFamily, face = "plain")) +
     scale_fill_manual(values = colorList) +
     theme(plot.title = element_text(hjust = 0.5, size = 11, family = fontFamily, face = "plain")) +
+    theme( # remove the vertical grid lines
+      panel.grid.major.x = element_blank() ,
+      # explicitly set the horizontal lines (or they will disappear too)
+      panel.grid.major.y = element_line( size=.1, color="black", ), 
+      panel.background = element_blank(),
+      axis.line.y = element_line(colour = 'black', size=0.1, linetype='solid'),
+      axis.line.x = element_line(colour = 'black', size=0.1, linetype='solid')
+    ) +
     ggtitle(plotTitle) +
     ylim(yRange) +
     labs(y = yLab, x = NULL)
@@ -511,7 +546,6 @@ plotByBoxPlot2050 <- function(dt, fileName, plotTitle, yLab, yRange, aggChoice, 
   #' code to save the plot for future use
   graphsListHolder[[fileName]] <- p
   assign("graphsListHolder", graphsListHolder, envir = .GlobalEnv)
-  
 }
 #
 # plotByRegionLine <- function(dt, fileName, plotTitle, yRange, regionCodes, colorList) {
@@ -599,15 +633,17 @@ plotByBoxPlot2050 <- function(dt, fileName, plotTitle, yLab, yRange, aggChoice, 
 #'   assign("graphsListHolder", graphsListHolder, envir = .GlobalEnv)
 #' }
 
+
 plotByRegionBarAMDR <- function(dt, fileName, plotTitle, yLab, yRange, aggChoice, suffix, scenOrder, colorList, AMDR_lo, AMDR_hi, graphsListHolder, plotErrorBars) {
-  cat("\nPlotting AMDR bars for region ", aggChoice, "for", plotTitle) #, "\n"
+  cat("Plotting AMDR bars for region", aggChoice, "for", plotTitle, "\n") 
   plotTitle <- capwords(plotTitle)
   temp <- copy(dt)
   regionCodes <- unique(temp$region_code)
   regionNames <- unique(temp$region_name)
   scenarios <- unique(temp$scenario)
-  temp[, scenario := gsub("-REF", "", scenario)]
-  scenOrder <- gsub("-REF", "", scenOrder)
+  # Next two lines not needed as of Nov 3, 2018
+  #  temp[, scenario := gsub("-REF", "", scenario)] 
+  #  scenOrder <- gsub("-REF", "", scenOrder)
   regionNameOrder <- getRegionOrder(aggChoice, regionNames)  
   scenarioNameOrder <- scenOrder
   temp[, region_name := gsub(" income", "", region_name)]
@@ -629,6 +665,14 @@ plotByRegionBarAMDR <- function(dt, fileName, plotTitle, yLab, yRange, aggChoice
   #' when all elements of value are the same as the max y range
   p <- ggplot(temp, aes(x = region_name, y = value, fill = scenario, order = c("region_name") )) +
     geom_bar(stat = "identity", position = "dodge", color = "black") +
+    theme( # remove the vertical grid lines
+      panel.grid.major.x = element_blank() ,
+      # explicitly set the horizontal lines (or they will disappear too)
+      panel.grid.major.y = element_line( size=.1, color="black", ), 
+      panel.background = element_blank(),
+      axis.line.y = element_line(colour = 'black', size=0.1, linetype='solid'),
+      axis.line.x = element_line(colour = 'black', size=0.1, linetype='solid')
+    ) +
     theme(legend.position = "none") +
     theme(axis.text.x = element_text(angle = 45, hjust = 1, family = fontFamily, face = "plain")) +
     theme(axis.title.y = element_text(family = fontFamily, face = "plain")) +
@@ -637,9 +681,10 @@ plotByRegionBarAMDR <- function(dt, fileName, plotTitle, yLab, yRange, aggChoice
     ggtitle(plotTitle) +
     labs(y = yLab, x = NULL) +
     geom_hline(aes(yintercept = AMDR_lo), color = "darkgreen", show.legend = FALSE) +
-    geom_text(aes(.6, AMDR_lo + 2.5, label = "Low", family = fontFamily), color = "black") + # value after AMDR_lo shifts the label up or down
+    geom_label(aes(x = .6, y = AMDR_lo + 2, label = "Low", family = fontFamily), fill= "white", color = "black", nudge_x = 0.25) + # value after AMDR_lo shifts the label up or down
+ #   geom_text(aes(.6, AMDR_lo + 2.5, label = "Low", family = fontFamily), color = "black") + # value after AMDR_lo shifts the label up or down
     geom_hline(aes(yintercept = AMDR_hi),  color = "dark red", show.legend = FALSE) +
-    geom_text(aes(.6, AMDR_hi + 2.5, label = "High"), color = "black")
+    geom_label(aes(x = .6, y = AMDR_hi + 2, label = "High"), nudge_x = 0.25, fill= "white", color = "black")
   # next line adds the vertical numbers
   p <- p + geom_text(aes(label = formatC( round(value, roundVal), format='f', digits = roundVal),
                          x = factor(region_name), y = yval), position = position_dodge(0.9),
@@ -658,6 +703,7 @@ plotByRegionBarAMDR <- function(dt, fileName, plotTitle, yLab, yRange, aggChoice
     data = temp,
     formula = formula.wide,
     value.var = "value")
+  # next line probably not needed as of Nov 3, 2018
   temp.wide[, scenarioOrder := match(scenario, gsub("-REF","",scenarios))]
   data.table::setorder(temp.wide, scenarioOrder)
   temp.wide[, scenarioOrder := NULL]
@@ -668,4 +714,5 @@ plotByRegionBarAMDR <- function(dt, fileName, plotTitle, yLab, yRange, aggChoice
   data.table::setnames(temp.wide, old = names(temp.wide), new = c("scenario", regionCodes))
   #  textplot(temp.wide, cex = 0.6, valign = "top", show.rownames = FALSE, mai = c(.5, .5, .5, .5))
   write.csv(temp.wide, file = paste(fileloc("gDir"),"/", fileName, ".csv", sep = ""))
+  return(p)
 }

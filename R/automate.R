@@ -34,7 +34,7 @@ options(warn = 2) # converts all warnings to errors
 # sourcer function set up in nutrientModFunctions.R
 # sourcer <- function(sourceFile){
 # sourceFile <- paste0("R/", sourceFile)
-#   cat("\n\nRunning ", sourceFile, "\n")
+#   cat("\nRunning ", sourceFile, "\n")
 #   source(sourceFile)
 # }
 sourceFile <- "automate.R"
@@ -87,13 +87,13 @@ gdxLibraryLocationCheck()
 sourceFile <- "gdxrrwSetup.R"
 sourcer(sourceFile)
 
-if (oneTimeDataUpdate %in% c("Y", "y")){
-  # only needs to be run when a new SSP data file if obtained
-  sourceFile <- "dataPrep.SSP.R"
-  sourcer(sourceFile)
+if (oneTimeDataUpdate %in% c("Y", "y", "yes", "Yes")){
   # only needs to be run when new regions or aggregations are added
   sourceFile <- "dataPrep.regions.R"
   sourcer(sourceFile) # - creates dt.regions.all and the list of scenarios
+  # only needs to be run when a new SSP data file if obtained
+  sourceFile <- "dataPrep.SSP.R"
+  sourcer(sourceFile)
   # only needs to be run when new FBS info from FAO arrives
   sourceFile <- "dataPrep.FBS.R"
   # sourcer(sourceFile) # - creates dt.FBS, mData
@@ -158,7 +158,7 @@ sourcer(sourceFile)
 
 start_time <- Sys.time()
 sourceFile <- "nutCalcsProcessing.R"
-sourcer(sourceFile) # should probably be rewritten so it doesn't take so long to run
+sourcer(sourceFile) 
 
 start_time <- Sys.time()
 sourceFile <- "diversityMetrics.R"
@@ -186,6 +186,11 @@ if (!gdxChoice %in% "AfricanAgFutures") {
 start_time <- Sys.time()
 sourceFile <- "aggRun.R"
 sourcer(sourceFile)
+sourceFile <- "dataPrepSingleScenario.R" # compares CGE results to non-CGE results
+sourcer(sourceFile)
+start_time <- Sys.time()
+sourceFile <- "finalGraphCreation.R"
+sourcer(sourceFile)
 }
 
 if (gdxChoice %in% "AfricanAgFutures") {
@@ -194,9 +199,6 @@ if (gdxChoice %in% "AfricanAgFutures") {
   sourcer(sourceFile)
 }
 
-start_time <- Sys.time()
-sourceFile <- "finalGraphCreation.R"
-sourcer(sourceFile)
 
 sourceFile <- "dataPrep.metadata.R"
 sourcer(sourceFile)

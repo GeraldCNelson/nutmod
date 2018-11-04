@@ -19,7 +19,6 @@
 #' and parameters for IMPACT and generates scenarios of per capita availability for fish composite food items and
 #' beer, wine and spirits. The output file is dt.fishnAlcScenarios
 #' The fish food availability data are taken from FAO's FBS data set.
-#' This file was significantly modified in Oct 2018. The old version can be found in old/oldR.
 
 # options(warn=2)
 source("R/nutrientModFunctions.R")
@@ -167,24 +166,40 @@ if (switch.changeElasticity == TRUE) {
 
 # next few lines assign income elasticities to all the region_code.IMPACT159 countries. For non-159 countries, elasticities are set to values for ROW.
 dt.incElas.fish <- merge(dt.incElas.fish, dt.regions.all, by = "region_code.IMPACT115")
+
+# Need to get rid of all region_code.IMPACT159 that are in ROW for region_code.IMPACT115. The logic below appears to work. Oct 29, 2018
+regions.159 <- unique(dt.regions.all$region_code.IMPACT159)
+dt.incElas.fish <- dt.incElas.fish[!(region_code.IMPACT115 %in% "ROW" &  
+                                     region_code.IMPACT159 %in% regions.159), ]
+
 keepListCol <- c( "region_code.IMPACT159", paste0(fishNalcNames, ".elas"))
 dt.incElas.fish[, setdiff(names(dt.incElas.fish), keepListCol) := NULL]
 dt.incElas.fish <- unique(dt.incElas.fish)
-# create a fish elasticities data table with the same income elasticities in all years
-dt.years <- data.table::data.table(year = rep(keepYearList, each = nrow(dt.incElas.fish)))
 
-#' @param - dt.incElas.fish - fish elasticities for each region in the SSP data and all years
+# need to weight fish elasticities for individual  countries in regions by their population. oct 29, 2018
+
+# BLT, BLX, CHM, CHP, GSA, ITP, MOR, OBN, RAP, SDP, SPP still duplicated in region_code.IMPACT159 so need to run the code below
+dt.incElas.fish <- merge(dt.incElas.fish, dt.pop.initialYears, by = c("region_code.IMPACT159"))
+fishElas <- names(dt.incElas.fish)[!names(dt.incElas.fish) %in% c("region_code.IMPACT159", "year")]
+for (i in fishElas){
+  dt.incElas.fish <- dt.incElas.fish[, (i) := weighted.mean(get(i), PopX0), by = c( "region_code.IMPACT159", "year")]
+}
+dt.incElas.fish[, c("PopX0", "year") := NULL] 
+dt.incElas.fish <- unique(dt.incElas.fish)
+
+# create a fish elasticities data table with the same income elasticities in all years
+ dt.years <- data.table::data.table(year = rep(keepYearList, each = nrow(dt.incElas.fish)))
+ #'@param - dt.incElas.fish - fish elasticities for each region in the SSP data and all years
 dt.incElas.fish <- cbind(dt.years, dt.incElas.fish)
 
 inDT <- dt.incElas.fish
 outName <- "dt.incElas.fish" # not used elsewhere
 desc <- "Fish income elasticities estimates to 2050; capped at 1.0. Assumed to be identical in all scenarios and all time periods"
-cleanup(inDT,outName,fileloc("uData"), desc = desc)
+cleanup(inDT, outName, fileloc("mData"), desc = desc)
 
 #combine alcohol and fish income elasticities
 dt.incElas.fishnalc <- merge(dt.incElas.fish, dt.incElas.alc, by = c("region_code.IMPACT159", "year"))
-
-#not yet cleaned up.
+dt.incElas.fishnalc <- unique(dt.incElas.fishnalc)
 
 #' The goal is to estimate food demand (and set it equal to food availability) based on the food availability values from the FBS, income elasticities from
 #' Fish to 2030 and the income levels from the SSPs or other sources. Note that everything is in per capita.
@@ -223,6 +238,7 @@ dt.GDPFBS <- merge(dt.GDPperCap, dt.FBS.wide, by = c("region_code.IMPACT159", "y
 # add income elasticity data to the GDP and FBS data
 dt.GDPFBSelas <- merge(dt.GDPFBS, dt.incElas.fishnalc, by = c("region_code.IMPACT159", "year"), allow.cartesian=TRUE)
 # after the line above there are many duplicates. This may be because of the allow.cartesian.
+# It may have also been because of dups in dt.incElas.fishnalc, removed starting Oct 29, 2019
 dt.GDPFBSelas <- unique(dt.GDPFBSelas)
 
 # create columns to hold intermediate results
@@ -276,7 +292,7 @@ keepYearList <- keyVariable("keepYearList") # get original list
 inDT <- dt.GDPFBSelas.melt[year %in% keepYearList]
 outName <- "dt.fishnAlcScenarios"
 desc <- "Scenarios of fish and alcoholic beverages availability by fish composite and country. Average availability, kgs per person per year"
-cleanup(inDT,outName, fileloc("mData"), desc = desc) # changed to mData Oct 13, 2018
+cleanup(inDT,outName, fileloc("mData"), desc = desc) # changed to mData Oct 30, 2018
 
 # testing of data
 # dt.GDPFBSelas.melt[, fishCons := rowSums(.SD), by = c("scenario", "region_code.IMPACT159", "year", "IMPACT_code")]

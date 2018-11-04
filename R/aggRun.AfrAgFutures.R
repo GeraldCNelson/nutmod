@@ -374,7 +374,7 @@ for (switchloop in getSwitchChoice()) {
         
         fileName = paste(gdxChoice, "_",   multipleNutsListShortName[k], "_", nut, ".", suffix, sep = "")
         fileNameHolder <- append(fileNameHolder, fileName)
-        cat("\nfileName is ", fileName,"\n")
+        cat("fileName is ", fileName,"\n")
         #         print(summary(DT))
         plotByRegionBar(dt, fileName,
                         plotTitle = nutTitle, yLab = ylab, yRange = yRangeMinMax, aggChoice, suffix,
@@ -840,7 +840,7 @@ for (figtype in c(budgetShare, dailyAvail.foodgroup, energy, nutlistmacro, nutli
   
   # not needed perhaps. October 15, 2018
   # fileIn <- data.table::fread(paste(fileloc("gDir"), "/", filename, ".csv", sep = ""), select = 2:6)
-  # cat("\nfileIn:", filename)
+  # cat("fileIn:", filename)
   # for (j in scen2050list) {
   #   # inCats is income categories
   #   for (k in 1:length(incCats)) {
@@ -856,7 +856,7 @@ for (figtype in c(budgetShare, dailyAvail.foodgroup, energy, nutlistmacro, nutli
   #   startRow = rowCounter
   # )
   # rowCounter <- rowCounter + 1
-  # cat("\nrowCounter: ", rowCounter, "\n")
+  # cat("rowCounter: ", rowCounter, "\n")
   # openxlsx::writeData(
   #   wb = figsData, sheet = "FigureData", rowNames = FALSE, colNames = FALSE, startCol = 1,
   #   x = fileIn,

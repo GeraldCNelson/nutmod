@@ -27,6 +27,7 @@ library(dtplyr)
 library(tidyverse) # includes ggplot2, tibble, tidyr, and readr
 library(data.table) # this is needed everywhere and currently some scripts don't call it
 library(ggthemes)
+library(qdapRegex) # needed for the TC (title case) function, added Nov 3, 2018
 
 fontFamily <- "Calibri"
 # .onLoad <- function(libname, pkgname) {
@@ -50,7 +51,7 @@ fontFamily <- "Calibri"
 # sourcer is currently only used in automate.R but could potentially be used elsewhere
 sourcer <- function(sourceFile){
   sourceFile <- paste0("R/", sourceFile)
-  cat("\n\nRunning ", sourceFile, "\n")
+  cat("\nRunning ", sourceFile, "\n")
   source(sourceFile)
 }
 
@@ -360,13 +361,18 @@ cleanupGraphFiles <- function(inGraphFile, outName, destDir, desc) {
   # #print(proc.time())
 }
 
-#capitalize words
-capwords <- function(s, strict = FALSE) {
-  cap <- function(s) paste(toupper(substring(s, 1, 1)),
-                           {s <- substring(s, 2); if (strict) tolower(s) else s},
-                           sep = "", collapse = " " )
-  sapply(strsplit(s, split = " "), cap, USE.NAMES = !is.null(names(s)))
+#capitalize words; replaced with TC function Nov 3, 2018
+
+capwords <- function(s) {
+  TC(s)
 }
+
+# capwords <- function(s, strict = FALSE) {
+#   cap <- function(s) paste(toupper(substring(s, 1, 1)),
+#                            {s <- substring(s, 2); if (strict) tolower(s) else s},
+#                            sep = "", collapse = " " )
+#   sapply(strsplit(s, split = " "), cap, USE.NAMES = !is.null(names(s)))
+# }
 
 cleanupScenarioNames <- function(dt.ptemp) {
   # replaces - with _ and removes 2 from a couple of USAID scenario
@@ -384,7 +390,6 @@ cleanupNutrientNames <- function(nutList) {
   nutList <- gsub("vit_","Vitamin ",nutList)
   nutList <- gsub("_µg","",nutList)
   nutList <- gsub("_mg","",nutList)
-  nutList <- gsub("_rae"," (RAE)",nutList)
   nutList <- gsub("_g","",nutList)
   nutList <- gsub("totalfiber","total fiber",nutList)
   nutList <- gsub(".ratio.foodGroup","",nutList)
@@ -397,6 +402,15 @@ cleanupNutrientNames <- function(nutList) {
   nutList <- gsub("alcoholic nonalcoholic beverages","alcoholic beverages",nutList)
   nutList <- gsub("ft_acds_tot_sat", "saturated fat", nutList)
   nutList <- gsub("_g_AMDR", "", nutList)
+#  nutList <- gsub("Vitamin a", "Vitamin A", nutList)
+   nutList <- gsub("Vitamin b", "Vitamin B", nutList)
+  nutList <- gsub("Vitamin c", "Vitamin C", nutList)
+  nutList <- gsub("Vitamin d", "Vitamin D", nutList)
+  nutList <- gsub("Vitamin e", "Vitamin E", nutList)
+  nutList <- gsub("Vitamin k", "Vitamin K", nutList)
+  nutList <- TC(nutList)
+  nutList <- gsub("A_rae","A (RAE)",nutList)
+  
   return(nutList)
 }
 
@@ -1285,7 +1299,7 @@ gdxFileNameChoice <- function() {
   cat("1. for the nutrient modeling paper\n")
   cat("2. for the USAID nutrient modeling paper\n")
   cat("3. for the USAID priority setting paper, 2018\n")
-  cat("4. for the African Agricultural Futures project")
+  cat("4. for the African Agricultural Futures project\n")
   cat("Note: the relevant gdx file must be in the data-raw/IMPACTdata directory\n")
   choice <- readline(prompt = "Choose the number of the gdx file you want to use. \n")
   #  choice <- "1" # so there will be a definite value
@@ -1628,7 +1642,7 @@ library(scales)
 # }
 
 # new version that allows different maps, added Sep 13, 2108. Not sure why graphsListHolder left out. Added back in Oct 8, 2018
-facetMaps <- function(mapFile, DTfacetMap, fileName, legendText, fillLimits, palette, facetColName, graphsListHolder, displayOrder, width, height) {
+facetMaps <- function(mapFile, DTfacetMap, fileName, legendText, fillLimits, palette, facetColName, graphsListHolder, displayOrder, width = 7, height = 6) {
   #b <- rescale(breakValues, to = c(0,1)) # the values option in scale_fill_gradientn MUST be from 0 to 1
   numLimits = 4
   bb <- generateBreakValues(fillLimits = fillLimits, numLimits = numLimits, decimals = 0)
@@ -1636,13 +1650,15 @@ facetMaps <- function(mapFile, DTfacetMap, fileName, legendText, fillLimits, pal
   f <- fillLimits
   cat("fillLimits :", f, "\n")
   cat("breaks :", b, "\n")
+  cat("width :", width,  "\n")
+  cat("height :", height,  "\n")
   p <- palette
   n <- facetColName
   displayOrder <- gsub("X", "", displayOrder)
   d <- data.table::copy(DTfacetMap)
   d[, (n) := factor(get(n), levels = displayOrder)] 
   keepListCol <- c("id", facetColName, "value")
-  d[, setdiff(names(d), keepListCol) := NULL]
+  if (!isTRUE(all.equal(sort(names(d)), sort(keepListCol)))) {d[, setdiff(names(d), keepListCol) := NULL]} # this format added Oct 30, 2018
   d <- unique(d)
   gg <- ggplot(data = d, aes(map_id = id))
   gg <- gg + geom_map(aes(fill = value), map = mapFile, color=NA, size = 0.5) # "#ffffff" is white
@@ -1663,11 +1679,11 @@ facetMaps <- function(mapFile, DTfacetMap, fileName, legendText, fillLimits, pal
   graphsListHolder[[fileName]] <- gg
   assign("graphsListHolder", graphsListHolder, envir = .GlobalEnv)
   ggsave(file = paste0(fileloc("gDir"),"/",fileName,".png"), plot = gg,
-         width = 7, height = 6)
+         width = width, height = height)
  # use scenarios as columns. Not sure this will work for all files. Oct 22, 2018
   formula.wide <- paste0("id ~ ", facetColName)
   temp <- dcast(data = d, formula = formula.wide, value.var = "value")
-  inDT <- d
+  inDT <- temp # changed to temp from d Oct 31, 2018
   outName <- paste(fileName, "_data")
   desc <- paste("data for ", fileName )
   cleanup(inDT, outName, fileloc("gDir"), "csv", desc = desc)

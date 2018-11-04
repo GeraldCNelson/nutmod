@@ -50,7 +50,6 @@ vars.world <- "PWX0"
 catNames.world <- c("scenario", "IMPACT_code", "year", "value")
 keepYearList <- keyVariable("keepYearList")
 
-
 #' Title generateResults - send a list of variables with common categories to the
 #' function to write out the data
 #' @param vars - list of variables to process
@@ -78,13 +77,13 @@ processIMPACT159Data <- function(gdxFileName, gdxFileLoc, varName, catNames, sin
   dt <- data.table::as.data.table(gdxrrw::rgdx.param(gdxFileLoc, varName,
                                                      ts = TRUE, names = catNames))
   dt <- data.table::as.data.table(rapply(dt, as.character, classes = "factor", how = "replace"))
-
+  
   if(!singleScenario == TRUE) {
     dt[scenario %in% c("SSP1-NoCC", "SSP2-GFDL", "SSP2-HGEM","SSP2-HGEM2", "SSP2-IPSL", "SSP2-IPSL2",
                        "SSP2-MIROC", "SSP2-NoCC", "SSP3-NoCC"),
        scenario := paste(scenario, "-REF", sep = "")]
   }
-
+  
   # dt.temp <- dt.regions.all[,c("region_code.IMPACT159","region_name.IMPACT159"), with = FALSE]
   # data.table::setkey(dt.temp,region_code.IMPACT159)
   # dt.IMPACTregions <- unique(dt.temp)
@@ -117,7 +116,7 @@ processIMPACT159Data <- function(gdxFileName, gdxFileLoc, varName, catNames, sin
 }
 
 for (i in c("SSP2-HGEM2-WithGLOBE.gdx", "SSP2-HGEM-WithoutGLOBE.gdx")) {
-
+  
   # comment out lines below to speed up data crunching.
   # generateResults(vars.land,catNames.land)
   gdxFileLoc <- paste(fileloc("IMPACTRawData"),i, sep = "/")
@@ -225,13 +224,14 @@ dt.50.long <- data.table::melt(dt.50,
                                value.name = "value",
                                variable.factor = FALSE)
 
-dt.50.long.base <- copy(dt.50.long)
-dt.50.long.share <- copy(dt.50.long)
-#for (i in c("base", "share")) {
-  for (i in c( "share")) {
-    DT <- copy(dt.50.long)
-  if (i %in% "base"){
-    DT <- DT[metric %in% c("pcGDPX0_woGlobe", "pcGDPX0_wGlobe", "budget_woGlobe", "budget_wGlobe",
+dt.50.long[, metric := gsub("X0", "", metric)]
+# dt.50.long.base <- copy(dt.50.long)
+# dt.50.long.share <- copy(dt.50.long)
+for (j in c("base", "share")) {
+  #  for (j in c( "share")) {
+  DT <- copy(dt.50.long)
+  if (j %in% "base"){
+    DT <- DT[metric %in% c("pcGDP_woGlobe", "pcGDP_wGlobe", "budget_woGlobe", "budget_wGlobe",
                            "incShare_woGlobe", "incShare_wGlobe"), ]
     # setnames(DT, old = c("pcGDPX0_woGlobe", "pcGDPX0_wGlobe", "budget_woGlobe", "budget_wGlobe",
     #                       "incShare_woGlobe", "incShare_wGlobe"),
@@ -241,58 +241,42 @@ dt.50.long.share <- copy(dt.50.long)
     legendText <- "Macro metrics range"
     fillLimits <- c(0, 35)
   }
-  if (i %in% "share"){
+  if (j %in% "share") {
     DT <- DT[metric %in% c("budgetRatio", "incRatio", "incShareRatio"), ]
     DT[metric %in% c("budgetRatio"), metric := "Food budget effect"]
     DT[metric %in% c("incRatio"), metric := "Income effect"]
-    DT[metric %in% c("incShareRatio"), metric := "Food budget share of income effect"]
+    DT[metric %in% c("incShareRatio"), metric := "Food budget share\n of income effect"]
     legendText <- "(percent)"
-    fillLimits <- c(-10, 10)
+    fillLimits <- c(-10, 5)
   }
+  DT <- truncateDT(DT, fillLimits)
+  
   DT <- countryCodeCleanup(DT) # converts IMPACT region codes to ISO3 codes for largest country in the region
   data.table::setnames(DT, old = "region_code.IMPACT159", new = "id")
   facetColName <- "metric"
   myPalette <- colorRampPalette(rev(brewer.pal(11, "Spectral")))
   palette <- myPalette(4)
   #' middle two values shift the palette gradient; the code below give a smooth change
-  fillRange <- fillLimits[2] - fillLimits[1]
-  breakValues <- scales::rescale(c(fillLimits[1], fillLimits[1] + fillRange/3, fillLimits[1] + fillRange/1.5, fillLimits[2]))
+  # fillRange <- fillLimits[2] - fillLimits[1]
+  # breakValues <- scales::rescale(c(fillLimits[1], fillLimits[1] + fillRange/3, fillLimits[1] + fillRange/1.5, fillLimits[2]))
   displayOrder <- sort(unique(DT[, get(facetColName)])) # default - alphabetically sorted
   prefix <- "SSPs_scenOrderSSP"
   fileName <- paste(prefix,"facetmap", "macroMetrics", "2050", sep = "_")
-  graphsListHolder <- list()
-  facetMaps(worldMap, DTfacetMap = DT, fileName, legendText, fillLimits, palette, facetColName, graphsListHolder, breakValues, displayOrder, height = 3)
-  
-    
- # # print(graphsListHolder)
- # 
- #  b <- breakValues
- #  f <- fillLimits
- #  p <- palette
- #  d <- DT
- #  #d[, (n) := factor(get(n), levels = displayOrder)]
- #  gg.facet <- ggplot(data = d, aes(map_id = id))
- #  gg.facet <- gg.facet + geom_map(aes(fill = value), map = worldMap)
- #  gg <- gg + expand_limits(x = worldMap$long, y = worldMap$lat)
- #  gg <- gg + facet_wrap(facets = "metric")
- #  gg.facet <- gg.facet + theme(legend.position = "bottom")
- #  gg.facet <- gg.facet +  theme(axis.ticks = element_blank(),axis.title = element_blank(), axis.text.x = element_blank(),
- #                    axis.text.y = element_blank(), strip.text = element_text(family = fontFamily, face = "plain"))
- #  gg.facet <- gg.facet + scale_fill_gradientn(colors = p, name = legendText,
- #                                  na.value = "grey50", values = b,
- #                                  guide = "colorbar", limits = f)
- #  gg.facet
-  }
-
-# ggsave(file = paste0(fileloc("gDir"),"/","facet_map_CGEeffects",".png"), plot = gg.facet,
-#        width = 7, height = 3)
-
+  facetMaps(mapFile = worldMap, DTfacetMap = DT, fileName, legendText, fillLimits = fillLimits, 
+            palette = palette, facetColName = facetColName, graphsListHolder = graphsListHolder, displayOrder = displayOrder, height = 3)
+}
 
 gg <- ggplot(data = dt.50, aes(incRatio, incShareRatio))
-gg <- gg + geom_point()
+gg <- gg + geom_point() +
+  theme( # remove the vertical grid lines
+    panel.grid.major.x = element_blank() ,
+    # explicitly set the horizontal lines (or they will disappear too)
+    panel.grid.major.y = element_line( size=.1, color="black", ), 
+    panel.background = element_blank(),
+    axis.line.y = element_line(colour = 'black', size=0.5, linetype='solid')
+  ) 
 gg <- gg + xlab("Change in\nper capita income (percent)") + ylab("Change in\nfood budget share of per capita income (percent)")
 gg
-
 
 ggsave(file = paste0(fileloc("gDir"),"/", prefix,"_CGEeffects",".png"), plot = gg,
        width = 4, height = 4)

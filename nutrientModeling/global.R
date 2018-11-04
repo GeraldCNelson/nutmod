@@ -173,8 +173,8 @@ fileloc <- function(variableName) {
   #     "SSPData"
   #   ))
   # } else {
-    return(eval(parse(text = variableName)))
-#  }
+  return(eval(parse(text = variableName)))
+  #  }
 }
 
 #' getNewestVersion
@@ -186,7 +186,7 @@ fileloc <- function(variableName) {
 getNewestVersion <- function(fileShortName, directory, fileType) {
   if (missing(directory)) {mData <- fileloc("mData")} else {mData <- directory}
   if (missing(fileType)) {fileType <- "rds"}
-
+  
   # see
   # http://stackoverflow.com/questions/7381641/regex-matching-beginning-and-end-strings
   # for an explanation of this regex expression
@@ -200,8 +200,12 @@ getNewestVersion <- function(fileShortName, directory, fileType) {
   # fillIn <- paste('.{', tailLength, '}$', sep = "")
   fileShortNameTest <- paste(fileShortName,"_2", sep = "") # this should get rid of the multiple files problem
   filesofFileType <- list.files(mData)[grep(fileType,list.files(mData))]
-  fileLongName <- filesofFileType[grep(fileShortNameTest, filesofFileType, fixed = TRUE)]
-
+  # fileLongName <- filesofFileType[grep(fileShortNameTest, filesofFileType, fixed = TRUE)]
+  
+  # Note: added grepteststring, changed grep to grepl and fixed to FALSE June 14, 2018
+  greptestString <- paste0("^", fileShortNameTest)
+  fileLongName <- filesofFileType[grepl(greptestString, filesofFileType, fixed = FALSE)]
+  
   if (length(fileLongName) == 0) {
     stop(sprintf("There is no file  '%s' in directory %s", fileShortName, mData))
   } else {
@@ -304,7 +308,7 @@ cleanupNutrientNamesFacetGraph <- function(nutList) {
   nutList <- gsub("alcoholic nonalcoholic beverages","alcoholic beverages",nutList)
   nutList <- gsub("Ft_acds_tot_sat", "saturated fat", nutList)
   nutList <- gsub("_g_AMDR", "", nutList)
-
+  
   return(nutList)
 }
 
@@ -426,7 +430,7 @@ countryCodeCleanup <- function(dt) {
   dt <- dt[region_code.IMPACT159 %in% "BLX", region_code.IMPACT159 := "BEL"]
   dt <- dt[region_code.IMPACT159 %in% "SDP", region_code.IMPACT159 := "SDN"]
   dt <- dt[region_code.IMPACT159 %in% "RAP", region_code.IMPACT159 := "ARE"]
-
+  
   dt <- dt[region_code.IMPACT159 %in% "GSA", region_code.IMPACT159 := "SUR"]
   dt <- dt[region_code.IMPACT159 %in% "CRB", region_code.IMPACT159 := "TTO"]
   dt <- dt[region_code.IMPACT159 %in% "OSA", region_code.IMPACT159 := "SIN"]
@@ -439,39 +443,55 @@ countryCodeCleanup <- function(dt) {
 }
 
 library(scales)
+# old version replaced with new version Nov 1, 2018
+
 facetMaps <- function(mapFile, DTfacetMap, legendText, fillLimits, palette, facetColName,
                       breakValues, displayOrder) {
-  b <- rescale(breakValues, to = c(0,1)) # the values option in scale_fill_gradientn MUST be from 0 to 1
+  numLimits = 4
+  bb <- generateBreakValues(fillLimits = fillLimits, numLimits = numLimits, decimals = 0)
+  b <- rescale(bb, to = c(0,1))
   f <- fillLimits
-  cat("f :", f)
-  cat("b :", b)
+  cat("fillLimits :", f, "\n")
+  cat("breaks :", b, "\n")
+  cat("width :", width,  "\n")
+  cat("height :", height,  "\n")
   p <- palette
   n <- facetColName
+  displayOrder <- gsub("X", "", displayOrder)
   d <- data.table::copy(DTfacetMap)
-  #  d[, (n) := factor(get(n), levels = displayOrder)] commented out to see it does labels better
+  d[, (n) := factor(get(n), levels = displayOrder)]
+  keepListCol <- c("id", facetColName, "value")
+  if (!isTRUE(all.equal(sort(names(d)), sort(keepListCol)))) {d[, setdiff(names(d), keepListCol) := NULL]} # this format added Oct 30, 2018
+  d <- unique(d)
   gg <- ggplot(data = d, aes(map_id = id))
-  gg <- gg + geom_map(dat=worldMap, map = worldMap,
-                      aes(map_id=region), fill="white", color="black")
-  gg <- gg + geom_map(aes(fill = value), map = mapFile, color="#2b2b2b")
+  gg <- gg + geom_map(aes(fill = value), map = mapFile, color=NA, size = 0.5) # "#ffffff" is white
   gg <- gg + expand_limits(x = mapFile$long, y = mapFile$lat)
+  gg <- gg + ggthemes::theme_map()
   gg <- gg + facet_wrap(facets = n)
   gg <- gg + theme(legend.position = "bottom")
-  #  gg <- gg + guides(colour = guide_legend(title.position = "top"))
+  #  gg <- gg + geom_point(data = xd, aes(size="xx.sub1", shape = NA), colour = "grey50")#  gg <- gg + guides(colour = guide_legend(title.position = "top"))
   # gg <- gg + guides(colour = guide_colourbar(title.position="top", title.hjust = 0.5),
   #        size = guide_legend(title.position="top", title.hjust = 0.5))
   gg <- gg +  theme(axis.ticks = element_blank(), axis.title = element_blank(), axis.text.x = element_blank(),
                     axis.text.y = element_blank(), strip.text = element_text(family = fontFamily, face = "plain", size = 12))
   
   gg <- gg + scale_fill_gradientn(colors = p, name = legendText,
-                                  na.value = "grey50", values = b,
-                                  guide = "colorbar", limits = f, labels = f)
-  #
-  return(gg)
+                                  na.value = "grey50",
+                                  guide = "colorbar") #, values = bb, breaks = f, limits = f, labels = f, aesthetics = "fill")
   
-  # graphsListHolder[[fileName]] <- gg
-  # assign("graphsListHolder", graphsListHolder, envir = .GlobalEnv)
-  # ggsave(file = paste0(fileloc("gDir"),"/",fileName,".png"), plot = gg,
-  #        width = 7, height = 6)
+  #graphsListHolder[[fileName]] <- gg
+  #assign("graphsListHolder", graphsListHolder, envir = .GlobalEnv)
+  #ggsave(file = paste0(fileloc("gDir"),"/",fileName,".png"), plot = gg,
+  #width = width, height = height)
+  # use scenarios as columns. Not sure this will work for all files. Oct 22, 2018
+  #formula.wide <- paste0("id ~ ", facetColName)
+  #temp <- dcast(data = d, formula = formula.wide, value.var = "value")
+  #inDT <- temp # changed to temp from d Oct 31, 2018
+  #outName <- paste(fileName, "_data")
+  #desc <- paste("data for ", fileName )
+  #cleanup(inDT, outName, fileloc("gDir"), "csv", desc = desc)
+  return(gg) # If this is returned and not captured by gg <- xxx then it appears in the plot window of rstudio
+  
 }
 
 # # use this function to get a tablegrob. Which can then be placed in a plot. This is done in aggNorder.R
@@ -547,11 +567,11 @@ spiderGraphOutput <- function(spiderData, scenarioName) {
   countryCode <- unique(spiderData$region_code.IMPACT159)
   countryName <- countryNameLookup(countryCode)
   spiderData[, region_code.IMPACT159 := NULL]
-#  data.table::setnames(spiderData, old = names(spiderData), new = capwords(names(spiderData)))
+  #  data.table::setnames(spiderData, old = names(spiderData), new = capwords(names(spiderData)))
   titleText <- paste("Country: ", countryName)
   p <- ggRadar2(data = spiderData, mapping = aes(colour = year, facet = "scenario"), nrow = 1, #, facet = "nutrientType"
-               rescale = FALSE, interactive = FALSE, size = 1,
-               legend.position = "bottom")
+                rescale = FALSE, interactive = FALSE, size = 1,
+                legend.position = "bottom")
   p <- p + theme(plot.title = element_text(hjust = 0.5, size = 12, family = fontFamily,
                                            face = "plain")) + ggtitle(titleText)
   p <- p + theme(axis.text = element_text(size = 10, family = fontFamily, face = "plain"))
@@ -564,7 +584,7 @@ load_data <- function(dataSetsToLoad) {
   #' development files
   dt.metadata <- getNewestVersion("dt.metadata", fileloc("mData"))
   dt.IMPACTgdxParams <- getNewestVersion("dt.IMPACTgdxParams", fileloc("mData"))
-
+  
   loadNresize <- function(dt) {
     temp <- getNewestVersion(dt, fileloc("mData"))
     temp <- (temp[year %in% years])
@@ -573,11 +593,11 @@ load_data <- function(dataSetsToLoad) {
     assign(dt, temp, envir = .GlobalEnv) # this puts the data sets into the global environment
     return(temp) # changed to temp Aug 9, 2018
   }
-
+  
   withProgress(message = 'Loading data', value = 0, {
     #' Number of times we'll go through the loop
     n <- length(dataSetsToLoad)
-
+    
     for (i in 1:n) {
       #' load the data
       dt <- loadNresize(dataSetsToLoad[i])
@@ -586,73 +606,88 @@ load_data <- function(dataSetsToLoad) {
       incProgress(1/n, detail = paste("Loading file", i, "of", n))
     }
   })
-
+  
   shinyjs::hide("loading_page", anim = FALSE, animType = "fade", time = 0.5)
   shinyjs::show("mainTabsetPanel", anim = TRUE, animType = "fade", time = 0.5)
 }
 
-plotByRegionBarAMDR <- function(dt, fileName, plotTitle, yLab, yRange, aggChoice, scenOrder, colorList, AMDR_lo, AMDR_hi,
-                                graphsListHolder, plotErrorBars) {
+# replaced and edited Nov 1, 2018
+plotByRegionBarAMDR <- function(dt, fileName, plotTitle, yLab, yRange, aggChoice, suffix, scenOrder, colorList, AMDR_lo, AMDR_hi, graphsListHolder, plotErrorBars) {
+  cat("Plotting AMDR bars for region", aggChoice, "for", plotTitle, "\n")
   plotTitle <- capwords(plotTitle)
   temp <- copy(dt)
   regionCodes <- unique(temp$region_code)
   regionNames <- unique(temp$region_name)
   scenarios <- unique(temp$scenario)
-
   temp[, scenario := gsub("-REF", "", scenario)]
   scenOrder <- gsub("-REF", "", scenOrder)
-  if (aggChoice %in% "WB") regionNameOrder <- c("Low", "Lower middle", "Upper middle", "High")
-  if (aggChoice %in% "AggReg1") regionNameOrder <- regionNames
-  if (aggChoice %in% "tenregions") regionNameOrder <- regionNames
+  regionNameOrder <- getRegionOrder(aggChoice, regionNames)
   scenarioNameOrder <- scenOrder
   temp[, region_name := gsub(" income", "", region_name)]
   temp[, region_name := factor(region_name, levels =  regionNameOrder)]
   temp[, scenario := factor(scenario, levels = scenarioNameOrder)]
   if (gdxChoice %in% "USAID")  temp <- renameUSAIDscenarios(temp)
-
-  # draw bars
-  pdf(paste(fileloc("gDir"),"/", fileName, ".pdf", sep = ""), width = 7, height = 5.2, useDingbats = FALSE)
+  # adjust location of bar label in the bar (yval) for graph type
+  if (yLab %in% "(Adequacy ratio)") {roundVal = 2} else { roundVal = 1}
+  # next line is supposed to put the label in the bar at 6.5 percent of the distance from the bottom
+  # to the top of the bar. Commented out July 11, 2018
+  # yval <- (yRange[2] - yRange[1]) * .02
+  yval = 1.5 # controls how far above the y axis bottom the vertical numbers are
+  fontsize <- 2.5
+  
+  #' draw bars
+  #  pdf(paste(fileloc("gDir"),"/", fileName, ".pdf", sep = ""), width = 7, height = 5.2)
   if (round(max(temp$value) - yRange[2]) == 0) yRange[2] <- max(temp$value) # will hopefully deal with rare situation
-  # when all elements of value are the same as the max y range
+  #' when all elements of value are the same as the max y range
   p <- ggplot(temp, aes(x = region_name, y = value, fill = scenario, order = c("region_name") )) +
     geom_bar(stat = "identity", position = "dodge", color = "black") +
-    #    theme(legend.position = "right") +
+    theme( # remove the vertical grid lines
+      panel.grid.major.x = element_blank() ,
+      # explicitly set the horizontal lines (or they will disappear too)
+      panel.grid.major.y = element_line( size=.1, color="black" ),
+      panel.background = element_blank()
+    ) +
     theme(legend.position = "none") +
     theme(axis.text.x = element_text(angle = 45, hjust = 1, family = fontFamily, face = "plain")) +
     theme(axis.title.y = element_text(family = fontFamily, face = "plain")) +
-    # scale_y_continuous(limits = yRange) +
     scale_fill_manual(values = colorList) +
     theme(plot.title = element_text(hjust = 0.5, size = 11, family = fontFamily, face = "plain")) +
     ggtitle(plotTitle) +
     labs(y = yLab, x = NULL) +
-    geom_hline(aes(yintercept = AMDR_lo,  color = "green")) +
-    geom_text( aes(.75, AMDR_lo + 2, label = "Low", color = "green")) +
-    geom_hline(aes(yintercept = AMDR_hi,  color = "dark red")) +
-    geom_text( aes(.75, AMDR_hi + 2, label = "High", color = "green"))
-
-#' code to save the plot for future use
-  graphsListHolder[[fileName]] <- p
-  assign("graphsListHolder", graphsListHolder, envir = .GlobalEnv)
-  print(p)
-  # legend <- g_legend(p)
-  dev.off()
-
+    geom_hline(aes(yintercept = AMDR_lo), color = "darkgreen", show.legend = FALSE) +
+    geom_label(aes(x = .6, y = AMDR_lo + 2, label = "Low", family = fontFamily), fill= "white", color = "black", nudge_x = 0.25) + # value after AMDR_lo shifts the label up or down
+    #   geom_text(aes(.6, AMDR_lo + 2.5, label = "Low", family = fontFamily), color = "black") + # value after AMDR_lo shifts the label up or down
+    geom_hline(aes(yintercept = AMDR_hi),  color = "dark red", show.legend = FALSE) +
+    geom_label(aes(x = .6, y = AMDR_hi + 2, label = "High"), nudge_x = 0.25, fill= "white", color = "black")
+  # next line adds the vertical numbers
+  p <- p + geom_text(aes(label = formatC( round(value, roundVal), format='f', digits = roundVal),
+                         x = factor(region_name), y = yval), position = position_dodge(0.9),
+                     size = fontsize, angle = 90, color = "black")  # + vjust = "bottom", hjust = 'left', commented out April 8, 2018
+  
+  ggsave(filename = paste0(fileloc("gDir"),"/",fileName,".png"), plot = p,
+         width = 7, height = 6)
+  
+  #' code to save the plot for future use
+  #graphsListHolder[[fileName]] <- p
+  #assign("graphsListHolder", graphsListHolder, envir = .GlobalEnv)
+  
   # save data
-  formula.wide <- "scenario ~ factor(region_code, levels = unique(region_code))"
-  temp.wide <- data.table::dcast(
-    data = temp,
-    formula = formula.wide,
-    value.var = "value")
-  temp.wide[, scenarioOrder := match(scenario, gsub("-REF","",scenarios))]
-  data.table::setorder(temp.wide, scenarioOrder)
-  temp.wide[, scenarioOrder := NULL]
-  data.table::setnames(temp.wide, old = regionCodes, new = regionNames)
-
-  colsToRound <- names(temp.wide)[2:length(temp.wide)]
-  temp.wide[,(colsToRound) := round(.SD,2), .SDcols = colsToRound]
-  data.table::setnames(temp.wide, old = names(temp.wide), new = c("scenario", regionCodes))
+  #formula.wide <- "scenario ~ factor(region_code, levels = unique(region_code))"
+  #temp.wide <- data.table::dcast(
+  #data = temp,
+  #formula = formula.wide,
+  #value.var = "value")
+  #temp.wide[, scenarioOrder := match(scenario, gsub("-REF","",scenarios))]
+  #data.table::setorder(temp.wide, scenarioOrder)
+  #temp.wide[, scenarioOrder := NULL]
+  #data.table::setnames(temp.wide, old = regionCodes, new = regionNames)
+  
+  #colsToRound <- names(temp.wide)[2:length(temp.wide)]
+  #temp.wide[,(colsToRound) := round(.SD,2), .SDcols = colsToRound]
+  #data.table::setnames(temp.wide, old = names(temp.wide), new = c("scenario", regionCodes))
   #  textplot(temp.wide, cex = 0.6, valign = "top", show.rownames = FALSE, mai = c(.5, .5, .5, .5))
-  write.csv(temp.wide, file = paste(fileloc("gDir"),"/", fileName, ".csv", sep = ""))
+  #write.csv(temp.wide, file = paste(fileloc("gDir"),"/", fileName, ".csv", sep = ""))
+  return(p)
 }
 
 load_data_special <- function(data_name) {
@@ -661,7 +696,7 @@ load_data_special <- function(data_name) {
       temp <- getNewestVersion(data_name, fileloc("mData"))
       temp[, scenario := gsub("-REF", "", scenario)] # added Aug 12, 2018
       temp <- (temp[year %in% years &scenario %in% scenarioNames,])
-#      temp <- temp[scenario %in% scenarioNames]
+      #      temp <- temp[scenario %in% scenarioNames]
       assign(data_name, temp, envir = .GlobalEnv) # this puts the data sets into the global environment
       return(data_name)
     }
@@ -713,7 +748,7 @@ facetGraphOutput <- function(inData, facetColumnName, displayColumnName, foodGro
       dt[food_group_code == foodGroupNames[i], food_group_code := foodGroupNamesNoWrap[i]]
     }
   }
-
+  
   titleText <- paste("Country: ", countryName, "Scenario: ", scenarioName)
   facetColumnName <- capwords(facetColumnName)
   p <- ggplot(data = dt, mapping = aes(fill = factor(year), x = food_group_code, y = value)) +
@@ -748,6 +783,7 @@ plotByRegionBarAMDRinShiny <- function(barData, yLab) {
   temp <- data.table::copy(barData)
   countryCode <- unique(temp$region_code.IMPACT159)
   countryName <- countryNameLookup(countryCode)
+  temp <- temp[region_code.IMPACT159 %in% countryCode, ]
   plotTitle <- paste("AMDR plots for ", countryName, sep = "")
   temp  <- data.table::melt(
     data = temp,
@@ -757,6 +793,8 @@ plotByRegionBarAMDRinShiny <- function(barData, yLab) {
     value.name = "value",
     variable.factor = FALSE
   )
+  
+  print(temp)
   temp[, nutrient := gsub("_g.kcalpercent", "", nutrient)]
   AMDR_hi.carbohydrate <- 65
   AMDR_hi.fat <- 35
@@ -770,34 +808,66 @@ plotByRegionBarAMDRinShiny <- function(barData, yLab) {
   nutrient = c("carbohydrate", "fat", "protein")
   ref_hi <- data.frame(int_hi, slope, nutrient)
   ref_lo <- data.frame(int_lo, slope, nutrient)
-
+  
   #select color explicitly
   scenOrder <- scenarioNames
   paletteChoice <- "OrRd" #choices are described in the help for RcolorBrewer
-
+  
   #put here so its easy to see alignment of colors and bars
   colorsNeeded <- length(scenarioNames)
   colorList <- c("#000000", brewer.pal(colorsNeeded, paletteChoice))
-
+  
   # a kludge to make the climate scenario green (#2ca25f)
   colorList[3] <- "#2CA25F"
-
-  p <- ggplot(temp, aes(x = year, y = value, fill = scenario )) +
-    geom_bar_interactive(stat = "identity", position = "dodge") +
-    scale_fill_manual(values = colorList) +
-    facet_wrap( ~ nutrient, scales = "fixed") +
-    #    scale_y_continuous(name = yLab) +
-    # needs to be geom_line. geom_hline shows up on all facets
-    geom_abline(data = ref_hi, aes(intercept = int_hi, slope = slope), color = "red", size = 1) +
-    geom_abline(data = ref_lo, aes(intercept = int_lo, slope = slope), color = "green", size = 1) +
-    theme(strip.text.x = element_text(family = fontFamily, face = "plain")) +
-    ylab(yLab)
-
-  p = p + theme(legend.position = "right") +
+  
+  #commented out and replaced Nov 1, 2018
+  
+  # p <- ggplot(temp, aes(x = year, y = value, fill = scenario )) +
+  #   geom_bar_interactive(stat = "identity", position = "dodge") +
+  #   scale_fill_manual(values = colorList) +
+  #   facet_wrap( ~ nutrient, scales = "fixed") +
+  #   #    scale_y_continuous(name = yLab) +
+  #   # needs to be geom_line. geom_hline shows up on all facets
+  #   geom_abline(data = ref_hi, aes(intercept = int_hi, slope = slope), color = "red", size = 1) +
+  #   geom_abline(data = ref_lo, aes(intercept = int_lo, slope = slope), color = "green", size = 1) +
+  #   theme(strip.text.x = element_text(family = fontFamily, face = "plain")) +
+  #   ylab(yLab)
+  # 
+  # p = p + theme(legend.position = "right") +
+  #   theme(axis.text.x = element_text(angle = 45, hjust = 1, family = fontFamily, face = "plain")) +
+  #   theme(axis.title.y = element_text(family = fontFamily, face = "plain")) +
+  #   theme(plot.title = element_text(hjust = 0.5, size = 12, family = fontFamily, face = "plain")) +
+  #   ggtitle(plotTitle)
+  yval = 1.5 # controls how far above the y axis bottom the vertical numbers are
+  fontsize <- 2.5
+  
+  p <- 
+     ggplot(temp, aes(x = year, y = value, fill = scenario )) +
+       geom_bar_interactive(stat = "identity", position = "dodge") +
+    theme( # remove the vertical grid lines
+      panel.grid.major.x = element_blank() ,
+      # explicitly set the horizontal lines (or they will disappear too)
+      panel.grid.major.y = element_line( size=.1, color="black" ),
+      panel.background = element_blank()
+    ) +
+    theme(legend.position = "none") +
     theme(axis.text.x = element_text(angle = 45, hjust = 1, family = fontFamily, face = "plain")) +
     theme(axis.title.y = element_text(family = fontFamily, face = "plain")) +
-    theme(plot.title = element_text(hjust = 0.5, size = 12, family = fontFamily, face = "plain")) +
-    ggtitle(plotTitle)
+    scale_fill_manual(values = colorList) +
+    scale_y_continuous(limits = c(0,80)) +
+    theme(plot.title = element_text(hjust = 0.5, size = 11, family = fontFamily, face = "plain")) +
+    ggtitle(plotTitle) +
+    labs(y = yLab, x = NULL) +
+     geom_abline(data = ref_hi, aes(intercept = int_hi, slope = slope), color = "red", size = 1) +
+     geom_abline(data = ref_lo, aes(intercept = int_lo, slope = slope), color = "darkgreen", size = 1) +
+   geom_label(data = ref_lo, aes(x = .6, y = int_lo + 2, label = "Low", family = fontFamily), fill= "white", color = "black", nudge_x = 0.25, nudge_y = 0.25) + # value after AMDR_lo shifts the label up or down
+    geom_label(data = ref_hi, aes(x = .6, y = int_hi + 2, label = "High"), nudge_x = 0.25, nudge_y = 0.25, fill= "white", color = "black") +
+  # next line adds the vertical numbers
+  # p <- p + geom_text(aes(label = formatC( round(value, roundVal), format='f', digits = roundVal),
+  #                        x = factor(region_name), y = yval), position = position_dodge(0.9),
+  #                    size = fontsize, angle = 90, color = "black") +
+    facet_wrap( ~ nutrient, scales = "fixed")
+    
   return(p)
 }
 
