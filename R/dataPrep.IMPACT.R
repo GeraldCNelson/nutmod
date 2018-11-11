@@ -117,6 +117,9 @@ processIMPACT159Data <- function(gdxFileName, varName, catNames) {
   # merge(dt.ptemp, dt.IMPACTregions, by = "region_code.IMPACT159", all = TRUE)
   # }
   inDT <- dt.ptemp
+  inDT <- inDT[, scenario := gsub("-", "_", scenario)]
+  inDT <- inDT[, scenario := gsub("_REF", "", scenario)]
+  
   # this is where dt.FoodAvailability is written out, for example
   outName <- paste("dt", varName, sep = ".")
   desc <- paste("Individual IMPACT gdx variable", varName)

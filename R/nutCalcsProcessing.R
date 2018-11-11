@@ -43,6 +43,7 @@ for (switchloop in getSwitchChoice()) {
     reqShortName <- gsub("req_", "", i)
     temp <- paste("food_agg_", reqShortName, ".", suffix, sep = "")
     DT <- getNewestVersion(temp, fileloc("resultsDir"))
+    print(head(DT))
     basicKey <- c("scenario", "region_code.IMPACT159", "year")
 
     DT.long <- data.table::melt(
@@ -309,6 +310,8 @@ for (switchloop in getSwitchChoice()) {
     reqShortName <- gsub("req.", "", req) # results in names like "RDA_vits
     temp <- paste("food_agg_", reqShortName, ".", suffix, sep = "")
     dt.food_agg.master <- getNewestVersion(temp, fileloc("resultsDir"))
+    print(head(dt.food_agg.master))
+    
     dt.food_agg.master[, scenario := gsub("IRREXP-WUE2", "IRREXP_WUE2", scenario)]
     dt.food_agg.master[, scenario := gsub("PHL-DEV2", "PHL_DEV2", scenario)]
     # get list of nutrients from dt.nutsReqPerCap for the req set of requirements

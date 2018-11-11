@@ -29,7 +29,7 @@ library(data.table) # this is needed everywhere and currently some scripts don't
 library(ggthemes)
 library(qdapRegex) # needed for the TC (title case) function, added Nov 3, 2018
 
-fontFamily <- "Calibri"
+fontFamily <- "Cambria"
 # .onLoad <- function(libname, pkgname) {
 #   op <- options()
 #   op.devtools <- list(
@@ -1642,7 +1642,7 @@ library(scales)
 # }
 
 # new version that allows different maps, added Sep 13, 2108. Not sure why graphsListHolder left out. Added back in Oct 8, 2018
-facetMaps <- function(mapFile, DTfacetMap, fileName, legendText, fillLimits, palette, facetColName, graphsListHolder, displayOrder, width = 7, height = 6) {
+facetMaps <- function(mapFile, DTfacetMap, fileName, legendText, fillLimits, palette, facetColName, graphsListHolder, displayOrder, width = 7, height = 4) {
   #b <- rescale(breakValues, to = c(0,1)) # the values option in scale_fill_gradientn MUST be from 0 to 1
   numLimits = 4
   bb <- generateBreakValues(fillLimits = fillLimits, numLimits = numLimits, decimals = 0)
@@ -1669,8 +1669,11 @@ facetMaps <- function(mapFile, DTfacetMap, fileName, legendText, fillLimits, pal
   #  gg <- gg + geom_point(data = xd, aes(size="xx.sub1", shape = NA), colour = "grey50")#  gg <- gg + guides(colour = guide_legend(title.position = "top"))
   # gg <- gg + guides(colour = guide_colourbar(title.position="top", title.hjust = 0.5),
   #        size = guide_legend(title.position="top", title.hjust = 0.5))
-  gg <- gg +  theme(axis.ticks = element_blank(), axis.title = element_blank(), axis.text.x = element_blank(),
-                    axis.text.y = element_blank(), strip.text = element_text(family = fontFamily, face = "plain", size = 12))
+  gg <- gg +  theme(axis.ticks = element_blank(), 
+                    axis.title = element_blank(), 
+                    axis.text.x = element_blank(),
+                    axis.text.y = element_blank(), 
+                    strip.text = element_text(family = fontFamily, face = "plain", size = 7))
   
   gg <- gg + scale_fill_gradientn(colors = p, name = legendText,
                                   na.value = "grey50",

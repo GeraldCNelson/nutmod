@@ -688,9 +688,9 @@ plotByRegionBarAMDR <- function(dt, fileName, plotTitle, yLab, yRange, aggChoice
     ggtitle(plotTitle) +
     labs(y = yLab, x = NULL) +
     geom_hline(aes(yintercept = AMDR_lo,  color = "green")) +
-    geom_text( aes(.75, AMDR_lo + 2, label = "Low", color = "green")) +
+    geom_text( aes(.75, AMDR_lo + 2, label = "Lower limit", color = "green")) +
     geom_hline(aes(yintercept = AMDR_hi,  color = "dark red")) +
-    geom_text( aes(.75, AMDR_hi + 2, label = "High", color = "green"))
+    geom_text( aes(.75, AMDR_hi + 2, label = "Upper limit", color = "green"))
 
   #' code to save the plot for future use
   graphsListHolder[[fileName]] <- p

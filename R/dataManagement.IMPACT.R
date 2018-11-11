@@ -119,6 +119,8 @@ combineIMPACTData <- function() {
   
   # at the moment dt.IMPACTfood for the SSPs gdx has a MIROC scenario because the scenario list includes it. I'm going to get rid of it for now. May 12, 2018
   dt.IMPACTfood <- dt.IMPACTfood[!scenario %in% "SSP2-MIROC-REF"]
+  dt.IMPACTfood[, scenario := gsub("-", "_", scenario)]
+  dt.IMPACTfood[, scenario := gsub("_REF", "", scenario)]
   inDT <- dt.IMPACTfood
   outName <- "dt.IMPACTfood"
   desc <- "Annual (FoodAvailability) and daily availability (foodAvailpDay) of each food item in kgs, per capita GDP and domestic and world prices."

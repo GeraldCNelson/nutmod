@@ -200,19 +200,20 @@ getNewestVersion <- function(fileShortName, directory, fileType) {
   # fillIn <- paste('.{', tailLength, '}$', sep = "")
   fileShortNameTest <- paste(fileShortName,"_2", sep = "") # this should get rid of the multiple files problem
   filesofFileType <- list.files(mData)[grep(fileType,list.files(mData))]
-  # fileLongName <- filesofFileType[grep(fileShortNameTest, filesofFileType, fixed = TRUE)]
   
   # Note: added grepteststring, changed grep to grepl and fixed to FALSE June 14, 2018
   greptestString <- paste0("^", fileShortNameTest)
   fileLongName <- filesofFileType[grepl(greptestString, filesofFileType, fixed = FALSE)]
-  
   if (length(fileLongName) == 0) {
-    stop(sprintf("There is no file  '%s' in directory %s", fileShortName, mData))
-  } else {
-    #   print(fileLongName)
-    outFile = readRDS(paste(mData, fileLongName, sep = "/"))
-    return(outFile)
+    cat("\nCan't find ", fileShortName, " in  directory ", mData, "\n")
+    stop(sprintf("\nThere is no file  '%s' in directory %s, \n", fileShortName, mData))
   }
+  if (length(fileLongName) > 1) {
+    cat("\nTwo versions of ", fileShortName, " in  directory ", mData, "\n")
+    stop(sprintf("\nTwo or more files with  '%s' in their names in directory %s, \n", fileShortName, mData))
+  }
+  outFile = readRDS(paste(mData, fileLongName, sep = "/"))
+  return(outFile)
 }
 
 #' Title removeOldVersions - removes old version of an rawData file
@@ -451,10 +452,10 @@ facetMaps <- function(mapFile, DTfacetMap, legendText, fillLimits, palette, face
   bb <- generateBreakValues(fillLimits = fillLimits, numLimits = numLimits, decimals = 0)
   b <- rescale(bb, to = c(0,1))
   f <- fillLimits
-  cat("fillLimits :", f, "\n")
-  cat("breaks :", b, "\n")
-  cat("width :", width,  "\n")
-  cat("height :", height,  "\n")
+  # cat("fillLimits :", f, "\n")
+  # cat("breaks :", b, "\n")
+  # cat("width :", width,  "\n")
+  # cat("height :", height,  "\n")
   p <- palette
   n <- facetColName
   displayOrder <- gsub("X", "", displayOrder)
@@ -511,9 +512,11 @@ years <- c("X2010", "X2030", "X2050")
 yearsClean <- gsub("X", "", years)
 fontFamily <- "Helvetica Neue"
 dt.scenarioListIMPACT <- getNewestVersion("dt.scenarioListIMPACT", fileloc("mData"))
-dt.scenarioListIMPACT <- dt.scenarioListIMPACT[,scenario := gsub("-REF", "", scenario)]
+dt.scenarioListIMPACT[,scenario := gsub("-REF", "", scenario)]
+dt.scenarioListIMPACT[, scenario := gsub("-", "_", scenario)]
 scenarioNames <- unique(dt.scenarioListIMPACT$scenario)
 scenarioNames <- scenarioNames[!scenarioNames %in% c( "SSP2-IPSL", "SSP2-MIROC", "SSP2-GFDL")]
+
 scenarioList <- scenarioNames # added Aug 27, 2018 because scenarioList now used in the app. Might want to change this
 resultFileLookup <- getNewestVersion("resultFileLookup", fileloc("mData"))
 dt.regions.all <- getNewestVersion("dt.regions.all", fileloc("mData"))
@@ -534,7 +537,6 @@ initialCountryCode <- countryCodeLookup(initialCountryName, fileloc("mData"))
 spiderGraphData <- function(countryName, scenarioName, dt, displayColumnName) {
   if (missing(displayColumnName)) displayColumnName <- "nutrient"
   countryCode <- countryCodeLookup(countryName, fileloc("mData"))
-  dt[, scenario := gsub("-REF", "", scenario)]
   dt <- dt[region_code.IMPACT159 %in% countryCode & scenario %in% scenarioName,]
   dt[, year := gsub("X", "", year)]
   formula.wide <- sprintf("scenario + region_code.IMPACT159 + year ~ %s", displayColumnName)
@@ -545,7 +547,6 @@ spiderGraphData <- function(countryName, scenarioName, dt, displayColumnName) {
 spiderGraphData2 <- function(countryName, dt, displayColumnName) {
   if (missing(displayColumnName)) displayColumnName <- "nutrient"
   countryCode <- countryCodeLookup(countryName, fileloc("mData"))
-  dt[, scenario := gsub("-REF", "", scenario)]
   dt <- dt[region_code.IMPACT159 %in% countryCode,]
   dt[, year := gsub("X", "", year)]
   formula.wide <- sprintf("scenario + region_code.IMPACT159 + nutrientType + year ~ %s", displayColumnName)
@@ -589,6 +590,7 @@ load_data <- function(dataSetsToLoad) {
     temp <- getNewestVersion(dt, fileloc("mData"))
     temp <- (temp[year %in% years])
     temp[, scenario := gsub("-REF", "", scenario)] # added Aug 9, 2018
+    temp[, scenario := gsub("-", "_", scenario)]
     temp <- temp[scenario %in% scenarioNames]
     assign(dt, temp, envir = .GlobalEnv) # this puts the data sets into the global environment
     return(temp) # changed to temp Aug 9, 2018
@@ -613,7 +615,6 @@ load_data <- function(dataSetsToLoad) {
 
 # replaced and edited Nov 1, 2018
 plotByRegionBarAMDR <- function(dt, fileName, plotTitle, yLab, yRange, aggChoice, suffix, scenOrder, colorList, AMDR_lo, AMDR_hi, graphsListHolder, plotErrorBars) {
-  cat("Plotting AMDR bars for region", aggChoice, "for", plotTitle, "\n")
   plotTitle <- capwords(plotTitle)
   temp <- copy(dt)
   regionCodes <- unique(temp$region_code)
@@ -655,10 +656,10 @@ plotByRegionBarAMDR <- function(dt, fileName, plotTitle, yLab, yRange, aggChoice
     ggtitle(plotTitle) +
     labs(y = yLab, x = NULL) +
     geom_hline(aes(yintercept = AMDR_lo), color = "darkgreen", show.legend = FALSE) +
-    geom_label(aes(x = .6, y = AMDR_lo + 2, label = "Low", family = fontFamily), fill= "white", color = "black", nudge_x = 0.25) + # value after AMDR_lo shifts the label up or down
+    geom_label(aes(x = .6, y = AMDR_lo + 2, label = "Lower limit", family = fontFamily), fill= "white", color = "black", nudge_x = 0.25) + # value after AMDR_lo shifts the label up or down
     #   geom_text(aes(.6, AMDR_lo + 2.5, label = "Low", family = fontFamily), color = "black") + # value after AMDR_lo shifts the label up or down
     geom_hline(aes(yintercept = AMDR_hi),  color = "dark red", show.legend = FALSE) +
-    geom_label(aes(x = .6, y = AMDR_hi + 2, label = "High"), nudge_x = 0.25, fill= "white", color = "black")
+    geom_label(aes(x = .6, y = AMDR_hi + 2, label = "Upper limit"), nudge_x = 0.25, fill= "white", color = "black")
   # next line adds the vertical numbers
   p <- p + geom_text(aes(label = formatC( round(value, roundVal), format='f', digits = roundVal),
                          x = factor(region_name), y = yval), position = position_dodge(0.9),
@@ -690,19 +691,35 @@ plotByRegionBarAMDR <- function(dt, fileName, plotTitle, yLab, yRange, aggChoice
   return(p)
 }
 
-load_data_special <- function(data_name) {
-  withProgress(message = 'Loading data', {
-    if (!exists(data_name)) {
-      temp <- getNewestVersion(data_name, fileloc("mData"))
-      temp[, scenario := gsub("-REF", "", scenario)] # added Aug 12, 2018
-      temp <- (temp[year %in% years &scenario %in% scenarioNames,])
-      #      temp <- temp[scenario %in% scenarioNames]
-      assign(data_name, temp, envir = .GlobalEnv) # this puts the data sets into the global environment
-      return(data_name)
-    }
-    incProgress(1)})
-}
 
+load_data_special <- function(data_name){
+  print("exists(data_name)")
+  print(exists(data_name))
+  print("is.data.table(data_name")
+  print(is.data.table(get(data_name)))
+  print(head(get(data_name)))
+  if (!exists((data_name))) {
+    print("exists(data_name)2")
+    print(exists(data_name))
+    #      {} else {
+    withProgress(message = 'Loading data',  {
+      # temp <-        getNewestVersion(data_name, fileloc("mData"))
+      # dt.metadata <- getNewestVersion("dt.metadata", fileloc("mData"))
+      # 
+      # temp <- temp[year %in% years &scenario %in% scenarioNames,]
+      
+      temp <- getNewestVersion(data_name, fileloc("mData"))
+      temp <- (temp[year %in% years])
+      temp[, scenario := gsub("-REF", "", scenario)] # added Aug 9, 2018
+      temp[, scenario := gsub("-", "_", scenario)]
+      temp <- temp[scenario %in% scenarioNames]
+      assign(data_name, temp, envir = .GlobalEnv) # this puts the data sets into the global environment
+      return(temp)
+      
+      incProgress(1)}
+    )
+  }
+}
 pivotWideToWideYear <- function(inData) {
   dt <- data.table::copy(inData)
   namelist <- names(dt)[!names(dt) %in% "nutrientType"]
@@ -716,6 +733,7 @@ pivotWideToWideYear <- function(inData) {
     value.name = "value",
     variable.factor = FALSE
   )
+  dt.long <- dt.long[!value %in% NA,] # added Nov 8, 2018. This is here only to deal with situation when all nutrients are in one file.
   formula.wide <- paste("scenario + region_code.IMPACT159 + nutrient_foodGroup  ~ year")
   dt.wide <- data.table::dcast(
     data = dt.long,
@@ -737,7 +755,6 @@ facetGraphData <- function(countryName, scenarioName, inData, facetColumnName, d
 
 facetGraphOutput <- function(inData, facetColumnName, displayColumnName, foodGroupNames, foodGroupNamesNoWrap) {
   dt <- data.table::copy(inData)
-  head(dt)
   scenarioName <- unique(dt$scenario)
   countryCode <- unique(dt$region_code.IMPACT159)
   countryName <- countryNameLookup(countryCode)
@@ -794,7 +811,6 @@ plotByRegionBarAMDRinShiny <- function(barData, yLab) {
     variable.factor = FALSE
   )
   
-  print(temp)
   temp[, nutrient := gsub("_g.kcalpercent", "", nutrient)]
   AMDR_hi.carbohydrate <- 65
   AMDR_hi.fat <- 35
@@ -842,8 +858,8 @@ plotByRegionBarAMDRinShiny <- function(barData, yLab) {
   fontsize <- 2.5
   
   p <- 
-     ggplot(temp, aes(x = year, y = value, fill = scenario )) +
-       geom_bar_interactive(stat = "identity", position = "dodge") +
+    ggplot(temp, aes(x = year, y = value, fill = scenario )) +
+    geom_bar_interactive(stat = "identity", position = "dodge") +
     theme( # remove the vertical grid lines
       panel.grid.major.x = element_blank() ,
       # explicitly set the horizontal lines (or they will disappear too)
@@ -858,16 +874,16 @@ plotByRegionBarAMDRinShiny <- function(barData, yLab) {
     theme(plot.title = element_text(hjust = 0.5, size = 11, family = fontFamily, face = "plain")) +
     ggtitle(plotTitle) +
     labs(y = yLab, x = NULL) +
-     geom_abline(data = ref_hi, aes(intercept = int_hi, slope = slope), color = "red", size = 1) +
-     geom_abline(data = ref_lo, aes(intercept = int_lo, slope = slope), color = "darkgreen", size = 1) +
-   geom_label(data = ref_lo, aes(x = .6, y = int_lo + 2, label = "Low", family = fontFamily), fill= "white", color = "black", nudge_x = 0.25, nudge_y = 0.25) + # value after AMDR_lo shifts the label up or down
+    geom_abline(data = ref_hi, aes(intercept = int_hi, slope = slope), color = "red", size = 1) +
+    geom_abline(data = ref_lo, aes(intercept = int_lo, slope = slope), color = "darkgreen", size = 1) +
+    geom_label(data = ref_lo, aes(x = .6, y = int_lo + 2, label = "Low", family = fontFamily), fill= "white", color = "black", nudge_x = 0.25, nudge_y = 0.25) + # value after AMDR_lo shifts the label up or down
     geom_label(data = ref_hi, aes(x = .6, y = int_hi + 2, label = "High"), nudge_x = 0.25, nudge_y = 0.25, fill= "white", color = "black") +
-  # next line adds the vertical numbers
-  # p <- p + geom_text(aes(label = formatC( round(value, roundVal), format='f', digits = roundVal),
-  #                        x = factor(region_name), y = yval), position = position_dodge(0.9),
-  #                    size = fontsize, angle = 90, color = "black") +
+    # next line adds the vertical numbers
+    # p <- p + geom_text(aes(label = formatC( round(value, roundVal), format='f', digits = roundVal),
+    #                        x = factor(region_name), y = yval), position = position_dodge(0.9),
+    #                    size = fontsize, angle = 90, color = "black") +
     facet_wrap( ~ nutrient, scales = "fixed")
-    
+  
   return(p)
 }
 

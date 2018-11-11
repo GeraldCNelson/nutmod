@@ -233,7 +233,7 @@ aggNorder <- function(gdxChoice, DTaggNorder, aggChoice, scenChoice, mergedVals,
 
 plotByRegionBar <- function(dt, fileName, plotTitle, yLab, yRange, aggChoice, suffix, scenOrder, oneLine, colorList, graphsListHolder, plotErrorBars, fill = "region_name") { # removed , AMDR_hi = NULL Oct 15, 2018
   cat("\nPlotting bars by region", aggChoice, "for", plotTitle, "\n")
-  plotTitle <- capwords(plotTitle)
+  # plotTitle <- capwords(plotTitle) not needed after fixes in aggRun on Nov 6, 2018
   temp <- copy(dt)
   #  if (gdxChoice %in% "USAIDPriorities") temp[, scenario := gsub("SSP2-HGEM-", "", scenario)]
   regionCodes <- unique(temp$region_code)
@@ -280,9 +280,9 @@ plotByRegionBar <- function(dt, fileName, plotTitle, yLab, yRange, aggChoice, su
   yvalSupplment <- yDelta * .04
   roundVal = 2
   
-  if (max(temp$value) > 20) {roundVal = 1} # for text in the bars
-  if (max(temp$value) > 99) {roundVal = 1} # for text in the bars
-  if (max(temp$value) > 999) {roundVal = 0} # for text in the bars
+  if (max(temp$value) > 9) {roundVal = 1} # for text in the bars
+  if (max(temp$value) > 99) {roundVal = 0} # for text in the bars
+  # if (max(temp$value) > 999) {roundVal = 0} # for text in the bars
   
   if (!aggChoice %in% "regions.AfricanAgFutures") {
     legendLoc <- "none"
@@ -321,6 +321,8 @@ plotByRegionBar <- function(dt, fileName, plotTitle, yLab, yRange, aggChoice, su
     p <- p + geom_text(aes(label = formatC( round(value, roundVal), format='f', digits = roundVal),
                            x = factor(region_name), y = yval), position = position_dodge(0.9),
                        size = fontsize, angle = 90, color = "black")
+ #     facet_wrap(~ nutrient) # trying this Nov 4, 2018. Needs some work before it will work
+      
   }
   
   if (aggChoice %in% "regions.AfricanAgFutures"){ 
@@ -656,8 +658,15 @@ plotByRegionBarAMDR <- function(dt, fileName, plotTitle, yLab, yRange, aggChoice
   # to the top of the bar. Commented out July 11, 2018
   # yval <- (yRange[2] - yRange[1]) * .02
   yval = 1.5 # controls how far above the y axis bottom the vertical numbers are
+  xval = 2.5 # x nudge default for WB
+  if (aggChoice %in% "tenregions") xval = 0.7
   if (aggChoice %in% c("tenregions", "regions.AfricanAgFutures") ) fontsize <- 1.5
   if (aggChoice %in% "WB") fontsize <- 2.5
+  
+  roundVal = 2
+  if (max(temp$value) > 9) {roundVal = 1} # for text in the bars
+  if (max(temp$value) > 99) {roundVal = 0} # for text in the bars
+  
   
   #' draw bars
   #  pdf(paste(fileloc("gDir"),"/", fileName, ".pdf", sep = ""), width = 7, height = 5.2)
@@ -681,10 +690,12 @@ plotByRegionBarAMDR <- function(dt, fileName, plotTitle, yLab, yRange, aggChoice
     ggtitle(plotTitle) +
     labs(y = yLab, x = NULL) +
     geom_hline(aes(yintercept = AMDR_lo), color = "darkgreen", show.legend = FALSE) +
-    geom_label(aes(x = .6, y = AMDR_lo + 2, label = "Low", family = fontFamily), fill= "white", color = "black", nudge_x = 0.25) + # value after AMDR_lo shifts the label up or down
+    geom_label(aes(x = 1, y = AMDR_lo + 2, label = paste0("Lower limit is ", AMDR_lo), 
+                   family = fontFamily), fill= "white", color = "black", nudge_x = xval) + # value after AMDR_lo shifts the label up or down
  #   geom_text(aes(.6, AMDR_lo + 2.5, label = "Low", family = fontFamily), color = "black") + # value after AMDR_lo shifts the label up or down
     geom_hline(aes(yintercept = AMDR_hi),  color = "dark red", show.legend = FALSE) +
-    geom_label(aes(x = .6, y = AMDR_hi + 2, label = "High"), nudge_x = 0.25, fill= "white", color = "black")
+    geom_label(aes(x =1, y = AMDR_hi + 2, label = paste0("Upper limit is ", AMDR_hi), 
+                   family = fontFamily), fill= "white", color = "black", nudge_x = xval)
   # next line adds the vertical numbers
   p <- p + geom_text(aes(label = formatC( round(value, roundVal), format='f', digits = roundVal),
                          x = factor(region_name), y = yval), position = position_dodge(0.9),

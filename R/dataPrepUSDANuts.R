@@ -342,6 +342,8 @@ dt.cookingRetn.aus[, Retn_Code := as.character(Retn_Code)]
 dt.cookingRetn.aus <- dt.cookingRetn.aus[Tagname == "VITE",]
 dt.cookingRetn.aus[, Nutr_No := "323"][, nutCode := "vit_e_mg"] # add the nutrient number and nutcode for vitamin e
 dt.cookingRetn.aus[, Retn_Factor := Retn_Factor * 100] # convert to same units as dt.cookRetn
+# add column NutrShortDesc with just "Vitamin E" to align it with what's in dt.cookingRetn. Nov 6, 2018
+dt.cookingRetn.aus[, NutrShortDesc := "Vitamin E"]
 dt.cookingRetn <- rbind(dt.cookingRetn, dt.cookingRetn.aus)
 Encoding(dt.cookingRetn$nutCode) <- "unknown"
 # Encoding(dt.cookingRetn$nutCode) <- "UTF-8"}

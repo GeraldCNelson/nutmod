@@ -1,6 +1,6 @@
 #' @title "Management of SSP Population Data"
 #' @keywords data management, SSP, population data
-#' @name copyFilestoNutrientModeling.R
+#' @name dataManagement.Pop.R
 #' @description
 #' This script reads in  cleaned up population data written by dataPrep.SSP.R for the SSP populaton data or the population data set for the
 #' Gates African Ag Futures work prepared in dataPrep.UNscenarios.R 

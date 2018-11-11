@@ -68,6 +68,8 @@ gamsSetup <- function(gdxFileName) {
   #   dt.scenarioListIMPACT[, (deleteListCol) := NULL]
   
   inDT <- dt.scenarioListIMPACT
+  inDT[, scenario := gsub("-", "_", scenario)]
+  inDT[, scenario := gsub("_REF", "", scenario)]
   outName <- "dt.scenarioListIMPACT"
   desc <- paste0("List of scenarios that can be used with ", gdxFileName)
   cleanup(inDT, outName, fileloc("mData"), "csv", desc = desc)

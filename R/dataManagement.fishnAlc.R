@@ -178,20 +178,20 @@ dt.incElas.fish <- unique(dt.incElas.fish)
 
 # need to weight fish elasticities for individual  countries in regions by their population. oct 29, 2018
 
-# BLT, BLX, CHM, CHP, GSA, ITP, MOR, OBN, RAP, SDP, SPP still duplicated in region_code.IMPACT159 so need to run the code below
-dt.incElas.fish <- merge(dt.incElas.fish, dt.pop.initialYears, by = c("region_code.IMPACT159"))
-fishElas <- names(dt.incElas.fish)[!names(dt.incElas.fish) %in% c("region_code.IMPACT159", "year")]
-for (i in fishElas){
-  dt.incElas.fish <- dt.incElas.fish[, (i) := weighted.mean(get(i), PopX0), by = c( "region_code.IMPACT159", "year")]
-}
-dt.incElas.fish[, c("PopX0", "year") := NULL] 
-dt.incElas.fish <- unique(dt.incElas.fish)
+# BLT, BLX, CHM, CHP, GSA, ITP, MOR, OBN, RAP, SDP, SPP still duplicated in region_code.IMPACT159 so need to run the code below. No longer true as of at least Nov 6, 2018. So commenting it out
+# dt.incElas.fish <- merge(dt.incElas.fish, dt.pop.initialYears, by = c("region_code.IMPACT159"))
+# fishElas <- names(dt.incElas.fish)[!names(dt.incElas.fish) %in% c("region_code.IMPACT159", "year")]
+# for (i in fishElas){
+#   dt.incElas.fish <- dt.incElas.fish[, (i) := weighted.mean(get(i), PopX0), by = c( "region_code.IMPACT159", "year")]
+# }
+# dt.incElas.fish[, c("PopX0", "year") := NULL] # this gets rid of years 2005 and 2010 and leaves duplicated rows that can't be removed with unique
+# dt.incElas.fish <- unique(dt.incElas.fish)
 
 # create a fish elasticities data table with the same income elasticities in all years
  dt.years <- data.table::data.table(year = rep(keepYearList, each = nrow(dt.incElas.fish)))
  #'@param - dt.incElas.fish - fish elasticities for each region in the SSP data and all years
 dt.incElas.fish <- cbind(dt.years, dt.incElas.fish)
-
+# xxxxx
 inDT <- dt.incElas.fish
 outName <- "dt.incElas.fish" # not used elsewhere
 desc <- "Fish income elasticities estimates to 2050; capped at 1.0. Assumed to be identical in all scenarios and all time periods"

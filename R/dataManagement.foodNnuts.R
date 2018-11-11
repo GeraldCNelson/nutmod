@@ -121,6 +121,8 @@ for (switchloop in getSwitchChoice()) {
   # rename [nutrient].Q to just [nutrient]
   data.table::setnames(dt.foodNnuts, old = c(names.tot), new = c(list.tot))
   dt.foodNnuts <- adjustBioavailability(dt.foodNnuts)
+  dt.foodNnuts[, scenario := gsub("-", "_", scenario)]
+  dt.foodNnuts[, scenario := gsub("_REF", "", scenario)]
   outName <- paste("dt.foodNnuts", suffix, sep = ".")
   inDT <- dt.foodNnuts
   desc <- "Combines dt.IMPACTfood with nutrients and kcalsPerDay"

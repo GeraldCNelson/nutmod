@@ -261,9 +261,9 @@ for (j in c("base", "share")) {
   # breakValues <- scales::rescale(c(fillLimits[1], fillLimits[1] + fillRange/3, fillLimits[1] + fillRange/1.5, fillLimits[2]))
   displayOrder <- sort(unique(DT[, get(facetColName)])) # default - alphabetically sorted
   prefix <- "SSPs_scenOrderSSP"
-  fileName <- paste(prefix,"facetmap", "macroMetrics", "2050", sep = "_")
+  fileName <- paste(prefix,"_facetmap", "_macroMetrics", "_2050", ".pdf", sep = "")
   facetMaps(mapFile = worldMap, DTfacetMap = DT, fileName, legendText, fillLimits = fillLimits, 
-            palette = palette, facetColName = facetColName, graphsListHolder = graphsListHolder, displayOrder = displayOrder, height = 3)
+            palette = palette, facetColName = facetColName, graphsListHolder = graphsListHolder, displayOrder = displayOrder, width = 7, height = 3)
 }
 
 gg <- ggplot(data = dt.50, aes(incRatio, incShareRatio))
@@ -273,12 +273,13 @@ gg <- gg + geom_point() +
     # explicitly set the horizontal lines (or they will disappear too)
     panel.grid.major.y = element_line( size=.1, color="black", ), 
     panel.background = element_blank(),
-    axis.line.y = element_line(colour = 'black', size=0.5, linetype='solid')
+    axis.line.y = element_line(colour = 'black', size=0.1, linetype='solid'),
+    axis.line.x = element_line(colour = 'black', size=0.1, linetype='solid')
   ) 
 gg <- gg + xlab("Change in\nper capita income (percent)") + ylab("Change in\nfood budget share of per capita income (percent)")
 gg
 
-ggsave(file = paste0(fileloc("gDir"),"/", prefix,"_CGEeffects",".png"), plot = gg,
+ggsave(file = paste0(fileloc("gDir"),"/", prefix,"_CGEeffects",".pdf"), plot = gg,
        width = 4, height = 4)
 
 lmout <- lm(incShareRatio ~  incRatio, dt.50 )

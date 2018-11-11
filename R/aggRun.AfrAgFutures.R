@@ -599,7 +599,7 @@ data.table::setnames(dt, old = "region_code.IMPACT159", new = "id")
 
 #' adequacy 2010 -----
 facetColName <- "nutrient"
-legendText <- "adequacy ratio, 2010"
+legendText <- "Adequacy ratio, 2010"
 fillLimits <- c(0, 3) # changed from 5 May 29, 2018
 temp <- truncateDT(dt, fillLimits =  fillLimits)
 temp <- temp[id %in% allAfricaCodes,]
@@ -613,7 +613,7 @@ facetMaps(mapFile = projmap, DTfacetMap = temp, fileName, legendText, fillLimits
 
 # adequacy 2050, no CC -----
 facetColName <- "nutrient"
-legendText <- "adequacy ratio, 2050, \nno climate change"
+legendText <- "Adequacy ratio, 2050, \nno climate change"
 fillLimits <- c(0, 3) # changed from 5, May 29, 2018
 temp <- truncateDT(dt, fillLimits =  fillLimits)
 temp <- temp[id %in% allAfricaCodes,]

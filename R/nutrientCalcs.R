@@ -71,11 +71,15 @@ generateResults.dataPrep <- function(req, dt.foodNnuts, scenarioListIMPACT) {
     
     for (scenName in scenarioListIMPACT) {
       if (gdxChoice %in% "SSPs") {
-        SSPName <- unlist(strsplit(scenName, "-"))[1] # get SSP abbrev
-        climModel <- unlist(strsplit(scenName, "-"))[2] # get climate model abbrev
-        experiment <- unlist(strsplit(scenName, "-"))[3]
+        # changed Nov 7 because of changes to the scenario name structure
+        # SSPName <- unlist(strsplit(scenName, "-"))[1] # get SSP abbrev
+        # climModel <- unlist(strsplit(scenName, "-"))[2] # get climate model abbrev
+        # experiment <- unlist(strsplit(scenName, "-"))[3]
+        SSPName <- unlist(strsplit(scenName, "_"))[1] # get SSP abbrev
+        climModel <- unlist(strsplit(scenName, "_"))[2] # get climate model abbrev
         temp.nuts <- dt.nutsReqPerCap[scenario %in% SSPName, ] 
-        temp.nuts[, scenario := paste(SSPName, climModel, experiment, sep = "-")]
+#        temp.nuts[, scenario := paste(SSPName, climModel, experiment, sep = "-")]
+        temp.nuts[, scenario := paste(SSPName, climModel, sep = "_")]
       }
       
       if (gdxChoice %in% "USAIDPriorities") {
@@ -212,7 +216,7 @@ generateResults.dataPrep <- function(req, dt.foodNnuts, scenarioListIMPACT) {
     
     #' use different source for dt.food.agg for AMDRs
     dt.nutrients.kcals <- getNewestVersion(paste("dt.nutrients_kcals", suffix, sep = "."), fileloc("resultsDir"))
-    
+    print(head(dt.nutrients.kcals))
     dt.food.agg <- data.table::copy(dt.nutrients.kcals)
     # # next two lines added to potentially correct a 'length' problem. March 14, 2018. Commented out Oct 13, 2018
     # deleteListRows <- c("caffeine_mg", "cholesterol_mg", "ft_acds_tot_trans_g")
@@ -276,10 +280,11 @@ generateResults.dataPrep <- function(req, dt.foodNnuts, scenarioListIMPACT) {
   }
   
   inDT <- dt.food.agg
+  print(head(inDT))
   temp <- gsub("req_","",req)
   reqShortName <- gsub(".percap","",temp)
   outName <- paste("food_agg_",reqShortName, ".", suffix, sep = "")
-  desc <- paste("adequacy ratios - all, by food groups, and by staples", reqShortName)
+  desc <- paste("Adequacy ratios - all, by food groups, and by staples", reqShortName)
   cat(desc, "\n")
   cleanup(inDT, outName, fileloc("resultsDir"), desc = desc)
 }
@@ -295,7 +300,7 @@ for (switchloop in getSwitchChoice()) {
   cat("\nWorking on", suffix, "-----\n")
   dt.foodNnuts <- getNewestVersion(paste("dt.foodNnuts", suffix, sep = "."), fileloc("resultsDir"))
   dt.foodNnuts <- dt.foodNnuts[scenario %in% scenarioListIMPACT]
-  
+  print(head(dt.foodNnuts))
   #  dt.nutrients_sum_all <- getNewestVersion(paste("dt.nutrients_sum_all", suffix, sep = "."), fileloc("resultsDir")) # discovered that it is not used elsewhere in this script July 4, 2018
   
   #' reqsListPercap is a list of the requirements types. Each has a different set of nutrients. These are a subset
