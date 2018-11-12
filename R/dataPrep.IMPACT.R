@@ -169,4 +169,4 @@ generateResults(gdxFileName, vars.world, catNames = catNames.world)
 
 
 finalizeScriptMetadata(metadataDT, sourceFile)
-sourcer <- clearMemory(sourceFile, gdxChoice) # removes everything in memory and sources the sourcer function
+# sourcer <- clearMemory(sourceFile, gdxChoice) # removes everything in memory and sources the sourcer function

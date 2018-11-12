@@ -153,7 +153,7 @@ ui <- fluidPage(
   theme = shinytheme("sandstone"),
   title = "Nutrient modeling",
   
-  router_ui(), # needed for table of contents
+#  router_ui(), # needed for table of contents
   
   useShinyjs(debug = TRUE),
   div(

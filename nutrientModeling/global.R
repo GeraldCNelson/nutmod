@@ -583,7 +583,7 @@ spiderGraphOutput <- function(spiderData, scenarioName) {
 load_data <- function(dataSetsToLoad) {
   #' load data that are not year or scenario specific; these are handled in the observe code in the server
   #' development files
-  dt.metadata <- getNewestVersion("dt.metadata", fileloc("mData"))
+  dt.metadata <- getNewestVersion("dt.metadataTot", fileloc("mData"))
   dt.IMPACTgdxParams <- getNewestVersion("dt.IMPACTgdxParams", fileloc("mData"))
   
   loadNresize <- function(dt) {

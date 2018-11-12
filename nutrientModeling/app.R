@@ -23,7 +23,8 @@
 library(shiny)
 library(shinyjs)
 library(shinythemes)
-library(shiny.router) # install using devtools::install_github("Appsilon/shiny.router"); using for table of contents
+# library(shinyWidgets)
+# library(shiny.router) # install using devtools::install_github("Appsilon/shiny.router"); using for table of contents
 library(DT) # needs to come after library(shiny)
 #library(rsconnect)
 library(data.table)
@@ -384,7 +385,7 @@ ui <- fluidPage(
 server <- function(input, output, session) {
   load_data(dataSetsToLoad) # load most of the data. Big files can be loaded elsewhere
   reqRatio_sum_RDA <- data.table::rbindlist(list(reqRatio_sum_RDA_macro.var, reqRatio_sum_RDA_vits.var, reqRatio_sum_RDA_minrls.var))
- 
+  
   #  router(input, output) # for table of contents
   #not sure this is the best place for this. Need to get crud out of budget share. Just do once
   # update Jan 28, 2018. I think after this code was written, dt.budgetShare is now already in long form with name changes done
@@ -392,7 +393,7 @@ server <- function(input, output, session) {
   dt.budgetShare[, setdiff(names(dt.budgetShare), keepListCol) := NULL]
   # deleteListCol <- names(dt.budgetShare)[!names(dt.budgetShare) %in% keepListCol]
   # dt.budgetShare[, (deleteListCol) := NULL]
-   dt.budgetShare[, scenario := gsub("-", "_", scenario)]
+  dt.budgetShare[, scenario := gsub("-", "_", scenario)]
   dt.budgetShare[, scenario := gsub("_REF", "", scenario)] # added for final version of paper Nov 3, 2018
   
   colsToRound <- c("pcGDPX0", "budget.PCX0", "incShare.PCX0")
@@ -467,6 +468,7 @@ server <- function(input, output, session) {
     countryName <- input$adequacyCountryName
     scenarioName <- input$adequacyScenarioName
     reqType <- reqRatio_sum_RDA
+    reqType <- reqType[scenario %in% scenarioNames]
     dt <- copy(reqType)
     
     spiderData <- spiderGraphData2(countryName, dt, displayColumnName = "nutrient")
@@ -562,6 +564,7 @@ server <- function(input, output, session) {
     countryName <- input$FGcountryName
     scenarioName <- input$FGscenarioName
     reqName <- input$nutrientGroup
+    #   print(exists("dt.nutrients_sum_FG.var"))
     if (!exists("dt.nutrients_sum_FG.var")) {
       withProgress(message = 'Loading data',  {
         # temp <-        getNewestVersion(data_name, fileloc("mData"))
@@ -569,17 +572,20 @@ server <- function(input, output, session) {
         # 
         # temp <- temp[year %in% years &scenario %in% scenarioNames,]
         
-        dt.nutrients_sum_FG.var <- getNewestVersion(dt.nutrients_sum_FG.var, fileloc("mData"))
-        print(head(dt.nutrients_sum_FG.var))
-        dt.nutrients_sum_FG.var <- (temp[year %in% years])
-        dt.nutrients_sum_FG.var[, scenario := gsub("-REF", "", scenario)] # added Aug 9, 2018
+        dt.nutrients_sum_FG.var <- getNewestVersion("dt.nutrients_sum_FG.var", fileloc("mData"))
+        dt.nutrients_sum_FG.var[, scenario := gsub("-REF", "", scenario)]
         dt.nutrients_sum_FG.var[, scenario := gsub("-", "_", scenario)]
-        dt.nutrients_sum_FG.var <- temp[scenario %in% scenarioNames]
-         incProgress(1)}
+        #      print(head(dt.nutrients_sum_FG.var))
+        dt.nutrients_sum_FG.var <- (dt.nutrients_sum_FG.var[year %in% years])
+        #       print("year in years")
+        dt.nutrients_sum_FG.var <<- dt.nutrients_sum_FG.var[scenario %in% scenarioNames] # <<- should make it available all the time. Nov 11, 2016
+        #      print("scenario in scenarioNames")
+        incProgress(1)}
       )
+      dt.nutrients_sum_FG.var
     }
-    dt.nutrients_sum_FG.var <- load_data_special(data_name = "dt.nutrients_sum_FG.var") # checks to see if data already loaded. If not, load it
-    print(head(dt.nutrients_sum_FG.var))
+    # dt.nutrients_sum_FG.var <- load_data_special(data_name = "dt.nutrients_sum_FG.var") # checks to see if data already loaded. If not, load it
+    # print(head(dt.nutrients_sum_FG.var))
     if (reqName %in% "macronutrients") nutrientGroup <- c("carbohydrate_g", "protein_g",  "totalfiber_g", "fat_g")
     if (reqName %in% "minerals") nutrientGroup <- c("calcium_mg", "iron_mg", "magnesium_mg", "phosphorus_mg", "potassium_g", "zinc_mg")
     if (reqName %in% "vitamins") nutrientGroup <- c("folate_µg", "niacin_mg", "riboflavin_mg", "thiamin_mg", "vit_a_rae_µg", "vit_b6_mg",
@@ -679,7 +685,7 @@ server <- function(input, output, session) {
   output$availabilitySpiderGraphP1 <- renderggiraph({
     dt <- as.data.table(copy(data.foodAvail())) # I don't understand how this becomes a dataframe
     scenarioName <- unique(dt$scenario)
-     p <- spiderGraphOutput(dt, scenarioName)
+    p <- spiderGraphOutput(dt, scenarioName)
     ggiraph(code = print(p), zoom_max = 1, selection_type = "single")
   })
   
@@ -732,7 +738,7 @@ server <- function(input, output, session) {
   output$adequacySpiderGraphP1 <- renderPlot({
     dt <- as.data.table(copy(data.adequacy.macro()))
     scenarioName <- unique(dt$scenario)
-     data.table::setnames(dt, old = codeNames.macro, new = nutNamesNoUnitsWrap.macro)
+    data.table::setnames(dt, old = codeNames.macro, new = nutNamesNoUnitsWrap.macro)
     p <- spiderGraphOutput(spiderData = dt, scenarioName)
     print(p)
     #   ggiraph(code = print(p), zoom_max = 1, selection_type = "single")
@@ -791,7 +797,7 @@ server <- function(input, output, session) {
   
   output$adequacyTableTot <- DT::renderDataTable({
     dt <- as.data.table(copy(data.adequacy.tot()))
-  #  print(paste("data.adequacy.tot:", summary(dt)))
+    #  print(paste("data.adequacy.tot:", summary(dt)))
     # order of nutrients in the spider graph
     newOrder <- c("scenario", "region_code.IMPACT159", "nutrientType", "year", 
                   "carbohydrate_g", "protein_g", "totalfiber_g",
@@ -1124,8 +1130,8 @@ server <- function(input, output, session) {
   
   # nutrient avail, FG horizontal graphs -----
   output$NutAvailFGbarGraphP1 <- renderPlot({
-       dt <- copy(data.nutAvailFG())
-    #dt <- copy(dt.nutrients_sum_FG.var)
+    dt <- copy(data.nutAvailFG())
+    # dt <- copy(dt.nutrients_sum_FG.var)
     displayColumnName <- "food_group_code" # all these food groups are included in each bar chart
     facetColumnName <- "nutrient" # one spider graph per facetColumnName
     p <- facetGraphOutput(inData = dt, facetColumnName, displayColumnName, codeNames.foodGroups, foodGroupNamesNoWrap)
@@ -1142,14 +1148,14 @@ server <- function(input, output, session) {
   # nutrient diversity FG Table -----
   output$NutAvailFGTable <- DT::renderDataTable({
     dt <- copy(data.nutAvailFG())
- #   dt <- copy(dt.nutrients_sum_FG.var)
+    #  dt <- copy(dt.nutrients_sum_FG.var)
     #    print(unique(dt$food_group_code))
     displayColumnName <- "food_group_code" # all these food groups are included in each spidergraph
     facetColumnName <- "nutrient" # one bar graph per facetColumnName
     #   dt[, value := round(value, 2)]
     formula.wide <- sprintf("scenario + region_code.IMPACT159 + %s + %s ~ year", facetColumnName, displayColumnName)
-  # xxx 
-   dt <- data.table::dcast(data = dt, formula = formula.wide, value.var = "value")
+    # xxx 
+    dt <- data.table::dcast(data = dt, formula = formula.wide, value.var = "value")
     data.table::setnames(dt, old = "region_code.IMPACT159", new = "country code")
     names.new <- cleanupNutrientNames(names(dt))
     if (facetColumnName %in% "nutrient") dt[, nutrient := capwords(cleanupNutrientNames(nutrient))]
@@ -1207,7 +1213,7 @@ server <- function(input, output, session) {
   
   # metadataTable ------
   output$metadataTable <- DT::renderDataTable({
-    dt <- getNewestVersion("dt.metadata", fileloc("mData"))
+    dt <- getNewestVersion("dt.metadataTot", fileloc("mData"))
     dt <- DT::datatable(dt, rownames = FALSE, options = list(pageLength = 25))
   })
   

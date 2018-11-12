@@ -125,6 +125,7 @@ for (switchloop in getSwitchChoice()) {
   dt.foodNnuts[, scenario := gsub("_REF", "", scenario)]
   outName <- paste("dt.foodNnuts", suffix, sep = ".")
   inDT <- dt.foodNnuts
+  if (gdxChoice %in% "SSPs") inDT <- inDT[scenario %in% c("SSP1_NoCC", "SSP2_HGEM", "SSP2_NoCC","SSP3_NoCC"),]
   desc <- "Combines dt.IMPACTfood with nutrients and kcalsPerDay"
   cleanup(inDT, outName, fileloc("resultsDir"), desc = desc)
 
@@ -159,6 +160,8 @@ for (switchloop in getSwitchChoice()) {
                                          value.name = "value",
                                          variable.factor = FALSE)
   inDT <- unique(dt.nutrients.kcals)
+  if (gdxChoice %in% "SSPs") inDT <- inDT[scenario %in% c("SSP1_NoCC", "SSP2_HGEM", "SSP2_NoCC","SSP3_NoCC"),]
+
   outName <- paste("dt.nutrients_kcals", suffix, sep = ".")
   desc <- "Kcals and kcals shares from carbohydrates, fat, etc. by country"
   cleanup(inDT, outName, fileloc("resultsDir"), desc = desc)
@@ -182,6 +185,7 @@ for (switchloop in getSwitchChoice()) {
                                            variable.factor = FALSE)
   dt.nutrients.sum.all <- unique(dt.nutrients.sum.all)
   inDT <- dt.nutrients.sum.all
+  if (gdxChoice %in% "SSPs") inDT <- inDT[scenario %in% c("SSP1_NoCC", "SSP2_HGEM", "SSP2_NoCC","SSP3_NoCC"),]
   outName <- paste("dt.nutrients_sum_all", suffix, sep = ".") #this includes phytate. Might want to remove later.
   desc <- "Sum of each nutrient from each of the food items"
   cleanup(inDT,outName, fileloc("resultsDir"), desc = desc)
@@ -210,6 +214,7 @@ for (switchloop in getSwitchChoice()) {
                                                     value.name = "value",
                                                     variable.factor = FALSE)
   inDT <- unique(dt.nutrients.sum.staples.long)
+  if (gdxChoice %in% "SSPs") inDT <- inDT[scenario %in% c("SSP1_NoCC", "SSP2_HGEM", "SSP2_NoCC","SSP3_NoCC"),]
   outName <- paste("dt.nutrients_sum_staples", suffix, sep = ".")
   desc <- "Sum of each nutrient from staples and nonstaples"
   cleanup(inDT,outName, fileloc("resultsDir"), desc = desc)
@@ -233,6 +238,7 @@ for (switchloop in getSwitchChoice()) {
                                           variable.factor = FALSE)
   dt.nutrients.sum.FG <- unique(dt.nutrients.sum.FG) #note that this contains phytate
   inDT <- dt.nutrients.sum.FG
+  if (gdxChoice %in% "SSPs") inDT <- inDT[scenario %in% c("SSP1_NoCC", "SSP2_HGEM", "SSP2_NoCC","SSP3_NoCC"),]
   outName <- paste("dt.nutrients_sum_FG", suffix, sep = ".")
   desc <- "Sum of each nutrient from each food group"
   cleanup(inDT,outName, fileloc("resultsDir"), desc = desc)
@@ -253,7 +259,8 @@ for (switchloop in getSwitchChoice()) {
   # convert to percent
   dt.KcalShare.nonstaple[,value := value * 100]
   inDT <- dt.KcalShare.nonstaple
-  outName <- paste("dt.KcalShare_nonstaple", suffix, sep = ".")
+  if (gdxChoice %in% "SSPs") inDT <- inDT[scenario %in% c("SSP1_NoCC", "SSP2_HGEM", "SSP2_NoCC","SSP3_NoCC"),]
+    outName <- paste("dt.KcalShare_nonstaple", suffix, sep = ".")
   desc <- "Share of kcals from nonstaples in value column; other Kcal data included"
   cleanup(inDT, outName, fileloc("resultsDir"), desc = desc)
 
@@ -282,6 +289,7 @@ for (switchloop in getSwitchChoice()) {
   data.table::setnames(dt.foodAvail.foodGroup, old = "foodavail.foodgroup.sum", new = "value")
   dt.foodAvail.foodGroup <- unique(dt.foodAvail.foodGroup)
   inDT <- dt.foodAvail.foodGroup
+  if (gdxChoice %in% "SSPs") inDT <- inDT[scenario %in% c("SSP1_NoCC", "SSP2_HGEM", "SSP2_NoCC","SSP3_NoCC"),]
   outName <- paste("dt.foodAvail_foodGroup", suffix, sep = ".")
   desc <- "Sum of food available by food group, kgs per day"
   cleanup(inDT, outName, fileloc("resultsDir"),  desc = desc)

@@ -45,6 +45,8 @@ combineIMPACTData <- function() {
   
   # add fish and alcoholic beverages
   dt.fishnAlcScenarios <- createFood("dt.fishnAlcScenarios", fileloc("mData")) # added May 14, 2018 to parallel dt.FoodAvail. Moved to mData because there are gdx specific files Oct 13, 2018
+  dt.fishnAlcScenarios[, scenario := gsub("-REF", "", scenario)]
+  dt.fishnAlcScenarios[, scenario := gsub("-", "_", scenario)]
   
   # add correct scenario names for fish and alcohol
   gdxChoice <- getGdxChoice()
@@ -110,7 +112,7 @@ combineIMPACTData <- function() {
   data.table::set(dt.IMPACTfood, which(is.na(dt.IMPACTfood[["PCX0"]])), "PCX0", 0)
   data.table::set(dt.IMPACTfood, which(is.na(dt.IMPACTfood[["PWX0"]])), "PWX0", 0)
   dt.IMPACTfood <- dt.IMPACTfood[IMPACT_code %in% keyVariable("IMPACTfoodCommodList")]
-  dt.IMPACTfood <- dt.IMPACTfood[!is.na(pcGDPX0),]
+ # dt.IMPACTfood <- dt.IMPACTfood[!is.na(pcGDPX0),] commented out Nov 12, 2018 because not needed
   data.table::setorderv(dt.IMPACTfood, cols = c("scenario",  "region_code.IMPACT159", "IMPACT_code", "year"))
   data.table::setkeyv(dt.IMPACTfood, c("scenario",  "region_code.IMPACT159", "IMPACT_code"))
   dt.IMPACTfood <- dt.IMPACTfood[!region_code.IMPACT159 %in% keyVariable("dropListCty")]

@@ -1019,6 +1019,7 @@ for (fname in filesToAgg) {
     merged[, setdiff(names(merged), keepListCol) := NULL]
     merged <- unique(merged)
     inDT <- merged
+if (gdxChoice %in% "SSPs") inDT <- inDT[scenario %in% scenOrderSSP, ]
     outName <- paste(fname, aggChoice, suffix, sep = ".")
     desc <- paste0("Aggregate RDA req ratios from data file ", fname)
     cleanup(inDT, outName, destDir = fileloc("resultsDir"), desc = desc)
