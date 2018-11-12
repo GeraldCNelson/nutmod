@@ -580,21 +580,21 @@ spiderGraphOutput <- function(spiderData, scenarioName) {
   return(p)
 }
 
+loadNresize <- function(dt) {
+  temp <- getNewestVersion(dt, fileloc("mData"))
+  temp <- (temp[year %in% years])
+  temp[, scenario := gsub("-REF", "", scenario)] # added Aug 9, 2018
+  temp[, scenario := gsub("-", "_", scenario)]
+  temp <- temp[scenario %in% scenarioNames]
+  assign(dt, temp, envir = .GlobalEnv) # this puts the data sets into the global environment
+  return(temp) # changed to temp Aug 9, 2018
+}
+
 load_data <- function(dataSetsToLoad) {
   #' load data that are not year or scenario specific; these are handled in the observe code in the server
   #' development files
   dt.metadata <- getNewestVersion("dt.metadataTot", fileloc("mData"))
   dt.IMPACTgdxParams <- getNewestVersion("dt.IMPACTgdxParams", fileloc("mData"))
-  
-  loadNresize <- function(dt) {
-    temp <- getNewestVersion(dt, fileloc("mData"))
-    temp <- (temp[year %in% years])
-    temp[, scenario := gsub("-REF", "", scenario)] # added Aug 9, 2018
-    temp[, scenario := gsub("-", "_", scenario)]
-    temp <- temp[scenario %in% scenarioNames]
-    assign(dt, temp, envir = .GlobalEnv) # this puts the data sets into the global environment
-    return(temp) # changed to temp Aug 9, 2018
-  }
   
   withProgress(message = 'Loading data', value = 0, {
     #' Number of times we'll go through the loop
@@ -876,8 +876,8 @@ plotByRegionBarAMDRinShiny <- function(barData, yLab) {
     labs(y = yLab, x = NULL) +
     geom_abline(data = ref_hi, aes(intercept = int_hi, slope = slope), color = "red", size = 1) +
     geom_abline(data = ref_lo, aes(intercept = int_lo, slope = slope), color = "darkgreen", size = 1) +
-    geom_label(data = ref_lo, aes(x = .6, y = int_lo + 2, label = "Low", family = fontFamily), fill= "white", color = "black", nudge_x = 0.25, nudge_y = 0.25) + # value after AMDR_lo shifts the label up or down
-    geom_label(data = ref_hi, aes(x = .6, y = int_hi + 2, label = "High"), nudge_x = 0.25, nudge_y = 0.25, fill= "white", color = "black") +
+    geom_label(data = ref_lo, aes(x = .6, y = int_lo + 2, label = paste0("Lower limit is ", AMDR_lo), family = fontFamily), fill= "white", color = "black", nudge_x = 0.25, nudge_y = 0.25) + # value after AMDR_lo shifts the label up or down
+    geom_label(data = ref_hi, aes(x = .6, y = int_hi + 2, label = paste0("Upper limit is ", AMDR_hi)), nudge_x = 0.25, nudge_y = 0.25, fill= "white", color = "black") +
     # next line adds the vertical numbers
     # p <- p + geom_text(aes(label = formatC( round(value, roundVal), format='f', digits = roundVal),
     #                        x = factor(region_name), y = yval), position = position_dodge(0.9),

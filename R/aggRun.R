@@ -204,7 +204,8 @@ for (switchloop in getSwitchChoice()) {
     
     # a kludge to make the climate scenario green (#2ca25f)
     colorList[3] <- "#2CA25F"
-    
+    print("Colorlist under scenOrdSSP")
+    print(colorList)
   } else {
     colorsNeeded <- length(get(l))
     cat("colorsNeeded: ", colorsNeeded)
@@ -569,6 +570,8 @@ for (switchloop in getSwitchChoice()) {
       fileName = paste(gdxChoice, "_", l, "_",  "AMDRShare", "_", nutName, "_", aggChoice, ".", suffix, sep = "")
       nutTitle <- capwords(cleanupNutrientNames(nutName))
       nutTitle <- paste(nutTitle, "share of total kilocalories", sep = " ")
+      print("Colorlist under plotByRegionBarAMDR")
+      print(colorList)
       
       plotByRegionBarAMDR(dt, fileName,
                           plotTitle = nutTitle, yLab = ylab, yRange = yRangeMinMax, aggChoice, suffix,

@@ -141,7 +141,7 @@ ui <- fluidPage(
   theme = shinytheme("sandstone"),
   title = "Nutrient modeling",
   
-  router_ui(), # needed for table of contents
+  # router_ui(), # needed for table of contents
   
   useShinyjs(debug = TRUE),
   div(
@@ -685,6 +685,7 @@ server <- function(input, output, session) {
   output$availabilitySpiderGraphP1 <- renderggiraph({
     dt <- as.data.table(copy(data.foodAvail())) # I don't understand how this becomes a dataframe
     scenarioName <- unique(dt$scenario)
+    data.table::setnames(dt, old = codeNames.foodGroups, new = foodGroupNamesWrap)
     p <- spiderGraphOutput(dt, scenarioName)
     ggiraph(code = print(p), zoom_max = 1, selection_type = "single")
   })
@@ -1259,6 +1260,7 @@ server <- function(input, output, session) {
   # file documentation -----
   output$fileDocumentation <- DT::renderDataTable({
     dt <- getNewestVersion("resultFileLookup", fileloc("mData"))
+#    dt <- getNewestVersion("dt.metadataTot", fileloc("mData"))
     dt <- DT::datatable(dt, rownames = FALSE, options = list(pageLength = 25))
     dt
   })
