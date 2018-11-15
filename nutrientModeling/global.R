@@ -876,8 +876,8 @@ plotByRegionBarAMDRinShiny <- function(barData, yLab) {
     labs(y = yLab, x = NULL) +
     geom_abline(data = ref_hi, aes(intercept = int_hi, slope = slope), color = "red", size = 1) +
     geom_abline(data = ref_lo, aes(intercept = int_lo, slope = slope), color = "darkgreen", size = 1) +
-    geom_label(data = ref_lo, aes(x = .6, y = int_lo + 2, label = paste0("Lower limit is ", AMDR_lo), family = fontFamily), fill= "white", color = "black", nudge_x = 0.25, nudge_y = 0.25) + # value after AMDR_lo shifts the label up or down
-    geom_label(data = ref_hi, aes(x = .6, y = int_hi + 2, label = paste0("Upper limit is ", AMDR_hi)), nudge_x = 0.25, nudge_y = 0.25, fill= "white", color = "black") +
+    geom_label(data = ref_lo, aes(x = .6, y = int_lo + 2, label = paste0("Lower limit is ", int_lo), family = fontFamily), fill= "white", color = "black", nudge_x = 1.25, nudge_y = 0.25) + # value after AMDR_lo shifts the label up or down
+    geom_label(data = ref_hi, aes(x = .6, y = int_hi + 2, label = paste0("Upper limit is ", int_hi)), nudge_x = 1.25, nudge_y = 0.25, fill= "white", color = "black") +
     # next line adds the vertical numbers
     # p <- p + geom_text(aes(label = formatC( round(value, roundVal), format='f', digits = roundVal),
     #                        x = factor(region_name), y = yval), position = position_dodge(0.9),

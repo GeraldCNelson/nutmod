@@ -31,8 +31,9 @@ library(data.table)
 library(plyr)
 library(dplyr) # to do %>%
 library(dtplyr)
-library(tidyverse) # includes ggplot2, tibble, tidyr, and readr
+# library(tidyverse) # includes ggplot2, tibble, tidyr, and readr
 library(data.table) # this is needed everywhere and currently some scripts don't call it
+library(ggplot2)
 
 # devtools::install_github("strengejacke
 # library(sjlabelled)
