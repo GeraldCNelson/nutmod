@@ -32,7 +32,7 @@ library(sp)
 library(broom)
 library(rgdal)
 sourceFile <- "aggRun.AfrAgFutures.R"
-# gdxChoice values are SSPs, USAID,  USAIDPriorities, or AfricanAgFutures
+
 createScriptMetaData()
 
 # DTGlobal choices are
@@ -42,6 +42,9 @@ createScriptMetaData()
 # - dt.nutrients.sum.all, reqRatio_sum_RDA_macro, reqRatio_sum_RDA_minrls, reqRatio_sum_RDA_vits
 # - dt.nutrients.nonstapleShare, dt.foodGroupsInfo, dt.energy.ratios
 # aggChoices are I3regions, tenregions, AggReg1, AggReg2, twoEconGroup, WB, regions.AfricanAgFutures
+
+# needed for getting cleaned up nutrient names
+dt.nutcodeLU <- data.table::as.data.table(openxlsx::read.xlsx("data-raw/NutrientData/NutrientCodeLookup.xlsx"))
 
 #nutrients grouping
 macroNutrients <- keyVariable("macronutrients")
@@ -120,11 +123,14 @@ for (switchloop in getSwitchChoice()) {
   )
   
   if (gdxChoice == "AfricanAgFutures") {
+    # updated Nov 20, 2018 for revised Gates scenarios
     dt.scenarioListIMPACT <- getNewestVersion("dt.scenarioListIMPACT", fileloc("mData"))
     scenarioListIMPACT <- unique(dt.scenarioListIMPACT$scenario)
     scenarioListIMPACT <- c("X2010", scenarioListIMPACT[!scenarioListIMPACT %in% c("Med_pes_CC", "Med_opt_CC", "SSP2_SSP2_noCC", "SSP2_SSP2_CC")])
-    scenario.base.NoCC <-  "Med_base_NoCC"
-    scenario.base.CC <-  "Med_base_CC"
+    # scenario.base.NoCC <-  "Med_base_NoCC"
+    # scenario.base.CC <-  "Med_base_CC"
+    # scenario.base.NoCC <-  "Med_base_NoCC"
+    scenario.base.CC <-  "Reference"
     scenChoiceList <- "scenarioListIMPACT"
     scenChoice.name <- gdxChoice
     # aggChoiceListBarChart <- c("WB", "tenregions")
@@ -153,6 +159,7 @@ for (switchloop in getSwitchChoice()) {
       for (legendOrient in c("bottom", "right")) {
         legendname <- paste("legend", legendOrient, sep = "_")
         fileName <- paste( legendname, sep = "")
+        fileToUse <- dt.budgetShare # need a file from the results dir to get the legend
         p <- updateLegendGrobs(l, aggChoice, legendLoc = legendOrient, mergedVals)
         graphsListHolder[[legendname]] <- p
         if (legendOrient %in% "bottom") ggsave(file = paste0(fileloc("gDir"),"/",fileName,".png"), plot = p,
@@ -459,6 +466,8 @@ for (macroNut in AMDRNuts) {
     fileName = paste(gdxChoice, "_",   "AMDRShare", "_", nutName, ".", suffix, sep = "")
     fileNameHolder <- append(fileNameHolder, fileName)
     nutTitle <- capwords(cleanupNutrientNames(nutName))
+    print("nutTitle")
+    print(nutTitle)
     plotByRegionBarAMDR(dt, fileName,
                         plotTitle = nutTitle, yLab = ylab, yRange = yRangeMinMax, aggChoice, suffix,
                         scenOrder = get(l), colorList, AMDR_lo, AMDR_hi, graphsListHolder = graphsListHolder, plotErrorBars)
@@ -499,7 +508,8 @@ if (suffix %in% "var") {
   palette <- myPalette(4)
   displayOrder <- get(l)
   fileName <- paste(gdxChoice, "_",  "facetmap", "_", "budgetShare", sep = "")
-  facetMaps(mapFile = projmap, DTfacetMap = temp, fileName, legendText, fillLimits, palette, facetColName,graphsListHolder = graphsListHolder, displayOrder)
+  facetMaps(mapFile = projmap, DTfacetMap = temp, fileName, legendText, fillLimits, palette, facetColName,
+            graphsListHolder = graphsListHolder, displayOrder, width = 5)
 }
 
 # facet map, food availability by food groups -----
@@ -508,7 +518,7 @@ DTGlobal <- getNewestVersion(paste("dt.foodAvail_foodGroup", suffix, sep = "."),
 deleteListRow <- c("alcohol", "beverages", "fish", "meats", "oils", "dairy", "eggs", "nutsNseeds") # remove these food groups
 DTGlobal <- DTGlobal[!food_group_code %in% deleteListRow,]
 DTGlobal[, scenario := gsub("-", "_", scenario)] # needed to have valid column names
-dt <- DTGlobal[year == "X2010" & scenario %in% gsub("-", "_", scenario.base.CC) |
+dt <- DTGlobal[year == "X2010" & scenario %in% gsub("-", "_", "Reference") |
                  year == "X2050",][year == "X2010", scenario := "X2010"][, year := NULL]
 
 dt <- countryCodeCleanup(dt) # converts IMPACT region codes to ISO3 codes for largest country in the region
@@ -519,18 +529,18 @@ dt[food_group_code %in% "rootsNPlantain", food_group_code := "roots and plantain
 #dt is the starting point. Need temp versions for each of the facet maps
 # facet map, availability in quantity terms 2050, no CC -----
 
-facetColName <- "food_group_code"
-legendText <- "Grams per day, 2050, \nno climate change"
-fillLimits <- c(0, 1000)
-temp <- truncateDT(dt, fillLimits = fillLimits)
-temp <- temp[id %in% allAfricaCodes,]
-temp <- temp[scenario %in% scenario.base.NoCC,]
-paletteType <- "Spectral"
-myPalette <- colorRampPalette(rev(brewer.pal(11, paletteType)))
-palette <- myPalette(4)
-displayOrder <- sort(unique(temp[, get(facetColName)])) # default - alphabetically sorted
-fileName <- paste(gdxChoice, "_",  "facetmap", "_", "FGAvail", "_", "2050", "_", "noCC", ".", suffix, sep = "")
-facetMaps(mapFile = projmap, DTfacetMap = temp, fileName, legendText, fillLimits, palette, facetColName, graphsListHolder = graphsListHolder,  displayOrder)
+# facetColName <- "food_group_code"
+# legendText <- "Grams per day, 2050, \nno climate change"
+# fillLimits <- c(0, 1000)
+# temp <- truncateDT(dt, fillLimits = fillLimits)
+# temp <- temp[id %in% allAfricaCodes,]
+# temp <- temp[scenario %in% scenario.base.NoCC,]
+# paletteType <- "Spectral"
+# myPalette <- colorRampPalette(rev(brewer.pal(11, paletteType)))
+# palette <- myPalette(4)
+# displayOrder <- sort(unique(temp[, get(facetColName)])) # default - alphabetically sorted
+# fileName <- paste(gdxChoice, "_",  "facetmap", "_", "FGAvail", "_", "2050", "_", "noCC", ".", suffix, sep = "")
+# facetMaps(mapFile = projmap, DTfacetMap = temp, fileName, legendText, fillLimits, palette, facetColName, graphsListHolder = graphsListHolder,  displayOrder)
 
 # convert to wide to do operations aross scenarios for the food availability deltas
 formula.wide <- "id + food_group_code ~ scenario"
@@ -539,35 +549,36 @@ DT.wide <- data.table::dcast(
   formula = formula.wide,
   value.var = "value")
 
+# commented out Nov 21, 2018 because no climate change scenarios not included
 #facet map, climate change effect on food availability -----
-DT.wide[, value := 100 * (get(scenario.base.CC) - get(scenario.base.NoCC)) / get(scenario.base.NoCC)] 
-facetColName <- "food_group_code"
-legendText <- "Climate change effect on\navailability in 2050 (percent)"
-fillLimits <- c(-14, 1)
-temp <- truncateDT(DT.wide, fillLimits = fillLimits)
-temp <- temp[id %in% allAfricaCodes,]
-keepListCol <- c("id", facetColName, "value")
-temp[, setdiff(names(temp), keepListCol) := NULL]
-paletteType <- "Reds"
-myPalette <- colorRampPalette(rev(brewer.pal(9, paletteType)))
-palette <- myPalette(4)
-displayOrder <- sort(unique(temp[, get(facetColName)])) # default - alphabetically sorted
-fileName <- paste(gdxChoice, "_",  "facetmap", "_", "FGAvailChange", "_", "climate", ".", suffix, sep = "")
-facetMaps(mapFile = projmap, DTfacetMap = temp, fileName, legendText, fillLimits, palette, facetColName, graphsListHolder = graphsListHolder, displayOrder)
+# DT.wide[, value := 100 * (get(scenario.base.CC) - get(scenario.base.NoCC)) / get(scenario.base.NoCC)] 
+# facetColName <- "food_group_code"
+# legendText <- "Climate change effect on\navailability in 2050 (percent)"
+# fillLimits <- c(-14, 1)
+# temp <- truncateDT(DT.wide, fillLimits = fillLimits)
+# temp <- temp[id %in% allAfricaCodes,]
+# keepListCol <- c("id", facetColName, "value")
+# temp[, setdiff(names(temp), keepListCol) := NULL]
+# paletteType <- "Reds"
+# myPalette <- colorRampPalette(rev(brewer.pal(9, paletteType)))
+# palette <- myPalette(4)
+# displayOrder <- sort(unique(temp[, get(facetColName)])) # default - alphabetically sorted
+# fileName <- paste(gdxChoice, "_",  "facetmap", "_", "FGAvailChange", "_", "climate", ".", suffix, sep = "")
+# facetMaps(mapFile = projmap, DTfacetMap = temp, fileName, legendText, fillLimits, palette, facetColName, graphsListHolder = graphsListHolder, displayOrder)
 
-# increase in food availability due to income growth -----
-DT.wide[, value := 100 * (get(scenario.base.NoCC) - X2010) / X2010]
-facetColName <- "food_group_code"
-legendText <- "Income growth effect on availability\nno climate change, \n2010-2050, (percent)"
-fillLimits <- c(-30, 100)
-temp <- truncateDT(DT.wide, fillLimits = fillLimits)
-temp <- temp[id %in% allAfricaCodes,]
-paletteType <- "Spectral"
-myPalette <- colorRampPalette(rev(brewer.pal(11, paletteType)))
-palette <- myPalette(4)
-displayOrder <- sort(unique(temp[, get(facetColName)])) # default - alphabetically sorted
-fileName <- paste(gdxChoice, "_",  "facetmap", "_", "FGAvailChange", "_", "income", ".", suffix, sep = "")
-facetMaps(mapFile = projmap, DTfacetMap = temp, fileName, legendText, fillLimits = fillLimits, palette, facetColName, graphsListHolder = graphsListHolder, displayOrder)
+# # increase in food availability due to income growth -----
+# DT.wide[, value := 100 * (get(scenario.base.NoCC) - X2010) / X2010]
+# facetColName <- "food_group_code"
+# legendText <- "Income growth effect on availability\nno climate change, \n2010-2050, (percent)"
+# fillLimits <- c(-30, 100)
+# temp <- truncateDT(DT.wide, fillLimits = fillLimits)
+# temp <- temp[id %in% allAfricaCodes,]
+# paletteType <- "Spectral"
+# myPalette <- colorRampPalette(rev(brewer.pal(11, paletteType)))
+# palette <- myPalette(4)
+# displayOrder <- sort(unique(temp[, get(facetColName)])) # default - alphabetically sorted
+# fileName <- paste(gdxChoice, "_",  "facetmap", "_", "FGAvailChange", "_", "income", ".", suffix, sep = "")
+# facetMaps(mapFile = projmap, DTfacetMap = temp, fileName, legendText, fillLimits = fillLimits, palette, facetColName, graphsListHolder = graphsListHolder, displayOrder)
 
 #' facet maps, adequacy results ------
 cat("\nWorking on adequacy facet maps for", suffix, "\n")
@@ -575,7 +586,10 @@ cat("\nWorking on adequacy facet maps for", suffix, "\n")
 #' use this both for the nutrients to keep and the order in which they should be displayed
 keepListNuts <- c("carbohydrate_g", "protein_g", "calcium_mg", "iron_mg", "zinc_mg", "folate_µg", "vit_a_rae_µg",
                   "vit_d_µg", "vit_e_mg", "vit_b12_µg")
-
+keepListNutsNames <- character()
+for (i in 1:length(keepListNuts)) {
+  keepListNutsNames[i] <- dt.nutcodeLU[nutCode %in% keepListNuts[i], NutrShortDesc]
+}
 # adequacy ratios by suffix (base, var, varFort) -----
 DT.macro <- getNewestVersion(paste("reqRatio_sum_RDA_macro", suffix, sep = "."), fileloc("resultsDir"))
 DT.vits <- getNewestVersion(paste("reqRatio_sum_RDA_vits", suffix, sep = "."), fileloc("resultsDir"))
@@ -588,8 +602,10 @@ dt <- dt[year == "X2010" & scenario %in% gsub("-", "_", scenario.base.CC) |
            year == "X2050",][year == "X2010", scenario := "X2010"][, year := NULL]
 
 dt <- countryCodeCleanup(dt) # converts IMPACT region codes to ISO3 codes for largest country in the region
-nutListtemp = sort(unique(dt$nutrient))
-dt.nuts <- data.table(nutListtemp = nutListtemp, nutListtempclean = capwords(cleanupNutrientNames(nutListtemp))) # use to get clean spelling of nutrient
+
+# nutListtemp = sort(unique(dt$nutrient))
+# dt.nuts <- data.table(nutListtemp = nutListtemp, nutListtempclean = capwords(cleanupNutrientNames(nutListtemp))) # use to get clean spelling of nutrient
+dt.nuts <- data.table(nutListtemp = keepListNuts, nutListtempclean = keepListNutsNames)
 
 dt <- merge(dt, dt.nuts, by.x = "nutrient", by.y = "nutListtemp")
 dt[, nutrient := NULL]
@@ -607,23 +623,38 @@ temp <- temp[scenario %in% "X2010",]
 paletteType <- "Spectral"
 myPalette <- colorRampPalette(brewer.pal(11, paletteType))
 palette <- myPalette(4)
-displayOrder <- capwords(cleanupNutrientNames(keepListNuts))
+displayOrder <- keepListNutsNames
 fileName <- paste(gdxChoice, "_",  "facetmap", "_", "nutReqRatio", "_", "2010", ".", suffix, sep = "")
 facetMaps(mapFile = projmap, DTfacetMap = temp, fileName, legendText, fillLimits, palette, facetColName, graphsListHolder = graphsListHolder, displayOrder)
 
-# adequacy 2050, no CC -----
+# # adequacy 2050, no CC -----
+# facetColName <- "nutrient"
+# legendText <- "Adequacy ratio, 2050, \nno climate change"
+# fillLimits <- c(0, 3) # changed from 5, May 29, 2018
+# temp <- truncateDT(dt, fillLimits =  fillLimits)
+# temp <- temp[id %in% allAfricaCodes,]
+# temp <- temp[scenario %in% scenario.base.NoCC,]
+# paletteType <- "Spectral"
+# myPalette <- colorRampPalette(brewer.pal(11, paletteType))
+# palette <- myPalette(4)
+# displayOrder <- capwords(cleanupNutrientNames(keepListNuts))
+# fileName <- paste(gdxChoice, "_",  "facetmap", "_", "nutReqRatio", "_", "2050", "_", "noCC", ".", suffix, sep = "")
+# facetMaps(mapFile = projmap, DTfacetMap = temp, fileName, legendText, fillLimits, palette, facetColName, graphsListHolder = graphsListHolder, displayOrder)
+
+# adequacy 2050,  CC -----
 facetColName <- "nutrient"
-legendText <- "Adequacy ratio, 2050, \nno climate change"
 fillLimits <- c(0, 3) # changed from 5, May 29, 2018
-temp <- truncateDT(dt, fillLimits =  fillLimits)
-temp <- temp[id %in% allAfricaCodes,]
-temp <- temp[scenario %in% scenario.base.NoCC,]
 paletteType <- "Spectral"
 myPalette <- colorRampPalette(brewer.pal(11, paletteType))
 palette <- myPalette(4)
-displayOrder <- capwords(cleanupNutrientNames(keepListNuts))
-fileName <- paste(gdxChoice, "_",  "facetmap", "_", "nutReqRatio", "_", "2050", "_", "noCC", ".", suffix, sep = "")
-facetMaps(mapFile = projmap, DTfacetMap = temp, fileName, legendText, fillLimits, palette, facetColName, graphsListHolder = graphsListHolder, displayOrder)
+displayOrder <- keepListNutsNames
+for (i in scenarioListIMPACT[!scenarioListIMPACT %in% "X2010"]) {
+  temp <- truncateDT(dt, fillLimits)
+  legendText <- paste ("Adequacy ratio, 2050,", i, "scenario", sep = " ")
+  temp <- temp[scenario %in% i,]
+  fileName <- paste(gdxChoice, "_", l, "_", "facetmap", "_", "nutReqRatio", "_", "2050", "_", "CC", ".", i, sep = "")
+  facetMaps(mapFile = projmap, DTfacetMap = temp, fileName, legendText, fillLimits, palette, facetColName, graphsListHolder, displayOrder)
+}
 
 # convert to wide to do operations aross scenarios for 2050
 formula.wide <- "id + nutrient ~ scenario"

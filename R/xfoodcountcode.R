@@ -3,7 +3,6 @@ library(gplots)
 library(RColorBrewer)
 
 source("R/nutrientModFunctions.R")
-  source("R/renameUSAIDscenarios.R")
 
 dt.IMPACTfood <- getNewestVersionIMPACT("dt.IMPACTfood")
 dt.IMPACTfood[ , `:=`( COUNT = .N ) , by = c("scenario", "year", "region_code.IMPACT159") ]

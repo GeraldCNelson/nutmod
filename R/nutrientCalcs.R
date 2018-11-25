@@ -62,7 +62,7 @@ generateResults.dataPrep <- function(req, dt.foodNnuts, scenarioListIMPACT) {
     nutListReq <- names(dt.nutsReqPerCap)[!names(dt.nutsReqPerCap)  %in% c("scenario", "region_code.IMPACT159", "year")]
   }
   
-  # The dt.nutsReqPerCap from the Gates UN/SSP combo data already have scenarios that have the same names as the rest of the IMPACT data so 
+  # The dt.nutsReqPerCap from the AfricanAgFutures UN/SSP combo data already have scenarios that have the same names as the rest of the IMPACT data so 
   # no changes need to be made. The code below deals with situation with SSP data
   
   if (!gdxChoice %in% "AfricanAgFutures") {
@@ -221,7 +221,7 @@ generateResults.dataPrep <- function(req, dt.foodNnuts, scenarioListIMPACT) {
     # # next two lines added to potentially correct a 'length' problem. March 14, 2018. Commented out Oct 13, 2018
     # deleteListRows <- c("caffeine_mg", "cholesterol_mg", "ft_acds_tot_trans_g")
     # dt.food.agg <- dt.food.agg[!nutrient %in% deleteListRows]
-    formula.wide <- paste("scenario + region_code.IMPACT159 + year ~nutrient")
+    formula.wide <- paste("scenario + region_code.IMPACT159 + year ~ nutrient")
     dt.food.agg <- data.table::dcast(
       data = dt.food.agg,
       formula = formula.wide,
@@ -286,6 +286,7 @@ generateResults.dataPrep <- function(req, dt.foodNnuts, scenarioListIMPACT) {
   outName <- paste("food_agg_",reqShortName, ".", suffix, sep = "")
   desc <- paste("Adequacy ratios - all, by food groups, and by staples", reqShortName)
   cat(desc, "\n")
+  print(summary(inDT))
   cleanup(inDT, outName, fileloc("resultsDir"), desc = desc)
 }
 # end of generateResults function

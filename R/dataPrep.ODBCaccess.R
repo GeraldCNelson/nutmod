@@ -34,11 +34,11 @@ createScriptMetaData()
 #                        trim_ws = TRUE)
 
 FOOD_DES <- as.data.table(fread("data-raw/NutrientData/sr28asc/FOOD_DES.txt",
-                                   quote = "~", sep = "^", head = FALSE, stringsAsFactors = FALSE,
-                                   col.names = c("NDB_No", "FdGrp_Cd", "Long_Desc", "Shrt_Desc", "ComName", "ManufacName", "Survey",
-                                                 "Ref_Desc", "Refuse", "SciName", "N_Factor", "Pro_Factor", "Fat_Factor", "CHO_Factor"),
-                                   colClasses = c("character", "character", "character", "character", "character", "character", "character",
-                                                  "character", "numeric", "character", "numeric", "numeric", "numeric", "numeric")))
+                                quote = "~", sep = "^", head = FALSE, stringsAsFactors = FALSE,
+                                col.names = c("NDB_No", "FdGrp_Cd", "Long_Desc", "Shrt_Desc", "ComName", "ManufacName", "Survey",
+                                              "Ref_Desc", "Refuse", "SciName", "N_Factor", "Pro_Factor", "Fat_Factor", "CHO_Factor"),
+                                colClasses = c("character", "character", "character", "character", "character", "character", "character",
+                                               "character", "numeric", "character", "numeric", "numeric", "numeric", "numeric")))
 setnames(FOOD_DES, old = names(FOOD_DES), new = c("NDB_No", "FdGrp_Cd", "Long_Desc", "Shrt_Desc", "ComName", "ManufacName", "Survey",
                                                   "Ref_Desc", "Refuse", "SciName", "N_Factor", "Pro_Factor", "Fat_Factor", "CHO_Factor"))
 deleteListCol <- c("FdGrp_Cd","ComName", "ManufacName", "Survey", "Shrt_Desc", "SciName", "N_Factor", "Pro_Factor", "Fat_Factor", "CHO_Factor")
@@ -49,13 +49,13 @@ FOOD_DES[, usda_code := as.character(usda_code)]
 
 #NUT_DATA <- as.data.table(sqlFetch(con, "NUT_DATA", as.is = TRUE)) #nutrient data file; code is Nutr_No; contains NDB_No
 NUT_DATA <- as.data.table(fread("data-raw/NutrientData/sr28asc/NUT_DATA.txt",
-                                   quote = "~", sep = "^", head = FALSE, stringsAsFactors = FALSE,
-                                   col.names = c("NDB_No", "Nutr_No", "Nutr_Val", "Num_Data_Pts", "Std_Error", "Src_Cd", "Deriv_Cd",
-                                                 "Ref_NDB_No", "Add_Nutr_Mark", "Num_Studies", "Min", "Max", "DF", "Low_EB", "Up_EB",
-                                                 "Stat_Cmt", "AddMod_Date", "V18"),
-                                   colClasses = c("character", "character",  "numeric", "numeric", "numeric", "character", "character",
-                                                  "character", "character", "numeric", "numeric", "numeric", "numeric", "numeric", "numeric",
-                                                  "character", "character", "character")))
+                                quote = "~", sep = "^", head = FALSE, stringsAsFactors = FALSE,
+                                col.names = c("NDB_No", "Nutr_No", "Nutr_Val", "Num_Data_Pts", "Std_Error", "Src_Cd", "Deriv_Cd",
+                                              "Ref_NDB_No", "Add_Nutr_Mark", "Num_Studies", "Min", "Max", "DF", "Low_EB", "Up_EB",
+                                              "Stat_Cmt", "AddMod_Date", "V18"),
+                                colClasses = c("character", "character",  "numeric", "numeric", "numeric", "character", "character",
+                                               "character", "character", "numeric", "numeric", "numeric", "numeric", "numeric", "numeric",
+                                               "character", "character", "character")))
 NUT_DATA[, V18 := NULL] # must be something strange at the end of the txt file
 setnames(NUT_DATA, old = names(NUT_DATA), new = c("NDB_No", "Nutr_No", "Nutr_Val", "Num_Data_Pts", "Std_Error", "Src_Cd", "Deriv_Cd",
                                                   "Ref_NDB_No", "Add_Nutr_Mark", "Num_Studies", "Min", "Max", "DF", "Low_EB", "Up_EB",

@@ -4,15 +4,11 @@ sourceFile <- "gdxrrwSetup.R"
 createScriptMetaData()
 library(gdxrrw)
 library(readxl)
-#IMPACTgdxfileName <- "Demand Results20150817.gdx" - old gdx
-#gdxFileName <- fileNameList("IMPACTgdxfileName")
-#gamsSetup() # to load GAMs stuff and create the initial list of IMPACT scenarios
 gdxFileName <- getGdxFileName(gdxChoice)
 GAMSloc <- fileNameList("R_GAMS_SYSDIR")
 igdx(gamsSysDir = GAMSloc, silent = TRUE)
 gamsSetup <- function(gdxFileName) {
   # some of this code duplicates code in dataPrep.IMPACT.R. Not good.
-  #  gdxrrw::igdx(gamsSysDir = fileNameList("R_GAMS_SYSDIR"), silent = TRUE)
   gdxFileLoc <- paste(fileloc("IMPACTRawData"),gdxFileName, sep = "/")
   dt.ptemp <- data.table::as.data.table(gdxrrw::rgdx.param(gdxFileLoc, "PWX0",ts = TRUE,
                                                            names = c("scenario", "IMPACT_code", "year", "value")))
@@ -25,7 +21,6 @@ gamsSetup <- function(gdxFileName) {
     keepListCol <- "scenario"
     dt.scenarioListIMPACT <- unique(dt.ptemp[, (keepListCol), with = FALSE])
   }
-  # if (gdxFileName %in% "Micronutrient-Inputs-2018.21.06.gdx") {
   if (gdxFileName %in% "Micronutrient-Inputs-7.1.2018.gdx") {
     keepListCol <- "scenario"
     dt.scenarioListIMPACT <- unique(dt.ptemp[, (keepListCol), with = FALSE])
@@ -37,35 +32,16 @@ gamsSetup <- function(gdxFileName) {
     dt.scenarioListIMPACT[, crop := NULL]
   }
   
-  # if (gdxFileName %in% "BMGF-Africa-NutMod-Inputs-2018.09.21.gdx") {
   if (gdxFileName %in% "BMGF-Africa-NutMod-Inputs-1018.10.21.gdx") {
     keepListCol <- "scenario"
     dt.scenariosLookup  <- as.data.table(read_excel("data-raw/AfricanAgFutures/scenlookupAfrAgFutures.xlsx")) 
-    dt.scenarioListIMPACT <- dt.scenariosLookup[, "substantiveNames"][!substantiveNames %in% c("SSP3Afr_base_CC", "SSP1Afr_base_CC"),]
+    
+    # original scenarios to discard c("SSP3Afr_base_CC", "SSP1Afr_base_CC")
+    scenariosToDiscard <- c( "Med_base_NoCC",  "Med_pes_CC",  "Med_opt_CC", "SSP2_SSP2_noCC", "SSP2_SSP2_CC",  "SSP3Afr_base_CC", "SSP1Afr_base_CC")
+    
+    dt.scenarioListIMPACT <- dt.scenariosLookup[, "substantiveNames"][!substantiveNames %in% scenariosToDiscard,]
     setnames(dt.scenarioListIMPACT, old = "substantiveNames", new = "scenario")
-    # dt.ptemp <- dt.ptemp[!scenario %in% c("AfrAgFutures_scnr09", "AfrAgFutures_scnr10")]
-    # for (i in 1:nrow(dt.scenariosLookup)) {
-    # dt.ptemp <- dt.ptemp[scenario %in% dt.scenariosLookup$basicNames[i], scenario := dt.scenariosLookup$substantiveNames[i]]
-    # }
-    # SSPName <- "SSP2"
-    # climModel <- "HGEM"
-    #  dt.scenarioListIMPACT[, scenario := paste(SSPName, climModel, paste0("c", crop), sep = "-")]
-    #   dt.scenarioListIMPACT[, crop := NULL]
   }
-  
-  #cleanup scenario names
-  dt.scenarioListIMPACT <- cleanupScenarioNames(dt.scenarioListIMPACT) # replaces - with _ in a couple of scenarios and removes 2 on a couple of USAID scenarios
-  #  scenarioComponents <- c("SSP", "climate_model", "experiment")
-  # #  suppressWarnings(
-  #     dt.scenarioListIMPACT[, (scenarioComponents) := data.table::tstrsplit(scenario, "-", fixed = TRUE)]
-  # #  )
-  #   # the code above recyles so you end up with the SSP value in experiment if this is a REF scenario
-  #   # the code below detects this and replaces the SSP value with REF
-  #   dt.scenarioListIMPACT[(SSP == experiment), experiment := "REF"]
-  #   dt.scenarioListIMPACT[, scenario := paste(SSP, climate_model, experiment, sep = "-")]
-  #   #  dt.ptemp <- merge(dt.ptemp, dt.scenarioListIMPACT, by = "scenario")
-  #   deleteListCol <- c("SSP", "climate_model", "experiment")
-  #   dt.scenarioListIMPACT[, (deleteListCol) := NULL]
   
   inDT <- dt.scenarioListIMPACT
   inDT[, scenario := gsub("-", "_", scenario)]

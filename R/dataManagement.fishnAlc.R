@@ -260,9 +260,6 @@ dt.GDPFBSelas[, (xRatio) := lapply(.SD, FUN = f.xRatio), .SDcols = (x)]
 keepListCol <- c("scenario", "region_code.IMPACT159", "year", Qn, xRatio)
 dt.GDPFBSelas[, setdiff(names(dt.GDPFBSelas), (keepListCol)) := NULL]
 
-# DT <- copy(dt.GDPFBSelas)
-# DT[is.na(get(xRatio)), (xRatio) := 1]
-
 # see https://stackoverflow.com/questions/50082978/r-how-to-use-mapply-with-a-data-table-and-two-lists-of-column-names?noredirect=1#comment87182401_50082978
 
 f.cumprod <- function(x, y)  cumprod(c(x[1], y[-1]))
@@ -293,9 +290,5 @@ inDT <- dt.GDPFBSelas.melt[year %in% keepYearList]
 outName <- "dt.fishnAlcScenarios"
 desc <- "Scenarios of fish and alcoholic beverages availability by fish composite and country. Average availability, kgs per person per year"
 cleanup(inDT,outName, fileloc("mData"), desc = desc) # changed to mData Oct 30, 2018
-
-# testing of data
-# dt.GDPFBSelas.melt[, fishCons := rowSums(.SD), by = c("scenario", "region_code.IMPACT159", "year", "IMPACT_code")]
-
 
 

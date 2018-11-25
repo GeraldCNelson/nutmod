@@ -1,18 +1,10 @@
-#' @title "Preparation of Population Data"
+#' @title "Preparation of Population Data from the UN"
 #' @keywords data management, SSP, UN, population data
 #' @name "dataPrep.UNscenarios.R"
 #' @description
-#' This script reads in the Shared Socioeconomic Profiles population data written by dataPrep.SSP.R,
-#' reads in the UN population data and does population trees
-#' to align the SSP population data with the nutrient requirements age and gender structure data
-#' Creates the following files
-#'   req.EAR.ssp - data/req.EAR.percap.rds
-#'   req.RDA.vits.ssp - data/req.RDA.vits.percap.rds
-#'   req.RDA.minrls.ssp - data/req.RDA.minrls.percap.rds
-#'   req.RDA.macro.ssp - data/req.RDA.macro.percap.rds
-#'   req.UL.vits.ssp - data/req.UL.vits.percap.rds
-#'   req.UL.minrls.ssp - data/req.UL.minrls.percap.rds"
-#'   req.MRVs.ssp - data/req.MRVs.percap.rds" # added March 24, 2017
+#' This script reads in the Shared Socioeconomic Profiles population data written by dataPrep.SSP.R and
+#' the UN population data and has the start of some code to do population trees. It writes out
+#' dt.pop.AfrAgFutures, the UN population data needed for the AfricanAgFutures project
 
 #' @source \url{https://tntcat.ac.at/SspDb/download/common/SspDb_country_data_2013-06-12.csv.zip}
 #Copyright (C) 2015 - 2018 Gerald C. Nelson, except where noted
@@ -35,22 +27,16 @@ library(stringr)
 library(rCharts)
 
 # load needed files
-# dt.pop.SSPs <- getNewestVersion("dt.PopX0", "data/SSPs/IMPACTData/") # total population by country from the SSPs scenario gdx
 dt.SSPPop <- getNewestVersion("dt.SSPPopClean", fileloc("uData")) # age/gender data for all the SSPs.
 dt.regions.all <- getNewestVersion("dt.regions.all", fileloc("uData"))
 dt.scenariosLookup  <- as.data.table(read_excel("data-raw/AfricanAgFutures/scenlookupAfrAgFutures.xlsx"))
 allAfricaCodes <- keyVariable("allAfricaCodes")
-# convert dt.SSPpop country names to region_code.IMPACT159
-#dt.SSPPop <- merge(dt.SSPPop, dt.regions.all, by = "ISO_code")
-# keeplistCol.new <- c("scenario", "region_code.IMPACT159", "year", "ageGenderCode", "value")
-# dt.SSPPop[, setdiff(names(dt.SSPPop), keeplistCol.new) := NULL]
-setnames(dt.SSPPop, old = "value", new = "Population.ssp") #xxxx
+setnames(dt.SSPPop, old = "value", new = "Population.ssp")
 
 dt.SSPPop[, scenario := substring(scenario, 1, 4)]
 dt.SSPPop <- dt.SSPPop[scenario %in% "SSP1", scenario := "Low"
                        ][scenario %in% "SSP2", scenario := "Medium"
-                         ][scenario %in% "SSP3", scenario := "High"]
-dt.SSPPop <- dt.SSPPop[!scenario %in% c("SSP4", "SSP5")]
+                         ][scenario %in% "SSP3", scenario := "High"][!scenario %in% c("SSP4", "SSP5")]
 
 # read in and manipulate UN pop data
 level <- c("ESTIMATES", "LOW VARIANT", "MEDIUM VARIANT", "HIGH VARIANT")
@@ -119,14 +105,13 @@ for (j in gender) {
   }
 }
 
+# combine female and male data into one file called dt.popUN -----
 setnames(dt.popUN_female, old = c("ageGenderCode", "value"), new = c("Age", "Population"))
 setnames(dt.popUN_male, old = c("ageGenderCode", "value"), new = c("Age", "Population"))
 dt.popUN_male[, Age := gsub("M", "", Age)]
 dt.popUN_female[, Age := gsub("F", "", Age)]
 dt.popUN_female[, Gender := "Female"]
 dt.popUN_male[, Gender := "Male"]
-# dt.popUN <- merge(dt.popUN_female, dt.popUN_male, by = c("scenario", "region_code.IMPACT159",
-#                                                          "year", "Age"), allow.cartesian=TRUE)
 dt.popUN <- rbind(dt.popUN_female, dt.popUN_male)
 dt.popUN[, Population.UN := sum(Population), by = c("scenario", "region_code.IMPACT159", "Age", "Gender", "year")]
 dt.popUN[, Population := NULL]
@@ -139,10 +124,9 @@ dt.SSPPop[, Age := substring(ageGenderCode, 2)]
 dt.SSPPop[, ageGenderCode := NULL]
 
 dt.popcombo <- merge(dt.SSPPop, dt.popUN, by = c("scenario", "region_code.IMPACT159", "Age", "Gender", "year"))
-
 dt.popcombo[, Age := factor(Age, levels = ageListNew)]
 
-# generate scenario-specific data for the Gates Africa Ag Futures project. View dt.scenariosLookup
+# generate scenario-specific data for the Africa Ag Futures project. View dt.scenariosLookup
 dt.Med_base_NoCC <- copy(dt.popcombo)
 dt.Med_base_NoCC <- dt.Med_base_NoCC[scenario %in% "Medium", ][
   ,Population := Population.UN][
@@ -179,8 +163,11 @@ dt.HighAfr_pes_CC[, scenario := "HighAfr_pes_CC"]
 dt.LowAfr_opt_CC[, scenario := "LowAfr_opt_CC"]
 dt.SSP2_SSP2_noCC[, scenario := "SSP2_SSP2_noCC"]
 dt.SSP2_SSP2_CC[, scenario := "SSP2_SSP2_CC"]
-dt.pop.AfrAgFutures <- rbindlist(list(dt.Med_base_NoCC, dt.Med_base_CC, dt.Med_pes_CC, dt.Med_opt_CC, dt.HighAfr_pes_CC,
-                                      dt.LowAfr_opt_CC, dt.SSP2_SSP2_noCC, dt.SSP2_SSP2_CC))
+dt.pop.AfrAgFutures <- rbindlist(list( dt.Med_base_CC, dt.HighAfr_pes_CC, dt.LowAfr_opt_CC)) # revised Nov 19, 2018
+# change scenario names for revised submission Nov 20, 2018
+dt.pop.AfrAgFutures <- dt.pop.AfrAgFutures[scenario %in% "Med_base_CC", scenario := "Reference"]
+dt.pop.AfrAgFutures <- dt.pop.AfrAgFutures[scenario %in% "HighAfr_pes_CC", scenario := "Pessimistic"]
+dt.pop.AfrAgFutures <- dt.pop.AfrAgFutures[scenario %in% "LowAfr_opt_CC", scenario := "Optimistic"]
 
 # combine age and gender to match with SSP pop data
 dt.cleanup <- dt.pop.AfrAgFutures[Gender %in% "Female", Gender := "F"][Gender %in% "Male", Gender := "M"]
@@ -234,18 +221,5 @@ getAgeTable <- function(country, year, dt.popcombo, scenario) {
   df <- cbind(df, ord)
   return(df)
 }
-
-
-
-# desc <- paste("UN population projections, in millions, for", j, level.varname[k], "variant", sep = " ")
-# cleanup(inDT, outName, fileloc("uData"), desc = desc)
-
-
-# ageList <-
-#  c(
-#   "Aged0-4", "Aged5-9", "Aged10-14", "Aged15-19", "Aged20-24", "Aged25-29", "Aged30-34",
-#   "Aged35-39", "Aged40-44", "Aged45-49", "Aged50-54", "Aged55-59", "Aged60-64", "Aged65-69",
-#   "Aged70-74","Aged75-79","Aged80-84","Aged85-89", "Aged90-94", "Aged95-99","Aged100+"
-#  )
 
 

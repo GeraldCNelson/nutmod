@@ -101,15 +101,16 @@ if (oneTimeDataUpdate %in% c("Y", "y", "yes", "Yes")){
   sourceFile <- "dataManagement.fishnAlc.R"
   sourcer(sourceFile)
   # Just need to do this for Fresh fish. c_FrshD. Not needed because results already recorded in dt.compositesLU file.
-# next two lines commented out Sep 20, 2018. the c_FrshD_cleanup.R just writes a csv file out the base directory. Hard to see what it is for.
-    # sourceFile <- "c_FrshD_cleanup.R"
+  # next two lines commented out Sep 20, 2018. the c_FrshD_cleanup.R just writes a csv file out the base directory. Hard to see what it is for.
+  # sourceFile <- "c_FrshD_cleanup.R"
   # sourcer(sourceFile) ## match up item name and item codes. The item names are in the comp recalc spreadsheets but item code is not.
   # only needs to be run if changes to the script are made
   sourceFile <- "dataPrep.ODBCaccess.R"
   sourcer(sourceFile) # reads in nutrient data from the USDA nutrient composition access database
   #commented out because only needs to run when new SSP data are used. June 5, 2018
-  sourceFile <- "dataPrep.Unscenarios.R" 
-  sourcer(sourceFile) #paste(gsub("_ssp","",nutReqName),"percap",sep = "_"), mData - Nutrient requirements adjusted for population distribution, example is req.EAR.percap.2016-06-24.rds
+  if (gdxChoice %in% "AfricanAgFutures") {sourceFile <- "dataPrep.UNscenarios.R" 
+  sourcer(sourceFile)
+  }
   sourceFile <- "dataManagement.Pop.R" #name changed from dataManagement.SSPPop.R Oct 5, 2018 to reflect the fact that this also handles the combine UN/SSP age gender info
   sourcer(sourceFile) #paste(gsub("_ssp","",nutReqName),"percap",sep = "_"), mData - Nutrient requirements adjusted for population distribution, example is req.EAR.percap.2016-06-24.rds
 }
@@ -183,14 +184,14 @@ cleanup(inDT, outName, fileloc("mData"), desc = desc)
 finalizeScriptMetadata(metadataDT, sourceFile)
 
 if (!gdxChoice %in% "AfricanAgFutures") {
-start_time <- Sys.time()
-sourceFile <- "aggRun.R"
-sourcer(sourceFile)
-sourceFile <- "dataPrepSingleScenario.R" # compares CGE results to non-CGE results
-sourcer(sourceFile)
-start_time <- Sys.time()
-sourceFile <- "finalGraphCreation.R"
-sourcer(sourceFile)
+  start_time <- Sys.time()
+  sourceFile <- "aggRun.R"
+  sourcer(sourceFile)
+  sourceFile <- "dataPrepSingleScenario.R" # compares CGE results to non-CGE results
+  sourcer(sourceFile)
+  start_time <- Sys.time()
+  sourceFile <- "finalGraphCreation.R"
+  sourcer(sourceFile)
 }
 
 if (gdxChoice %in% "AfricanAgFutures") {

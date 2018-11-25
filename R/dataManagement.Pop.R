@@ -2,8 +2,8 @@
 #' @keywords data management, SSP, population data
 #' @name dataManagement.Pop.R
 #' @description
-#' This script reads in  cleaned up population data written by dataPrep.SSP.R for the SSP populaton data or the population data set for the
-#' Gates African Ag Futures work prepared in dataPrep.UNscenarios.R 
+#' This script reads in  cleaned up population data written by dataPrep.SSP.R for the SSP populaton data 
+#' or the population data set for the African Ag Futures work prepared in dataPrep.UNscenarios.R 
 #' and does manipulations to prepare it for later use
 #' to align the SSP population data with the nutrient requirements age and gender structure data
 #' Creates the following files
@@ -32,7 +32,6 @@ source("R/nutrientModFunctions.R")
 
 sourceFile <- "dataManagement.Pop.R"
 createScriptMetaData()
-
 keepYearList <- keyVariable("keepYearList")
 
 # Read in the cleaned up population data ----
@@ -44,25 +43,6 @@ if (!gdxChoice %in% "AfricanAgFutures") {
 
 #' do this to remove year 0, which was needed for the fish and alcohol calculations
 dt.pop <- dt.pop[year %in% keepYearList,]
-
-
-# aggregation of the SSP data to the IMPACT regions was done here. Now done in  dataPrep.SSP.R as of Oct 2, 2018
-# data.table::setkey(dt.pop, ISO_code)
-# dt.regions.all <- getNewestVersion("dt.regions.all", fileloc("uData"))
-# data.table::setkey(dt.regions.all, ISO_code)
-# 
-# # this could be a problem
-# #dt.pop <-  merge(dt.pop, dt.regions.all, by = "ISO_code", all.y = TRUE, allow.cartesian = TRUE)
-# dt.pop <-  merge(dt.pop, dt.regions.all, by = "ISO_code", all.y = TRUE)
-# 
-# # Read in the region to aggregate to -----
-# keepListCol <- c("scenario","ageGenderCode","year", "value", "region_code.IMPACT159")
-# dt.pop[, setdiff(names(dt.pop), keepListCol) := NULL]
-# dt.pop <- dt.pop[!is.na(scenario),]
-
-# data.table::setkeyv(dt.pop, c("scenario", "region_code.IMPACT159", "ageGenderCode", "year"))
-# dt.SSP.regions <- dt.pop[, value := sum(value), by = eval(data.table::key(dt.pop))]
-# dt.SSP.regions <- unique(dt.SSP.regions) # needed because the sum process leaves extra rows
 
 # Extract lists of the scenarios, regions, and data variables ------------------------------------
 # dt.SSP.scen <- data.table::copy(dt.pop)
@@ -107,15 +87,6 @@ dt.pop <- data.table::melt(dt.pop.wide,
 #change names of age groups; prepend SSP because the DRI requirements have been converted to SSP age groups and the reqsSSP files use these age group names (eg. SSPM15_19)
  dt.pop[, ageGenderCode := paste("SSP", ageGenderCode, sep = "")]
 data.table::setnames(dt.pop, old = "value",new = "pop.value")
-
-# results from code below not used elsewhere in this script so commented out Oct 2, 2018
-# data.table::setkeyv(dt.SSP.scen,c("region_code.IMPACT159", "year"))
-# dt.popTot <- dt.SSP.scen[, pop.tot := sum(value), by = eval(data.table::key(dt.SSP.scen))]
-# dt.popTot[,ageGenderCode := NULL]
-# dt.popTot <- unique(dt.popTot)
-#a temporary line of code for testing
-# nutReqName <- "req_RDA_minrls_ssp"
-
 
 #' Title repCons
 #' Short for Representative Consumer
@@ -211,10 +182,8 @@ openxlsx::writeData(
   wb = wbGeneral,
   x = creationInfo,
   sheet = "creation_Info",
-  startRow = 1,
-  startCol = 1,
-  rowNames = FALSE,
-  colNames = FALSE
+  startRow = 1, startCol = 1,
+  rowNames = FALSE, colNames = FALSE
 )
 #Set up df wbInfoGeneral for common worksheet names and descriptions -----
 wbInfoGeneral <-
@@ -315,4 +284,4 @@ if( exists("gdxChoice")) {
 }
 
 finalizeScriptMetadata(metadataDT, sourceFile)
-sourcer <- clearMemory(sourceFile, gdxChoice) # removes everything in memory and sources the sourcer function
+# sourcer <- clearMemory(sourceFile, gdxChoice) # removes everything in memory and sources the sourcer function

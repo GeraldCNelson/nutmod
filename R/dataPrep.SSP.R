@@ -24,7 +24,7 @@ createScriptMetaData()
 SSPcsv <-     fileNameList("SSPcsv")
 SSPdataZip <-   fileNameList("SSPdataZip")
 keepYearList <-  keyVariable("keepYearList")
-#' need to include the n-1 year for the elasticity calculations for fish and alcohol
+# need to include the n-1 year for the elasticity calculations for fish and alcohol
 year1 <- as.numeric(substr(keepYearList[1], 2, 5)); year2 <- as.numeric(substr(keepYearList[2], 2, 5))
 year0 <- year1 - (year2 - year1)
 year0 <- paste("X",year0,sep = "")
@@ -34,14 +34,13 @@ modelListPop <-   fileNameList("modelListPop")
 
 # note that most of the 2000 and 2005 population values are NA
 dt.SSP <- as.data.table(readr::read_csv(unz(SSPdataZip, filename = SSPcsv), col_names = TRUE, guess_max = 2000, cols(
-  `2000` = col_double(),
-  `2005` = col_double()
+  `2000` = col_double(), `2005` = col_double()
 )))
 
-#' add X to the year column name so R is happy with years as column names
+# add X to the year column name so R is happy with years as column names
 data.table::setnames(dt.SSP, make.names(names(dt.SSP)))
 
-#' drop all years except those in keepYearList, created in dataPrep.setup.R
+# drop all years except those in keepYearList, created in dataPrep.setup.R
 keepListCol <- c("MODEL", "SCENARIO", "REGION", "VARIABLE", "UNIT", keepYearList)
 dt.SSP[, setdiff(names(dt.SSP), keepListCol) := NULL]
 #make all names lower case and change region to ISO_code
@@ -49,22 +48,22 @@ oldNameList <- names(dt.SSP)
 newNameList <- c("model", "scenario", "ISO_code", "variable", "unit", keepYearList)
 data.table::setnames(dt.SSP, oldNameList, newNameList)
 
-#' There are 21 scenarios; 4 each for SSP scenarios 1, 2, 3, and 5 and
-#'  5 for SSP scenario 4.
-#' This is the list of dt.SSP.regions3 scenarios
-#' "SSPx_v9_130424" is from PIK and just for the US
-#' "SSPx_v9_130325" is from OECD and is just GDP and population
-#' "SSPx_v9_130219" is from IIASA and is just population and GDP
-#' "SSPx_v9_130115" contains info from IIASA on population broken down by age,
-#'  gender, and education and NCAR on population broken down by rural and urban.
-#'  The IIASA data are from 2010 to 2100.
-#'  Keep only the population results from IIASA for the age and gender breakdown and
-#'  for the years 2010 to 2050.
+# There are 21 scenarios; 4 each for SSP scenarios 1, 2, 3, and 5 and
+#  5 for SSP scenario 4.
+# This is the list of dt.SSP.regions3 scenarios
+# "SSPx_v9_130424" is from PIK and just for the US
+# "SSPx_v9_130325" is from OECD and is just GDP and population
+# "SSPx_v9_130219" is from IIASA and is just population and GDP
+# "SSPx_v9_130115" contains info from IIASA on population broken down by age,
+#  gender, and education and NCAR on population broken down by rural and urban.
+#  The IIASA data are from 2010 to 2100.
+#  Keep only the population results from IIASA for the age and gender breakdown and
+#  for the years 2010 to 2050.
 
-#'  the lists of pop and GDP models are defined in nutrientModFunctions.R
-#'  Note: the different models don't have results for the same set of countries
-#'  The OECD Env-GrowthP population data set is only total but does include 2005.
-#'  The IIASA-WiC POP data set includes age and gender distributions but doesn't include 2005.
+#  the lists of pop and GDP models are defined in nutrientModFunctions.R
+#  Note: the different models don't have results for the same set of countries
+#  The OECD Env-GrowthP population data set is only total but does include 2005.
+#  The IIASA-WiC POP data set includes age and gender distributions but doesn't include 2005.
 
 # create cleaned up GDP SSP data -------
 
@@ -80,7 +79,7 @@ dt.SSP.GDP.melt <- data.table::melt(
   measure.vars = keepYearList,
   variable.factor = FALSE
 )
-#' change GDP|PPP to GDP because R doesn't like | to be used in a variable name
+# change GDP|PPP to GDP because R doesn't like | to be used in a variable name
 dt.SSP.GDP.melt[, variable := "GDP"]
 data.table::setorder(dt.SSP.GDP.melt, scenario, ISO_code)
 dt.SSP.GDP.melt <- dt.SSP.GDP.melt[!ISO_code %in% keyVariable("dropListCty"),]
@@ -90,32 +89,29 @@ desc <- "GDP information by country and scenario with cleaned up column names. U
 cleanup(inDT,outName,fileloc("uData"), desc = desc)
 
 # create cleaned up population SSP data -----
-#' @param dt.SSP.pop - data table with the SSP results from the model identified in modelListPop
+# @param dt.SSP.pop - data table with the SSP results from the model identified in modelListPop
 dt.SSP.pop <- dt.SSP[model == modelListPop,]
 
 # Create population age and gender data set by removing rows with education breakdown -----
-#' #' @param popList - variable name for population
-#' popList <- "Population"
+# # @param popList - variable name for population
+# popList <- "Population"
 
-#' @param ageList - variable name for age group categories
+# @param ageList - variable name for age group categories
 # ageList <-
-#  c(
-#   "Aged0-4", "Aged5-9", "Aged10-14", "Aged15-19", "Aged20-24", "Aged25-29", "Aged30-34",
+#  c("Aged0-4", "Aged5-9", "Aged10-14", "Aged15-19", "Aged20-24", "Aged25-29", "Aged30-34",
 #   "Aged35-39", "Aged40-44", "Aged45-49", "Aged50-54", "Aged55-59", "Aged60-64", "Aged65-69",
-#   "Aged70-74","Aged75-79","Aged80-84","Aged85-89", "Aged90-94", "Aged95-99","Aged100+"
-#  )
+#   "Aged70-74","Aged75-79","Aged80-84","Aged85-89", "Aged90-94", "Aged95-99","Aged100+")
 
-#' #' @param edList - variable name for education categories
-#' edList <-
-#'  c("No Education", "Primary Education", "Secondary Education","Tertiary Education")
-#' genderList <- c("Male", "Female")
+# # @param edList - variable name for education categories
+# edList <- c("No Education", "Primary Education", "Secondary Education","Tertiary Education")
+# genderList <- c("Male", "Female")
 
-#' keep full population count around. Keep 2005 for the gdppercap operations
+# keep full population count around. Keep 2005 for the gdppercap operations
 dt.SSP.pop.tot <-
   dt.SSP.pop[variable == "Population", c("scenario", "ISO_code",  keepYearList), with = FALSE]
 data.table::setcolorder(dt.SSP.pop.tot, c("scenario", "ISO_code", "X2005", "X2010", "X2015", "X2020", "X2025",
                                           "X2030", "X2035", "X2040", "X2045", "X2050"))
-#' deal with missing 2005 pop data in the IIASA data set by getting 2005 from the OECD data set
+# deal with missing 2005 pop data in the IIASA data set by getting 2005 from the OECD data set
 dt.SSP.pop.tot[, X2005 := NULL]
 keepListCol <- c("scenario", "ISO_code", "X2005")
 dt.SSP.pop.2005 <- dt.SSP[model == "OECD Env-Growth" & variable %in% "Population", (keepListCol), with = FALSE]
@@ -139,23 +135,22 @@ outName <- "dt.SSP.pop.tot"
 desc <- "Population information by country and scenario with cleaned up column names. Units are million. Has 2005. Only used for fish and alc calculations"
 cleanup(inDT,outName,fileloc("uData"), desc = desc)
 
-#' Remove the aggregates of
-#' "Population", "Population|Female" and "Population|Male"
+# Remove the aggregates of Population", "Population|Female" and "Population|Male"
 deleteListRow <-
   c("Population", "Population|Female", "Population|Male")
 dt.SSP.pop.step1 <- dt.SSP.pop[!variable %in% deleteListRow,]
 
-#' split the variable names apart where there is a |
-#' (eg. X|Y becomes X and Y and new columns are created)
+# split the variable names apart where there is a |
+# (eg. X|Y becomes X and Y and new columns are created)
 dt.SSP.pop.step2 <-
   splitstackshape::cSplit(dt.SSP.pop.step1,  'variable', sep = "|", type.convert = FALSE)
 
-#' name the new columns created by the spliting process above
+# name the new columns created by the spliting process above
 oldNames <- c("variable_1", "variable_2", "variable_3", "variable_4")
 newNames <- c("population", "gender", "ageGenderCode", "education")
 data.table::setnames(dt.SSP.pop.step2, oldNames, newNames)
 
-#' rename variables to align with the requirements names
+# rename variables to align with the requirements names
 dt.SSP.pop.step2$ageGenderCode <- gsub("Aged", "", dt.SSP.pop.step2$ageGenderCode)
 dt.SSP.pop.step2$ageGenderCode[dt.SSP.pop.step2$gender == "Female"] <- paste("F", dt.SSP.pop.step2$ageGenderCode[dt.SSP.pop.step2$gender == "Female"], sep = "")
 dt.SSP.pop.step2$ageGenderCode[dt.SSP.pop.step2$gender == "Male"] <-   paste("M", dt.SSP.pop.step2$ageGenderCode[dt.SSP.pop.step2$gender == "Male"], sep = "")
@@ -163,15 +158,12 @@ dt.SSP.pop.step2$ageGenderCode <- gsub("-", "_", dt.SSP.pop.step2$ageGenderCode)
 dt.SSP.pop.step2$ageGenderCode <- gsub("\\+", "Plus", dt.SSP.pop.step2$ageGenderCode)
 dt.SSP.pop.step2 <- dt.SSP.pop.step2[order(dt.SSP.pop.step2$ISO_code),]
 
-#' remove rows that breakdown on age group by education
+# remove rows that breakdown on age group by education
 removeRowList <-
-  c("No Education",
-    "Primary Education",
-    "Secondary Education",
-    "Tertiary Education")
+  c("No Education", "Primary Education", "Secondary Education", "Tertiary Education")
 dt.SSP.pop.step2 <- dt.SSP.pop.step2[!dt.SSP.pop.step2$education %in% removeRowList,]
 
-#' remove extraneous columns and keep only the ones needed
+# remove extraneous columns and keep only the ones needed
 # this keepYearList includes year 0 (X2005) because it is needed for the fish and alcohol consumption calcs
 keepList <- c("scenario", "ISO_code", "ageGenderCode", keepYearList)
 deleteListCol <- c("model", "gender", "education", "population", "unit")

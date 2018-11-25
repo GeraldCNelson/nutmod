@@ -15,7 +15,6 @@
 #' @description A script to hold functions used for graphing in aggRun.R.
 
 source("R/nutrientModFunctions.R")
-  source("R/renameUSAIDscenarios.R")
 # GDP setup -----
 library(gridExtra)
 library(gplots)

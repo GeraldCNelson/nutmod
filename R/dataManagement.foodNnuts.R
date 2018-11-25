@@ -241,7 +241,7 @@ for (switchloop in getSwitchChoice()) {
   if (gdxChoice %in% "SSPs") inDT <- inDT[scenario %in% c("SSP1_NoCC", "SSP2_HGEM", "SSP2_NoCC","SSP3_NoCC"),]
   outName <- paste("dt.nutrients_sum_FG", suffix, sep = ".")
   desc <- "Sum of each nutrient from each food group"
-  cleanup(inDT,outName, fileloc("resultsDir"), desc = desc)
+  cleanup(inDT, outName, fileloc("resultsDir"), desc = desc)
 
   #' dt.KcalShare.nonstaple
   dt.KcalShare.nonstaple <- data.table::copy(dt.foodNnuts)

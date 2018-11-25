@@ -35,16 +35,12 @@ createScriptMetaData()
 # data <- read.table(unz(FBSdataZip, FBScsv), nrows=10, header=T, quote="\"", sep=",")
 
 FBSData <- fileloc("FBSData")
-FBSdataZipFile <- "FoodBalanceSheets_E_All_Data.zip"
+FBSdataZipFile <- filelocFBS("FBSdataZipFile")
 FBSdataZip <- paste(FBSData, FBSdataZipFile, sep = "/")
 
 dt.FBS.raw <- as.data.table(readr::read_csv(unz(FBSdataZip, filename = "FoodBalanceSheets_E_All_Data.csv"), col_names = TRUE, guess_max = 2000, cols(
-  `Country` = col_character(),
-  `Country Code` = col_character(),
-  `Item Code` = col_character(),
-  `Element` = col_character(),
-  `Element Code` = col_character(),
-  `Unit` = col_character())
+  `Country` = col_character(), `Country Code` = col_character(), `Item Code` = col_character(), `Element` = col_character(),
+  `Element Code` = col_character(), `Unit` = col_character())
 ))
 
 # change original column names to 'names that are consistent with other data sources
@@ -62,27 +58,14 @@ dt.FBS.raw[, setdiff(names(dt.FBS.raw), keepListCol) := NULL]
 dt.FBS.raw[variable == "Food", variable := "foodMT"]
 dt.FBS.raw[variable == "Food supply quantity (kg/capita/yr)", variable := "kgPerCapPerYear"]
 dt.FBS.raw[variable == "Food supply (kcal/capita/day)", variable := "KcalPerCapPerDay"]
-#dt.FBS.raw[variable == "Protein supply quantity (g/capita/day)", variable := "perCapProt"]
-#dt.FBS.raw[variable == "Fat supply quantity (g/capita/day)", variable := "perCapFat"]
 
 # get rid of variables other than perCapKg, kgs per person per year. Added kcals July 24, 2018
 dt.FBS.raw <- dt.FBS.raw[variable %in% c("kgPerCapPerYear", "KcalPerCapPerDay")]
 
-#how to drop years with the previous version of the FBS data
-# remove years before 2010. The latest year is 2011 currently.
-# setkey(dt.FBS.raw,year)
-# dt.FBS.raw <- dt.FBS.raw[year > 2009,]
-
-# #convert selected columns to numeric class. They are all now numeric before the next step. July 24, 2018
-# dt.FBS.raw[,(keepYearList.FBS) := lapply(.SD, as.numeric), .SDcols=keepYearList.FBS]
-
 # Read in a worksheet with the list of FBS food items by code, name, definition, and IMPACT commodity code.
 FBSCommodityInfo <- filelocFBS("FBSCommodityInfo")
 dt.FBScommodLookup <- data.table::as.data.table(openxlsx::read.xlsx(FBSCommodityInfo,
-                                                                    sheet = 1,
-                                                                    startRow = 1,
-                                                                    cols = 1:7,
-                                                                    colNames = TRUE))
+                    sheet = 1, startRow = 1, cols = 1:7, colNames = TRUE))
 
 dt.FBScommodLookup[, item_code := as.character(item_code)]
 
@@ -91,13 +74,6 @@ dt.FBScommodLookup <- dt.FBScommodLookup[!item_name == "Miscellaneous",]
 
 # Read in the region lookup table, created in dataPrep.regions.R
 dt.regions.all <- getNewestVersion("dt.regions.all", fileloc("uData"))
-
-# FAOCountryNameCodeLookup <- filelocFBS("FAOCountryNameCodeLookup")
-# # Read in the worksheet that has the FAO country code-ISO country name lookup. All this info is in dt.regions.all. Changing code to use dt.regions.all July 24, 2018
-# dt.FBSNameLookup <- data.table::as.data.table(openxlsx::read.xlsx(FAOCountryNameCodeLookup,
-#                                                                   sheet = 1,
-#                                                                   startRow = 1,
-#                                                                   colNames = TRUE))
 
 keeplistCol <- c("ISO_code","FAOSTAT_code")
 dt.regions.all[,setdiff(names(dt.regions.all), keeplistCol) := NULL]
@@ -116,12 +92,6 @@ dt.regions.all[FAOSTAT_country_code == "276", FAOSTAT_country_code := "206"]
 data.table::setkey(dt.FBS.raw,FAOSTAT_country_code)
 data.table::setkey(dt.regions.all,FAOSTAT_country_code)
 dt.FBS <- dt.FBS.raw[dt.regions.all]
-
-# # Check for aggregations of countries; this should have no content
-# FBSDat.countryAggs <- subset(dt.FBS,!(ISO_code %in% regions.ISO$ISO_code))
-#
-# #get rid of rows that are aggregations of countries
-# dt.FBS <- subset(dt.FBS,Country %in% regions.ISO$country_name)
 
 # Create separate data  without the commodities aggregations
 aggregates <- c("Alcoholic Beverages", # added March 19, 2017
@@ -164,8 +134,7 @@ temp <- dt.FBS.commods[dt.FBScommodLookup]
 deleteListCol <- c("FAOSTAT_country_code","IMPACT_missing_code","fish","alcohol")
 temp[,(deleteListCol) := NULL]
 
-idVars <- c( "country_name","item_code","item",
-             "variable_code","variable","unit","ISO_code","item_name","definition",
+idVars <- c( "country_name","item_code","item", "variable_code","variable","unit","ISO_code","item_name","definition",
              "IMPACT_code")
 dt.FBS.commods.melt <- data.table::melt(temp,
                                         id.vars = idVars,
@@ -178,7 +147,7 @@ dt.FBS.commods.melt <- data.table::melt(temp,
 dt.FBS.commods.melt[,value.sum := sum(value), by = list(ISO_code, variable, IMPACT_code, year)]
 # keep "value" around in case we need to compare it
 
-#now get rid of info that is not needed
+# now get rid of info that is not needed
 keepListCol <- c("country_name", "variable_code", "variable", "unit", "ISO_code",
                  "IMPACT_code", "year", "value.sum")
 dt.FBS.commods.melt[,setdiff(names(dt.FBS.commods.melt), keepListCol) := NULL]

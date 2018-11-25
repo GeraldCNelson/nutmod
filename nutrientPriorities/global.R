@@ -160,31 +160,6 @@ generateBreakValues <- function(fillLimits, numLimits, decimals) {
   return(breakValues)
 }
 
-getGdxChoice <- function() {
-  if (!"gdxChoice" %in% ls(envir = .GlobalEnv)) {
-    #this global.R file is for the nutrientPriorities project so choice = 3
-    # cat("Choose the IMPACT project you are working on.\n")
-    # cat("1. for the nutrient modeling paper\n")
-    # cat("2. for the USAID nutrient modeling paper\n")
-    # cat("3. for the USAID priority setting paper, 2018\n")
-
-    choice = 3
-    #  choice <- "1" # so there will be a definite value
-    if (choice  %in% "1") {
-      gdxSwitchCombo <- read.csv(file = paste0(getwd(), "/data/gdxInfo.csv"), header = TRUE, stringsAsFactors = FALSE)
-    }
-    if (choice  %in% "2") {
-      gdxSwitchCombo <- read.csv(file = paste0(getwd(), "/data/gdxInfo.csv"), header = TRUE, stringsAsFactors = FALSE)
-    }
-    if (choice  %in% "3") {
-      gdxSwitchCombo <- read.csv(file = paste0(getwd(), "/data/gdxInfo.csv"), header = TRUE, stringsAsFactors = FALSE)
-    }
-  }
-  gdxChoice <- gdxSwitchCombo[,2]
- # cat("gdxChoice is", gdxChoice)
-  return(gdxChoice)
-}
-
 #installation of missing required libraries. This doesn't work on shinyapps.io.
 #install needed packages
 # list.of.packages <- c("shiny", "shinyjs", "data.table", "dplyr",
@@ -670,8 +645,7 @@ plotByRegionBarAMDR <- function(dt, fileName, plotTitle, yLab, yRange, aggChoice
   temp[, region_name := gsub(" income", "", region_name)]
   temp[, region_name := factor(region_name, levels =  regionNameOrder)]
   temp[, scenario := factor(scenario, levels = scenarioNameOrder)]
-  if (gdxChoice %in% "USAID")  temp <- renameUSAIDscenarios(temp)
-
+ 
   # draw bars
   pdf(paste(fileloc("gDir"),"/", fileName, ".pdf", sep = ""), width = 7, height = 5.2, useDingbats = FALSE)
   if (round(max(temp$value) - yRange[2]) == 0) yRange[2] <- max(temp$value) # will hopefully deal with rare situation

@@ -95,7 +95,10 @@ processIMPACT159Data <- function(gdxFileName, varName, catNames) {
     for (i in 1:nrow(dt.scenariosLookup)) {
       dt.ptemp <- dt.ptemp[scenario %in% dt.scenariosLookup$basicNames[i], scenario := dt.scenariosLookup$substantiveNames[i]]
     }
-    dt.ptemp <- dt.ptemp[!scenario %in% c("SSP3Afr_base_CC", "SSP1Afr_base_CC")]
+    # original scenarios to discard c("SSP3Afr_base_CC", "SSP1Afr_base_CC")
+    scenariosToDiscard <- c( "Med_base_NoCC",  "Med_pes_CC",  "Med_opt_CC", "SSP2_SSP2_noCC", "SSP2_SSP2_CC",  "SSP3Afr_base_CC", "SSP1Afr_base_CC")
+    
+    dt.ptemp <- dt.ptemp[!scenario %in% scenariosToDiscard]
   }
   # dt.temp <- dt.regions.all[,c("region_code.IMPACT159","region_name.IMPACT159"), with = FALSE]
   # data.table::setkey(dt.temp,region_code.IMPACT159)
