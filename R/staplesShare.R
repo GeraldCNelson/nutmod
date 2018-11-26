@@ -12,12 +12,6 @@ countryCode <- "USA"
 dt.stapleShares <- getNewestVersion("dt.nutrients.sum.staples", fileloc("resultsDir"))
 
 for (switchloop in getSwitchChoice()) {
-  # # switch.useCookingRetnValues <- keyVariable("switch.useCookingRetnValues")
-  # # switch.fixFish <- keyVariable("switch.fixFish") #get rid of nutrient info for shrimp, tuna, and salmon because they are not currently in the FBS data
-  # # if (switchloop == 1) {switch.vars <- FALSE;  switch.fortification <- FALSE; suffix = "base"}
-  # # if (switchloop == 2) {switch.vars <- TRUE;  switch.fortification <- FALSE; suffix = "var"}
-  # # if (switchloop == 3) {switch.vars <- TRUE;  switch.fortification <- TRUE; suffix = "varFort"}
-  # dt.stapleShares <- getNewestVersion("dt.nutrients.sum", suffix, fileloc("resultsDir"))
 
   temp <- dt.stapleShares[region_code.IMPACT159 == countryCode & scenario == scenarioName & year %in% years,]
   macroNutrients <- c("energy_kcal.sum.staple", "protein_g.sum.staple", "fat_g.sum.staple", "carbohydrate_g.sum.staple",

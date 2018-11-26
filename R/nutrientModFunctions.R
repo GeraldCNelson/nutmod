@@ -931,7 +931,6 @@ rawToChar(block[seq_len(ns)], run the following commands in a shell.
   switchChoices <- function(switchChoice) {
     switch.useCookingRetnValues <- keyVariable("switch.useCookingRetnValues")
     switch.fixFish <- keyVariable("switch.fixFish") #get rid of nutrient info for shrimp, tuna, and salmon because they are not currently in the FBS data
-    if (switchloop == 1) {switch.vars <- FALSE;  switch.fortification <- FALSE; suffix = "base"}
     if (switchloop == 2) {switch.vars <- TRUE;  switch.fortification <- FALSE; suffix = "var"}
     if (switchloop == 3) {switch.vars <- TRUE;  switch.fortification <- TRUE; suffix = "varFort"}
     if (switchloop == 4) {switch.vars <- TRUE;  switch.fortification <- FALSE; suffix = "var"}
@@ -953,13 +952,13 @@ rawToChar(block[seq_len(ns)], run the following commands in a shell.
     }
   
     if (choice %in% "2") {
-      gdxFileName <- "Micronutrient-Inputs-7.1.2018.gdx"  #-  gdx for the USAID priority results
-      gdxChoice <- "USAIDPriorities"
+      gdxFileName <- "Micronutrient-Inputs-7.1.2018.gdx"  #-  gdx for the USAID prod enhance results
+      gdxChoice <- "USAIDPrdNhance"
     }
     
     if (choice %in% "3") {
-      #    gdxFileName <- "Africa-NutMod-Inputs-2018.09.21.gdx"  #-  gdx for the Gates African ag priorities  results
-      gdxFileName <- "Africa-NutMod-Inputs-1018.10.21.gdx"  #-  gdx for the Gates African ag priorities  results
+      #    gdxFileName <- "Africa-NutMod-Inputs-2018.09.21.gdx"  #-  gdx for the African ag futures results
+      gdxFileName <- "Africa-NutMod-Inputs-1018.10.21.gdx"  #-  gdx for the African ag futures results
       gdxChoice <- "AfricanAgFutures"
     }
     
@@ -1275,7 +1274,7 @@ rawToChar(block[seq_len(ns)], run the following commands in a shell.
         gdxSwitchCombo <- read.csv(file = paste0(getwd(), "/results/USAID/gdxInfo.csv"), header = TRUE, stringsAsFactors = FALSE)
       }
       if (choice  %in% "3") {
-        gdxSwitchCombo <- read.csv(file = paste0(getwd(), "/results/USAIDPriorities/gdxInfo.csv"), header = TRUE, stringsAsFactors = FALSE)
+        gdxSwitchCombo <- read.csv(file = paste0(getwd(), "/results/USAIDPrdNhance/gdxInfo.csv"), header = TRUE, stringsAsFactors = FALSE)
       }
       
       if (choice %in% "4") {
@@ -1303,7 +1302,7 @@ rawToChar(block[seq_len(ns)], run the following commands in a shell.
       gdxSwitchCombo <- read.csv(file = paste0(getwd(), "/results/SSPs/gdxInfo.csv"), header = TRUE, stringsAsFactors = FALSE)
     }
     if (choice  %in% "2") {
-      gdxSwitchCombo <- read.csv(file = paste0(getwd(), "/results/USAIDPriorities/gdxInfo.csv"), header = TRUE, stringsAsFactors = FALSE)
+      gdxSwitchCombo <- read.csv(file = paste0(getwd(), "/results/USAIDPrdNhance/gdxInfo.csv"), header = TRUE, stringsAsFactors = FALSE)
     }
     
     if (choice  %in% "3") {

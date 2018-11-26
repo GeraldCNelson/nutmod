@@ -71,7 +71,7 @@ layoutPlots <- function(fileName, figchoice, prefix, rowNum, legendNum, layout, 
 
 # prefix defined here
 if (gdxChoice %in% "SSPs") {prefix <- "SSPs_scenOrderSSP"; scenChoiceList <- "scenOrderSSP"}  # need a different one for USAID
-if (gdxChoice %in% "USAIDPriorities") {prefix <- "USAIDPriorities_scenOrderUSAIDPriorities"; scenChoiceList <- "scenOrderUSAIDPriorities"} # need a different one for USAID
+if (gdxChoice %in% "USAIDPrdNhance") {prefix <- "USAIDPrdNhance_scenOrderUSAIDPrdNhance"; scenChoiceList <- "scenOrderUSAIDPrdNhance"} # need a different one for USAID
 
 colNum2 <- 2 # how many columns of graphs per page
 colWidths1 <- c(7) # how wide the column are
@@ -104,7 +104,6 @@ macroList.AMDR <- macroList[!macroList %in% "totalfiber_g"]
 # for (switchloop in getSwitchChoice()) {
 #   switch.useCookingRetnValues <- keyVariable("switch.useCookingRetnValues")
 #   switch.fixFish <- keyVariable("switch.fixFish") #get rid of nutrient info for shrimp, tuna, and salmon because they are not currently in the FBS data
-#   if (switchloop == 1) {switch.vars <- FALSE;  switch.fortification <- FALSE; suffix = "base"}
 #   if (switchloop == 2) {switch.vars <- TRUE;  switch.fortification <- FALSE; suffix = "var"}
 #   if (switchloop == 3) {switch.vars <- TRUE;  switch.fortification <- TRUE; suffix = "varFort"}
 #   if (switchloop == 4) {switch.vars <- TRUE;  switch.fortification <- FALSE; suffix = "var"}
@@ -203,12 +202,12 @@ if (gdxChoice %in% "SSPs") {
   }
 }
 
-if (gdxChoice %in% "USAIDPriorities") {
+if (gdxChoice %in% "USAIDPrdNhance") {
   for (figchoice in c( "fig5.facetMapRR_IncDelta", "fig4.facetMapRR_2010",
                        "figs9.1.facetMapMRV_2010", "figs9.2.facetMapMRV_IncDelta")) {
     plotNameList <- paste(prefix, "_",  get(figchoice), sep = "")
     plotNumberList <- which(graphNames %in% plotNameList)
-    cat("\nUSAIDPriorities facet plotNumberList:", plotNumberList, "\n")
+    cat("\nUSAIDPrdNhance facet plotNumberList:", plotNumberList, "\n")
     fileName <- paste(finalDir, figchoice, ".", suffix, ".", fileouttype, sep = "")
     colWidths <- 7
     colHeights <- 6

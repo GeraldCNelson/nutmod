@@ -33,7 +33,7 @@ imageList_SSPs.wb <- c("fig1.budgetShare_WB.base.png", "fig1.budgetShare_WB.var.
                        "figS4.RaoNenergyShareNonStaples_WB.base.png", "figS4.RaoNenergyShareNonStaples_WB.var.png", "figS4.RaoNenergyShareNonStaples_WB.varFort.png",
                        "figS6.badRatios_WB.base.png", "figS6.badRatios_WB.var.png", "figS6.badRatios_WB.varFort.png")
 # removes CC files and var and varFort Files
-imageList_USAIDPriorities.wb <- c("fig1.budgetShare_WB.base.png",
+imageList_USAIDPrdNhance.wb <- c("fig1.budgetShare_WB.base.png",
                                   "fig2.adequacy.macro_WB.base.png",
                                   "fig3.AMDRhiLo_WB.base.png",
                                   "fig4.1.adequacy.vits_WB.base.png", "fig4.2.adequacy.vits_WB.base.png", "fig4.3.adequacy.minrls_WB.base.png",
@@ -51,7 +51,7 @@ imageList_SSPs.tenregions <- c("figS8.foodavail.1_tenregions.base.png", "figS8.f
                                "figS10.1.adequacy.vits_tenregions.base.png", "figS10.1.adequacy.vits_tenregions.var.png", "figS10.1.adequacy.vits_tenregions.varFort.png",
                                "figS10.2.adequacy.vits_tenregions.base.png", "figS10.2.adequacy.vits_tenregions.var.png", "figS10.2.adequacy.vits_tenregions.varFort.png",
                                "figS10.3.adequacy.minrls_tenregions.base.png", "figS10.3.adequacy.minrls_tenregions.var.png", "figS10.3.adequacy.minrls_tenregions.varFort.png")
-imageList_USAIDPriorities.tenregions <- c("figS8.foodavail.1_tenregions.base.png",
+imageList_USAIDPrdNhance.tenregions <- c("figS8.foodavail.1_tenregions.base.png",
                                           "figS8.foodavail.2_tenregions.base.png",
                                           "figS8.foodavail.3_tenregions.base.png",
                                           "figS10.1.adequacy.vits_tenregions.base.png",
@@ -75,7 +75,7 @@ pdfDimensions.wb[, newOrder := NULL]
 pdfDimensions.wb[, fileName := paste0(imageFilePrefix, fileName)]
 
 # if (gdxChoice %in% "SSPs") imageList.wb <- imageList_SSPs.wb; imageList.tenregions <- imageList_SSPs.tenregions
-# if (gdxChoice %in% "USAIDPriorities") imageList.wb <- imageList_USAIDPriorities.wb; imageList.tenregions <- imageList_USAIDPriorities.tenregions
+# if (gdxChoice %in% "USAIDPrdNhance") imageList.wb <- imageList_USAIDPrdNhance.wb; imageList.tenregions <- imageList_USAIDPrdNhance.tenregions
 my_pres.wb <- add_slide(x = my_pres.wb, layout='Title Slide', master='Office Theme')
 contentString.wb <- paste0("Nutrient Modeling Results Comparison, World Bank aggregations for ", gdxChoice)
 titleContentString.wb <- paste0("ph_with_text(x = my_pres.wb, type = 'ctrTitle', str =  '", contentString.wb, "')")

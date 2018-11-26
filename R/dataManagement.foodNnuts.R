@@ -40,7 +40,6 @@ scenarioListIMPACT <- unique(dt.scenarioListIMPACT$scenario)
 for (switchloop in getSwitchChoice()) {
   switch.useCookingRetnValues <- keyVariable("switch.useCookingRetnValues")
   switch.fixFish <- keyVariable("switch.fixFish") #get rid of nutrient info for shrimp, tuna, and salmon because they are not currently in the FBS data
-  if (switchloop == 1) {switch.vars <- FALSE;  switch.fortification <- FALSE; suffix = "base"}
   if (switchloop == 2) {switch.vars <- TRUE;  switch.fortification <- FALSE; suffix = "var"}
   if (switchloop == 3) {switch.vars <- TRUE;  switch.fortification <- TRUE; suffix = "varFort"}
   if (switchloop == 4) {switch.vars <- TRUE;  switch.fortification <- FALSE; suffix = "var"}
@@ -49,11 +48,7 @@ for (switchloop in getSwitchChoice()) {
   #dt is per kg of food
   dt <- switches() # is specific to countries if switchloop = 2 or 3. nutrient composition of composites vary in .var because the composition of composites changes by country
 
-  if (switch.vars == "FALSE") {
-    dt.foodNnuts <- merge(dt.IMPACTfood, dt, by = "IMPACT_code", allow.cartesian = TRUE) # , allow.cartesian=TRUE does seem to be needed here
-  }else{ # for both var-specific and with or without fortification
-    dt.foodNnuts <- merge(dt.IMPACTfood, dt, by = c("region_code.IMPACT159", "IMPACT_code"), allow.cartesian = TRUE)
-  }
+      dt.foodNnuts <- merge(dt.IMPACTfood, dt, by = c("region_code.IMPACT159", "IMPACT_code"), allow.cartesian = TRUE)
 
   #make order the same for all versions of dt.foodNnuts
   setcolorder((dt.foodNnuts), neworder = c("scenario", "year", "region_code.IMPACT159", "IMPACT_code", "FoodAvailability", "pcGDPX0", "PCX0", "PWX0",

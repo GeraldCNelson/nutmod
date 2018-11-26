@@ -209,7 +209,7 @@ if (gdxChoice %in% "SSPs") { # copy files only if using the nutrient modeling gd
   sourceFile <- "copyFilestoNutrientModeling.R"
   sourcer(sourceFile)  # move results needed for the shiny app.R in the nutrientModeling folder
 }
-if (gdxChoice %in% "USAIDPriorities") { # copy files only if using the nutrient modeling gdx
+if (gdxChoice %in% "USAIDPrdNhance") { # copy files only if using the nutrient modeling gdx
   sourceFile <- "copyFilestoNutrientPriorities.R"
   sourcer(sourceFile)  # move results needed for the shiny app.R in the nutrientModeling folder
 }

@@ -79,7 +79,7 @@ processIMPACT159Data <- function(gdxFileName, varName, catNames) {
                              "SSP2-MIROC", "SSP2-NoCC", "SSP3-NoCC"),
              scenario := paste(scenario, "-REF", sep = "")]
   }
-  if (gdxChoice %in% "USAIDPriorities") {
+  if (gdxChoice %in% "USAIDPrdNhance") {
     dt.ptemp[, crop := tstrsplit(scenario, "-", fixed = TRUE, keep = c(3))]
     SSPName <- "SSP2"
     climModel <- "HGEM"

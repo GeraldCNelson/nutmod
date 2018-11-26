@@ -72,7 +72,7 @@ combineIMPACTData <- function() {
   #   dt.fishnAlcScenarios <- rbind(temp.SSP2.NoCC, temp.SSP2.GFDL, temp.SSP2.HGEM, temp.SSP2.IPSL, dt.fishnAlcScenarios)
   # }
   
-  if (gdxChoice %in% "USAIDPriorities"){
+  if (gdxChoice %in% "USAIDPrdNhance"){
     stop("Check this to see if scenarios  are correctg")
     dt.fishnAlcScenarios <- dt.fishnAlcScenarios[scenario %in% c("SSP2")]
     dt.fishnAlcScenarios[, scenario := scenarioListIMPACT[1]]

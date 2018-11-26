@@ -24,8 +24,6 @@
 library(gridExtra)
 library(gplots)
 
-source("R/renameUSAIDscenarios.R")
-
 # get gdxChoice -----
 gdxChoice <- getGdxChoice()
 
@@ -74,8 +72,7 @@ updateLegendGrobs <- function(l, aggChoice, legendLoc, mergedVals, fileToUse) {
   DT[, region_name := gsub(" income", "", region_name)]
   DT[, region_name := factor(region_name, levels =  regionNameOrder)]
   DT[, scenario := factor(scenario, levels = scenarioNameOrder)]
-  if (gdxChoice %in% "USAID")  DT <- renameUSAIDscenarios(DT)
-  
+
   # draw bars to get the legend
   p <- ggplot(DT, aes(x = region_name, y = value, fill = scenario, order = c("region_name") )) +
     geom_bar(stat = "identity", position = "dodge", color = "black") +
@@ -169,21 +166,6 @@ aggNorder <- function(gdxChoice, DTaggNorder, aggChoice, scenChoice, mergedVals,
   DT <- DT[year %in% "X2010", scenario := "2010"][, year := NULL]
   
   # order of scenario and regions
-  if (gdxChoice == "USAID") {
-    #    DT <- renameUSAIDscenarios(DT)
-    #
-    # # this needs to be changed at some point. Operate on scenChoice
-    # scenarioList.prodEnhance <- c("REF_NoCC", "MED", "HIGH", "HIGH_NARS", "HIGH_RE", "REGION")
-    # scenarioList.waterMan <- c("REF_NoCC", "IX", "IX_WUE", "ISW", "IX_WUE_NoCC", "IX_IPSL", "ISW_NoCC", "ISW_IPSL")
-    # scenarioList.addEnhance <- c("REF_NoCC","RPHL", "RMM")
-    # scenarioList.comp <- c("REF_NoCC", "COMP", "COMP_NoCC", "COMP_IPSL")
-    # keep only needed USAID scenarios
-    scenOrder <- scenChoice
-    # order scenarios, first write the number into the number variable scenarioOrder
-    DT[, scenarioOrder := match(scenario, scenOrder)]
-    data.table::setorder(DT, scenarioOrder)
-    DT[, scenarioOrder := NULL]
-  }
   if (gdxChoice == "SSPs") {
     # do manipulations on the gdx data that has the scenarios in scenChoice.
     scenOrder <- scenChoice
@@ -201,7 +183,7 @@ aggNorder <- function(gdxChoice, DTaggNorder, aggChoice, scenChoice, mergedVals,
     }
   }
   
-  if (gdxChoice == "USAIDPriorities") {
+  if (gdxChoice == "USAIDPrdNhance") {
     # do manipulations on the gdx data that has the scenarios in scenChoice.
     scenOrder <- scenChoice
     
@@ -236,8 +218,7 @@ plotByRegionBar <- function(dt, fileName, plotTitle, yLab, yRange, aggChoice, su
   temp[, region_name := gsub(" income", "", region_name)]
   temp[, region_name := factor(region_name, levels =  regionNameOrder)]
   temp[, scenario := factor(scenario, levels = scenarioNameOrder)]
-  if (gdxChoice %in% "USAID")  temp <- renameUSAIDscenarios(temp)
-  
+
   temp[, value := round(value, 2)]
   
   # adjust font size for bars by aggchoice
@@ -394,9 +375,7 @@ plotByRegionStackedBar <- function(dt, fileName, plotTitle, yLab, yRange, aggCho
   temp[, region_name := gsub(" income", "", region_name)]
   temp[, region_name := factor(region_name, levels =  regionNameOrder)]
   temp[, scenario := factor(scenario, levels = scenarioNameOrder)]
-  
-  if (gdxChoice %in% "USAID")  temp <- renameUSAIDscenarios(temp)
-  
+
   #default values
   nrow = 2
   legendLoc <- "right"
@@ -467,8 +446,7 @@ plotByBoxPlot2050 <- function(dt, fileName, plotTitle, yLab, yRange, aggChoice, 
   temp[, region_name := gsub(" income", "", region_name)]
   temp[, region_name := factor(region_name, levels =  regionNameOrder)]
   temp[, scenario := factor(scenario, levels = scenarioNameOrder)]
-  if (gdxChoice %in% "USAID")  temp <- renameUSAIDscenarios(temp)
-  
+ 
   # draw boxplot
   p <- ggplot(temp, aes(x = region_name, y = value)) +
     geom_boxplot(stat = "boxplot", position = "dodge", color = "black", outlier.shape = NA) + # outlier.shape = NA, gets rid of outlier dots
@@ -511,7 +489,6 @@ plotByRegionBarAMDR <- function(dt, fileName, plotTitle, yLab, yRange, aggChoice
   temp[, region_name := gsub(" income", "", region_name)]
   temp[, region_name := factor(region_name, levels =  regionNameOrder)]
   temp[, scenario := factor(scenario, levels = scenarioNameOrder)]
-  if (gdxChoice %in% "USAID")  temp <- renameUSAIDscenarios(temp)
   # adjust location of bar label in the bar (yval) for graph type
   if (yLab %in% "(Adequacy ratio)") {roundVal = 2} else { roundVal = 1}
    yval = 1.5 # controls how far above the y axis bottom the vertical numbers are

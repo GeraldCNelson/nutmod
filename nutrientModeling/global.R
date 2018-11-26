@@ -511,8 +511,7 @@ plotByRegionBarAMDR <- function(dt, fileName, plotTitle, yLab, yRange, aggChoice
   temp[, region_name := gsub(" income", "", region_name)]
   temp[, region_name := factor(region_name, levels =  regionNameOrder)]
   temp[, scenario := factor(scenario, levels = scenarioNameOrder)]
-  if (gdxChoice %in% "USAID")  temp <- renameUSAIDscenarios(temp)
-  # adjust location of bar label in the bar (yval) for graph type
+   # adjust location of bar label in the bar (yval) for graph type
   if (yLab %in% "(Adequacy ratio)") {roundVal = 2} else { roundVal = 1}
   yval = 1.5 # controls how far above the y axis bottom the vertical numbers are
   fontsize <- 2.5

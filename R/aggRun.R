@@ -34,7 +34,7 @@ library(rgdal)
 sourceFile <- "aggRun.R"
 createScriptMetaData()
 
-# gdxChoice values are SSPs, USAIDPriorities, or AfricanAgFutures
+# gdxChoice values are SSPs, USAIDPrdNhance, or AfricanAgFutures
 gdxChoice <- getGdxChoice()
 # DTGlobal choices are
 # with one output
@@ -81,7 +81,6 @@ chooseErrorBars <- function(aggChoice) {
 for (switchloop in getSwitchChoice()) {
   switch.useCookingRetnValues <- keyVariable("switch.useCookingRetnValues")
   switch.fixFish <- keyVariable("switch.fixFish") #get rid of nutrient info for shrimp, tuna, and salmon because they are not currently in the FBS data
-  if (switchloop == 1) {switch.vars <- FALSE;  switch.fortification <- FALSE; suffix = "base"}
   if (switchloop == 2) {switch.vars <- TRUE;  switch.fortification <- FALSE; suffix = "var"}
   if (switchloop == 3) {switch.vars <- TRUE;  switch.fortification <- TRUE; suffix = "varFort"}
   if (switchloop == 4) {switch.vars <- TRUE;  switch.fortification <- FALSE; suffix = "var"}
@@ -131,7 +130,7 @@ for (switchloop in getSwitchChoice()) {
     aggChoiceListBarChart <- c("WB", "tenregions")
   }
   
-  if (gdxChoice == "USAIDPriorities") {
+  if (gdxChoice == "USAIDPrdNhance") {
     dt.scenarioListIMPACT <- getNewestVersion("dt.scenarioListIMPACT", fileloc("mData"))
     scenarioListIMPACT <- unique(dt.scenarioListIMPACT$scenario)
     crops.cereals <- c("cmaiz", "crice", "cwhea")
@@ -139,9 +138,9 @@ for (switchloop in getSwitchChoice()) {
     scenario.base.CC <-  "SSP2_HGEM_cf"
     scenChoiceList <- "scenarioListIMPACT"
     # scenarioListIMPACT has too many scenarios. I'm going to try a few.
-    scenOrderUSAIDPriorities <- c("2010", scenario.base.CC, paste0("SSP2_HGEM_", crops.cereals))
-    cat("\nscenOrderUSAIDPriorities:", scenOrderUSAIDPriorities, "\n")
-    scenChoiceList <- "scenOrderUSAIDPriorities"
+    scenOrderUSAIDPrdNhance <- c("2010", scenario.base.CC, paste0("SSP2_HGEM_", crops.cereals))
+    cat("\nscenOrderUSAIDPrdNhance:", scenOrderUSAIDPrdNhance, "\n")
+    scenChoiceList <- "scenOrderUSAIDPrdNhance"
     scenChoice.name <- gdxChoice
     aggChoiceListBarChart <- c("WB", "tenregions")
   }
@@ -562,7 +561,7 @@ DT.wide <- data.table::dcast(
   formula = formula.wide,
   value.var = "value")
 
-if (gdxChoice %in% c("SSPs")) { # USAIDPriorities and AfricanAgFutures don't have a noClimate Change scenario
+if (gdxChoice %in% c("SSPs")) { # USAIDPrdNhance and AfricanAgFutures don't have a noClimate Change scenario
   #facet map, climate change effect on availability -----
   DT.wide[, value := 100 * (get(scenario.base.CC) - get(scenario.base.NoCC)) / get(scenario.base.NoCC)] 
   facetColName <- "food_group_code"

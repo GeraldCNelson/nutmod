@@ -30,7 +30,7 @@ library(rgdal)
 library(readr)
 library(rgeos)
 sourceFile <- "dataManagementYields.R"
-# gdxChoice values are SSPs, USAID,  USAIDPriorities, or AfricanAgFutures
+# gdxChoice values are SSPs, USAID,  USAIDPrdNhance, or AfricanAgFutures
 createScriptMetaData()
 graphsListHolder <- list()
 fileNameHolder <- character(0)
