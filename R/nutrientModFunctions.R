@@ -28,6 +28,7 @@ library(tidyverse) # includes ggplot2, tibble, tidyr, and readr
 library(data.table) # this is needed everywhere and currently some scripts don't call it
 library(ggthemes)
 library(qdapRegex) # needed for the TC (title case) function, added Nov 3, 2018
+library(gtools) # for capwords function
 
 fontFamily <- "Cambria"
 # .onLoad <- function(libname, pkgname) {
@@ -964,12 +965,11 @@ rawToChar(block[seq_len(ns)], run the following commands in a shell.
     
     cat("\nYour gdx file name choice is ", gdxFileName, "\n")
     cat("Choose the switches you want to use.\n")
-    cat("1. Base nutrient data only.\n")
     cat("2. Base nutrient data and country specific varieties.\n")
     cat("3. Base nutrient data, country specific varieties, and selected fortification.\n")
     cat("4. Country specific varieties only.\n")
-    choice <- readline(prompt = "Choose 1, 2, 3 or 4. \n")
-    if (!choice %in% c(1,2,3,4)) {stop(sprintf("Your choice %s needs to be one of 1, 2, or 3", choice))}
+    choice <- readline(prompt = "Choose 2, 3 or 4. \n")
+    if (!choice %in% c(2,3,4)) {stop(sprintf("Your choice %s needs to be one of 2, 3, or 4", choice))}
     
     cat("\nDo you need to update any files that are not IMPACT specific (new population data, nutrient composition, FBS data?")
     update <- readline(prompt = "Y/N. \n")

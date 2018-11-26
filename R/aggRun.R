@@ -171,7 +171,7 @@ for (switchloop in getSwitchChoice()) {
   for (aggChoice in aggChoiceListBarChart) {
     plotErrorBars <- chooseErrorBars(aggChoice)
     #   generate the legends -----
-    fileToUse <- dt.budgetShare # need a file from the results dir to get the legend
+    fileToUse <- "dt.budgetShare" # need a file from the results dir to get the legend
     for (legendOrient in c("bottom", "right")) {
       legendname <- paste("legend", legendOrient, gdxChoice, l,  aggChoice, sep = "_")
       graphsListHolder[[legendname]] <- updateLegendGrobs(l, aggChoice, legendLoc = legendOrient, mergedVals, fileToUse = fileToUse)
@@ -391,7 +391,6 @@ for (switchloop in getSwitchChoice()) {
         
         fileName = paste(gdxChoice, "_", l, "_",  multipleNutsListShortName[k], "_", nut, "_", aggChoice, ".", suffix, sep = "")
         cat("fileName is ", fileName,"\n")
-        #         print(summary(DT))
         plotByRegionBar(dt = DT, fileName,
                         plotTitle = nutTitle, yLab = ylab, yRange = yRangeMinMax, aggChoice, suffix,
                         scenOrder = get(l), oneLine = drawOneLine, colorList, graphsListHolder, plotErrorBars)
@@ -474,7 +473,7 @@ for (switchloop in getSwitchChoice()) {
       yRangeMinMax <- c(0,70)
       
       fileName = paste(gdxChoice, "_", l, "_",  "AMDRShare", "_", nutName, "_", aggChoice, ".", suffix, sep = "")
-      nutTitle <- capwords(cleanupNutrientNames(nutName))
+      nutTitle <- cleanupNutrientNames(nutName)
       nutTitle <- paste(nutTitle, "share of total kilocalories", sep = " ")
       # print("Colorlist under plotByRegionBarAMDR")
       # print(colorList)

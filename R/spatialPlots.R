@@ -78,7 +78,6 @@ generateWorldMaps <- function(spData, scenOrder, titleText, legendText, lowColor
     temp.sp <- spData[scenario %in% scenOrder[j],]
     #    temp.sp[,scenario := NULL]
     temp.sp <- as.data.frame(temp.sp)
-    summary(temp.sp)
     plotName.new <- paste0("plot.", gsub("-", "_", scenOrder[j]))
     print(plotName.new)
     gg <- ggplot(temp.sp, aes(map_id = id))

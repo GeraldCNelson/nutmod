@@ -381,7 +381,6 @@ for (switchloop in getSwitchChoice()) {
         fileName = paste(gdxChoice, "_",   multipleNutsListShortName[k], "_", nut, ".", suffix, sep = "")
         fileNameHolder <- append(fileNameHolder, fileName)
         cat("fileName is ", fileName,"\n")
-        #         print(summary(DT))
         plotByRegionBar(dt, fileName,
                         plotTitle = nutTitle, yLab = ylab, yRange = yRangeMinMax, aggChoice, suffix,
                         scenOrder = get(l), oneLine = drawOneLine, colorList, graphsListHolder = graphsListHolder, plotErrorBars)

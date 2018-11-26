@@ -286,7 +286,6 @@ generateResults.dataPrep <- function(req, dt.foodNnuts, scenarioListIMPACT) {
   outName <- paste("food_agg_",reqShortName, ".", suffix, sep = "")
   desc <- paste("Adequacy ratios - all, by food groups, and by staples", reqShortName)
   cat(desc, "\n")
-  print(summary(inDT))
   cleanup(inDT, outName, fileloc("resultsDir"), desc = desc)
 }
 # end of generateResults function
