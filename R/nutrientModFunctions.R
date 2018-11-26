@@ -20,7 +20,7 @@
 # Arsenault, Malcolm Reilly, Jessica Bogard, and Keith Lividini (for
 # nutrition expertise)
 
-source("R/workbookFunctions.R")
+source("R/workBookFunctions.R")
 source("R/nutrientCalcFunctions.R")
 library(plyr)
 library(dtplyr)

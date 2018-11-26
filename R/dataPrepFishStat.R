@@ -3,7 +3,7 @@
 #' @title Prepare fish data from FishStat for use in nutrient modeling
 #' @name dataPrepFishStat.R
 #' @include nutrientModFunctions.R
-#' @include workbookFunctions.R
+#' @include workBookFunctions.R
 #' @include nutrientCalcFunctions.R
 #' @include aggNorder.R
 #' @description This code reads in the species and country specific fish production data.

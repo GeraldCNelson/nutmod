@@ -4,7 +4,7 @@
 #' @title Calculate final graph combinations for the nutrient modeling paper
 #' @name cropVarietyManager.R
 #' @include nutrientModFunctions.R
-#' @include workbookFunctions.R
+#' @include workBookFunctions.R
 #' @include nutrientCalcFunctions.R
 #' @description This code writes out pdfs of the graphs used in the final nutrient modeling paper.
 #' The code grabs the individual graphs created in aggRun.R and places them in pdf file to be incorporated into the final word doc. There are 1 to 6

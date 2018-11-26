@@ -19,7 +19,7 @@
 # library(maps)
 
 #' @include nutrientModFunctions.R
-#' @include workbookFunctions.R
+#' @include workBookFunctions.R
 #' @include nutrientCalcFunctions.R
 source("R/nutrientModFunctions.R")
 sourceFile <- "diversityMetrics.R"

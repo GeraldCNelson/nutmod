@@ -35,7 +35,7 @@
 #   for more details at http://www.gnu.org/licenses/.
 
 #' @include nutrientModFunctions.R
-#' @include workbookFunctions.R
+#' @include workBookFunctions.R
 #' @include nutrientCalcFunctions.R
 source("R/nutrientModFunctions.R")
 gdxChoice <- getGdxChoice()

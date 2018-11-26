@@ -3,7 +3,7 @@
 #' @title Calculate final graph combinations for the nutrient modeling paper
 #' @name finalGraphCreation.R
 #' @include nutrientModFunctions.R
-#' @include workbookFunctions.R
+#' @include workBookFunctions.R
 #' @include nutrientCalcFunctions.R
 #' @include aggNorder.R
 #' @description This code writes out pdfs of the graphs used in the final nutrient modeling paper.

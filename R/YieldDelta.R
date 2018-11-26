@@ -3,7 +3,7 @@
 #' @title Calculate final graph combinations for the nutrient modeling paper
 #' @name aggRun.R
 #' @include nutrientModFunctions.R
-#' @include workbookFunctions.R
+#' @include workBookFunctions.R
 #' @include nutrientCalcFunctions.R
 #' @include aggNorder.R
 #' @description This code calculates yield deltas over time between 2010 and 2030 and
