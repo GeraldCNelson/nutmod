@@ -20,7 +20,7 @@
 #' - dt.cookinRetn - the cooking retention columns by IMPACT_code
 #'
 source("R/nutrientModFunctions.R")
-source("R/workbookFunctions.R")
+source("R/workBookFunctions.R")
 source("R/nutrientCalcFunctions.R")
 library(readxl)
 
