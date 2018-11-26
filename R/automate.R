@@ -46,7 +46,8 @@ sourceFile <- "automate.R"
 # list.of.packages <- c("data.table", "openxlsx", "dplyr", "dtplyr", "utils", "ggplot2", "stringi", "tidyr", "splitstackshape",
 #                       "gridExtra","gplots", "RColorBrewer", "RODBC")
 list.of.packages <- c("data.table", "openxlsx", "dplyr", "dtplyr", "utils",  "stringi", "splitstackshape",
-                      "gridExtra","gplots", "RColorBrewer", "RODBC", "tidyverse")
+                      "gridExtra","gplots", "RColorBrewer", "RODBC", "tidyverse", "sp", "broom", "rgeos", "rgdal", 
+                      "gridExtra", "gplots", "ggthemes", "qdapRegex", "gtools", "Cairo", "extrafont")
 new.packages <- list.of.packages[!(list.of.packages %in% installed.packages()[,"Package"])]
 if (length(new.packages)) install.packages(new.packages)
 
@@ -72,13 +73,9 @@ cat("Running nutrientModFunctions.R\n")
 source("R/nutrientModFunctions.R")
 
 createScriptMetaData()
-
 gdxrrwExistenceCheck() #checks if the gdxrrw package is installed; if not, prints directions on how to install and stops.
-
-gdxCombo <- gdxFileNameChoice() # asks what you want to do
-gdxFileName <- gdxCombo[1]
-gdxChoice <- gdxCombo[2]
-oneTimeDataUpdate <- gdxCombo[4]
+gdxFileName <- "Micronutrient-Inputs-07252016.gdx" # - gdx with multiple SSP results
+gdxChoice <- "SSPs"
 metadata() # - creates dt.metaData; holds some key file locations and variable names;
 # needs to come after identification of gdxFileName and before library location check
 gdxLibraryLocationCheck()
@@ -86,8 +83,9 @@ gdxLibraryLocationCheck()
 # the gdxrrwSetup.R script needs to be separate because shiny can't deal with the gams package.
 sourceFile <- "gdxrrwSetup.R"
 sourcer(sourceFile)
+gdxSwitchCombo <- cbind(gdxFileName, gdxChoice, choice = 4)
+write.csv(gdxSwitchCombo, file = paste0(getwd(), "/results/", gdxChoice, "/gdxInfo.csv"), row.names = FALSE)
 
-if (oneTimeDataUpdate %in% c("Y", "y", "yes", "Yes")){
   # only needs to be run when new regions or aggregations are added
   sourceFile <- "dataPrep.regions.R"
   sourcer(sourceFile) # - creates dt.regions.all and the list of scenarios
@@ -107,13 +105,8 @@ if (oneTimeDataUpdate %in% c("Y", "y", "yes", "Yes")){
   # only needs to be run if changes to the script are made
   sourceFile <- "dataPrep.ODBCaccess.R"
   sourcer(sourceFile) # reads in nutrient data from the USDA nutrient composition access database
-  #commented out because only needs to run when new SSP data are used. June 5, 2018
-  if (gdxChoice %in% "AfricanAgFutures") {sourceFile <- "dataPrep.UNscenarios.R" 
-  sourcer(sourceFile)
-  }
   sourceFile <- "dataManagement.Pop.R" #name changed from dataManagement.SSPPop.R Oct 5, 2018 to reflect the fact that this also handles the combine UN/SSP age gender info
   sourcer(sourceFile) #paste(gsub("_ssp","",nutReqName),"percap",sep = "_"), mData - Nutrient requirements adjusted for population distribution, example is req.EAR.percap.2016-06-24.rds
-}
 
 sourceFile <- "dataPrep.IMPACT.R" # creates dt.scenarioListIMPACT and dt.IMPACTgdxParams
 sourcer(sourceFile)

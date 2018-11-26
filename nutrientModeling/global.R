@@ -556,7 +556,6 @@ load_data_special <- function(data_name){
   print(exists(data_name))
   print("is.data.table(data_name")
   print(is.data.table(get(data_name)))
-  print(head(get(data_name)))
   if (!exists((data_name))) {
     print("exists(data_name)2")
     print(exists(data_name))

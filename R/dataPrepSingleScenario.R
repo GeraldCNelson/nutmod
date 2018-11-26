@@ -117,7 +117,7 @@ processIMPACT159Data <- function(gdxFileName, gdxFileLoc, varName, catNames, sin
 
 for (i in c("SSP2-HGEM2-WithGLOBE.gdx", "SSP2-HGEM-WithoutGLOBE.gdx")) {
   
-  # comment out lines below to speed up data crunching.
+,   # comment out lines below to speed up data crunching.
   # generateResults(vars.land,catNames.land)
   gdxFileLoc <- paste(fileloc("IMPACTRawData"),i, sep = "/")
   generateResults(i, gdxFileLoc, vars = vars.commods, catNames = catNames.commod, singleScenario, keepYearList)

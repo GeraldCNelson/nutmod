@@ -1,4 +1,3 @@
-library(FAOSTAT)
 source("R/nutrientModFunctions.R")
 
 # FAOsearch(3)

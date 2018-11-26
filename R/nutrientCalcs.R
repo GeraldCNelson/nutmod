@@ -216,7 +216,6 @@ generateResults.dataPrep <- function(req, dt.foodNnuts, scenarioListIMPACT) {
     
     #' use different source for dt.food.agg for AMDRs
     dt.nutrients.kcals <- getNewestVersion(paste("dt.nutrients_kcals", suffix, sep = "."), fileloc("resultsDir"))
-    print(head(dt.nutrients.kcals))
     dt.food.agg <- data.table::copy(dt.nutrients.kcals)
     # # next two lines added to potentially correct a 'length' problem. March 14, 2018. Commented out Oct 13, 2018
     # deleteListRows <- c("caffeine_mg", "cholesterol_mg", "ft_acds_tot_trans_g")
@@ -280,7 +279,6 @@ generateResults.dataPrep <- function(req, dt.foodNnuts, scenarioListIMPACT) {
   }
   
   inDT <- dt.food.agg
-  print(head(inDT))
   temp <- gsub("req_","",req)
   reqShortName <- gsub(".percap","",temp)
   outName <- paste("food_agg_",reqShortName, ".", suffix, sep = "")
@@ -299,7 +297,6 @@ for (switchloop in getSwitchChoice()) {
   cat("\nWorking on", suffix, "-----\n")
   dt.foodNnuts <- getNewestVersion(paste("dt.foodNnuts", suffix, sep = "."), fileloc("resultsDir"))
   dt.foodNnuts <- dt.foodNnuts[scenario %in% scenarioListIMPACT]
-  print(head(dt.foodNnuts))
   #  dt.nutrients_sum_all <- getNewestVersion(paste("dt.nutrients_sum_all", suffix, sep = "."), fileloc("resultsDir")) # discovered that it is not used elsewhere in this script July 4, 2018
   
   #' reqsListPercap is a list of the requirements types. Each has a different set of nutrients. These are a subset
