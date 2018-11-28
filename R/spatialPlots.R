@@ -20,7 +20,7 @@ library(gridExtra)
 library(gplots)
 
 # get gdxChoice
-gdxChoice <- getGdxChoice()
+gdxChoice <-"SSPs"
 
 library(sp)
 #library(rworldmap)
@@ -126,7 +126,7 @@ generateWorldMaps <- function(spData, scenOrder, titleText, legendText, lowColor
 for (i in c(variablesToPlot.mult)) {
   print(paste0("working on ", i))
   dt.spatialPlotData <- getNewestVersion(i, fileloc("resultsDir"))
-
+  
   dt.spatialPlotData <- dt.spatialPlotData[year %in% c("X2010", "X2050"),]
   #note the use of scenario in i is because there are slight differences in the 2010 values for some variables in some scenarios. This code means only of them is chosen
   dt.spatialPlotData <- dt.spatialPlotData[year == "X2010" & scenario %in% "SSP2-NoCC-REF", `:=`(
@@ -135,7 +135,7 @@ for (i in c(variablesToPlot.mult)) {
   dt.spatialPlotData[, year := NULL]
   # get the new order
   scenlist <- unique(dt.spatialPlotData$scenario)
-
+  
   # order by scenarios
   if ("SSP3-NoCC-REF" %in% scenlist) {
     # do manipulations on the micronutrient modeling gdx data that has 3 SSP scenarios and 3 climate change scenarios, but just use 1 climate scenario.
@@ -147,7 +147,7 @@ for (i in c(variablesToPlot.mult)) {
   } else {
     stop("SSP3-NoCC-REF is not in scenlist")
   }
-
+  
   # country code cleanup
   dt.spatialPlotData <- dt.spatialPlotData[region_code.IMPACT159 %in% "FRP", region_code.IMPACT159 := "FRA"]
   dt.spatialPlotData <- dt.spatialPlotData[region_code.IMPACT159 %in% "CHM", region_code.IMPACT159 := "CHN"]
@@ -163,7 +163,7 @@ for (i in c(variablesToPlot.mult)) {
   dt.spatialPlotData <- dt.spatialPlotData[region_code.IMPACT159 %in% "RAP", region_code.IMPACT159 := "ARE"]
   # dt.spatialPlotData <- dt.spatialPlotData[!region_code.IMPACT159 == "SOM",] #get rid of Somalia data.
   data.table::setnames(dt.spatialPlotData, old = "region_code.IMPACT159", new = "id")
-
+  
   if (i %in% "dt.budgetShare") {
     dt.spatialPlotData[, c("pcGDPX0", "budget.PWX0", "budget.PCX0", "incShare.PWX0") := NULL]
     setnames(dt.spatialPlotData, old = "incShare.PCX0", new = "value")
@@ -239,7 +239,7 @@ for (i in c(variablesToPlot.mult)) {
       generateWorldMaps(spData, scenOrder, titleText, legendText, lowColor, highColor, fillLimits, fileName)
     }
   }
-
+  
   if (i %in% "dt.foodAvail.foodGroup") {
     legendText <- "Grams"
     lowColor <- "white"
@@ -249,8 +249,6 @@ for (i in c(variablesToPlot.mult)) {
     for (l in unique(dt.spatialPlotData$food_group_code)) {
       titleText <- paste("Daily per capita availability in 2050 for food group", l, "for ", sep = " ")
       spData <- dt.spatialPlotData[food_group_code %in% l & scenario %in% scenToPlot,]
-#      if (l %in% "rootsNPlantain")  fillLimits <- c(0, 2000)
-#      fillLimits[2] <- round(max(spData$value))
       fileName <- paste0("foodAvail.foodgroup.", l)
       generateWorldMaps(spData = spData, scenOrder = scenToPlot, titleText = titleText, legendText = legendText, lowColor = lowColor, highColor = highColor,
                         fillLimits = fillLimits, fileName = fileName)
@@ -275,55 +273,4 @@ for (i in c(variablesToPlot.mult)) {
   }
 }
 
-
-# old code -----
-#variablesToPlot <- c("dt.budgetShare", "dt.RAOqe", "dt.nutBalScore","dt.compQI", "dt.compDI","dt.KcalShare.nonstaple", "dt.KcalShare.foodgroup", "dt.foodAvail.foodGroup")
-
-# colToPlot <- "value"
-# for (i in variablesToPlot) {
-#   print(paste("working on ", i))
-#   dt.spatialPlotData <- getNewestVersion(i, fileloc("resultsDir"))
-#   scenlist <- unique(dt.spatialPlotData$scenario)
-#   if (i %in% "dt.budgetShare") {setnames(dt.spatialPlotData, old = "incShare.PCX0", new = "value");
-#     mainTitle <- "Budget share (percent)"
-#     # get rid of Somalia because it's budget share is 500 * per cap income
-#     dt.spatialPlotData <- dt.spatialPlotData[!region_code.IMPACT159 == "SOM",]
-#   }
-#   if (i %in% "dt.RAOqe") {mainTitle <- "Rao's Quadratic Entropy"}
-#   if (i %in% "dt.nutBalScore") {mainTitle <- "Nutrient Balance Score"}
-#   if (i %in% "dt.compQI") {mainTitle <- "Composite Qualifying Index"}
-#   if (i %in% "dt.compDI") {mainTitle <- "Composite Disqualifying Index"}
-#   if (i %in% "dt.KcalShare.nonstaple") {mainTitle <- "Non-staple Share of Kilocalories (percent)"}
-#   if (i %in% "dt.KcalShare.foodgroup") {mainTitle <- "Daily per capita food availability by food group (grams)"}
-
-#   dt.spatialPlotData <- dt.spatialPlotData[year %in% c("X2010", "X2050"),]
-#   dt.spatialPlotData <- dt.spatialPlotData[year == "X2010", scenario := "2010"][, year := NULL]
-#
-#   # order by scenarios
-#   if ("SSP3-NoCC-REF" %in% scenlist) {
-#     # do manipulations on the gdx data that has 3 SSP scenarios and 3 climate change scenarios.
-#     #    scenOrder.SSPs <- c("2010", "SSP2-NoCC-REF", "SSP1-NoCC-REF", "SSP3-NoCC-REF", "SSP2-GFDL-REF", "SSP2-IPSL-REF", "SSP2-HGEM-REF")
-#     scenOrder.SSPs <- c("2010", "SSP2-NoCC-REF", "SSP2-HGEM-REF", "SSP1-NoCC-REF", "SSP3-NoCC-REF")
-#     dt.spatialPlotData[, scenarioOrder := match(scenario, scenOrder.SSPs)]
-#     data.table::setorder(dt.spatialPlotData, scenarioOrder)
-#     dt.spatialPlotData[, scenarioOrder := NULL]
-#   }
-#   # get the new order
-#   scenlist <- unique(dt.spatialPlotData$scenario)
-#   pdf(paste("graphics/map",i, ".pdf", sep = ""))
-#   par(mai=c(0,0,0.2,0), oma = c(1,1,4,1),xaxs="i",yaxs = "i", mfrow = c(3,2))
-#   for (k in scenOrder.SSPs) {
-#     temp <- as.data.frame(dt.spatialPlotData[scenario %in% k,])
-#     #  mTitle <- paste0("\nModified Functional Attribute Diversity, \n", k)
-#     mTitle <- k
-#     sPDF <- joinCountryData2Map(temp, joinCode = "ISO3", nameJoinColumn = "region_code.IMPACT159",
-#                                 suggestForFailedCodes = TRUE,
-#                                 mapResolution = "coarse",  verbose = FALSE)
-#     mapCountryData(sPDF, nameColumnToPlot = colToPlot, colourPalette =  "diverging", numCats = 10,
-#                    missingCountryCol = "gray",catMethod = "fixedWidth",
-#                    mapTitle = mTitle, addLegend = TRUE)
-#   }
-#   mtext(mainTitle, outer = TRUE, cex = 1.5)
-#   dev.off()
-# }
 

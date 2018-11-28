@@ -32,7 +32,7 @@ library(extrafont) # may be necessary for Calibri font
 library(staplr) # to merge pdfs and other manipulation
 sourceFile <- "finalGraphCreation.R"
 
-gdxChoice <- getGdxChoice()
+gdxChoice <- "SSPs"
 # delete all files in gDir/final - Commmented out June 4, 2018 because already done in aggRun.R
 # graphicsPath <- paste(fileloc("gDir"), "final", sep = "/")
 # graphicsFileList <- list.files(graphicsPath, all.files = TRUE)
@@ -70,8 +70,8 @@ layoutPlots <- function(fileName, figchoice, prefix, rowNum, legendNum, layout, 
 }
 
 # prefix defined here
-if (gdxChoice %in% "SSPs") {prefix <- "SSPs_scenOrderSSP"; scenChoiceList <- "scenOrderSSP"}  # need a different one for USAID
-if (gdxChoice %in% "USAIDPrdNhance") {prefix <- "USAIDPrdNhance_scenOrderUSAIDPrdNhance"; scenChoiceList <- "scenOrderUSAIDPrdNhance"} # need a different one for USAID
+prefix <- "SSPs_scenOrderSSP"
+  scenChoiceList <- "scenOrderSSP"
 
 colNum2 <- 2 # how many columns of graphs per page
 colWidths1 <- c(7) # how wide the column are
@@ -165,7 +165,6 @@ figs9.2.facetMapMRV_IncDelta <- paste("facetmap_MRVRatioChange_income", suffix, 
 figs9.3.facetMapMRV_CCDelta <- paste("facetmap_MRVRatioChange_climate", suffix, sep = ".")
 
 # plot facet maps
-if (gdxChoice %in% "SSPs") {
   # special handling of files not created in aggrun.R for SSPs
   fileListOld <- c("SSPs_scenOrderSSP_CGEeffects.png", "SSPs_scenOrderSSP_facetmap_macroMetrics_2050.png")
   fileListNew <- c("figs2.CGEmacroMetrics.png", "figs3.facetMapMacroMetrics.png")
@@ -200,9 +199,7 @@ if (gdxChoice %in% "SSPs") {
     fileDims <- as.list(c(fileName, sum(colHeights), sum(colWidths)))
     pdfDimensions <- rbind(pdfDimensions, fileDims)
   }
-}
 
-if (gdxChoice %in% "USAIDPrdNhance") {
   for (figchoice in c( "fig5.facetMapRR_IncDelta", "fig4.facetMapRR_2010",
                        "figs9.1.facetMapMRV_2010", "figs9.2.facetMapMRV_IncDelta")) {
     plotNameList <- paste(prefix, "_",  get(figchoice), sep = "")
@@ -222,7 +219,6 @@ if (gdxChoice %in% "USAIDPrdNhance") {
     fileDims <- as.list(c(fileName, sum(colHeights), sum(colWidths)))
     pdfDimensions <- rbind(pdfDimensions, fileDims)
   }
-}
 
 #' Fig 1 budget, combines bar charts and box plots; box plots not for tenregions -----
 fig1.budgetShare <- paste(c("budgetShare", "budgetShareBoxPlot_2050"), "_", "WB", ".", suffix, sep = "")

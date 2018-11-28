@@ -31,7 +31,7 @@ gdxrrw::igdx(gamsSysDir = fileNameList("R_GAMS_SYSDIR"), silent = TRUE)
 # #gdxFileName <- "SSP2-HGEM2-WithGLOBE.gdx"
 # gdxFileName <- "SSP2-HGEM-WithoutGLOBE.gdx"
 singleScenario <- TRUE
-fileDest <- "data/SSPs/IMPACTData/CGEPEcompare"
+fileDest <- fileloc("resultsDir")
 
 catList <- c("catNames.land", "catNames.commod", "catNames.region", "catNames.world")
 vars.land <- c("AREACTYX0", "YLDCTYX0", "ANMLNUMCTYX0")
@@ -84,25 +84,15 @@ processIMPACT159Data <- function(gdxFileName, gdxFileLoc, varName, catNames, sin
        scenario := paste(scenario, "-REF", sep = "")]
   }
   
-  # dt.temp <- dt.regions.all[,c("region_code.IMPACT159","region_name.IMPACT159"), with = FALSE]
-  # data.table::setkey(dt.temp,region_code.IMPACT159)
-  # dt.IMPACTregions <- unique(dt.temp)
-  # if the data set contains SDN (the old Sudan) data, convert the code to SDP
+   # if the data set contains SDN (the old Sudan) data, convert the code to SDP
   if (!varName %in% "PWX0") {
     # this kludge is here because the currently used gdx files have both SDN and SDP
     dt[region_code.IMPACT159 == "SDN", region_code.IMPACT159 := "SDP"]
   }
   dt[,year := paste("X",year, sep = "")]
   dt <- dt[year %in% keepYearList]
-  #setorder(dt.temp, scenario, IMPACT_code, region_code.IMPACT159, year)
   data.table::setorderv(dt, cols = catNames)
   data.table::setnames(dt, "value", varName)
-  # this if statement keeps the region code and name from being added since PW is only for the world
-  # if (!varName == "PWX0") {
-  # data.table::setkey(dt, region_code.IMPACT159)
-  # dt.temp <-
-  # merge(dt, dt.IMPACTregions, by = "region_code.IMPACT159", all = TRUE)
-  # }
   inDT <- dt
   # this is where dt.FoodAvailability is written out, for example
   outName <- paste("dt", varName, gsub(".gdx", "", gdxFileName), sep = ".")
@@ -117,7 +107,7 @@ processIMPACT159Data <- function(gdxFileName, gdxFileLoc, varName, catNames, sin
 
 for (i in c("SSP2-HGEM2-WithGLOBE.gdx", "SSP2-HGEM-WithoutGLOBE.gdx")) {
   
-,   # comment out lines below to speed up data crunching.
+ # comment out lines below to speed up data crunching.
   # generateResults(vars.land,catNames.land)
   gdxFileLoc <- paste(fileloc("IMPACTRawData"),i, sep = "/")
   generateResults(i, gdxFileLoc, vars = vars.commods, catNames = catNames.commod, singleScenario, keepYearList)
@@ -125,12 +115,12 @@ for (i in c("SSP2-HGEM2-WithGLOBE.gdx", "SSP2-HGEM-WithoutGLOBE.gdx")) {
   # generateResults(gdxFileLoc, vars.world, catNames.world)
 }
 
-dt.FoodAvailability.woGlobe <- getNewestVersion("dt.FoodAvailability.SSP2-HGEM-WithoutGLOBE", fileDest)
-dt.FoodAvailability.wGlobe <- getNewestVersion("dt.FoodAvailability.SSP2-HGEM2-WithGLOBE", fileDest)
-dt.pcGDPX0.woGlobe <- getNewestVersion("dt.pcGDPX0.SSP2-HGEM-WithoutGLOBE", fileDest)
-dt.pcGDPX0.wGlobe <- getNewestVersion("dt.pcGDPX0.SSP2-HGEM2-WithGLOBE", fileDest)
-dt.PCX0.woGlobe <- getNewestVersion("dt.PCX0.SSP2-HGEM-WithoutGLOBE", fileDest)
-dt.PCX0.wGlobe <- getNewestVersion("dt.PCX0.SSP2-HGEM2-WithGLOBE", fileDest)
+dt.FoodAvailability.woGlobe <- getNewestVersion("dt.FoodAvailability.SSP2-HGEM-WithoutGLOBE", fileloc("resultsDir"))
+dt.FoodAvailability.wGlobe <- getNewestVersion("dt.FoodAvailability.SSP2-HGEM2-WithGLOBE", fileloc("resultsDir"))
+dt.pcGDPX0.woGlobe <- getNewestVersion("dt.pcGDPX0.SSP2-HGEM-WithoutGLOBE", fileloc("resultsDir"))
+dt.pcGDPX0.wGlobe <- getNewestVersion("dt.pcGDPX0.SSP2-HGEM2-WithGLOBE", fileloc("resultsDir"))
+dt.PCX0.woGlobe <- getNewestVersion("dt.PCX0.SSP2-HGEM-WithoutGLOBE", fileloc("resultsDir"))
+dt.PCX0.wGlobe <- getNewestVersion("dt.PCX0.SSP2-HGEM2-WithGLOBE", fileloc("resultsDir"))
 
 setkey(dt.FoodAvailability.woGlobe)
 setkey(dt.FoodAvailability.wGlobe)

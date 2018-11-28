@@ -59,10 +59,10 @@ CL_FI_SPECIES_GROUPS[, setdiff(names(CL_FI_SPECIES_GROUPS), keepListCol) := NULL
 
 # convert to wide to do the sum of production over three years
 formula.wide <- "UNI_code + Area + Source + Species  ~ Year"
- dt.prod.wide <- data.table::dcast(
-     data = dt.prod,
-     formula = formula.wide,
-     value.var = "Quantity")
+dt.prod.wide <- data.table::dcast(
+  data = dt.prod,
+  formula = formula.wide,
+  value.var = "Quantity")
 dt.prod.wide[, (names(dt.prod.wide)) := lapply(.SD, function(x){x[is.na(x)] <- 0; x}), .SDcols = names(dt.prod.wide)]
 
 dt.prod.wide[, yearAve := rowMeans(.SD), .SDcols = keepListYears.composites]
@@ -135,4 +135,3 @@ outName <- "dt.fishStatData"
 desc <- "Production and edible share of fish species and which composite they are part of by country from FishStat"
 cleanup(inDT, outName, fileloc("iData"), desc = desc)
 finalizeScriptMetadata(metadataDT, sourceFile)
-sourcer <- clearMemory(sourceFile, gdxChoice) # removes everything in memory and sources the sourcer function

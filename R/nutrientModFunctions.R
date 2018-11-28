@@ -76,7 +76,7 @@ sourcer <- function(sourceFile){
 #'
 #' @export
 fileloc <- function(variableName) {
-  gdxChoice <- getGdxChoice()
+  gdxChoice <- "SSPs"
   rawData <- "data-raw"
   mData <- paste("data/", gdxChoice, sep = "")
   gDir <- paste("graphics", gdxChoice, sep = "/")
@@ -1289,31 +1289,8 @@ rawToChar(block[seq_len(ns)], run the following commands in a shell.
   }
   
   # added Oct 8, 2018 so that everytime this function is sourced it checks for a gdxChoice value in the global environment
-  gdxChoice <- getGdxChoice()
+  gdxChoice <- "SSPs"
   
-  setGdxChoice <- function() {
-    cat("Choose the IMPACT project you are working on.\n")
-    cat("1. for the nutrient modeling paper\n")
-    cat("2. for the USAID priority setting paper, 2018\n")
-    cat("3. for the African Ag Futures project, 2018\n")
-    choice <- readline(prompt = "Choose the number of the gdx file you want to use. \n")
-    
-    if (choice  %in% "1") {
-      gdxSwitchCombo <- read.csv(file = paste0(getwd(), "/results/SSPs/gdxInfo.csv"), header = TRUE, stringsAsFactors = FALSE)
-    }
-    if (choice  %in% "2") {
-      gdxSwitchCombo <- read.csv(file = paste0(getwd(), "/results/USAIDPrdNhance/gdxInfo.csv"), header = TRUE, stringsAsFactors = FALSE)
-    }
-    
-    if (choice  %in% "3") {
-      gdxSwitchCombo <- read.csv(file = paste0(getwd(), "/results/AfricanAgFutures/gdxInfo.csv"), header = TRUE, stringsAsFactors = FALSE)
-    }
-    gdxChoice <- gdxSwitchCombo[,2]
-    cat("gdxChoice is", gdxChoice)
-    assign("gdxChoice", gdxChoice, envir = .GlobalEnv)
-    
-    #    return(gdxChoice)
-  }
   
   getGdxFileName <- function(gdxChoice) {
     gdxSwitchCombo <- read.csv(file = paste0(getwd(), "/results/", gdxChoice, "/gdxInfo.csv"), header = TRUE, stringsAsFactors = FALSE)

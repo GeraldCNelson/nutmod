@@ -28,6 +28,7 @@
 #   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 #   GNU General Public License for more details at http://www.gnu.org/licenses/.
 
+gdxChoice <- "SSPs"
 source("R/nutrientModFunctions.R")
 
 sourceFile <- "dataManagement.Pop.R"
@@ -35,11 +36,7 @@ createScriptMetaData()
 keepYearList <- keyVariable("keepYearList")
 
 # Read in the cleaned up population data ----
-if (!gdxChoice %in% "AfricanAgFutures") {
   dt.pop <- getNewestVersion("dt.SSPPopClean", fileloc("uData"))
-}else{
-  dt.pop <- getNewestVersion("dt.pop.AfrAgFutures", fileloc("uData"))
-}
 
 #' do this to remove year 0, which was needed for the fish and alcohol calculations
 dt.pop <- dt.pop[year %in% keepYearList,]
@@ -277,11 +274,8 @@ temp <- 2:length(names(wbGeneral)) - 1
 temp <- c(length(names(wbGeneral)), temp)
 openxlsx::worksheetOrder(wbGeneral) <- temp
 
-if( exists("gdxChoice")) {
   xcelOutFileName <-
     paste("results/",gdxChoice, "/nut.requirements.", Sys.Date(), ".xlsx", sep = "")
   openxlsx::saveWorkbook(wb = wbGeneral, xcelOutFileName, overwrite = TRUE)
-}
 
 finalizeScriptMetadata(metadataDT, sourceFile)
-# sourcer <- clearMemory(sourceFile, gdxChoice) # removes everything in memory and sources the sourcer function
