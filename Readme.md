@@ -107,3 +107,5 @@ Variable naming conventions
     nutrient to the total consumed
 -   nutrient.req.ratio \[.all, .staple, .foodGroup\] — The ratio of a
     nutrient to the the daily requirement
+
+render(“Readme.rmd”, md\_document(variant = “markdown\_github”))
