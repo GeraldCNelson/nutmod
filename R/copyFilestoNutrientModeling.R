@@ -36,9 +36,8 @@
 
 #' @include nutrientModFunctions.R
 #' @include workBookFunctions.R
-#' @include nutrientCalcFunctions.R
+gdxChoice <- "SSPs"
 source("R/nutrientModFunctions.R")
-gdxChoice <- getGdxChoice()
 
 # #for testing
 # fileShortName <- "RDA.macro_sum_reqRatio"
@@ -53,7 +52,7 @@ copyFile <- function(fileShortName, sourceDir, destDir, fileType) {
     grep(regExp, list.files(sourceDir), value = TRUE, perl = TRUE)
   oldVersionListNutrientModeling <-
     grep(regExp, list.files(destDir), value = TRUE, perl = TRUE)
-
+  
   if (length(oldVersionListNutrientModeling) > 0) {
     file.remove(paste(destDir, oldVersionListNutrientModeling, sep = "/"))}
   print(oldVersionList)
@@ -66,32 +65,32 @@ for (switchloop in getSwitchChoice()) {
   if (switchloop == 2) {switch.vars <- TRUE;  switch.fortification <- FALSE; suffix = "var"}
   if (switchloop == 3) {switch.vars <- TRUE;  switch.fortification <- TRUE; suffix = "varFort"}
   if (switchloop == 4) {switch.vars <- TRUE;  switch.fortification <- FALSE; suffix = "var"}
-
-   #  dt.nutrients.adj <- getNewestVersion(paste("dt.nutrients.sum.all", suffix, sep = "."), fileloc("resultsDir"))
+  
+  #  dt.nutrients.adj <- getNewestVersion(paste("dt.nutrients.sum.all", suffix, sep = "."), fileloc("resultsDir"))
   # dt.foodNnuts <- getNewestVersion("dt.foodNnuts", suffix, fileloc("resultsDir"))
   # dt.nutrients.sum.FG <- getNewestVersion("dt.nutrients.sum.FG", suffix, fileloc("resultsDir"))
   # dt.foodAvail.foodGroup <- getNewestVersion("dt.foodAvail.foodGroup", suffix, fileloc("resultsDir"))
-
+  
   copyListFromSpecificResults <- paste(c( "dt.compDI", "dt.foodAvail_foodGroup", "dt.KcalShare_nonstaple",
-                                         "dt.MRVRatios", "dt.nutBalScore", "dt.nutrients_kcals", "dt.nutrients_sum_all", "dt.nutrients_sum_FG", "dt.RAOqe", "dt.shannonDiversity",
-                                         "food_agg_AMDR_hi", "reqRatio_sum_RDA_macro", "reqRatio_sum_RDA_minrls",
-                                         "reqRatio_sum_RDA_vits", "dt.foodAvail.foodGroup"), suffix, sep = ".")
+                                          "dt.MRVRatios", "dt.nutBalScore", "dt.nutrients_kcals", "dt.nutrients_sum_all", "dt.nutrients_sum_FG", "dt.RAOqe", "dt.shannonDiversity",
+                                          "food_agg_AMDR_hi", "reqRatio_sum_RDA_macro", "reqRatio_sum_RDA_minrls",
+                                          "reqRatio_sum_RDA_vits", "dt.foodAvail.foodGroup"), suffix, sep = ".")
   copyListFromSpecificResults <- c(copyListFromSpecificResults, "dt.budgetShare") # added because dt.budgetShare is identical for all suffixes
   copyListFromSpecificResultsNoSuffix <- c("dt.metadataTot")
   copyListFromiData <- c("dt.IMPACTgdxParams", "dt.nutrients.var")
   copyListFromuData <- c("dt.regions.all")
   copyListFrommData <-c("dt.scenarioListIMPACT", "dt.foodGroupsInfo", "resultFileLookup")
-
+  
   copyfacetMapListFromgDir <- c()
   #' special copy for the gdxInfo file which is just below results
-    invisible(file.copy("results/nutrientPriorities/gdxInfo.csv", "nutrientPriorities/data"))
+  invisible(file.copy("results/nutrientPriorities/gdxInfo.csv", "nutrientPriorities/data"))
   
   #' copy from results/gdxname
   for (i in copyListFromSpecificResults) {
     print(sprintf("copying file %s from results to %s", i, destDir))
     copyFile(i, fileloc("resultsDir"), destDir, "rds")
   }
-
+  
   #' copy from from results without suffix
   for (i in copyListFromSpecificResultsNoSuffix) {
     print(sprintf("copying file %s from %s to %s", i, fileloc("mData"), destDir))

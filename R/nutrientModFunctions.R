@@ -139,9 +139,7 @@ getNewestVersion <- function(fileShortName, directory, fileType) {
   # if (fileType == "xlsx") tailLength <- 16 # for xlsx files
   # fillIn <- paste('.{', tailLength, '}$', sep = "")
   fileShortNameTest <- paste(fileShortName,"_2", sep = "") # this should get rid of the multiple files problem
-  # cat("\nfileShortNameTest ", fileShortNameTest)
   filesofFileType <- list.files(mData)[grep(fileType,list.files(mData))]
-  #  cat("\nfilesofFileType ", filesofFileType)
   
   # Note: added grepteststring, changed grep to grepl and fixed to FALSE June 14, 2018
   greptestString <- paste0("^", fileShortNameTest)
@@ -540,14 +538,14 @@ metadata <- function() {
    metadata[(nrow(metadata) + 1), ] <-
     c(fileNameList("regionsLookup"),
       "Lookup table from ISO codes to various regional groupings")
-  metadata[(nrow(metadata) + 1), ] <-
-    c(gdxFileName, "IMPACT demand data in gdx form")
-  metadata[(nrow(metadata) + 1), ] <-
-    c(gdxChoice, "project source of gdx-based demand data")
-  metadata[(nrow(metadata) + 1), ] <-
-    c(fileNameList("R_GAMS_SYSDIR"),
-      "Location and name of GAMS program; needed for the gdx data import process"
-    )
+  # metadata[(nrow(metadata) + 1), ] <-
+  #   c(gdxFileName, "IMPACT demand data in gdx form")
+  # metadata[(nrow(metadata) + 1), ] <-
+  #   c(gdxChoice, "project source of gdx-based demand data")
+  # metadata[(nrow(metadata) + 1), ] <-
+  #   c(fileNameList("R_GAMS_SYSDIR"),
+  #     "Location and name of GAMS program; needed for the gdx data import process"
+  #   )
   metadata[(nrow(metadata) + 1), ] <-
     c(fileNameList("IMPACTfish"), "data on fish from the IMPACT fish model")
   # nutrient data ------
@@ -640,8 +638,6 @@ fileNameList <- function(variableName) {
   CSEs  <- paste(fileloc("IMPACTRawData"), CSEFileName, sep = "/")
   regionsLookupName <- "regions lookup June 15 2018.xlsx" # adds regions for the USAID priorities work
   regionsLookup <- paste(fileloc("rawData"),regionsLookupName, sep = "/")
-  #IMPACTgdx <- paste(fileloc("IMPACTRawData"), IMPACTgdxfileName, sep = "/")
-  #gdxLib  <- "/Applications/GAMS/gams24.5_osx_x64_64_sfx"
   R_GAMS_SYSDIR <- "/Applications/GAMS/gams24.5_osx_x64_64_sfx"
   IMPACTfishInfo <- "Fish Elasticities and Quantities IMPACT.xlsx"
   IMPACTfish   <- paste(fileloc("IMPACTRawData"), IMPACTfishInfo, sep = "/")
@@ -827,8 +823,6 @@ filelocFBS <- function(variableName) {
     I3regions <- sort(unique(dt.regions.all$region_code.IMPACT159))
     tenregions <- keyVariable("tenregions") # returns country codes
     regions.AfricanAgFutures <- keyVariable("regions.AfricanAgFutures") # returns country codes
-    AfricaNorth <- c()
-    AfricaSouth <- c()
     AfricaWest <- c("Benin", "Burkina Faso", "Cape Verde", "Ivory Coast", "Gambia", "Ghana", "Guinea", "Guinea-Bissau", 
                     "Liberia", "Mali", "Mauritania", "Niger", "Nigeria", "Senegal", "Sierra Leone", "Togo")
     dropList.AfricaWest <- c("Cape Verde", "Gambia", "Guinea", "Guinea-Bissau", "Mauritania")
@@ -928,57 +922,6 @@ rawToChar(block[seq_len(ns)], run the following commands in a shell.
       }
     }
   }
-  
-  switchChoices <- function(switchChoice) {
-    switch.useCookingRetnValues <- keyVariable("switch.useCookingRetnValues")
-    switch.fixFish <- keyVariable("switch.fixFish") #get rid of nutrient info for shrimp, tuna, and salmon because they are not currently in the FBS data
-    if (switchloop == 2) {switch.vars <- TRUE;  switch.fortification <- FALSE; suffix = "var"}
-    if (switchloop == 3) {switch.vars <- TRUE;  switch.fortification <- TRUE; suffix = "varFort"}
-    if (switchloop == 4) {switch.vars <- TRUE;  switch.fortification <- FALSE; suffix = "var"}
-  }
-  
-  # gdxFileNameChoice <- function() {
-  #   # this function needs to have the same choices as getGdxChoice
-  #   
-  #   cat("Choose the IMPACT data gdx file you want to use.\n")
-  #   cat("1. for the nutrient modeling paper\n")
-  #   cat("2. for the USAID priority setting paper, 2018\n")
-  #   cat("3. for the African Agricultural Futures project\n")
-  #   cat("Note: the relevant gdx file must be in the data-raw/IMPACTdata directory\n")
-  #   choice <- readline(prompt = "Choose the number of the gdx file you want to use. \n")
-  #   #  choice <- "1" # so there will be a definite value
-  #   if (choice  %in% "1") {
-  #     gdxFileName <- "Micronutrient-Inputs-07252016.gdx" # - gdx with multiple SSP results
-  #     gdxChoice <- "SSPs"
-  #   }
-  # 
-  #   if (choice %in% "2") {
-  #     gdxFileName <- "Micronutrient-Inputs-7.1.2018.gdx"  #-  gdx for the USAID prod enhance results
-  #     gdxChoice <- "USAIDPrdNhance"
-  #   }
-  #   
-  #   if (choice %in% "3") {
-  #     #    gdxFileName <- "Africa-NutMod-Inputs-2018.09.21.gdx"  #-  gdx for the African ag futures results
-  #     gdxFileName <- "Africa-NutMod-Inputs-1018.10.21.gdx"  #-  gdx for the African ag futures results
-  #     gdxChoice <- "AfricanAgFutures"
-  #   }
-  #   
-  #   cat("\nYour gdx file name choice is ", gdxFileName, "\n")
-  #   cat("Choose the switches you want to use.\n")
-  #   cat("2. Base nutrient data and country specific varieties.\n")
-  #   cat("3. Base nutrient data, country specific varieties, and selected fortification.\n")
-  #   cat("4. Country specific varieties only.\n")
-  #   choice <- readline(prompt = "Choose 2, 3 or 4. \n")
-  #   if (!choice %in% c(2,3,4)) {stop(sprintf("Your choice %s needs to be one of 2, 3, or 4", choice))}
-  #   
-  #   cat("\nDo you need to update any files that are not IMPACT specific (new population data, nutrient composition, FBS data?")
-  #   update <- readline(prompt = "Y/N. \n")
-  #   gdxSwitchCombo <- cbind(gdxFileName, gdxChoice, choice, update)
-  #   
-  #   write.csv(gdxSwitchCombo, file = paste0(getwd(), "/results/", gdxChoice, "/gdxInfo.csv"), row.names = FALSE)
-  #   return(gdxSwitchCombo)
-  # }
-  
   
   # store world map dataframe -----
   storeWorldMapDF <- function(){
@@ -1253,39 +1196,6 @@ rawToChar(block[seq_len(ns)], run the following commands in a shell.
     dt[value < fillLimits[1], value := fillLimits[1]]
     dt[value > fillLimits[2], value := fillLimits[2]]
     return(dt)
-  }
-  
-  # getGdxChoice function updated Aug 18, 2018 to deal with separate projects
-  # this function needs to have the same choices as gdxFileNameChoice
-  getGdxChoice <- function() {
-    if (!"gdxChoice" %in% ls(envir = .GlobalEnv)) {
-      cat("Choose the IMPACT project you are working on.\n")
-      cat("1. for the nutrient modeling paper\n")
-      cat("2. for the USAID nutrient modeling paper\n")
-      cat("3. for the USAID priority setting paper, 2018\n")
-      cat("4. for the African Agricultural Futures project")
-      
-      choice <- readline(prompt = "Choose the number of the gdx file you want to use. \n")
-      #  choice <- "1" # so there will be a definite value
-      if (choice  %in% "1") {
-        gdxSwitchCombo <- read.csv(file = paste0(getwd(), "/results/SSPs/gdxInfo.csv"), header = TRUE, stringsAsFactors = FALSE)
-      }
-      if (choice  %in% "2") {
-        gdxSwitchCombo <- read.csv(file = paste0(getwd(), "/results/USAID/gdxInfo.csv"), header = TRUE, stringsAsFactors = FALSE)
-      }
-      if (choice  %in% "3") {
-        gdxSwitchCombo <- read.csv(file = paste0(getwd(), "/results/USAIDPrdNhance/gdxInfo.csv"), header = TRUE, stringsAsFactors = FALSE)
-      }
-      
-      if (choice %in% "4") {
-        gdxSwitchCombo <- read.csv(file = paste0(getwd(), "/results/AfricanAgFutures/gdxInfo.csv"), header = TRUE, stringsAsFactors = FALSE)
-      }
-      
-      gdxChoice <- gdxSwitchCombo[,2]
-      #    cat("gdxChoice is", gdxChoice)
-      assign("gdxChoice", gdxChoice, envir = .GlobalEnv)
-    }
-    return(gdxChoice)
   }
   
   # added Oct 8, 2018 so that everytime this function is sourced it checks for a gdxChoice value in the global environment

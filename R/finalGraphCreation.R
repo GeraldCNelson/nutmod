@@ -174,7 +174,7 @@ figs9.3.facetMapMRV_CCDelta <- paste("facetmap_MRVRatioChange_climate", suffix, 
   for (i in 1:length(fileListOld)) {
     file.copy(paste(oldDir, fileListOld[i], sep = "/"), newDir, overwrite = TRUE)
     file.rename(paste(newDir, fileListOld[i], sep = "/"), (paste(newDir, fileListNew[i], sep = "/")))
-    cat("dest: ", paste(newDir, fileListNew[i], sep = "/"), "\n")
+    cat("dest:", paste(newDir, fileListNew[i], sep = "/"), "\n")
   }
   # end special handling
   
@@ -204,7 +204,7 @@ figs9.3.facetMapMRV_CCDelta <- paste("facetmap_MRVRatioChange_climate", suffix, 
                        "figs9.1.facetMapMRV_2010", "figs9.2.facetMapMRV_IncDelta")) {
     plotNameList <- paste(prefix, "_",  get(figchoice), sep = "")
     plotNumberList <- which(graphNames %in% plotNameList)
-    cat("\nUSAIDPrdNhance facet plotNumberList:", plotNumberList, "\n")
+    cat("\facet plotNumberList:", plotNumberList, "\n")
     fileName <- paste(finalDir, figchoice, ".", suffix, ".", fileouttype, sep = "")
     colWidths <- 7
     colHeights <- 6
@@ -347,21 +347,21 @@ colWidths <- colWidths2
 colHeights <-heights6
 
 for (figchoice in c( "fig2.1.adequacy.vits", "fig2.3.adequacy.minrls" )) {
-  cat("\nfigchoice: ", figchoice, "\n")
+  cat("\nfigchoice:", figchoice, "\n")
   fileName <- paste(finalDir, figchoice, "_", "WB", ".", suffix, ".", fileouttype, sep = "")
   fileDims <- layoutPlots(fileName, figchoice, prefix, rowNum, legendNum, layout, colHeights = colHeights, colWidths = colWidths)
   pdfDimensions <- rbind(pdfDimensions, fileDims)
 }
 
 for (figchoice in c("figs4.foodavail.1", "figs4.foodavail.2")) {
-  cat("\nfigchoice: ", figchoice, "\n")
+  cat("\nfigchoice:", figchoice, "\n")
   fileName <- paste(finalDir, figchoice, "_", "WB", ".", suffix, ".", fileouttype, sep = "")
   fileDims <- layoutPlots(fileName, figchoice, prefix, rowNum, legendNum, layout, colHeights = colHeights, colWidths = colWidths)
   pdfDimensions <- rbind(pdfDimensions, fileDims)
 }
 
 for (figchoice in c( "figs12.foodavail.1", "figs12.foodavail.2", "figs16.1.adequacy.vits", "figs16.3.adequacy.minrls")) {
-  cat("\nfigchoice: ", figchoice, "\n")
+  cat("\nfigchoice:", figchoice, "\n")
   fileName <- paste(finalDir, figchoice, "_", "tenregions", ".", suffix, ".", fileouttype, sep = "")
   cat("fileName: ", fileName, "\n")
   
@@ -371,7 +371,7 @@ for (figchoice in c( "figs12.foodavail.1", "figs12.foodavail.2", "figs16.1.adequ
 
 #' Figs with 5 plots -----
 for (figchoice in c("fig2.2.adequacy.vits")) {
-  cat("\nfigchoice: ", figchoice, "\n")
+  cat("\nfigchoice:", figchoice, "\n")
   rowNum <- 3
   legendNum <- legendVerticalNum
   layout <- layoutMatrix5
@@ -383,7 +383,7 @@ for (figchoice in c("fig2.2.adequacy.vits")) {
 }
 
 for (figchoice in c("figs16.2.adequacy.vits")) {
-  cat("\nfigchoice: ", figchoice, "\n")
+  cat("\nfigchoice:", figchoice, "\n")
   rowNum <- 3
   legendNum <- legendVerticalNum
   layout <- layoutMatrix5
@@ -396,7 +396,7 @@ for (figchoice in c("figs16.2.adequacy.vits")) {
 
 #' Figs with 1 plot and horizontal legend at bottom
 for (figchoice in c("figs5.energyavail.WB")) {
-  cat("\nfigchoice: ", figchoice, "\n")
+  cat("\nfigchoice:", figchoice, "\n")
   rowNum <- 2
   legendNum <- legendHorizontalNum
   layout <- layoutMatrix1
@@ -420,7 +420,7 @@ for (figchoice in c("figs5.energyavail.WB")) {
 }
 
 for (figchoice in c("figs11.budgetShare")) {
-  cat("\nfigchoice: ", figchoice, "\n")
+  cat("\nfigchoice:", figchoice, "\n")
   rowNum <- 2
   legendNum <- legendHorizontalNum
   layout <- layoutMatrix1
@@ -442,7 +442,7 @@ for (figchoice in c("figs11.budgetShare")) {
 }
 
 for (figchoice in c("figs13.energyavail.10regions")) {
-  cat("\nfigchoice: ", figchoice, "\n")
+  cat("\nfigchoice:", figchoice, "\n")
   rowNum <- 2
   legendNum <- legendHorizontalNum
   layout <- layoutMatrix1
@@ -467,7 +467,7 @@ for (figchoice in c("figs13.energyavail.10regions")) {
 
 #' Figs with 2 plots -----
 for (figchoice in c("figs4.foodavail.3",  "figs8.compDINB", "figs7.RaoNenergyShareNonStaples")) {
-  cat("\nfigchoice: ", figchoice, "\n")
+  cat("\nfigchoice:", figchoice, "\n")
   rowNum <- 2
   legendNum <- legendHorizontalNum
   layout <- layoutMatrix2
@@ -479,7 +479,7 @@ for (figchoice in c("figs4.foodavail.3",  "figs8.compDINB", "figs7.RaoNenergySha
 }
 
 for (figchoice in c("figs12.foodavail.3", "figs17.compDINB")) {
-  cat("\nfigchoice: ", figchoice, "\n")
+  cat("\nfigchoice:", figchoice, "\n")
   rowNum <- 2
   legendNum <- legendHorizontalNum
   layout <- layoutMatrix2
@@ -492,7 +492,7 @@ for (figchoice in c("figs12.foodavail.3", "figs17.compDINB")) {
 
 #' Figs with 3 plots -----
 for (figchoice in c("fig3.AMDRhiLo", "fig2.adequacy.macro", "figs10.badRatios")) {
-  cat("\nfigchoice: ", figchoice, "\n")
+  cat("\nfigchoice:", figchoice, "\n")
   rowNum <- 2
   legendNum <- legendVerticalNum
   layout <- layoutMatrix3

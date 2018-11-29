@@ -20,11 +20,11 @@
 #' @include nutrientModFunctions.R
 #' @include workBookFunctions.R
 #' @include nutrientCalcFunctions.R
+gdxChoice <- "SSPs"
 source("R/nutrientModFunctions.R")
 
 sourceFile <- "nutrientCalcs.R"
 createScriptMetaData()
-gdxChoice <- getGdxChoice()
 #' get the list of scenarios in the IMPACT data for use below
 dt.scenarioListIMPACT <- getNewestVersion("dt.scenarioListIMPACT", fileloc("mData"))
 scenarioListIMPACT <- unique(dt.scenarioListIMPACT$scenario)
@@ -78,55 +78,19 @@ generateResults.dataPrep <- function(req, dt.foodNnuts, scenarioListIMPACT) {
         SSPName <- unlist(strsplit(scenName, "_"))[1] # get SSP abbrev
         climModel <- unlist(strsplit(scenName, "_"))[2] # get climate model abbrev
         temp.nuts <- dt.nutsReqPerCap[scenario %in% SSPName, ] 
-#        temp.nuts[, scenario := paste(SSPName, climModel, experiment, sep = "-")]
         temp.nuts[, scenario := paste(SSPName, climModel, sep = "_")]
-      }
-      
-      if (gdxChoice %in% "USAIDPrdNhance") {
-        SSPName <- "SSP2"
-        climModel <- "HGEM"
-        crop <- unlist(strsplit(scenName, "-"))[3]
-        experiment <- crop # this extracts the name of the food item and adds c onto the front of it
-        temp.nuts[, scenario := paste(SSPName, climModel, experiment, sep = "-")]
       }
       
       dt.temp <- rbind(dt.temp, temp.nuts)
     }
-    #' get list of nutrients from dt.nutsReqPerCap for the req set of requirements
-    #' "scenario"              "region_code.IMPACT159" "year" 
+    # get list of nutrients from dt.nutsReqPerCap for the req set of requirements
     nutListReq <- names(dt.nutsReqPerCap)[!names(dt.nutsReqPerCap)  %in% c("scenario", "region_code.IMPACT159", "year")]
-    #' keep just the nutrient requirements scenarios that are in the IMPACT data
+    # keep just the nutrient requirements scenarios that are in the IMPACT data
     keepListCol <- c("scenario", "region_code.IMPACT159", "year", nutListReq)
     dt.nutsReqPerCap <- dt.temp[,keepListCol, with = FALSE]
     dt.nutsReqPerCap <- dt.nutsReqPerCap[scenario %in% scenarioListIMPACT]
   }
   
- 
-  #' zinc and iron adjustments moved to dataManagementFoodNnts - Mar 30, 2018
-  #' reduce calculations to just the nutrients in nutListReq
-  #' plus those needed for iron and zinc bioavailability,
-  #' "phytate_mg", "vit_c_mg", "energy_kcal", "protein_g".
-  
-  # keepListCol <- c("IMPACT_code","food_group_code","staple_code",nutListReq) commented out June 2, 2018 because doesn't seem to be used
-  
-  #' keep extra columns around for iron and zinc bioavailability calculations
-  # if ("req_RDA.minrls_percap" %in% req) keepListCol <-
-  #   c(keepListCol, "phytate_mg", "energy_kcal", "vit_c_mg", "protein_g")
-  
-  #' #' use the data table dt.nuts only in the function
-  #' dt.nuts <- data.table::copy(dt.nutrients.adj)
-  #' dt.nuts <- dt.nuts[,(keepListCol), with = FALSE]
-  #'
-  #' #' combine the food availability info with the nutrients for each of the IMPACT commodities
-  #' data.table::setkey(dt.nuts, IMPACT_code)
-  #' data.table::setkeyv(dt.food, c("scenario","region_code.IMPACT159","IMPACT_code","year" ))
-  #' dt.foodnNuts <- merge(dt.food, dt.nuts, by = "IMPACT_code", all = TRUE)
-  
-  #' multiply the food item by the nutrients it contains and copy into a table called dt.food.agg
-  #' dt.food.agg.[req] is what eventually gets stored and used later
-  #' # Next step not necessary now because the nutrients in foodNnuts are already multiplied by foodAvailpDay. March 29, 2018
-  # dt.food.agg <- data.table::copy(dt.foodNnuts[, (nutListReq) := lapply(.SD, function(x)
-  #   (x * dt.foodNnuts[['foodAvailpDay']])), .SDcols = nutListReq])
   dt.food.agg <- data.table::copy(dt.foodNnuts)
   leadingCols <- c("scenario", "region_code.IMPACT159",
                    "year", "IMPACT_code", "foodAvailpDay", "food_group_code", "staple_code")

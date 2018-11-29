@@ -25,7 +25,7 @@ library(gridExtra)
 library(gplots)
 
 # get gdxChoice -----
-gdxChoice <- getGdxChoice()
+gdxChoice <- "SSPs"
 
 # population data set used for weighting by population -----
 dt.pop <- getNewestVersion("dt.PopX0", fileloc("iData"))
@@ -475,7 +475,7 @@ plotByBoxPlot2050 <- function(dt, fileName, plotTitle, yLab, yRange, aggChoice, 
 }
 
 plotByRegionBarAMDR <- function(dt, fileName, plotTitle, yLab, yRange, aggChoice, suffix, scenOrder, colorList, AMDR_lo, AMDR_hi, graphsListHolder, plotErrorBars) {
-  print(paste("Plotting AMDR bars for region", aggChoice, "for", plotTitle, "\n", sep = " ") )
+  print(paste("Plotting AMDR bars for region", aggChoice, "for", plotTitle, sep = " ") )
   plotTitle <- capwords(plotTitle)
   temp <- copy(dt)
   regionCodes <- unique(temp$region_code)

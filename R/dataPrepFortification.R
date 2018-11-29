@@ -17,6 +17,7 @@
 #' @description Adds fortification to selected nutrients
 #' @name dataPrep.SingleScenario.R
 
+gdxChoice <- "SSPs"
 source("R/nutrientModFunctions.R")
 source("R/aggNorder.R") # needed because of breakvalues function. Might want to move it to nutrientModFunctions.R
 
@@ -188,4 +189,3 @@ ggsave(file = paste0(fileloc("gDir"),"/",fileName,".png"), plot = gg,
        width = 9, height = 6)
 
 finalizeScriptMetadata(metadataDT, sourceFile)
-sourcer <- clearMemory(sourceFile, gdxChoice) # removes everything in memory and sources the sourcer function

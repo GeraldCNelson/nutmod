@@ -20,7 +20,6 @@ ls(all.names = TRUE)
 # for more details at http://www.gnu.org/licenses/.
 
 #' @description A script to recreate all data. Each R script is sourced in the order needed.
-#' gdxFileNameChoice lets the user chose which gdx to get IMPACT data from.
 # Where files are created
 # Note: All files have a date suffix to the file name.
 # file locations -
@@ -31,15 +30,8 @@ ls(all.names = TRUE)
 # The metadata file in the results directory provides details on files and file locations used in the analysis
 options(warn = 2) # converts all warnings to errors
 
-# sourcer function set up in nutrientModFunctions.R
-# sourcer <- function(sourceFile){
-# sourceFile <- paste0("R/", sourceFile)
-#   cat("\nRunning ", sourceFile, "\n")
-#   source(sourceFile)
-# }
-sourceFile <- "automate.R"
 
-# ptm <- proc.time()
+sourceFile <- "automate.R"
 
 #install needed packages
 # replaced ggplot2 and readr with tidyverse which includes both. April 12, 2018
@@ -47,7 +39,7 @@ sourceFile <- "automate.R"
 #                       "gridExtra","gplots", "RColorBrewer", "RODBC")
 list.of.packages <- c("data.table", "openxlsx", "dplyr", "dtplyr", "utils",  "stringi", "splitstackshape",
                       "gridExtra","gplots", "RColorBrewer", "RODBC", "tidyverse", "sp", "broom", "rgeos", "rgdal", 
-                      "gridExtra", "gplots", "ggthemes", "qdapRegex", "gtools", "Cairo", "extrafont")
+                       "ggthemes", "qdapRegex", "gtools", "Cairo", "extrafont")
 new.packages <- list.of.packages[!(list.of.packages %in% installed.packages()[,"Package"])]
 if (length(new.packages)) install.packages(new.packages)
 
@@ -73,18 +65,8 @@ cat("Running nutrientModFunctions.R\n")
 source("R/nutrientModFunctions.R")
 
 createScriptMetaData()
-gdxrrwExistenceCheck() #checks if the gdxrrw package is installed; if not, prints directions on how to install and stops.
-gdxFileName <- "Micronutrient-Inputs-07252016.gdx" # - gdx with multiple SSP results
 gdxChoice <- "SSPs"
 metadata() # - creates dt.metaData; holds some key file locations and variable names;
-# needs to come after identification of gdxFileName and before library location check
-gdxLibraryLocationCheck()
-
-# the gdxrrwSetup.R script needs to be separate because shiny can't deal with the gams package.
-sourceFile <- "gdxrrwSetup.R"
-sourcer(sourceFile)
-gdxSwitchCombo <- cbind(gdxFileName, gdxChoice, choice = 4)
-write.csv(gdxSwitchCombo, file = paste0(getwd(), "/results/", gdxChoice, "/gdxInfo.csv"), row.names = FALSE)
 
   # only needs to be run when new regions or aggregations are added
   sourceFile <- "dataPrep.regions.R"
@@ -108,12 +90,12 @@ write.csv(gdxSwitchCombo, file = paste0(getwd(), "/results/", gdxChoice, "/gdxIn
   sourceFile <- "dataManagement.Pop.R" #name changed from dataManagement.SSPPop.R Oct 5, 2018 to reflect the fact that this also handles the combine UN/SSP age gender info
   sourcer(sourceFile) #paste(gsub("_ssp","",nutReqName),"percap",sep = "_"), mData - Nutrient requirements adjusted for population distribution, example is req.EAR.percap.2016-06-24.rds
 
-sourceFile <- "dataPrep.IMPACT.R" # creates dt.scenarioListIMPACT and dt.IMPACTgdxParams
-sourcer(sourceFile)
-# - creates files in iData
-# dt.IMPACTmetaData
-# paste(dt,varName, sep = ".") - one file for each IMPACT variable, example is perCapKcalPerDay.2016-06-21.rds
-# dt.foodAvailability is created here. Just has food availability from gdx. dt.IMPACTfood adds the fish and alcoholic beverages
+# sourceFile <- "dataPrep.IMPACT.R" # creates dt.scenarioListIMPACT and dt.IMPACTgdxParams
+# sourcer(sourceFile)
+# # - creates files in iData
+# # dt.IMPACTmetaData
+# # paste(dt,varName, sep = ".") - one file for each IMPACT variable, example is perCapKcalPerDay.2016-06-21.rds
+# # dt.foodAvailability is created here. Just has food availability from gdx. dt.IMPACTfood adds the fish and alcoholic beverages
 
 start_time <- Sys.time()
 sourceFile <- "dataManagement.IMPACT.R"
@@ -196,13 +178,7 @@ if (gdxChoice %in% "AfricanAgFutures") {
 sourceFile <- "dataPrep.metadata.R"
 sourcer(sourceFile)
 
-gdxChoice <- getGdxChoice()
-if (gdxChoice %in% "SSPs") { # copy files only if using the nutrient modeling gdx
   sourceFile <- "copyFilestoNutrientModeling.R"
   sourcer(sourceFile)  # move results needed for the shiny app.R in the nutrientModeling folder
-}
-if (gdxChoice %in% "USAIDPrdNhance") { # copy files only if using the nutrient modeling gdx
-  sourceFile <- "copyFilestoNutrientPriorities.R"
-  sourcer(sourceFile)  # move results needed for the shiny app.R in the nutrientModeling folder
-}
+
 

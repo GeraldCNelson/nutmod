@@ -48,43 +48,7 @@ combineIMPACTData <- function() {
   dt.fishnAlcScenarios[, scenario := gsub("-REF", "", scenario)]
   dt.fishnAlcScenarios[, scenario := gsub("-", "_", scenario)]
   
-  # add correct scenario names for fish and alcohol
-  gdxChoice <- getGdxChoice()
-  # get the list of scenarios in the IMPACT data for use below
-  # Hmmm. the new version of dt.fishnAlcScenarios already has the correct scenario names. I'll comment out the code below and see what happens Oct 25, 2018
-  # if (gdxChoice %in% "SSPs"){
-  #   dt.fishnAlcScenarios <- dt.fishnAlcScenarios[scenario %in% c("SSP1", "SSP2", "SSP3")]
-  #   # add the climModel and experiment on to the scenario name
-  #   
-  #   # some kludging follows - May 12, 2018
-  #   dt.fishnAlcScenarios[, scenario := gsub("SSP1", "SSP1-NoCC-REF", scenario)]  # because the current set of scenarios only has SSP1 and SSP3 with noCC
-  #   dt.fishnAlcScenarios[, scenario := gsub("SSP3", "SSP3-NoCC-REF", scenario)]  # because the current set of scenarios only has SSP1 and SSP3 with noCC
-  #   temp.SSP2 <- dt.fishnAlcScenarios[scenario %in% "SSP2"]
-  #   temp.SSP2.NoCC <- copy(temp.SSP2)
-  #   temp.SSP2.GFDL <- copy(temp.SSP2)
-  #   temp.SSP2.HGEM <- copy(temp.SSP2)
-  #   temp.SSP2.IPSL <- copy(temp.SSP2)
-  #   temp.SSP2.GFDL[ , scenario := gsub("SSP2", "SSP2-GFDL-REF", scenario)]
-  #   temp.SSP2.HGEM[ , scenario := gsub("SSP2", "SSP2-HGEM-REF", scenario)]
-  #   temp.SSP2.IPSL[ , scenario := gsub("SSP2", "SSP2-IPSL-REF", scenario)]
-  #   temp.SSP2.NoCC[ , scenario := gsub("SSP2", "SSP2-NoCC-REF", scenario)]
-  #   dt.fishnAlcScenarios <- dt.fishnAlcScenarios[!scenario %in% "SSP2"]
-  #   dt.fishnAlcScenarios <- rbind(temp.SSP2.NoCC, temp.SSP2.GFDL, temp.SSP2.HGEM, temp.SSP2.IPSL, dt.fishnAlcScenarios)
-  # }
-  
-  if (gdxChoice %in% "USAIDPrdNhance"){
-    stop("Check this to see if scenarios  are correctg")
-    dt.fishnAlcScenarios <- dt.fishnAlcScenarios[scenario %in% c("SSP2")]
-    dt.fishnAlcScenarios[, scenario := scenarioListIMPACT[1]]
-    dt.temp <- copy(dt.fishnAlcScenarios)
-    for (i in 2:length(scenarioListIMPACT)) {
-      temp <- dt.temp[, scenario := scenarioListIMPACT[i]]
-      dt.fishnAlcScenarios <- rbind(dt.fishnAlcScenarios, temp)
-    }
-  }
-  
-  if (gdxChoice %in% "AfricanAgFutures"){
-    dt.fishnAlcScenarios <- dt.fishnAlcScenarios[scenario %in% scenarioListIMPACT]}
+  gdxChoice <- "SSPs"
   
   #' add fish and alcohol via dt.fishnAlcScenarios to dt.FoodAvail, which has all the other commodities
   dtList <- list(dt.FoodAvail, dt.fishnAlcScenarios)
@@ -112,7 +76,7 @@ combineIMPACTData <- function() {
   data.table::set(dt.IMPACTfood, which(is.na(dt.IMPACTfood[["PCX0"]])), "PCX0", 0)
   data.table::set(dt.IMPACTfood, which(is.na(dt.IMPACTfood[["PWX0"]])), "PWX0", 0)
   dt.IMPACTfood <- dt.IMPACTfood[IMPACT_code %in% keyVariable("IMPACTfoodCommodList")]
- # dt.IMPACTfood <- dt.IMPACTfood[!is.na(pcGDPX0),] commented out Nov 12, 2018 because not needed
+  # dt.IMPACTfood <- dt.IMPACTfood[!is.na(pcGDPX0),] commented out Nov 12, 2018 because not needed
   data.table::setorderv(dt.IMPACTfood, cols = c("scenario",  "region_code.IMPACT159", "IMPACT_code", "year"))
   data.table::setkeyv(dt.IMPACTfood, c("scenario",  "region_code.IMPACT159", "IMPACT_code"))
   dt.IMPACTfood <- dt.IMPACTfood[!region_code.IMPACT159 %in% keyVariable("dropListCty")]

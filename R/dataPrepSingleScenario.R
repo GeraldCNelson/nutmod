@@ -25,95 +25,7 @@ sourceFile <- "dataPrepSingleScenario.R"
 createScriptMetaData()
 
 graphsListHolder <- list()
-
-gdxrrw::igdx(gamsSysDir = fileNameList("R_GAMS_SYSDIR"), silent = TRUE)
-
-# #gdxFileName <- "SSP2-HGEM2-WithGLOBE.gdx"
-# gdxFileName <- "SSP2-HGEM-WithoutGLOBE.gdx"
 singleScenario <- TRUE
-fileDest <- fileloc("resultsDir")
-
-catList <- c("catNames.land", "catNames.commod", "catNames.region", "catNames.world")
-vars.land <- c("AREACTYX0", "YLDCTYX0", "ANMLNUMCTYX0")
-catNames.land <- c("scenario", "IMPACT_code", "region_code.IMPACT159", "landUse", "year", "value")
-
-vars.commods <-
-  c("PCX0", "QSX0", "QSUPX0", "QDX0", "QFX0", "QBFX0",
-    "QLX0", "QINTX0", "QOTHRX0", "QEX0", "QMX0", "PerCapKCAL_com", "FoodAvailability")
-catNames.commod <- c("scenario", "IMPACT_code", "region_code.IMPACT159", "year", "value")
-
-vars.region <- c("GDPX0", "pcGDPX0", "TotalMalnourished",
-                 "PerCapKCAL", "PopX0", "ShareAtRisk", "PopulationAtRisk")
-catNames.region <- c("scenario", "region_code.IMPACT159", "year", "value")
-
-vars.world <- "PWX0"
-catNames.world <- c("scenario", "IMPACT_code", "year", "value")
-keepYearList <- keyVariable("keepYearList")
-
-#' Title generateResults - send a list of variables with common categories to the
-#' function to write out the data
-#' @param vars - list of variables to process
-#' @param catNames - list of categories common to all variables in var
-#'
-#' @return
-#' @export
-generateResults <- function(gdxFileName, gdxFileLoc, vars, catNames, singleScenario, keepYearList){
-  for (i in vars) {
-    catNames <- catNames[!catNames %in% "scenario"]
-    processIMPACT159Data(gdxFileName, gdxFileLoc, varName = i, catNames = catNames, singleScenario, keepYearList)
-  }
-}
-
-#' Title processIMPACT159Data - read in from an IMPACT gdx file and write out rds and excel files for a single param
-#' @param gdxFileName - name of the IMPACT gdx file
-#' @param varName - name of the IMPACT parameter to write out
-#' @param catNames - types of info about the parameter
-#' @return null
-#' @export
-#'
-processIMPACT159Data <- function(gdxFileName, gdxFileLoc, varName, catNames, singleScenario, keepYearList) {
-  # dt.regions.all <- getNewestVersion("dt.regions.all", fileloc("uData"))
-  # IMPACTgdx <- gdxFileName
-  dt <- data.table::as.data.table(gdxrrw::rgdx.param(gdxFileLoc, varName,
-                                                     ts = TRUE, names = catNames))
-  dt <- data.table::as.data.table(rapply(dt, as.character, classes = "factor", how = "replace"))
-  
-  if(!singleScenario == TRUE) {
-    dt[scenario %in% c("SSP1-NoCC", "SSP2-GFDL", "SSP2-HGEM","SSP2-HGEM2", "SSP2-IPSL", "SSP2-IPSL2",
-                       "SSP2-MIROC", "SSP2-NoCC", "SSP3-NoCC"),
-       scenario := paste(scenario, "-REF", sep = "")]
-  }
-  
-   # if the data set contains SDN (the old Sudan) data, convert the code to SDP
-  if (!varName %in% "PWX0") {
-    # this kludge is here because the currently used gdx files have both SDN and SDP
-    dt[region_code.IMPACT159 == "SDN", region_code.IMPACT159 := "SDP"]
-  }
-  dt[,year := paste("X",year, sep = "")]
-  dt <- dt[year %in% keepYearList]
-  data.table::setorderv(dt, cols = catNames)
-  data.table::setnames(dt, "value", varName)
-  inDT <- dt
-  # this is where dt.FoodAvailability is written out, for example
-  outName <- paste("dt", varName, gsub(".gdx", "", gdxFileName), sep = ".")
-  if (singleScenario == TRUE) {
-    desc <- paste0("gdx data for ", varName)
-    cleanup(inDT,outName,fileDest, desc = desc)
-  }else{
-    desc <- paste0("gdx data for ", varName)
-    cleanup(inDT,outName,fileloc("iData"), desc = desc)
-  }
-}
-
-for (i in c("SSP2-HGEM2-WithGLOBE.gdx", "SSP2-HGEM-WithoutGLOBE.gdx")) {
-  
- # comment out lines below to speed up data crunching.
-  # generateResults(vars.land,catNames.land)
-  gdxFileLoc <- paste(fileloc("IMPACTRawData"),i, sep = "/")
-  generateResults(i, gdxFileLoc, vars = vars.commods, catNames = catNames.commod, singleScenario, keepYearList)
-  generateResults(i, gdxFileLoc, vars = vars.region,  catNames = catNames.region, singleScenario, keepYearList)
-  # generateResults(gdxFileLoc, vars.world, catNames.world)
-}
 
 dt.FoodAvailability.woGlobe <- getNewestVersion("dt.FoodAvailability.SSP2-HGEM-WithoutGLOBE", fileloc("resultsDir"))
 dt.FoodAvailability.wGlobe <- getNewestVersion("dt.FoodAvailability.SSP2-HGEM2-WithGLOBE", fileloc("resultsDir"))
@@ -148,9 +60,6 @@ setnames(dt_wGlobe, old = namesToChange, new = paste0(namesToChange, "_wGlobe"))
 dt <- merge(dt_woGlobe, dt_wGlobe, by = c("region_code.IMPACT159", "IMPACT_code", "year"))
 write.csv(dt, file = "data/IMPACTData/singleScenario/combinedResults.csv")
 
-# commented out because it just seems to read in the csv file just written out in the line above June 21, 2018
-#dt <- as.data.table(read.csv(file = "data/IMPACTData/singleScenario/combinedResults.csv", stringsAsFactors = FALSE))
-#dt[, X := NULL] # get rid of row numbers
 dt <- dt[!region_code.IMPACT159 %in% "SOM",]
 dt.50 <- dt[year %in% "X2050",]
 dt.50[, c("IMPACT_code", "FoodAvailability_woGlobe", "FoodAvailability_wGlobe", "PCX0_woGlobe", "PCX0_wGlobe","year") := NULL]
@@ -195,7 +104,7 @@ sumStats <- openxlsx::createWorkbook()
 openxlsx::addWorksheet(wb = sumStats, sheetName = "stats")
 openxlsx::writeData(
   wb = sumStats, sheet = "stats", dt.50.summary.wide, rowNames = FALSE, colNames = TRUE, startCol = 1)
-openxlsx::saveWorkbook(wb = sumStats, file = paste(fileDest, "compareCGEPEStats.xlsx", sep = "/"), overwrite = TRUE)
+openxlsx::saveWorkbook(wb = sumStats, file = paste(fileloc("resultsDir"), "compareCGEPEStats.xlsx", sep = "/"), overwrite = TRUE)
 # low-income removal
 # noSom <- temp2[!region_code.IMPACT159 %in% c("SOM", "BDI", "LBR", "CAF", "NER", "RWA"),]
 
@@ -215,19 +124,12 @@ dt.50.long <- data.table::melt(dt.50,
                                variable.factor = FALSE)
 
 dt.50.long[, metric := gsub("X0", "", metric)]
-# dt.50.long.base <- copy(dt.50.long)
-# dt.50.long.share <- copy(dt.50.long)
 for (j in c("base", "share")) {
   #  for (j in c( "share")) {
   DT <- copy(dt.50.long)
   if (j %in% "base"){
     DT <- DT[metric %in% c("pcGDP_woGlobe", "pcGDP_wGlobe", "budget_woGlobe", "budget_wGlobe",
                            "incShare_woGlobe", "incShare_wGlobe"), ]
-    # setnames(DT, old = c("pcGDPX0_woGlobe", "pcGDPX0_wGlobe", "budget_woGlobe", "budget_wGlobe",
-    #                       "incShare_woGlobe", "incShare_wGlobe"),
-    #           new = c("per capita income, w/o Globe", "per capita income, with Globe",
-    #                   "food budget, w/o Globe", "food budget, with Globe",
-    #                   "income share, w/o Globe", "income share, with Globe"))
     legendText <- "Macro metrics range"
     fillLimits <- c(0, 35)
   }
@@ -246,10 +148,7 @@ for (j in c("base", "share")) {
   facetColName <- "metric"
   myPalette <- colorRampPalette(rev(brewer.pal(11, "Spectral")))
   palette <- myPalette(4)
-  #' middle two values shift the palette gradient; the code below give a smooth change
-  # fillRange <- fillLimits[2] - fillLimits[1]
-  # breakValues <- scales::rescale(c(fillLimits[1], fillLimits[1] + fillRange/3, fillLimits[1] + fillRange/1.5, fillLimits[2]))
-  displayOrder <- sort(unique(DT[, get(facetColName)])) # default - alphabetically sorted
+   displayOrder <- sort(unique(DT[, get(facetColName)])) # default - alphabetically sorted
   prefix <- "SSPs_scenOrderSSP"
   fileName <- paste(prefix,"_facetmap", "_macroMetrics", "_2050", ".pdf", sep = "")
   facetMaps(mapFile = worldMap, DTfacetMap = DT, fileName, legendText, fillLimits = fillLimits, 
