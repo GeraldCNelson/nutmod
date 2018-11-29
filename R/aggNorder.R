@@ -166,10 +166,7 @@ aggNorder <- function(gdxChoice, DTaggNorder, aggChoice, scenChoice, mergedVals,
   DT <- DT[year %in% "X2010", scenario := "2010"][, year := NULL]
   
   # order of scenario and regions
-  if (gdxChoice == "SSPs") {
-    # do manipulations on the gdx data that has the scenarios in scenChoice.
     scenOrder <- scenChoice
-    
     # order by scenarios
     DT[, scenarioOrder := match(scenario, scenOrder)]
     data.table::setorder(DT, scenarioOrder)
@@ -181,24 +178,6 @@ aggNorder <- function(gdxChoice, DTaggNorder, aggChoice, scenChoice, mergedVals,
       data.table::setorder(DT, nutOrder)
       DT[, nutOrder := NULL]
     }
-  }
-  
-  if (gdxChoice == "USAIDPrdNhance") {
-    # do manipulations on the gdx data that has the scenarios in scenChoice.
-    scenOrder <- scenChoice
-    
-    # order by scenarios
-    DT[, scenarioOrder := match(scenario, scenOrder)]
-    data.table::setorder(DT, scenarioOrder)
-    DT[, scenarioOrder := NULL]
-    
-    # order by nutrients
-    if ("nutrient" %in% names(DT)) {
-      DT[, nutOrder := match(nutrient, nutOrder)]
-      data.table::setorder(DT, nutOrder)
-      DT[, nutOrder := NULL]
-    }
-  }
   
   # order by regions
   DT <- orderRegions(DT, aggChoice)
@@ -410,7 +389,7 @@ plotByRegionStackedBar <- function(dt, fileName, plotTitle, yLab, yRange, aggCho
   
    height = 6
   if (aggChoice %in% c("regions.AfricanAgFutures")) height = 3
-  cat("height:", height)
+  cat("height:", height, "\n")
   ggsave(file = paste0(fileloc("gDir"),"/",fileName,".png"), plot = p,
          width = width, height = height)
   
