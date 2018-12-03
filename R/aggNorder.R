@@ -28,9 +28,8 @@ library(gplots)
 gdxChoice <- "SSPs"
 
 # population data set used for weighting by population -----
-dt.pop <- getNewestVersion("dt.PopX0", fileloc("iData"))
-dt.pop[, scenario := gsub("-", "_", scenario)]
-dt.pop[, scenario := gsub("_REF", "", scenario)] 
+# dt.pop <- getNewestVersion("dt.PopX0", fileloc("iData"))
+dt.pop <- readRDS(paste0(fileloc("iData"), "dt.PopX0"))
 
 getRegionOrder <- function(aggChoice, regionNames){
   regionNameOrder <- character(0)
@@ -43,13 +42,7 @@ getRegionOrder <- function(aggChoice, regionNames){
       regionNameOrder <- append(regionNameOrder, unique((countryNameLookup(i))))
     }
   }
-  if (aggChoice %in% "regions.AfricanAgFutures") {
-    regionNameOrder <- character(0)
-    codes <- keyVariable("regions.AfricanAgFutures")
-    for (i in codes)  {
-      regionNameOrder <- append(regionNameOrder, unique((countryNameLookup(i))))
-    }
-  }
+  
   regionNameOrder <- gsub(" plus", "", regionNameOrder) 
   return(regionNameOrder)
 }
@@ -93,9 +86,8 @@ orderRegions <- function(DT, aggChoice) {
   }
   if (aggChoice == "I3regions") {
     # percap GDP data for ordering by income
-    dt.pcGDPX0 <- getNewestVersionIMPACT("dt.pcGDPX0")
-    dt.pcGDPX0[, scenario := gsub("-", "_", scenario)]
-    DTGlobal[, scenario := gsub("_REF", "", scenario)] # added for final version of paper Nove 3, 2018
+#    dt.pcGDPX0 <- getNewestVersionIMPACT("dt.pcGDPX0")
+    dt.pcGDPX0 <- readRDS(paste0(fileloc("iData"), "dt.pcGDPX0"))
     dt.pcGDPX0 <- dt.pcGDPX0[year %in% c("X2010","X2050"), ]
     dt.pcGDPX0 <- dt.pcGDPX0[,growthRate :=  lapply(.SD, function(x)((x/shift(x))^(1/(2050 - 2010)) - 1) * 100),
                              .SDcols = "pcGDPX0", by = c("scenario","region_code.IMPACT159")]
@@ -151,7 +143,7 @@ aggNorder <- function(gdxChoice, DTaggNorder, aggChoice, scenChoice, mergedVals,
   # upper=quantile(value, .75, na.rm=TRUE),
   
   keepListCol <- c(mergedVals, "region_name", "value", "min.region", "max.region", "sd.region")
-  if(aggChoice %in% c("tenregions", "regions.AfricanAgFutures") ) keepListCol <- c(mergedVals, "region_name", "value")
+  if(aggChoice %in% c("tenregions") ) keepListCol <- c(mergedVals, "region_name", "value")
   if ("nutrient" %in% names(merged))  {
     # set kcalsPerDay_other to zero if it is less than zero.
     merged[nutrient %in% "kcalsPerDay_other" & value < 0, value := 0]
@@ -186,7 +178,7 @@ aggNorder <- function(gdxChoice, DTaggNorder, aggChoice, scenChoice, mergedVals,
 }
 
 plotByRegionBar <- function(dt, fileName, plotTitle, yLab, yRange, aggChoice, suffix, scenOrder, oneLine, colorList, graphsListHolder, plotErrorBars, fill = "region_name") { # removed , AMDR_hi = NULL Oct 15, 2018
-  cat("\nPlotting bars by region", aggChoice, "for", plotTitle, "\n")
+  cat("Plotting bars by region", aggChoice, "for", plotTitle, "\n")
   temp <- copy(dt)
   regionCodes <- unique(temp$region_code)
   regionNames <- unique(temp$region_name)
@@ -201,7 +193,7 @@ plotByRegionBar <- function(dt, fileName, plotTitle, yLab, yRange, aggChoice, su
   temp[, value := round(value, 2)]
   
   # adjust font size for bars by aggchoice
-  if (aggChoice %in% c("tenregions", "regions.AfricanAgFutures") ) fontsize <- 1.5
+  if (aggChoice %in% c("tenregions") ) fontsize <- 1.5
   if (aggChoice %in% "WB") fontsize <- 2.5
   
   # adjust location of bar label in the bar (yval) for graph type
@@ -223,7 +215,6 @@ plotByRegionBar <- function(dt, fileName, plotTitle, yLab, yRange, aggChoice, su
   if (max(temp$value) > 9) {roundVal = 1} # for text in the bars
   if (max(temp$value) > 99) {roundVal = 0} # for text in the bars
   
-  if (!aggChoice %in% "regions.AfricanAgFutures") {
     legendLoc <- "none"
     p <- ggplot(data = temp, aes(x = factor(region_name), y = value, group = scenario)) +
       geom_col(aes(fill = scenario), position = "dodge", color = "black") +
@@ -256,55 +247,6 @@ plotByRegionBar <- function(dt, fileName, plotTitle, yLab, yRange, aggChoice, su
     p <- p + geom_text(aes(label = formatC( round(value, roundVal), format='f', digits = roundVal),
                            x = factor(region_name), y = yval), position = position_dodge(0.9),
                        size = fontsize, angle = 90, color = "black")
-  }
-  
-  if (aggChoice %in% "regions.AfricanAgFutures"){ 
-    nrow = 1; legendLoc = "bottom"; height = 3; fontsize = 3
-    yDelta <- max(temp$value) - min(temp$value)
-    yvalSupplment <- yDelta * .04
-    
-    p <- ggplot(data=temp, aes(scenario, y = value,  levels =  region_name)) +
-      #    geom_bar(stat = "identity",  width = .80, group = "region_name") +
-      geom_bar(stat = "identity", aes(fill = scenario),  color = "black", position = position_dodge2(width = NULL, padding = NULL)) +
-      coord_cartesian(ylim = yRange) +
-      theme(legend.position = "bottom") +
-      theme(legend.title=element_blank()) + 
-      labs(x = NULL, y = yLab) +
-      theme(axis.title.x=element_blank(),
-            axis.text.x=element_blank(),
-            axis.ticks.x=element_blank()) +
-      theme( # remove the vertical grid lines
-        panel.grid.major.x = element_blank() ,
-        # explicitly set the horizontal lines (or they will disappear too)
-        panel.grid.major.y = element_line( size=.1, color="black", ), 
-        panel.background = element_blank(),
-        axis.line.y = element_line(colour = 'black', size=0.1, linetype='solid'),
-        axis.line.x = element_line(colour = 'black', size=0.1, linetype='solid')
-      ) +
-      # the commented out code puts the scenario names below the x axis, slightly rotated
-      # theme(axis.text.x = element_text(angle = 70, hjust = 1, family = fontFamily, face = "plain")) +
-      # theme(axis.title.y = element_text(family = fontFamily, face = "plain")) +
-      # theme(plot.title = element_text(hjust = 0.5, size = 11, family = fontFamily, face = "plain")) +
-      scale_fill_manual(values = colorList) +
-      ggtitle(plotTitle) +
-      geom_text(aes(label = formatC( round(value, roundVal), format='f', digits = roundVal),
-                    x = factor(scenario), y = yval + yvalSupplment), position = position_dodge(0.9),
-                size = fontsize, angle = 90, color = "black") +  # + vjust = "bottom", hjust = 'left', commented out April 8, 2018
-      facet_wrap(~ region_name, nrow = nrow) +
-      theme(panel.spacing = unit(0.1, "lines")) +
-      theme(strip.text.x = element_text(face= "bold", size = 12)) # other options colour = "orange", angle = 90
-    
-    # the 'or' part of the if statement means don't draw the line if it's greater than ymax
-    if (oneLine == FALSE | oneLine > yRange[2]) {} else {
-      p <- p + geom_hline(aes(yintercept = oneLine, color = "black"), show.legend = FALSE)
-    }
-    if (plotErrorBars == TRUE) {
-      temp[, yminValue := ifelse(value - sd.region < 0, 0, value - sd.region)]
-      temp[, ymaxValue := ifelse(value + sd.region > yRange[2],  yRange[2], value + sd.region)]
-      p <- p + geom_errorbar(aes(ymin = yminValue, ymax = ymaxValue), width = .2,
-                             position = position_dodge(.9), color = "grey")
-    }
-  }
 
   ggsave(file = paste0(fileloc("gDir"),"/",fileName,".png"), plot = p, device = "png",
          width = width, height = height)
@@ -339,7 +281,6 @@ plotByRegionStackedBar <- function(dt, fileName, plotTitle, yLab, yRange, aggCho
   scenarios <- unique(temp$scenario)
   # adjust font size for bars by aggchoice
   if (aggChoice %in% c("tenregions") ) fontsize <- 1.5
-  if (aggChoice %in% c("regions.AfricanAgFutures") ) fontsize <- 2.0
   if (aggChoice %in% "WB") fontsize <- 2.5
   # adjust location of bar label in the bar (yval) for graph type
   if (yLab %in% "(Adequacy ratio)") {roundVal = 2} else { roundVal = 1}
@@ -362,7 +303,6 @@ plotByRegionStackedBar <- function(dt, fileName, plotTitle, yLab, yRange, aggCho
   width = 7
   yvalSupplment = 0
   
-  if (aggChoice %in% c("regions.AfricanAgFutures")){ nrow = 1;  height = 4; width = 8}
   p <- ggplot(data=temp, aes(scenario, y = value, fill = nutrient, levels =  region_name, position_dodge(preserve = "total"))) +
     geom_bar(stat = "identity", position = "stack", color = "black", width = .80, group = "region_name") +
     theme( # remove the vertical grid lines
@@ -388,7 +328,6 @@ plotByRegionStackedBar <- function(dt, fileName, plotTitle, yLab, yRange, aggCho
   if (oneLine == FALSE) {} else {p + geom_abline(intercept = oneLine, slope = 0)}
   
    height = 6
-  if (aggChoice %in% c("regions.AfricanAgFutures")) height = 3
   cat("height:", height, "\n")
   ggsave(file = paste0(fileloc("gDir"),"/",fileName,".png"), plot = p,
          width = width, height = height)
@@ -472,8 +411,7 @@ plotByRegionBarAMDR <- function(dt, fileName, plotTitle, yLab, yRange, aggChoice
   if (yLab %in% "(Adequacy ratio)") {roundVal = 2} else { roundVal = 1}
    yval = 1.5 # controls how far above the y axis bottom the vertical numbers are
   xval = 2.5 # x nudge default for WB
-  if (aggChoice %in% "tenregions") xval = 0.7
-  if (aggChoice %in% c("tenregions", "regions.AfricanAgFutures") ) fontsize <- 1.5
+  if (aggChoice %in% "tenregions") {xval = 0.7; fontsize <- 1.5}
   if (aggChoice %in% "WB") fontsize <- 2.5
   
   roundVal = 2

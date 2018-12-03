@@ -55,7 +55,7 @@ regionsLookup <- read_excel(fileNameList("regionsLookup"), sheet = "dt.regions.a
                                                         "text", "text", "text", "text", "text",
                                                         "text", "text", "text", "text",
                                                         "text", "text", "text", "text", "text",
-                                                        "text", "text"))
+                                                        "text", "text", "text"))
 dt.regions.all <- data.table::as.data.table(regionsLookup)
 
 inDT <- dt.regions.all

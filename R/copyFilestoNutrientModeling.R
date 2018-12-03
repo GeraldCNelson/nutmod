@@ -14,7 +14,6 @@
 #' dt.nutrients.kcals
 #' dt.budgetShare
 #' dt.metadataTot
-#' dt.IMPACTgdxParams
 #' dt.foodGroupsInfo
 #' reqRatio_sum_RDA_macro
 #' reqRatio_sum_RDA_vits
@@ -68,7 +67,7 @@ for (switchloop in getSwitchChoice()) {
   
   #  dt.nutrients.adj <- getNewestVersion(paste("dt.nutrients.sum.all", suffix, sep = "."), fileloc("resultsDir"))
   # dt.foodNnuts <- getNewestVersion("dt.foodNnuts", suffix, fileloc("resultsDir"))
-  # dt.nutrients.sum.FG <- getNewestVersion("dt.nutrients.sum.FG", suffix, fileloc("resultsDir"))
+  # dt.nutrients.sum.FG <- getNewestVersion("dt.nutrients.sum_FG", suffix, fileloc("resultsDir"))
   # dt.foodAvail.foodGroup <- getNewestVersion("dt.foodAvail.foodGroup", suffix, fileloc("resultsDir"))
   
   copyListFromSpecificResults <- paste(c( "dt.compDI", "dt.foodAvail_foodGroup", "dt.KcalShare_nonstaple",
@@ -77,7 +76,7 @@ for (switchloop in getSwitchChoice()) {
                                           "reqRatio_sum_RDA_vits", "dt.foodAvail.foodGroup"), suffix, sep = ".")
   copyListFromSpecificResults <- c(copyListFromSpecificResults, "dt.budgetShare") # added because dt.budgetShare is identical for all suffixes
   copyListFromSpecificResultsNoSuffix <- c("dt.metadataTot")
-  copyListFromiData <- c("dt.IMPACTgdxParams", "dt.nutrients.var")
+  copyListFromiData <- c("dt.nutrients.var")
   copyListFromuData <- c("dt.regions.all")
   copyListFrommData <-c("dt.scenarioListIMPACT", "dt.foodGroupsInfo", "resultFileLookup")
   

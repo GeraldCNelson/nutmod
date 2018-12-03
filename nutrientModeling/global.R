@@ -30,8 +30,7 @@ ggRadar2 <- function (data, mapping = NULL, rescale = TRUE, legend.position = "t
   length(groupname)
   if (length(groupname) == 0) {
     groupvar <- NULL
-  }
-  else {
+  } else {
     groupvar = getMapping(mapping, groupname)
   }
   groupvar
@@ -49,8 +48,7 @@ ggRadar2 <- function (data, mapping = NULL, rescale = TRUE, legend.position = "t
     xvars
     if (length(xvars) < 3) 
       warning("At least three variables are required")
-  }
-  else {
+  } else {
     xvars = colnames(data)[select]
   }
   (xvars = setdiff(xvars, groupvar))
@@ -62,8 +60,7 @@ ggRadar2 <- function (data, mapping = NULL, rescale = TRUE, legend.position = "t
     id = newColName(data)
     data[[id]] = 1
     longdf = reshape2::melt(data, id.vars = id, measure.vars = xvars)
-  }
-  else {
+  } else {
     cols = setdiff(cols, groupvar)
     longdf = reshape2::melt(data, id.vars = groupvar, measure.vars = xvars)
   }
@@ -77,30 +74,42 @@ ggRadar2 <- function (data, mapping = NULL, rescale = TRUE, legend.position = "t
     df[[id2]] = "all"
     id3 = newColName(df)
     df[[id3]] = 1:nrow(df)
-    df$tooltip = paste0(df$variable, "=", round(df$value, 
-                                                1))
+    df$tooltip = paste0(df$variable, "=", round(df$value, 1))
     df$tooltip2 = paste0("all")
     p <- ggplot(data = df, aes_string(x = "variable", y = "value", 
-                                      group = 1)) + geom_polygon_interactive(aes_string(tooltip = "tooltip2"), 
-                                                                             colour = colour, fill = colour, alpha = alpha) + 
-      geom_point_interactive(aes_string(data_id = id3, 
-                                        tooltip = "tooltip"), colour = colour, size = size)
-  }
-  else {
+                                      group = 1)) + 
+#      geom_point_interactive(aes_string(tooltip = tooltip2, colour = colour, fill = colour, alpha = alpha, size = size)) + theme_minimal()
+    
+  #     geom_polygon_interactive(aes_string(tooltip = "tooltip2"), 
+  #                              colour = colour, fill = colour, alpha = alpha) + 
+       geom_point_interactive(aes_string(data_id = id3,  tooltip = "tooltip"), colour = colour, size = size)
+  # } else {
     if (!is.null(colorname)) {
       id2 = newColName(df)
       df[[id2]] = df[[colorname]]
     }
     id3 = newColName(df)
+    print(id3)
     df[[id3]] = 1:nrow(df)
     df$tooltip = paste0(groupvar, "=", df[[colorname]], "<br>", 
                         df$variable, "=", round(df$value, 1))
     df$tooltip2 = paste0(groupvar, "=", df[[colorname]])
+    print(head(df))
+  
     p <- ggplot(data = df, aes_string(x = "variable", y = "value", 
                                       colour = colorname, fill = colorname, group = colorname)) + 
-      geom_polygon_interactive(aes_string(tooltip = "tooltip2"), 
-                               alpha = alpha) + geom_point_interactive(aes_string(data_id = id3, 
-                                                                                  tooltip = "tooltip"), size = size)
+      # geom_polygon_interactive(aes_string(tooltip = "tooltip2"), 
+      #                          alpha = alpha) + 
+       geom_point_interactive(aes_string(data_id = id3, tooltip = "tooltip"), size = size) +
+ #     geom_vline(xintercept = 1, color = "red", size=1) +
+      # added Dec 1, 2018 to get rid of background
+      theme( 
+   #     panel.grid.major.x = element_blank() ,
+        panel.grid.major.y = element_line( size=.1, color="black" ), #y is the circles
+        panel.grid.major.x = element_line( size=.1, color="black" ), # x is the lines for the origin out
+        panel.background = element_blank()
+        # to here
+      ) 
   }
   p
   if (!is.null(facetname)) {
@@ -115,12 +124,13 @@ ggRadar2 <- function (data, mapping = NULL, rescale = TRUE, legend.position = "t
     p <- p + expand_limits(y = ylim)
   p
   if (interactive) {
-    tooltip_css <- "background-color:white;font-style:italic;padding:10px;border-radius:10px 20px 10px 20px;"
-    hover_css = "r:4px;cursor:pointer;stroke-width:6px;"
-    selected_css = "fill:#FF3333;stroke:black;"
-    p <- ggiraph(code = print(p), tooltip_extra_css = tooltip_css, 
-                 tooltip_opacity = 0.75, zoom_max = 10, hover_css = hover_css, 
-                 selected_css = selected_css)
+    # tooltip_css <- "background-color:white;font-style:italic;padding:10px;border-radius:10px 20px 10px 20px;"
+    # hover_css = "r:4px;cursor:pointer;stroke-width:6px;"
+    # selected_css = "fill:#FF3333;stroke:black;"
+     p <- girafe(code = print(p))
+    # , tooltip_extra_css = tooltip_css, 
+    #              tooltip_opacity = 0.75, zoom_max = 10, hover_css = hover_css, 
+    #              selected_css = selected_css)
   }
   p
 }
@@ -214,40 +224,8 @@ capwords <- function(s, strict = FALSE) {
   sapply(strsplit(s, split = " "), cap, USE.NAMES = !is.null(names(s)))
 }
 
-cleanupScenarioNames <- function(dt.ptemp) {
-  # replaces - with _ and removes 2 from a couple of USAID scenario
-  dt.ptemp[, scenario := gsub("IRREXP-WUE2", "IRREXP_WUE2", scenario)]
-  dt.ptemp[, scenario := gsub("PHL-DEV2", "PHL_DEV2", scenario)]
-  dt.ptemp[, scenario := gsub("HGEM2", "HGEM", scenario)]
-  dt.ptemp[, scenario := gsub("IPSL2", "IPSL", scenario)]
-  return(dt.ptemp)
-}
-
-# cleanupNutrientNames <- function(nutList) {
-#   nutList <- gsub("food_group_code", "Food group", nutList)
-#   nutList <- gsub("_g.reqRatio","",nutList)
-#   nutList <- gsub("reqRatio","",nutList)
-#   nutList <- gsub("vit_","Vitamin ",nutList)
-#   nutList <- gsub("_µg","",nutList)
-#   nutList <- gsub("_mg","",nutList)
-#   nutList <- gsub("_rae"," rae",nutList)
-#   nutList <- gsub("_g","",nutList)
-#   nutList <- gsub("totalfiber","total fiber",nutList)
-#   nutList <- gsub(".ratio.foodGroup","",nutList)
-#   nutList <- gsub(".sum.all","",nutList)
-#   nutList <- gsub("_sum.all","",nutList)
-#   nutList <- gsub("rootsNPlantain","Roots\nand plantain",nutList)
-#   nutList <- gsub("nutsNseeds","Nuts\nand seeds",nutList)
-#   nutList <- gsub("beverages","Beverages,\nother",nutList)
-#   nutList <- gsub("alcohol","Beverages,\nalcoholic",nutList)
-#   nutList <- gsub("NonAlcoholic Beveragesic Beverages","Alcoholic beverages",nutList)
-#   nutList <- gsub("ft_acds_tot_sat", "Saturated fat", nutList)
-#   nutList <- gsub("_g_AMDR", "", nutList)
-#   nutList <- gsub("foodgroup_code", "Food group", nutList)
-#   return(nutList)
-# }
-
 cleanupNutrientNames <- function(nutList) {
+  nutList <- gsub("food_group_code","Food group code",nutList)
   nutList <- gsub("_g_reqRatio","",nutList)
   nutList <- gsub("reqRatio","",nutList)
   nutList <- gsub("vit_","Vitamin ",nutList)
@@ -396,13 +374,7 @@ fmt_dcimals <- function(decimals=0){
 years <- c("X2010", "X2030", "X2050")
 yearsClean <- gsub("X", "", years)
 fontFamily <- "Helvetica Neue"
-dt.scenarioListIMPACT <- getNewestVersion("dt.scenarioListIMPACT", fileloc("mData"))
-dt.scenarioListIMPACT[,scenario := gsub("-REF", "", scenario)]
-dt.scenarioListIMPACT[, scenario := gsub("-", "_", scenario)]
-scenarioNames <- unique(dt.scenarioListIMPACT$scenario)
-scenarioNames <- scenarioNames[!scenarioNames %in% c( "SSP2-IPSL", "SSP2-MIROC", "SSP2-GFDL")]
-
-scenarioList <- scenarioNames # added Aug 27, 2018 because scenarioList now used in the app. Might want to change this
+scenarioNames <- keyVariable("scenarioListIMPACT")
 resultFileLookup <- getNewestVersion("resultFileLookup", fileloc("mData"))
 dt.regions.all <- getNewestVersion("dt.regions.all", fileloc("mData"))
 dt.regions.all[, region_name.IMPACT159 := gsub(" plus", "", region_name.IMPACT159)] # used to get to country code
@@ -412,7 +384,6 @@ countryNames <- gsub(" plus", "", countryNamesPlus)
 
 # development files -----
 "dt.metadata" <- getNewestVersion("dt.metadataTot", fileloc("mData"))
-"dt.IMPACTgdxParams" <- getNewestVersion("dt.IMPACTgdxParams", fileloc("mData"))
 FGreqChoices <- c("macro nutrients", "minerals", "vitamins")
 staplesReqChoices <- c("energy","macro nutrients", "minerals", "vitamins")
 initialCountryName <- "Afghanistan"
@@ -452,10 +423,9 @@ spiderGraphOutput <- function(spiderData, scenarioName) {
   countryCode <- unique(spiderData$region_code.IMPACT159)
   countryName <- countryNameLookup(countryCode)
   spiderData[, region_code.IMPACT159 := NULL]
-  #  data.table::setnames(spiderData, old = names(spiderData), new = capwords(names(spiderData)))
   titleText <- paste("Country: ", countryName)
-  p <- ggRadar2(data = spiderData, mapping = aes(colour = year, facet = "scenario"), nrow = 1, #, facet = "nutrientType"
-                rescale = FALSE, interactive = FALSE, size = 1,
+  p <- ggRadar2(data = spiderData, mapping = aes(colour = year, facet = "scenario"), nrow = 1, 
+                rescale = FALSE, interactive = TRUE, size = 1,
                 legend.position = "bottom")
   p <- p + theme(plot.title = element_text(hjust = 0.5, size = 12, family = fontFamily,
                                            face = "plain")) + ggtitle(titleText)
@@ -478,7 +448,6 @@ load_data <- function(dataSetsToLoad) {
   #' load data that are not year or scenario specific; these are handled in the observe code in the server
   #' development files
   dt.metadata <- getNewestVersion("dt.metadataTot", fileloc("mData"))
-  dt.IMPACTgdxParams <- getNewestVersion("dt.IMPACTgdxParams", fileloc("mData"))
   
   withProgress(message = 'Loading data', value = 0, {
     #' Number of times we'll go through the loop
@@ -496,60 +465,6 @@ load_data <- function(dataSetsToLoad) {
   shinyjs::hide("loading_page", anim = FALSE, animType = "fade", time = 0.5)
   shinyjs::show("mainTabsetPanel", anim = TRUE, animType = "fade", time = 0.5)
 }
-
-# replaced and edited Nov 1, 2018
-plotByRegionBarAMDR <- function(dt, fileName, plotTitle, yLab, yRange, aggChoice, suffix, scenOrder, colorList, AMDR_lo, AMDR_hi, graphsListHolder, plotErrorBars) {
-  plotTitle <- capwords(plotTitle)
-  temp <- copy(dt)
-  regionCodes <- unique(temp$region_code)
-  regionNames <- unique(temp$region_name)
-  scenarios <- unique(temp$scenario)
-  temp[, scenario := gsub("-REF", "", scenario)]
-  scenOrder <- gsub("-REF", "", scenOrder)
-  regionNameOrder <- getRegionOrder(aggChoice, regionNames)
-  scenarioNameOrder <- scenOrder
-  temp[, region_name := gsub(" income", "", region_name)]
-  temp[, region_name := factor(region_name, levels =  regionNameOrder)]
-  temp[, scenario := factor(scenario, levels = scenarioNameOrder)]
-   # adjust location of bar label in the bar (yval) for graph type
-  if (yLab %in% "(Adequacy ratio)") {roundVal = 2} else { roundVal = 1}
-  yval = 1.5 # controls how far above the y axis bottom the vertical numbers are
-  fontsize <- 2.5
-  
-  #' draw bars
-  #  pdf(paste(fileloc("gDir"),"/", fileName, ".pdf", sep = ""), width = 7, height = 5.2)
-  if (round(max(temp$value) - yRange[2]) == 0) yRange[2] <- max(temp$value) # will hopefully deal with rare situation
-  #' when all elements of value are the same as the max y range
-  p <- ggplot(temp, aes(x = region_name, y = value, fill = scenario, order = c("region_name") )) +
-    geom_bar(stat = "identity", position = "dodge", color = "black") +
-    theme( # remove the vertical grid lines
-      panel.grid.major.x = element_blank() ,
-      # explicitly set the horizontal lines (or they will disappear too)
-      panel.grid.major.y = element_line( size=.1, color="black" ),
-      panel.background = element_blank()
-    ) +
-    theme(legend.position = "none") +
-    theme(axis.text.x = element_text(angle = 45, hjust = 1, family = fontFamily, face = "plain")) +
-    theme(axis.title.y = element_text(family = fontFamily, face = "plain")) +
-    scale_fill_manual(values = colorList) +
-    theme(plot.title = element_text(hjust = 0.5, size = 11, family = fontFamily, face = "plain")) +
-    ggtitle(plotTitle) +
-    labs(y = yLab, x = NULL) +
-    geom_hline(aes(yintercept = AMDR_lo), color = "darkgreen", show.legend = FALSE) +
-    geom_label(aes(x = .6, y = AMDR_lo + 2, label = "Lower limit", family = fontFamily), fill= "white", color = "black", nudge_x = 0.25) + # value after AMDR_lo shifts the label up or down
-    #   geom_text(aes(.6, AMDR_lo + 2.5, label = "Low", family = fontFamily), color = "black") + # value after AMDR_lo shifts the label up or down
-    geom_hline(aes(yintercept = AMDR_hi),  color = "dark red", show.legend = FALSE) +
-    geom_label(aes(x = .6, y = AMDR_hi + 2, label = "Upper limit"), nudge_x = 0.25, fill= "white", color = "black")
-  # next line adds the vertical numbers
-  p <- p + geom_text(aes(label = formatC( round(value, roundVal), format='f', digits = roundVal),
-                         x = factor(region_name), y = yval), position = position_dodge(0.9),
-                     size = fontsize, angle = 90, color = "black")  # + vjust = "bottom", hjust = 'left', commented out April 8, 2018
-  
-  ggsave(filename = paste0(fileloc("gDir"),"/",fileName,".png"), plot = p,
-         width = 7, height = 6)
-  return(p)
-}
-
 
 load_data_special <- function(data_name){
   print("exists(data_name)")
@@ -632,6 +547,15 @@ facetGraphOutput <- function(inData, facetColumnName, displayColumnName, foodGro
   p <- p + theme(legend.text = element_text(size = 10, family = fontFamily, face = "plain"))
   p <- p + theme(legend.title = element_text(size = 10, family = fontFamily, face = "plain"))
   p <- p + theme(strip.text.x = element_text(size = 10, family = fontFamily, face = "plain"))
+  p <- p + theme(
+    # panel.grid.major.x = element_blank() ,
+    # # explicitly set the horizontal and vert lines (or they will disappear too)
+    panel.grid.major.y = element_line( size=.1, color="black", ), 
+    panel.grid.major.x = element_line( size=.1, color="black", ), 
+    panel.background = element_blank(),
+    axis.line.y = element_line(colour = 'black', size=0.1, linetype='solid'),
+    axis.line.x = element_line(colour = 'black', size=0.1, linetype='solid')
+  ) 
   p <- p +  xlab("food group") + ylab(NULL)
   return(p)
 }
@@ -679,7 +603,7 @@ plotByRegionBarAMDRinShiny <- function(barData, yLab) {
   
   #select color explicitly
   scenOrder <- scenarioNames
-  paletteChoice <- "OrRd" #choices are described in the help for RcolorBrewer
+  paletteChoice <- "Set2" #choices are described in the help for RcolorBrewer
   
   #put here so its easy to see alignment of colors and bars
   colorsNeeded <- length(scenarioNames)
@@ -699,7 +623,7 @@ plotByRegionBarAMDRinShiny <- function(barData, yLab) {
       panel.grid.major.y = element_line( size=.1, color="black" ),
       panel.background = element_blank()
     ) +
-    theme(legend.position = "none") +
+    theme(legend.position = "bottom") +
     theme(axis.text.x = element_text(angle = 45, hjust = 1, family = fontFamily, face = "plain")) +
     theme(axis.title.y = element_text(family = fontFamily, face = "plain")) +
     scale_fill_manual(values = colorList) +
@@ -711,7 +635,7 @@ plotByRegionBarAMDRinShiny <- function(barData, yLab) {
     geom_abline(data = ref_lo, aes(intercept = int_lo, slope = slope), color = "darkgreen", size = 1) +
     geom_label(data = ref_lo, aes(x = .6, y = int_lo + 2, label = paste0("Lower limit is ", int_lo), family = fontFamily), fill= "white", color = "black", nudge_x = 1.25, nudge_y = 0.25) + # value after AMDR_lo shifts the label up or down
     geom_label(data = ref_hi, aes(x = .6, y = int_hi + 2, label = paste0("Upper limit is ", int_hi)), nudge_x = 1.25, nudge_y = 0.25, fill= "white", color = "black") +
-     facet_wrap( ~ nutrient, scales = "fixed")
+    facet_wrap( ~ nutrient, scales = "fixed")
   return(p)
 }
 

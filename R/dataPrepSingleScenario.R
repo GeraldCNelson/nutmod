@@ -27,42 +27,47 @@ createScriptMetaData()
 graphsListHolder <- list()
 singleScenario <- TRUE
 
-dt.FoodAvailability.woGlobe <- getNewestVersion("dt.FoodAvailability.SSP2-HGEM-WithoutGLOBE", fileloc("resultsDir"))
-dt.FoodAvailability.wGlobe <- getNewestVersion("dt.FoodAvailability.SSP2-HGEM2-WithGLOBE", fileloc("resultsDir"))
-dt.pcGDPX0.woGlobe <- getNewestVersion("dt.pcGDPX0.SSP2-HGEM-WithoutGLOBE", fileloc("resultsDir"))
-dt.pcGDPX0.wGlobe <- getNewestVersion("dt.pcGDPX0.SSP2-HGEM2-WithGLOBE", fileloc("resultsDir"))
-dt.PCX0.woGlobe <- getNewestVersion("dt.PCX0.SSP2-HGEM-WithoutGLOBE", fileloc("resultsDir"))
-dt.PCX0.wGlobe <- getNewestVersion("dt.PCX0.SSP2-HGEM2-WithGLOBE", fileloc("resultsDir"))
+fileLocation <- paste0(getwd(), "/",fileloc("iData"), "CGEPEcompare/")
+dt.FoodAvailability.woGlobe <- readRDS(paste0(fileLocation, "dt.FoodAvailability.SSP2-HGEM-WithoutGLOBE"))
+dt.FoodAvailability.wGlobe <- readRDS(paste0(fileLocation, "dt.FoodAvailability.SSP2-HGEM2-WithGLOBE"))
+dt.pcGDPX0.woGlobe <- readRDS(paste0(fileLocation, "dt.pcGDPX0.SSP2-HGEM-WithoutGLOBE"))
+dt.pcGDPX0.wGlobe <- readRDS(paste0(fileLocation, "dt.pcGDPX0.SSP2-HGEM2-WithGLOBE"))
+dt.PCX0.woGlobe <- readRDS(paste0(fileLocation, "dt.PCX0.SSP2-HGEM-WithoutGLOBE"))
+dt.PCX0.wGlobe <- readRDS(paste0(fileLocation, "dt.PCX0.SSP2-HGEM2-WithGLOBE"))
 
-setkey(dt.FoodAvailability.woGlobe)
-setkey(dt.FoodAvailability.wGlobe)
-setkey(dt.pcGDPX0.woGlobe)
-setkey(dt.pcGDPX0.wGlobe)
-setkey(dt.PCX0.woGlobe)
-setkey(dt.PCX0.wGlobe)
+# setkey(dt.FoodAvailability.woGlobe)
+# setkey(dt.FoodAvailability.wGlobe)
+# setkey(dt.pcGDPX0.woGlobe)
+# setkey(dt.pcGDPX0.wGlobe)
+# setkey(dt.PCX0.woGlobe)
+# setkey(dt.PCX0.wGlobe)
 
 # first do wo Globe
-dt_woGlobe <- merge( dt.FoodAvailability.woGlobe, dt.pcGDPX0.woGlobe, by = c("region_code.IMPACT159", "year"))
-dt_woGlobe <- merge(dt_woGlobe, dt.PCX0.woGlobe, by = c("region_code.IMPACT159", "IMPACT_code", "year"))
+dt_woGlobe <- merge(dt.FoodAvailability.woGlobe, dt.PCX0.woGlobe, by = c("region_code.IMPACT159", "year", "IMPACT_code"))
 dt_woGlobe[, budget := (sum(FoodAvailability * PCX0 / 1000 )) / 1000, by = c("region_code.IMPACT159", "year")]
+dt_woGlobe[, c("IMPACT_code", "FoodAvailability", "PCX0"):= NULL]
+dt_woGlobe <- unique(dt_woGlobe)
+dt_woGlobe <- merge(dt_woGlobe, dt.pcGDPX0.woGlobe, by = c("region_code.IMPACT159", "year"))
 dt_woGlobe[, incShare := 100 * budget / pcGDPX0 ]
-namesToChange <- c("FoodAvailability", "pcGDPX0", "PCX0", "budget", "incShare")
+namesToChange <- c("pcGDPX0", "budget", "incShare")
 setnames(dt_woGlobe, old = namesToChange, new = paste0(namesToChange, "_woGlobe"))
 
 # now with Globe
-dt_wGlobe <- merge( dt.FoodAvailability.wGlobe, dt.pcGDPX0.wGlobe, by = c("region_code.IMPACT159", "year"))
-dt_wGlobe <- merge(dt_wGlobe, dt.PCX0.wGlobe, by = c("region_code.IMPACT159", "IMPACT_code", "year"))
+dt_wGlobe <- merge(dt.FoodAvailability.wGlobe, dt.PCX0.wGlobe, by = c("region_code.IMPACT159", "year", "IMPACT_code"))
 dt_wGlobe[, budget := (sum(FoodAvailability * PCX0 / 1000 )) / 1000, by = c("region_code.IMPACT159", "year")]
+dt_wGlobe[, c("IMPACT_code", "FoodAvailability", "PCX0"):= NULL]
+dt_wGlobe <- unique(dt_wGlobe)
+dt_wGlobe <- merge(dt_wGlobe, dt.pcGDPX0.wGlobe, by = c("region_code.IMPACT159", "year"))
 dt_wGlobe[, incShare := 100 * budget / pcGDPX0 ]
-namesToChange <- c("FoodAvailability", "pcGDPX0", "PCX0", "budget", "incShare")
+namesToChange <- c("pcGDPX0", "budget", "incShare")
 setnames(dt_wGlobe, old = namesToChange, new = paste0(namesToChange, "_wGlobe"))
 
-dt <- merge(dt_woGlobe, dt_wGlobe, by = c("region_code.IMPACT159", "IMPACT_code", "year"))
+dt <- merge(dt_woGlobe, dt_wGlobe, by = c("region_code.IMPACT159", "year"))
 write.csv(dt, file = "data/IMPACTData/singleScenario/combinedResults.csv")
 
 dt <- dt[!region_code.IMPACT159 %in% "SOM",]
 dt.50 <- dt[year %in% "X2050",]
-dt.50[, c("IMPACT_code", "FoodAvailability_woGlobe", "FoodAvailability_wGlobe", "PCX0_woGlobe", "PCX0_wGlobe","year") := NULL]
+dt.50[, year := NULL]
 dt.50 <- dt.50[!duplicated(region_code.IMPACT159),]
 dt.50[, incShareRatio := 100 * (incShare_wGlobe - incShare_woGlobe)/incShare_woGlobe]
 dt.50[, budgetRatio := 100 * (budget_wGlobe - budget_woGlobe)/budget_woGlobe]

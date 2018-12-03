@@ -184,8 +184,8 @@ ui <- fluidPage(
                                   downloadButton("downloadData.nutAvailFG", "Download")),
                      mainPanel(titlePanel("Nutrient availability"),
                                includeHTML("www/foodGroupSpiderGraphText.html"),
-                               radioButtons("FGscenarioName", "Choose scenario (See glossary for details):",
-                                            list("SSP2_NoCC", "SSP2_HGEM", "SSP1_NoCC", "SSP3_NoCC"), inline = TRUE),
+                               div(radioButtons("FGscenarioName", "Choose scenario (See glossary for details):", 
+                                            list("SSP2_NoCC", "SSP2_HGEM", "SSP1_NoCC", "SSP3_NoCC"), inline = TRUE),  style="display:center-align"),
                                uiOutput("plot.NutAvailFGbarGraphP1"),
                                DT::dataTableOutput("NutAvailFGTable"),
                                includeHTML("www/nutrientDescription.html")))),
@@ -206,11 +206,10 @@ ui <- fluidPage(
                                fluidRow(
                                  column(width = 12, plotOutput("adequacySpiderGraphtot", height = "400px"))),
                                fluidRow(
-                                 column(width = 2,  radioButtons("adequacyScenarioName", "Choose scenario for energy bar plots ",
+                                 column(width = 2,  radioButtons("adequacyScenarioName", "Choose scenario",
                                                                  list("SSP2_NoCC", "SSP2_HGEM", "SSP1_NoCC", "SSP3_NoCC"), inline = TRUE)),
-                                 column(width = 4, plotOutput("energyQuantityBarPlot", height = "200px")),
-                                 column(width = 4, plotOutput("energyShareBarPlot", height = "200px")),
-                                 column(width = 2)),
+                                 column(width = 5, plotOutput("energyQuantityBarPlot", height = "200px")),
+                                 column(width = 5, plotOutput("energyShareBarPlot", height = "200px"))),
                                fluidRow(
                                  column(width = 12, DT::dataTableOutput("adequacyTableTot"))),
                                fluidRow(
@@ -521,12 +520,9 @@ server <- function(input, output, session) {
     countryName <- input$FGcountryName
     scenarioName <- input$FGscenarioName
     reqName <- input$nutrientGroup
-    #   print(exists("dt.nutrients_sum_FG.var"))
     if (!exists("dt.nutrients_sum_FG.var")) {
       withProgress(message = 'Loading data',  {
         dt.nutrients_sum_FG.var <- getNewestVersion("dt.nutrients_sum_FG.var", fileloc("mData"))
-        dt.nutrients_sum_FG.var[, scenario := gsub("-REF", "", scenario)]
-        dt.nutrients_sum_FG.var[, scenario := gsub("-", "_", scenario)]
         dt.nutrients_sum_FG.var <- (dt.nutrients_sum_FG.var[year %in% years])
         dt.nutrients_sum_FG.var <<- dt.nutrients_sum_FG.var[scenario %in% scenarioNames] # <<- should make it available all the time. Nov 11, 2016
         incProgress(1)}
@@ -613,7 +609,7 @@ server <- function(input, output, session) {
     dt <- copy(data.afford())
     colsToConvert <- c("2010", "2030", "2050")
     dt[, (colsToConvert) := lapply(.SD, sprintf, fmt="%#.2f"), .SDcols = colsToConvert]
-    dt[, scenario := factor(scenario, levels =  scenarioList)]
+    dt[, scenario := factor(scenario, levels =  scenarioNames)]
     dt <- datatable(dt, rownames = FALSE, options = list(pageLength = 20, dom = 'iftp' ,
                                                          columnDefs = list(list(className = 'dt-right', targets = 3:5)) # targets start at column 0
     ))
@@ -707,7 +703,6 @@ server <- function(input, output, session) {
     data.table::setnames(dt, old = names(dt), new = capwords(names(dt)))
     colsToConvert <- c("2010", "2030", "2050")
     dt[, (colsToConvert) := lapply(.SD, sprintf, fmt="%#.2f"), .SDcols = colsToConvert]
-    #   dt[, scenario := factor(scenario, levels =  scenarioList)]
     dt <- datatable(dt, rownames = FALSE, options = list(pageLength = 20, dom = 'iftp' ,
                                                          columnDefs = list(list(className = 'dt-right', targets = 3:5)) # targets start at column 0
     ))
@@ -766,7 +761,6 @@ server <- function(input, output, session) {
     data.table::setnames(dt, old = names(dt), new = capwords(names(dt)))
     colsToConvert <- c("2010", "2030", "2050")
     dt[, (colsToConvert) := lapply(.SD, sprintf, fmt="%#.2f"), .SDcols = colsToConvert]
-    #    dt[, scenario := factor(scenario, levels =  scenarioList)]
     dt <- datatable(dt, rownames = FALSE, options = list(pageLength = 20, dom = 'iftp' ,
                                                          columnDefs = list(list(className = 'dt-right', targets = 3:5)) # targets start at column 0
     ))
@@ -884,7 +878,7 @@ server <- function(input, output, session) {
     data.table::setnames(dt, old = oldnames, new = newnames)
     colsToConvert <- c("2010", "2030", "2050")
     dt[, (colsToConvert) := lapply(.SD, sprintf, fmt="%#.2f"), .SDcols = colsToConvert]
-    dt[, scenario := factor(scenario, levels =  scenarioList)]
+    dt[, scenario := factor(scenario, levels =  scenarioNames)]
     dt <- datatable(dt, rownames = FALSE, options = list(pageLength = 20, dom = 'iftp' ,
                                                          columnDefs = list(list(className = 'dt-right', targets = 3:5)) # targets start at column 0
     ))
@@ -925,7 +919,7 @@ server <- function(input, output, session) {
     dt[, nutrient := capwords(cleanupNutrientNames(nutrient))]
     colsToConvert <- c("2010", "2030", "2050")
     dt[, (colsToConvert) := lapply(.SD, sprintf, fmt="%#.2f"), .SDcols = colsToConvert]
-    dt[, scenario := factor(scenario, levels =  scenarioList)]
+    dt[, scenario := factor(scenario, levels =  scenarioNames)]
     dt <- datatable(dt, rownames = FALSE, options = list(pageLength = 20, dom = 'iftp' ,
                                                          columnDefs = list(list(className = 'dt-right', targets = 3:5)) # targets start at column 0
     ))
@@ -971,7 +965,6 @@ server <- function(input, output, session) {
     data.table::setnames(dt, old = names(dt), new = capwords(names(dt)))
     colsToConvert <- c("2010", "2030", "2050")
     dt[, (colsToConvert) := lapply(.SD, sprintf, fmt="%#.2f"), .SDcols = colsToConvert]
-    #   dt[, scenario := factor(scenario, levels =  scenarioList)]
     dt <- datatable(dt, rownames = FALSE, options = list(pageLength = 20, dom = 'iftp' ,
                                                          columnDefs = list(list(className = 'dt-right', targets = 2:4)) # targets start at column 0
     ))
@@ -1072,7 +1065,7 @@ server <- function(input, output, session) {
   
   # IMPACTmetadataTable ------
   output$IMPACTmetadataTable <- DT::renderDataTable({
-    dt <- getNewestVersion("dt.IMPACTgdxParams", fileloc("mData"))
+ #   dt <- getNewestVersion("dt.IMPACTgdxParams", fileloc("mData"))
     dt <- DT::datatable(dt, rownames = FALSE, options = list(pageLength = 25))
   })
   

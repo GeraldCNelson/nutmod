@@ -194,25 +194,25 @@ wbInfoGeneral[(nrow(wbInfoGeneral) + 1), ] <-
 
 #add a worksheet called IMPACTBaselist to the workbook wb = wbGeneral, with info on the commodities
 # in the base set and their nutrients
-dt.nutrients <- getNewestVersion("dt.nutrients.var", fileloc("iData")) # put var in the file name Oct 4, 2018
+# dt.nutrients <- getNewestVersion("dt.nutrients.var", fileloc("iData")) # not created until dt.footNnuts.R
 
-openxlsx::addWorksheet(wb = wbGeneral, sheetName = "IMPACTBaselist")
-#commodityNames <- cbind(nutrients[c("Name","IMPACT_code")])
-openxlsx::writeData(
-  wb = wbGeneral,
-  x = dt.nutrients,
-  sheet = "IMPACTBaselist",
-  startRow = 1,
-  startCol = 1
-)
-openxlsx::addStyle(
-  wb = wbGeneral,
-  sheet = "IMPACTBaselist",
-  style = numStyle,
-  rows = 2:nrow(dt.nutrients),
-  cols = 3:(ncol(dt.nutrients)),
-  gridExpand = TRUE
-)
+# openxlsx::addWorksheet(wb = wbGeneral, sheetName = "IMPACTBaselist")
+# #commodityNames <- cbind(nutrients[c("Name","IMPACT_code")])
+# openxlsx::writeData(
+#   wb = wbGeneral,
+#   x = dt.nutrients,
+#   sheet = "IMPACTBaselist",
+#   startRow = 1,
+#   startCol = 1
+# )
+# openxlsx::addStyle(
+#   wb = wbGeneral,
+#   sheet = "IMPACTBaselist",
+#   style = numStyle,
+#   rows = 2:nrow(dt.nutrients),
+#   cols = 3:(ncol(dt.nutrients)),
+#   gridExpand = TRUE
+# )
 
 # for loop for the nutrient requirements worksheets ----
 for (i in 1:length(reqsSSP)) {

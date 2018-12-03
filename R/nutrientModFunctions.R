@@ -331,6 +331,7 @@ cleanupGraphFiles <- function(inGraphFile, outName, destDir, desc) {
 }
 
 cleanupNutrientNames <- function(nutList) {
+  nutList <- gsub("food_group_code","Food group code",nutList)
   nutList <- gsub("_g_reqRatio","",nutList)
   nutList <- gsub("reqRatio","",nutList)
   nutList <- gsub("vit_","Vitamin ",nutList)
@@ -437,6 +438,7 @@ keyVariable <- function(variableName) {
                            "SSP4_v9_130115", "SSP5_v9_130115")
   scenarioListSSP.GDP <- c("SSP1_v9_130325", "SSP2_v9_130325", "SSP3_v9_130325",
                            "SSP4_v9_130325", "SSP5_v9_130325")
+  scenarioListIMPACT <- c("SSP2_NoCC", "SSP2_HGEM", "SSP1_NoCC", "SSP3_NoCC") # for gdxChoice = "SSPs"
   SSAfricaCodes <- c("AGO", "BDI", "BEN", "BFA", "BWA", "CAF", "CIV", "CMR",
                      "COD", "COG", "DJI", "ERI", "ETH", "GAB", "GHA", "GIN",
                      "GMB", "GNB", "GNQ", "KEN", "LBR", "LSO", "MDG", "MLI", "MOZ", "MRT", # removed "MOR". It's in north Africa. Added Mauritania
@@ -1209,8 +1211,8 @@ rawToChar(block[seq_len(ns)], run the following commands in a shell.
   }
   
   getSwitchChoice <- function() {
-    gdxSwitchCombo <- read.csv(file = paste0(getwd(), "/results/", gdxChoice, "/gdxInfo.csv"), header = TRUE, stringsAsFactors = FALSE)
-    gdxChoice <- gdxSwitchCombo[,3]
+ #   gdxSwitchCombo <- read.csv(file = paste0(getwd(), "/results/", gdxChoice, "/gdxInfo.csv"), header = TRUE, stringsAsFactors = FALSE)
+    gdxChoice <- "4"
     if (gdxChoice == 1) choice = 1
     if (gdxChoice == 2) choice = c(1,2)
     if (gdxChoice == 3) choice = c(1,2,3)

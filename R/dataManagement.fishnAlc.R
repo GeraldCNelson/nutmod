@@ -41,8 +41,10 @@ middleYear.baseyear <- FBSyearsToAverage.baseyear[as.integer(length(FBSyearsToAv
 middleYear.startyear <- FBSyearsToAverage.startyear[as.integer(length(FBSyearsToAverage.startyear) / 2) + 1]
 
 dt.regions.all <- getNewestVersion("dt.regions.all", fileloc("uData"))
-dt.GDPperCap <- getNewestVersion("dt.pcGDPX0", fileloc("iData"))
-dt.pop <- getNewestVersion("dt.PopX0", fileloc("iData")) # now just used to weight the population share of IMPACT regions that make up multiple ISO codes Oct 13, 2018
+#dt.GDPperCap <- getNewestVersion("dt.pcGDPX0", fileloc("iData"))
+dt.GDPperCap <- readRDS(paste0(fileloc("iData"), "dt.pcGDPX0"))
+#dt.pop <- getNewestVersion("dt.PopX0", fileloc("iData")) # now just used to weight the population share of IMPACT regions that make up multiple ISO codes Oct 13, 2018
+dt.pop <- readRDS(paste0(fileloc("iData"), "dt.PopX0"))
 dt.FBS <- getNewestVersion("dt.FBS", fileloc("uData")) #dt.FBS is in kgPerCapPerYear
 # as of July 24, 2018 FBS also has KcalPerCapPerDay; remove it here for this script
 dt.FBS <- dt.FBS[!variable %in% "KcalPerCapPerDay", ]

@@ -25,9 +25,7 @@ source("R/nutrientModFunctions.R")
 
 sourceFile <- "nutrientCalcs.R"
 createScriptMetaData()
-#' get the list of scenarios in the IMPACT data for use below
-dt.scenarioListIMPACT <- getNewestVersion("dt.scenarioListIMPACT", fileloc("mData"))
-scenarioListIMPACT <- unique(dt.scenarioListIMPACT$scenario)
+scenarioListIMPACT <- keyVariable("scenarioListIMPACT")
 reqsListPercap <- keyVariable("reqsListPercap")
 
 generateResults.dataPrep <- function(req, dt.foodNnuts, scenarioListIMPACT) {

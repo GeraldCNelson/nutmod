@@ -27,7 +27,7 @@ createScriptMetaData()
 
 #' create data table with just food items, relevant years and scenarios
 IMPACTfoodCommodList <- keyVariable("IMPACTfoodCommodList")
-scenarioListIMPACT <- getNewestVersion("dt.scenarioListIMPACT", fileloc("mData"))[,scenario]
+scenarioListIMPACT <- keyVariable("scenarioListIMPACT")
 keepYearList  <- keyVariable("keepYearList")
 dt.regions.all <- getNewestVersion("dt.regions.all", fileloc("uData"))
 
@@ -40,7 +40,12 @@ createFood <- function(fileShortName, fileloc) {
 
 #' combine all relevant data tables for analysis
 combineIMPACTData <- function() {
-  dt.FoodAvail <- createFood("dt.FoodAvailability", fileloc("iData")) # created in dataPrep.IMPACT
+#  dt.FoodAvail <- createFood("dt.FoodAvailability", fileloc("iData")) # created in dataPrep.IMPACT
+
+  dt.FoodAvail <- readRDS(paste0(fileloc("iData"), "dt.FoodAvailability"))
+  dt.FoodAvail <- dt.FoodAvail[IMPACT_code %in% IMPACTfoodCommodList &
+                                 year %in% keepYearList]
+  
   # data.table::setkey(dt.FoodAvail, "scenario", "year", "region_code.IMPACT159", "IMPACT_code")
   
   # add fish and alcoholic beverages
@@ -54,10 +59,17 @@ combineIMPACTData <- function() {
   dtList <- list(dt.FoodAvail, dt.fishnAlcScenarios)
   dt.FoodAvail <- data.table::rbindlist(dtList, use.names = TRUE)
   #' now add the other variables
-  dt.PWX0.food <- createFood("dt.PWX0", fileloc("iData"))
-  dt.PCX0.food <- createFood("dt.PCX0", fileloc("iData"))
-  # dt.pcGDPX0 <- createFood("dt.pcGDPX0") can't do this because dt.pcGDPX0 doesn't include IMPACT_code
-  dt.pcGDPX0 <- getNewestVersion("dt.pcGDPX0", fileloc("iData"))
+#  dt.PWX0.food <- createFood("dt.PWX0", fileloc("iData"))
+  dt.PWX0.food <- readRDS(paste0(fileloc("iData"), "dt.PWX0"))
+  dt.PWX0.food <- dt.PWX0.food[IMPACT_code %in% IMPACTfoodCommodList &
+             year %in% keepYearList]
+  #dt.PCX0.food <- createFood("dt.PCX0", fileloc("iData"))
+  dt.PCX0.food <- readRDS(paste0(fileloc("iData"), "dt.PCX0"))
+  dt.PCX0.food <- dt.PCX0.food[IMPACT_code %in% IMPACTfoodCommodList &
+                                 year %in% keepYearList]
+  
+ # dt.pcGDPX0 <- getNewestVersion("dt.pcGDPX0", fileloc("iData"))
+  dt.pcGDPX0 <- readRDS(paste0(fileloc("iData"), "dt.pcGDPX0"))
   dt.pcGDPX0 <- dt.pcGDPX0[year %in% keepYearList & scenario %in% scenarioListIMPACT,]
   
   data.table::setkeyv(dt.PCX0.food, c("scenario", "region_code.IMPACT159", "IMPACT_code", "year"))
