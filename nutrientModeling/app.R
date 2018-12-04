@@ -159,21 +159,27 @@ ui <- fluidPage(
           
           # food availability tab panel ------
           tabPanel(title = "Food Availability",
-                   sidebarLayout(
-                     sidebarPanel(width = 3,
-                                  selectizeInput(inputId = "availabilityCountryName", label = "Choose country",
-                                                 choices = countryNames,
-                                                 options = list(placeholder = "Select country")),
-                                  
-                                  # selectizeInput(inputId = "availabilityScenarioName", label = "Choose a scenario (see definition in glossary)",
-                                  #                choices = scenarioNames),
-                                  downloadButton("downloadData.avail", "Download")),
-                     mainPanel(titlePanel("Average daily food availability by food group"),
-                               includeHTML("www/availabilityText.html"),
-                               radioButtons("availabilityScenarioName", "Choose scenario (See glossary for details):",
-                                            list("SSP2_NoCC", "SSP2_HGEM", "SSP1_NoCC", "SSP3_NoCC"), inline = TRUE),
-                               ggiraphOutput("availabilitySpiderGraphP1", height = "400px"),
-                               DT::dataTableOutput("availabilityTableP1")))),
+                   verticalLayout(
+                     # sidebarPanel(width = 1,
+                     #              
+                     #              
+                     #              # selectizeInput(inputId = "availabilityScenarioName", label = "Choose a scenario (see definition in glossary)",
+                     #              #                choices = scenarioNames),
+                     #              ,
+                     #                   mainPanel(
+                     titlePanel("Average daily food availability by food group"),
+                     includeHTML("www/availabilityText.html"),
+                     selectizeInput(inputId = "availabilityCountryName", label = "Choose country",
+                                    choices = countryNames,
+                                    options = list(placeholder = "Select country")),
+                     # radioButtons("availabilityScenarioName", "Choose scenario (See glossary for details):",
+                     #              list("SSP2_NoCC", "SSP2_HGEM", "SSP1_NoCC", "SSP3_NoCC"), inline = TRUE),
+                     #                            ggiraphOutput("availabilitySpiderGraphP1", height = "600px", width = "100%"),
+                     ggiraphOutput("availabilitySpiderGraphP1", height = "700px"),
+                     
+                     DT::dataTableOutput("availabilityTableP1"),
+                     downloadButton("downloadData.avail", "Download")
+                   )),
           
           # nutrient availability by food group tab panel ------
           tabPanel(title = "Nutrient availability",
@@ -185,39 +191,39 @@ ui <- fluidPage(
                      mainPanel(titlePanel("Nutrient availability"),
                                includeHTML("www/foodGroupSpiderGraphText.html"),
                                div(radioButtons("FGscenarioName", "Choose scenario (See glossary for details):", 
-                                            list("SSP2_NoCC", "SSP2_HGEM", "SSP1_NoCC", "SSP3_NoCC"), inline = TRUE),  style="display:center-align"),
+                                                list("SSP2_NoCC", "SSP2_HGEM", "SSP1_NoCC", "SSP3_NoCC"), inline = TRUE),  style="display:center-align"),
                                uiOutput("plot.NutAvailFGbarGraphP1"),
                                DT::dataTableOutput("NutAvailFGTable"),
                                includeHTML("www/nutrientDescription.html")))),
           
           #nutrient adequacy tab panel -----
           tabPanel(title = "Nutrient Adequacy",
-                   sidebarLayout(
-                     sidebarPanel(width = 2,
-                                  selectizeInput(inputId = "adequacyCountryName", label = "Choose country", choices = countryNames),
-                                  downloadButton("downloadData.adequacy.macro", "Macro"),
-                                  downloadButton("downloadData.adequacy.vits", "Vitamins"),
-                                  downloadButton("downloadData.adequacy.minrls", "Minerals"),
-                                  downloadButton("downloadData.energyRat", "Energy share"),
-                                  downloadButton("downloadData.energyQ", "Kcals")
-                     ),
-                     mainPanel(titlePanel("Nutrient adequacy and kilocalorie availability"), width = 10,
-                               includeHTML("www/adequacyText.html"),
-                               fluidRow(
-                                 column(width = 12, plotOutput("adequacySpiderGraphtot", height = "400px"))),
-                               fluidRow(
-                                 column(width = 2,  radioButtons("adequacyScenarioName", "Choose scenario",
-                                                                 list("SSP2_NoCC", "SSP2_HGEM", "SSP1_NoCC", "SSP3_NoCC"), inline = TRUE)),
-                                 column(width = 5, plotOutput("energyQuantityBarPlot", height = "200px")),
-                                 column(width = 5, plotOutput("energyShareBarPlot", height = "200px"))),
-                               fluidRow(
-                                 column(width = 12, DT::dataTableOutput("adequacyTableTot"))),
-                               fluidRow(
-                                 column(width = 12, DT::dataTableOutput("energyQuantityTable"))),
-                               fluidRow(
-                                 column(width = 12, DT::dataTableOutput("energyShareTable")))))),
+                   verticalLayout(
+                     titlePanel("Nutrient adequacy and kilocalorie availability"),
+                     includeHTML("www/adequacyText.html"),
+                     selectizeInput(inputId = "adequacyCountryName", label = "Choose country", choices = countryNames),
+                  column(width = 12, ggiraphOutput("adequacySpiderGraphtot", height = "700px")),
+                     fluidRow(
+                       column(width = 2,  radioButtons("adequacyScenarioName", "Choose scenario",
+                                                       list("SSP2_NoCC", "SSP2_HGEM", "SSP1_NoCC", "SSP3_NoCC"), inline = TRUE)),
+                       column(width = 5, plotOutput("energyQuantityBarPlot", height = "200px")),
+                       column(width = 5, plotOutput("energyShareBarPlot", height = "200px"))),
+                     fluidRow(
+                       column(width = 12, DT::dataTableOutput("adequacyTableTot"))),
+                     fluidRow(
+                       column(width = 12, DT::dataTableOutput("energyQuantityTable"))),
+                     fluidRow(
+                       column(width = 12, DT::dataTableOutput("energyShareTable"))),
+                     fluidRow(
+                       column(width = 2, downloadButton("downloadData.adequacy.macro", "Macro")),
+                       column(width = 2, downloadButton("downloadData.adequacy.vits", "Vitamins")),
+                       column(width = 2, downloadButton("downloadData.adequacy.minrls", "Minerals")),
+                       column(width = 2, downloadButton("downloadData.energyRat", "Energy share")),
+                       column(width = 2, downloadButton("downloadData.energyQ", "Kcals"))
+                     )
+                   )),
           
-          # Adequacy tab panel ------
+          # Nutrient quality tab panel ------
           tabPanel(title = "Nutrient Quality",
                    tabsetPanel(
                      
@@ -289,7 +295,7 @@ ui <- fluidPage(
                                   DT::dataTableOutput("RaosQETable")))))),
           # glossary tab panel ------
           tabPanel(title = "Glossary",
-                   mainPanel(
+                   verticalLayout(
                      titlePanel("Glossary"),
                      includeHTML("www/glossaryText.html"))),
           
@@ -312,39 +318,41 @@ ui <- fluidPage(
               # Metadata tab panel -----
               tabPanel(
                 title = "Files",
-                mainPanel(
+                verticalLayout(
                   titlePanel("Information on file content for developers"),
                   fluidRow(column(width = 12, div(DT::dataTableOutput("metadataTable"), style = "font-size:80%", family = fontFamily))))),
               # IMPACT metadata tab panel -----
-              tabPanel(title = "IMPACT metadata",
-                       mainPanel(
-                         titlePanel("IMPACT metadata"),
+              tabPanel(title = "Region definitions",
+                       verticalLayout(
+                         titlePanel("Region names and codes"),
                          fluidRow(column(width = 12, div(DT::dataTableOutput("IMPACTmetadataTable"), style = "font-size:80%", family = fontFamily))))),
               # Foodgroup lookup panel -----
               tabPanel(title = "Food group lookup table",
-                       mainPanel(
+                       verticalLayout(
                          titlePanel("Food group lookup table"),
                          fluidRow(column(width = 12, div(DT::dataTableOutput("IMPACTfoodgroupTable"), style = "font-size:80%", family = fontFamily))))),
               # nutrient lookup -----
               tabPanel(title = "Nutrient lookup table",
-                       mainPanel(
+                       verticalLayout(
                          titlePanel("Nutrient lookup table"),
                          includeHTML("www/nutrientLookupText.html"),
-                         downloadButton("downloadData.nutrients.adj", "Download"),
-                         fluidRow(column(width = 12, div(DT::dataTableOutput("nutrientLookup"), style = "font-size:80%", family = fontFamily))))),
+                      
+                         fluidRow(column(width = 12, div(DT::dataTableOutput("nutrientLookup"), style = "font-size:80%", family = fontFamily))),
+                         downloadButton("downloadData.nutrients.adj", "Download")
+                         )),
               # File documentation -----
               tabPanel(title = "File documentation",
-                       mainPanel(
+                       verticalLayout(
                          titlePanel("File documentation"),
                          fluidRow(column(width = 12, div(DT::dataTableOutput("fileDocumentation"), style = "font-size:80%", family = fontFamily))))))),
           # Acknowledgements -----
           tabPanel(title = "Acknowledgements",
-                   mainPanel(
+                   verticalLayout(
                      includeHTML("www/acknowledgementsText.html"))),
           tabPanel(title = "For further information",
-                   mainPanel(
+                   verticalLayout(
                      includeHTML("www/furtherInformation.html")))
-        )
+        ) 
     )
   )
 )
@@ -418,15 +426,15 @@ server <- function(input, output, session) {
     countryName <- input$availabilityCountryName
     scenarioName <- input$availabilityScenarioName
     dt <- copy(dt.foodAvail_foodGroup.var)
-    spiderData <- spiderGraphData(countryName, scenarioName, dt, displayColumnName = "food_group_code")
+    spiderData <- spiderGraphData3(countryName, dt, displayColumnName = "food_group_code")
   })
   
-  # food adequacyreactive -----
+  # food adequacy reactive -----
   data.adequacy.tot <- reactive({
     countryName <- input$adequacyCountryName
-    scenarioName <- input$adequacyScenarioName
+    #    scenarioName <- input$adequacyScenarioName
     reqType <- reqRatio_sum_RDA
-    reqType <- reqType[scenario %in% scenarioNames]
+    #   reqType <- reqType[scenario %in% scenarioNames]
     dt <- copy(reqType)
     spiderData <- spiderGraphData2(countryName, dt, displayColumnName = "nutrient")
   })
@@ -622,11 +630,11 @@ server <- function(input, output, session) {
   
   # availability graph server side -----
   output$availabilitySpiderGraphP1 <- renderggiraph({
-    dt <- as.data.table(copy(data.foodAvail())) # I don't understand how this becomes a dataframe
-    scenarioName <- unique(dt$scenario)
+    dt <- copy(data.foodAvail()) # this became a dataframe in the old ggplot2 code. I think I have fixed this. Dec 3, 2018
+    #   scenarioName <- unique(dt$scenario)
     data.table::setnames(dt, old = codeNames.foodGroups, new = foodGroupNamesWrap)
-    p <- spiderGraphOutput(dt, scenarioName)
-    ggiraph(code = print(p), zoom_max = 1, selection_type = "single")
+    p <- spiderGraphOutput(spiderData = dt, nrow = 2)
+    #    ggiraph(code = print(p), zoom_max = 1, selection_type = "single")
   })
   
   # availability table server side -----
@@ -652,7 +660,7 @@ server <- function(input, output, session) {
   )
   
   # adequacy graphs server side -----
-  output$adequacySpiderGraphtot <- renderPlot({
+  output$adequacySpiderGraphtot <- renderggiraph({
     dt <- as.data.table(copy(data.adequacy.tot()))
     # order of nutrients in the spider graph
     newOrder <- c("scenario", "region_code.IMPACT159", "nutrientType", "year", 
@@ -663,8 +671,9 @@ server <- function(input, output, session) {
     setcolorder(dt, neworder = newOrder)
     scenarioName <- input$adequacyScenarioName
     data.table::setnames(dt, old = codeNames.tot, new = nutNamesNoUnitsWrap)
-    p <- spiderGraphOutput(spiderData = dt, scenarioName)
-    print(p)
+    p <- spiderGraphOutput(spiderData = dt, nrow = 2)
+    
+    #   print(p)
   })
   
   output$adequacySpiderGraphP1 <- renderPlot({
@@ -782,10 +791,10 @@ server <- function(input, output, session) {
     p <- ggplot(dt, aes(x = year, y = value, tooltip = value, fill = nutrient, order = c("region_name") )) +
       geom_bar_interactive(stat = "identity") +
       theme(axis.title.y = element_text(family = fontFamily, face = "plain"))
-    p <- p + theme(plot.title = element_text(hjust = 0.5, size = 12, family = fontFamily,
+    p <- p + theme(plot.title = element_text(hjust = 0.5, size = 10, family = fontFamily,
                                              face = "plain")) + ggtitle(titleText)
-    p <- p + theme(axis.text = element_text(size = 12, family = fontFamily, face = "plain"))
-    p <- p + theme(legend.text = element_text(size = 12, family = fontFamily, face = "plain")) +
+    p <- p + theme(axis.text = element_text(size = 10, family = fontFamily, face = "plain"))
+    p <- p + theme(legend.text = element_text(size = 10, family = fontFamily, face = "plain")) +
       labs(y = yLab, x = NULL)
     print(p)
   })
@@ -797,15 +806,15 @@ server <- function(input, output, session) {
     countryCode <- unique(dt$region_code.IMPACT159)
     countryName <- countryNameLookup(countryCode)
     # colors_in <- c( "gray", "green", "blue", "red", "yellow" )
-    titleText <- paste("Average daily availability of kilocalories\n", "Country:", countryName," Scenario:", scenarioName)
+    titleText <- paste("Average daily kilocalory availability\n", countryName,", Scenario:", scenarioName)
     yLab <- "(kcals)"
     p <- ggplot(dt, aes(x = year, y = value, tooltip = value, fill = nutrient, order = c("region_name") )) +
       geom_bar_interactive(stat = "identity") +
       theme(axis.title.y = element_text(family = fontFamily, face = "plain"))
-    p <- p + theme(plot.title = element_text(hjust = 0.5, size = 12, family = fontFamily,
+    p <- p + theme(plot.title = element_text(hjust = 0.5, size = 10, family = fontFamily,
                                              face = "plain")) + ggtitle(titleText)
-    p <- p + theme(axis.text = element_text(size = 12, family = fontFamily, face = "plain"))
-    p <- p + theme(legend.text = element_text(size = 12, family = fontFamily, face = "plain")) +
+    p <- p + theme(axis.text = element_text(size = 10, family = fontFamily, face = "plain"))
+    p <- p + theme(legend.text = element_text(size = 10, family = fontFamily, face = "plain")) +
       labs(y = yLab, x = NULL)
     print(p)
   })
@@ -1065,7 +1074,7 @@ server <- function(input, output, session) {
   
   # IMPACTmetadataTable ------
   output$IMPACTmetadataTable <- DT::renderDataTable({
- #   dt <- getNewestVersion("dt.IMPACTgdxParams", fileloc("mData"))
+    #   dt <- getNewestVersion("dt.IMPACTgdxParams", fileloc("mData"))
     dt <- DT::datatable(dt, rownames = FALSE, options = list(pageLength = 25))
   })
   

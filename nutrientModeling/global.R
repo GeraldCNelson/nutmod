@@ -23,7 +23,7 @@ ggRadar2 <- function (data, mapping = NULL, rescale = TRUE, legend.position = "t
                       colour = "red", alpha = 0.3, size = 3, ylim = NULL, scales = "fixed", 
                       use.label = FALSE, interactive = FALSE, nrow = 1, ...) 
 {
-  data = as.data.frame(data)
+  dt = copy(data)
   (groupname = setdiff(names(mapping), c("x", "y")))
   groupname
   mapping
@@ -41,7 +41,7 @@ ggRadar2 <- function (data, mapping = NULL, rescale = TRUE, legend.position = "t
   (colorname = setdiff(groupvar, facetname))
   if ((length(colorname) == 0) & !is.null(facetname)) 
     colorname <- facetname
-  data = num2factorDf(data, groupvar)
+  dt = num2factorDf(dt, groupvar)
   (select = sapply(data, is.numeric))
   if ("x" %in% names(mapping)) {
     xvars = getMapping(mapping, "x")
@@ -49,20 +49,20 @@ ggRadar2 <- function (data, mapping = NULL, rescale = TRUE, legend.position = "t
     if (length(xvars) < 3) 
       warning("At least three variables are required")
   } else {
-    xvars = colnames(data)[select]
+    xvars = colnames(dt)[select]
   }
   (xvars = setdiff(xvars, groupvar))
   if (rescale) 
-    data = rescale_df(data, groupvar)
-  temp = sjlabelled::get_label(data)
-  cols = ifelse(temp == "", colnames(data), temp)
+    dt = rescale_df(dt, groupvar)
+  temp = sjlabelled::get_label(dt)
+  cols = ifelse(temp == "", colnames(dt), temp)
   if (is.null(groupvar)) {
-    id = newColName(data)
-    data[[id]] = 1
-    longdf = reshape2::melt(data, id.vars = id, measure.vars = xvars)
+    id = newColName(dt)
+    dt[[id]] = 1
+    longdf = reshape2::melt(dt, id.vars = id, measure.vars = xvars)
   } else {
     cols = setdiff(cols, groupvar)
-    longdf = reshape2::melt(data, id.vars = groupvar, measure.vars = xvars)
+    longdf = reshape2::melt(dt, id.vars = groupvar, measure.vars = xvars)
   }
   temp = paste0("ddply(longdf,c(groupvar,'variable'),summarize,mean=mean(value,na.rm=TRUE))")
   df = eval(parse(text = temp))
@@ -76,50 +76,58 @@ ggRadar2 <- function (data, mapping = NULL, rescale = TRUE, legend.position = "t
     df[[id3]] = 1:nrow(df)
     df$tooltip = paste0(df$variable, "=", round(df$value, 1))
     df$tooltip2 = paste0("all")
-    p <- ggplot(data = df, aes_string(x = "variable", y = "value", 
-                                      group = 1)) + 
-#      geom_point_interactive(aes_string(tooltip = tooltip2, colour = colour, fill = colour, alpha = alpha, size = size)) + theme_minimal()
+    p <- ggplot(dt = df, aes_string(x = "variable", y = "value", 
+                                    group = 1)) + 
+      geom_point_interactive(aes_string(data_id = id3,  tooltip = "tooltip"), colour = colour, size = size)
+    cat("first p:", str(p))
     
-  #     geom_polygon_interactive(aes_string(tooltip = "tooltip2"), 
-  #                              colour = colour, fill = colour, alpha = alpha) + 
-       geom_point_interactive(aes_string(data_id = id3,  tooltip = "tooltip"), colour = colour, size = size)
-  # } else {
+  } else {
     if (!is.null(colorname)) {
       id2 = newColName(df)
       df[[id2]] = df[[colorname]]
     }
     id3 = newColName(df)
-    print(id3)
+    #   cat("id3", id3)
     df[[id3]] = 1:nrow(df)
     df$tooltip = paste0(groupvar, "=", df[[colorname]], "<br>", 
                         df$variable, "=", round(df$value, 1))
     df$tooltip2 = paste0(groupvar, "=", df[[colorname]])
-    print(head(df))
-  
-    p <- ggplot(data = df, aes_string(x = "variable", y = "value", 
-                                      colour = colorname, fill = colorname, group = colorname)) + 
-      # geom_polygon_interactive(aes_string(tooltip = "tooltip2"), 
-      #                          alpha = alpha) + 
-       geom_point_interactive(aes_string(data_id = id3, tooltip = "tooltip"), size = size) +
- #     geom_vline(xintercept = 1, color = "red", size=1) +
-      # added Dec 1, 2018 to get rid of background
+    #    print(head(df))
+    
+    p <- ggplot(data = df, aes_string(x = "variable", y = "value", colour = colorname, fill = colorname, group = colorname)) + 
+      geom_polygon_interactive(aes_string(tooltip = "tooltip2"), alpha = alpha) + 
+      geom_point_interactive(aes_string(data_id = id3, tooltip = "tooltip"), size = size) 
+    #   cat("second p:", str(p))
+    p <- p +
       theme( 
-   #     panel.grid.major.x = element_blank() ,
+        #     panel.grid.major.x = element_blank() ,
         panel.grid.major.y = element_line( size=.1, color="black" ), #y is the circles
         panel.grid.major.x = element_line( size=.1, color="black" ), # x is the lines for the origin out
         panel.background = element_blank()
         # to here
       ) 
+    p <- p + theme(panel.spacing.x=unit(50, "lines"))
+    p <- p + theme(strip.text.x = element_text(size = 6, family = fontFamily, face = "plain"))
+    p <- p + theme_minimal() +
+      theme(text = element_text(size=7))
+    p <- p + theme(panel.spacing.x=unit(3, "lines"))
+    
+            # , # custom font size
+            # axis.text.y = element_blank())
+            # 
   }
   p
+  # cat("str p: ", str(p))
   if (!is.null(facetname)) {
     formula1 = as.formula(paste0("~", facetname))
-    p <- p + facet_wrap(formula1, scales = scales, nrow = 1)
+    p <- p + facet_wrap(formula1, scales = scales, nrow = nrow)
   }
-  p <- p + xlab("") + ylab("") + theme(legend.position = legend.position)
-  if (use.label) 
-    p <- p + scale_x_discrete(labels = cols)
+  # cat("str p 2: ", str(p))
+  p <- p + xlab("") + ylab("") 
+  p <- p + theme(legend.position = legend.position)
+  if (use.label) p <- p + scale_x_discrete(labels = cols)
   p <- p + coord_radar()
+#  p <- p + ggtitle(titleText)
   if (!is.null(ylim)) 
     p <- p + expand_limits(y = ylim)
   p
@@ -127,12 +135,16 @@ ggRadar2 <- function (data, mapping = NULL, rescale = TRUE, legend.position = "t
     # tooltip_css <- "background-color:white;font-style:italic;padding:10px;border-radius:10px 20px 10px 20px;"
     # hover_css = "r:4px;cursor:pointer;stroke-width:6px;"
     # selected_css = "fill:#FF3333;stroke:black;"
-     p <- girafe(code = print(p))
+    p <- girafe(code = print(p))
+#    p <- girafe(code = (p))
+    p <- girafe_options(p, opts_selection(type = "none",
+                   css = ""))
+                
     # , tooltip_extra_css = tooltip_css, 
     #              tooltip_opacity = 0.75, zoom_max = 10, hover_css = hover_css, 
     #              selected_css = selected_css)
   }
-  p
+  print(p)
 }
 
 generateBreakValues <- function(fillLimits, decimals) {
@@ -374,7 +386,8 @@ fmt_dcimals <- function(decimals=0){
 years <- c("X2010", "X2030", "X2050")
 yearsClean <- gsub("X", "", years)
 fontFamily <- "Helvetica Neue"
-scenarioNames <- keyVariable("scenarioListIMPACT")
+
+scenarioNames <- c("SSP2_NoCC", "SSP2_HGEM", "SSP1_NoCC", "SSP3_NoCC")
 resultFileLookup <- getNewestVersion("resultFileLookup", fileloc("mData"))
 dt.regions.all <- getNewestVersion("dt.regions.all", fileloc("mData"))
 dt.regions.all[, region_name.IMPACT159 := gsub(" plus", "", region_name.IMPACT159)] # used to get to country code
@@ -409,6 +422,17 @@ spiderGraphData2 <- function(countryName, dt, displayColumnName) {
   return(dt)
 }
 
+spiderGraphData3 <- function(countryName, dt, displayColumnName) { # for food availability by food group
+  if (missing(displayColumnName)) displayColumnName <- "food_group_code"
+  countryCode <- countryCodeLookup(countryName, fileloc("mData"))
+  dt <- dt[region_code.IMPACT159 %in% countryCode,]
+  dt[, year := gsub("X", "", year)]
+  formula.wide <- sprintf("scenario + region_code.IMPACT159  + year ~ %s", displayColumnName)
+  dt <- dcast(data = dt, formula = formula.wide, value.var = "value")
+  return(dt)
+}
+
+
 graphData <- function(countryName, scenarioName, dt, displayColumnName) {
   if (missing(displayColumnName)) displayColumnName <- "nutrient"
   countryCode <- countryCodeLookup(countryName, fileloc("mData"))
@@ -419,18 +443,18 @@ graphData <- function(countryName, scenarioName, dt, displayColumnName) {
   return(dt)
 }
 
-spiderGraphOutput <- function(spiderData, scenarioName) {
+spiderGraphOutput <- function(spiderData, nrow) {
   countryCode <- unique(spiderData$region_code.IMPACT159)
   countryName <- countryNameLookup(countryCode)
   spiderData[, region_code.IMPACT159 := NULL]
-  titleText <- paste("Country: ", countryName)
-  p <- ggRadar2(data = spiderData, mapping = aes(colour = year, facet = "scenario"), nrow = 1, 
-                rescale = FALSE, interactive = TRUE, size = 1,
+  #  titleText <- paste("Country: ", countryName)
+  p <- ggRadar2(data = spiderData, mapping = aes(colour = year, facet = "scenario"), nrow = nrow, 
+                rescale = FALSE, interactive = TRUE, size = 2,
                 legend.position = "bottom")
-  p <- p + theme(plot.title = element_text(hjust = 0.5, size = 12, family = fontFamily,
-                                           face = "plain")) + ggtitle(titleText)
-  p <- p + theme(axis.text = element_text(size = 10, family = fontFamily, face = "plain"))
-  p <- p + theme(legend.text = element_text(size = 10, family = fontFamily, face = "plain"))
+  # p <- p + theme(plot.title = element_text(hjust = 0.5, size = 12, family = fontFamily,
+  #                                          face = "plain")) + ggtitle(titleText)
+  # p <- p + theme(axis.text = element_text(size = 10, family = fontFamily, face = "plain"))
+  # p <- p + theme(legend.text = element_text(size = 10, family = fontFamily, face = "plain"))
   return(p)
 }
 
