@@ -1,6 +1,7 @@
------
-
-# The nutrient modeling R project
+The nutrient modeling R project
+================
+Gerald C. Nelson
+December 14, 2018
 
 The goal of this project is to provide estimates of the nutritional
 consequences of changes arising in scenarios that combine socioeconomic
@@ -21,11 +22,13 @@ and climate futures to 2050. It integrates data from
 
 The results from this project are published in the following paper
 
-> Nelson, Gerald, Jessica Bogard, Keith Lividini, Joanne Arsenault,
-> Malcolm Riley, Timothy B. Sulser, Daniel Mason-D’Croz, et al. 2018.
-> “Income Growth and Climate Change Effects on Global Nutrition
-> Security to Mid-Century.” Nature Sustainability 1 (12). doi:
-> 10.1038/s41893-018-0192-z.
+> Paper reference: Nelson, Gerald, Jessica Bogard, Keith Lividini,
+> Joanne Arsenault, Malcolm Riley, Timothy B. Sulser, Daniel
+> Mason-D’Croz, Brendan Power, David Gustafson, Mario Herrero, Keith
+> Wiebe, Karen Cooper, Roseline Remans, Mark Rosegrant, 2018. “Income
+> Growth and Climate Change Effects on Global Nutrition Security to
+> Mid-Century.” Nature Sustainability 1 (12).
+> <doi:10.1038/s41893-018-0192-z>.
 
 The `automate.R` script executes each script in the order needed to
 generate output used in the Nature Sustainability paper. Each script can
@@ -105,5 +108,3 @@ suffix. An example is `metaData.2018-04-17.xlsx`.
     nutrient to the total consumed
   - nutrient.req.ratio \[.all, .staple, .foodGroup\] — The ratio of a
     nutrient to the the daily requirement
-
-render(“Readme.rmd”, md\_document(variant = “gfm”))
