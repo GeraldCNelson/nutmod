@@ -3,6 +3,8 @@ The nutrient modeling R project
 Gerald C. Nelson
 December 14, 2018
 
+[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.2280474.svg)](https://doi.org/10.5281/zenodo.2280474)
+
 The goal of this project is to provide estimates of the nutritional
 consequences of changes arising in scenarios that combine socioeconomic
 and climate futures to 2050. It integrates data from
