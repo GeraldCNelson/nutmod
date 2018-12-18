@@ -41,7 +41,7 @@ list.of.packages <- c("data.table", "openxlsx", "dplyr", "dtplyr", "utils",  "st
                       "gridExtra","gplots", "RColorBrewer", "RODBC", "tidyverse", "sp", "broom", "rgeos", "rgdal", 
                       "ggthemes", "qdapRegex", "gtools", "Cairo", "extrafont")
 new.packages <- list.of.packages[!(list.of.packages %in% installed.packages()[,"Package"])]
-if (length(new.packages)) install.packages(new.packages)
+if (length(new.packages)) install.packages(new.packages, dependencies = TRUE)
 
 cat("\nThe packages below are needed and currently available on CRAN or by downloading from github.\n")
 cat("\nThis set of scripts needs version 1.9.7 or greater of the data.table package. Version", as.character(packageVersion("data.table")), "is currently being used.\n")
