@@ -86,14 +86,14 @@ sourcer(sourceFile) # reads in nutrient data from the USDA nutrient composition 
 sourceFile <- "dataManagement.Pop.R" #name changed from dataManagement.SSPPop.R Oct 5, 2018 to reflect the fact that this also handles the combine UN/SSP age gender info
 sourcer(sourceFile) # mData - Nutrient requirements adjusted for population distribution, example is req.EAR.percap.2016-06-24.rds
 
- sourceFile <- "dataPrep.IMPACT.R" 
- sourcer(sourceFile)
+ # sourceFile <- "dataPrep.IMPACT.R" 
+ # sourcer(sourceFile)
 # - creates files in iData
 # paste(dt,varName, sep = ".") - one file for each IMPACT variable, example is perCapKcalPerDay.2016-06-21.rds
 # dt.foodAvailability is created here. Just has food availability from gdx. dt.IMPACTfood adds the fish and alcoholic beverages
 
-sourceFile <- "dataManagement.IMPACT.R"
-sourcer(sourceFile) # adds fish and alcohol data, writes out IMPACT variables just for food items (names begin with c), and dt.IMPACTfood file
+# sourceFile <- "dataManagement.IMPACT.R"
+# sourcer(sourceFile) # adds fish and alcohol data, writes out IMPACT variables just for food items (names begin with c), and dt.IMPACTfood file
 # Key output is dt.IMPACTfood
 #dt.IMPACTfood, iData
 
