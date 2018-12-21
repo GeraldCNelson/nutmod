@@ -39,7 +39,7 @@ sourceFile <- "automate.R"
 #                       "gridExtra","gplots", "RColorBrewer", "RODBC")
 list.of.packages <- c("data.table", "openxlsx", "dplyr", "dtplyr", "utils",  "stringi", "splitstackshape",
                       "gridExtra","gplots", "RColorBrewer", "RODBC", "tidyverse", "sp", "broom", "rgeos", "rgdal", 
-                      "ggthemes", "qdapRegex", "gtools", "Cairo", "extrafont")
+                      "ggthemes", "qdapRegex", "gtools", "Cairo", "extrafont", "staplr")
 new.packages <- list.of.packages[!(list.of.packages %in% installed.packages()[,"Package"])]
 if (length(new.packages)) install.packages(new.packages, dependencies = TRUE)
 

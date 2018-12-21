@@ -114,6 +114,8 @@ gc(verbose = FALSE) # garbage collection Not sure this makes any difference
 newFile <- paste("graphsListHolder", suffix, sep = ".")
 graphsListHolder <- getNewestVersion(fileShortName = newFile, directory = fileloc("gDir"), fileType = "rds")
 finalDir <- paste0(fileloc("gDir"),"/final/")
+createMissingDir(fileloc(finalDir)) # checks for the existence of the directory and if its not available, creates it Dec 21, 2018
+
 # get the names of all the graphs in the graphsListerHolder file
 graphNames <- names(graphsListHolder)
 
