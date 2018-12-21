@@ -63,7 +63,7 @@ namesToChange <- c("pcGDPX0", "budget", "incShare")
 setnames(dt_wGlobe, old = namesToChange, new = paste0(namesToChange, "_wGlobe"))
 
 dt <- merge(dt_woGlobe, dt_wGlobe, by = c("region_code.IMPACT159", "year"))
-write.csv(dt, file = "data/IMPACTData/singleScenario/combinedResults.csv")
+# write.csv(dt, file = "data/IMPACTData/singleScenario/combinedResults.csv") commented out because not used elsewhere Dec 21, 2018
 
 dt <- dt[!region_code.IMPACT159 %in% "SOM",]
 dt.50 <- dt[year %in% "X2050",]
