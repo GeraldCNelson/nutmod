@@ -359,23 +359,23 @@ adjustBioavailability <- function(dt.foodNnuts) {
   keepListCol <- c("scenario","region_code.IMPACT159", "year", "sum.zinc_mg", "sum.phytate_mg", "bioavailability.zinc")
   dt.bioavail_zinc[, setdiff(names(dt.bioavail_zinc), keepListCol) := NULL]
 
-  #' do some graphing
-  dt.regions <- regionAgg("WB")
-  scenChoice <- "SSP1_NoCC"
-  gyear <- "X2010"
-  mainTitle <- paste("Dietary zinc vs dietary phytate;\n ", "scenario - ", scenChoice, ", year - ", gyear, sep = "")
-  temp.all <- merge( dt.bioavail_zinc, dt.regions, by = "region_code.IMPACT159")
-  pdf(paste(fileloc("gDir"), "/phytatePlot",gyear,".pdf", sep = ""))
-  par(mai = c(.8,1,0.8,.5),oma = c(1,1,2,1), mfrow = c(2,2))
-  for (i in unique(temp.all$region_code)) {
-    gTitle <- paste("Income group - ", i, sep = "")
-    temp <- temp.all[region_code %in% i & scenario %in% "SSP1-NoCC-REF" & year %in% "X2050",]
-    plot(temp$sum.zinc_mg, temp$sum.phytate_mg, type = "p", main = gTitle,
-         xlab = "Dietary zinc (mg)", ylab = "Dietary phytate (mg)", ylim = c(800,8000),
-         xlim = c(0,30), pch = 16, cex = .7)
-  }
-  mtext(mainTitle, outer = TRUE, cex = 1)
-  dev.off()
+  #' do some graphing. As of Dec 21, 2018 this is not working (probably earlier as well) so commenting out.
+  # dt.regions <- regionAgg("WB")
+  # scenChoice <- "SSP1_NoCC"
+  # gyear <- "X2010"
+  # mainTitle <- paste("Dietary zinc vs dietary phytate;\n ", "scenario - ", scenChoice, ", year - ", gyear, sep = "")
+  # temp.all <- merge( dt.bioavail_zinc, dt.regions, by = "region_code.IMPACT159")
+  # pdf(paste(fileloc("gDir"), "/phytatePlot",gyear,".pdf", sep = ""))
+  # par(mai = c(.8,1,0.8,.5),oma = c(1,1,2,1), mfrow = c(2,2))
+  # for (i in unique(temp.all$region_code)) {
+  #   gTitle <- paste("Income group - ", i, sep = "")
+  #   temp <- temp.all[region_code %in% i & scenario %in% "SSP1-NoCC-REF" & year %in% "X2050",]
+  #   plot(temp$sum.zinc_mg, temp$sum.phytate_mg, type = "p", main = gTitle,
+  #        xlab = "Dietary zinc (mg)", ylab = "Dietary phytate (mg)", ylim = c(800,8000),
+  #        xlim = c(0,30), pch = 16, cex = .7)
+  # }
+  # mtext(mainTitle, outer = TRUE, cex = 1)
+  # dev.off()
   #' get rid of dietary zinc and phytate in dt.bioavail_zinc. Only needed for graphing above
   dt.bioavail_zinc[, c("sum.phytate_mg", "sum.zinc_mg") := NULL]
   dt.bioavail_zinc <- unique(dt.bioavail_zinc)
