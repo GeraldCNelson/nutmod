@@ -57,7 +57,7 @@ sourcer <- function(sourceFile){
 }
 
 createMissingDir <- function(dirNeeded)
-  if (!dir.exists(dirNeeded)) dir.create(dirNeeded)
+  if (!dir.exists(dirNeeded)) {dir.create(dirNeeded)}
 
 #'fileloc directory locations for files
 #'
