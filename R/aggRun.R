@@ -623,6 +623,22 @@ displayOrder <- keepListNutsNames
 fileName <- paste(gdxChoice, "_", l, "_", "facetmap", "_", "nutReqRatio", "_", "2050", "_", "CC", ".", suffix, sep = "")
 facetMaps(mapFile = projmap, DTfacetMap = temp, fileName, legendText, fillLimits, palette, facetColName, graphsListHolder, displayOrder)
 
+# do maps one nutrient at a time
+facetColName <- "nutrient"
+legendText <- "Adequacy ratio, 2050, \nwith climate change"
+fillLimits <- c(0, 3) # changed from 5, May 29, 2018
+temp <- truncateDT(DT, fillLimits)
+temp <- temp[scenario %in% scenario.base.CC,]
+paletteType <- "Spectral"
+myPalette <- colorRampPalette(brewer.pal(11, paletteType))
+palette <- myPalette(4)
+displayOrder <- keepListNutsNames
+
+fileName <- paste(gdxChoice, "_", l, "_", "facetmap", "_", "nutReqRatio", "_", "2050", "_", "CC", ".", suffix, sep = "")
+
+
+# end of do maps one nutrient at a time
+
 # convert to wide to do operations aross scenarios for 2050
 formula.wide <- "id + nutrient ~ scenario"
 DT.wide <- data.table::dcast(

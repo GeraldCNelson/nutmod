@@ -1180,6 +1180,7 @@ facetMaps <- function(mapFile, DTfacetMap, fileName, legendText, fillLimits, pal
   
   graphsListHolder[[fileName]] <- gg
   assign("graphsListHolder", graphsListHolder, envir = .GlobalEnv)
+  createMissingDir(fileloc("gDir")) # checks for the existence of the directory and if its not available, creates it Dec 21, 2018
   ggsave(file = paste0(fileloc("gDir"),"/",fileName,".png"), plot = gg,
          width = width, height = height)
   # use scenarios as columns. Not sure this will work for all files. Oct 22, 2018
