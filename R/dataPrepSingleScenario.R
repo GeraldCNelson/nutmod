@@ -18,7 +18,7 @@
 #' calculates the effects on the food budget share.
 #' @name dataPrep.SingleScenario.R
 #' @include nutrientModFunctions.R
-library(gdxrrw)
+# library(gdxrrw) Not needed because relevant data already extracted from the gdx. Dec 21, 2018
 library(RColorBrewer)
 source("R/nutrientModFunctions.R")
 sourceFile <- "dataPrepSingleScenario.R"
