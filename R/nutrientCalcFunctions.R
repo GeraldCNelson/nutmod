@@ -361,7 +361,7 @@ adjustBioavailability <- function(dt.foodNnuts) {
 
   #' do some graphing
   dt.regions <- regionAgg("WB")
-  scenChoice <- "SSP1-NoCC-REF"
+  scenChoice <- "SSP1_NoCC"
   gyear <- "X2010"
   mainTitle <- paste("Dietary zinc vs dietary phytate;\n ", "scenario - ", scenChoice, ", year - ", gyear, sep = "")
   temp.all <- merge( dt.bioavail_zinc, dt.regions, by = "region_code.IMPACT159")
