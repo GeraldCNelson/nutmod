@@ -48,17 +48,23 @@ dt.IMPACTSingleCodeLU <- dt.IMPACTSingleCodeLU[is.na(IMPACT_conversion), IMPACT_
 dt.fishStatData <- getNewestVersion("dt.fishStatData", fileloc("iData"))
 dt.compositesLU.fish <- copy(dt.fishStatData)
 dt.compositesLU.fish[, c("prodAve", "region_code.IMPACT159") := NULL]
-dt.compositesLU.nofish <- data.table::as.data.table(read_excel("data-raw/NutrientData/nutrientDetails/composites.lookup.nofish.xlsx",
-                                                               col_types = c("text", "text", "skip",
-                                                                             "numeric", "skip", "numeric", "text",
-                                                                             "skip", "text", "skip")))
-dt.compositesLU.nofish <- dt.compositesLU.nofish[include == 1,]
-dt.compositesLU.nofish[, include := NULL]
 
+# this code used to generate the RDS file and so is commented out. Dec 20, 2018
+# dt.compositesLU.nofish <- data.table::as.data.table(read_excel("data-raw/NutrientData/nutrientDetails/composites.lookup.nofish.xlsx",
+#                                                                col_types = c("text", "text", "skip",
+#                                                                              "numeric", "skip", "numeric", "text",
+#                                                                              "skip", "text", "skip")))
+# dt.compositesLU.nofish <- dt.compositesLU.nofish[include == 1,]
+# dt.compositesLU.nofish[, include := NULL]
+# desc <- "The excel file dt.compositesLU.nofish converted to .rds to speed up reading it in."
+# inDT <- dt.compositesLU.nofish
+# outName <- "dt.compositesLU.nofish"
+# cleanup(inDT, outName, fileloc("iData"), desc = desc)
 # dt.compositesLU.nofish <- data.table::as.data.table(openxlsx::read.xlsx("data-raw/NutrientData/nutrientDetails/composites.lookup.nofish.xlsx", cols = 1:7))
 # the fish data include an extra column used to calculate the edible share. The data for conversion are from an FAO data set called Indicative factors for
 # converting prodcut weight to live weight for a selection of major fishery commodities; the pdf is call FAO_ANNEX_I1_fish edible portions.pdf
 # dt.compositesLU.fish <- data.table::as.data.table(openxlsx::read.xlsx("data-raw/NutrientData/nutrientDetails/composites.lookup.fish.xlsx", cols = 1:8))
+dt.compositesLU.nofish <- getNewestVersion("dt.compositesLU.nofish", fileloc("iData"))
 dt.compositesLU <- rbind(dt.compositesLU.fish, dt.compositesLU.nofish)
 
 # get usda codes from the variety specific spreadsheet
