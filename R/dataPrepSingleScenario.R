@@ -61,7 +61,6 @@ dt_wGlobe <- merge(dt_wGlobe, dt.pcGDPX0.wGlobe, by = c("region_code.IMPACT159",
 dt_wGlobe[, incShare := 100 * budget / pcGDPX0 ]
 namesToChange <- c("pcGDPX0", "budget", "incShare")
 setnames(dt_wGlobe, old = namesToChange, new = paste0(namesToChange, "_wGlobe"))
-
 dt <- merge(dt_woGlobe, dt_wGlobe, by = c("region_code.IMPACT159", "year"))
 # write.csv(dt, file = "data/IMPACTData/singleScenario/combinedResults.csv") commented out because not used elsewhere Dec 21, 2018
 
@@ -173,6 +172,7 @@ gg <- gg + geom_point() +
 gg <- gg + xlab("Change in\nper capita income (percent)") + ylab("Change in\nfood budget share of per capita income (percent)")
 gg
 
+createMissingDir(fileloc("gDir")) # checks for the existence of the directory and if its not available, creates it Dec 21, 2018
 ggsave(file = paste0(fileloc("gDir"),"/", prefix,"_CGEeffects",".pdf"), plot = gg,
        width = 4, height = 4)
 

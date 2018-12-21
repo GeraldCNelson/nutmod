@@ -56,6 +56,9 @@ sourcer <- function(sourceFile){
   source(sourceFile)
 }
 
+createMissingDir <- function(dirNeeded)
+  if (!dir.exists(dirNeeded)) dir.create(dirNeeded)
+
 #'fileloc directory locations for files
 #'
 #' @param variableName Name of variable holding a path
