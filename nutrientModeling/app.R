@@ -21,6 +21,7 @@
 # This is a Shiny web application. You can run the application by clicking
 # the 'Run App' button in RStudio
 library(shiny)
+library(shiny.router)
 library(shinyjs)
 library(shinythemes)
 # library(shinyWidgets)
@@ -45,13 +46,6 @@ options(repos = c(CRAN = "https://cran.rstudio.com"))
 gdxChoice <- paste0(getwd(), "/data/gdxInfo.csv")
 
 
-# # This generates menu in user interface with links.
-# menu <- (
-#   tags$ul(
-#     #    tags$li(a(class = "item", href = "/", "Page")),
-#     tags$li(a(class = "item", href = "/Affordability", "Affordability"))
-#   )
-# )
 
 #' files for the development tab section
 FGreqChoices <- c("macro nutrients", "minerals", "vitamins")
@@ -126,7 +120,7 @@ ui <- fluidPage(
   theme = shinytheme("sandstone"),
   title = "Nutrient modeling",
   
-  # router_ui(), # needed for table of contents
+#   router_ui(), 
   
   useShinyjs(debug = TRUE),
   div(
@@ -358,6 +352,7 @@ ui <- fluidPage(
 )
 
 server <- function(input, output, session) {
+#  router(input, output)
   load_data(dataSetsToLoad) # load most of the data. Big files can be loaded elsewhere
   reqRatio_sum_RDA <- data.table::rbindlist(list(reqRatio_sum_RDA_macro.var, reqRatio_sum_RDA_vits.var, reqRatio_sum_RDA_minrls.var))
   

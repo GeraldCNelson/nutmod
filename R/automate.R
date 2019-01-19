@@ -30,7 +30,6 @@ ls(all.names = TRUE)
 # The metadata file in the results directory provides details on files and file locations used in the analysis
 options(warn = 2) # converts all warnings to errors
 
-
 sourceFile <- "automate.R"
 
 #install needed packages

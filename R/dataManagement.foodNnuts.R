@@ -122,6 +122,7 @@ for (switchloop in getSwitchChoice()) {
   inDT <- inDT[scenario %in% c("SSP1_NoCC", "SSP2_HGEM", "SSP2_NoCC","SSP3_NoCC"),]
   inDT <- inDT[year %in% c("X2010", "X2030", "X2050"),]
   desc <- "Combines dt.IMPACTfood with nutrients and kcalsPerDay"
+  createMissingDir(fileloc("resultsDir")) # checks for the existence of the directory and if its not available, creates it Dec 21, 2018
   cleanup(inDT, outName, fileloc("resultsDir"), desc = desc)
   
   #' produce subsets that are more manageable in size -----
