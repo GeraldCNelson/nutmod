@@ -5,10 +5,8 @@
 #' @include nutrientModFunctions.R
 source("R/nutrientModFunctions.R")
 
-sourceFile <- "dataManagementIMPACT.R"
-createScriptMetaData()
 
-#Copyright (C) 2015 Gerald C. Nelson, except where noted
+#Copyright (C) 2015 - 2018 Gerald C. Nelson, except where noted
 
 #   This program is free software: you can redistribute it and/or modify it
 #   under the terms of the GNU General Public License as published by the Free
@@ -20,10 +18,16 @@ createScriptMetaData()
 #   or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License
 #   for more details at http://www.gnu.org/licenses/.
 
-#' @description This script reads in the IMPACT rds files prepared in dataPrep.IMPACT.R and
+#' \description{
+#' This script reads in the IMPACT rds files prepared in dataPrep.IMPACT.R and
 #' creates the IMPACTfood data table for use in nutrientCalcs.R. It reads in dt.FoodAvail,
 #' adds the fish and alcohol data, and pcGDPX0, PCX0 PWX0, and CSV and writes out dt.IMPACTfood.
 #' The FoodAvailability variable in the data table dt.FoodAvail is in kgs/person/year.
+#' }
+
+sourceFile <- "dataManagement.IMPACT.R"
+description <- "This script reads in the IMPACT rds files prepared in dataPrep.IMPACT.R and creates the IMPACTfood data table for use in nutrientCalcs.R. It reads in dt.FoodAvail, adds the fish and alcohol data, and pcGDPX0, PCX0 PWX0, and CSV and writes out dt.IMPACTfood. The FoodAvailability variable in the data table dt.FoodAvail is in kgs/person/year."
+createScriptMetaData()
 
 #' create data table with just food items, relevant years and scenarios
 IMPACTfoodCommodList <- keyVariable("IMPACTfoodCommodList")
@@ -101,7 +105,7 @@ combineIMPACTData <- function() {
   dt.IMPACTfood[, scenario := gsub("_REF", "", scenario)]
   inDT <- dt.IMPACTfood
   outName <- "dt.IMPACTfood"
-  desc <- "Annual (FoodAvailability) and daily availability (foodAvailpDay) of each food item in kgs, per capita GDP and domestic and world prices."
+  desc <- "Annual (FoodAvailability, kgs per person per year) and daily availability (foodAvailpDay, kgs per person per day) of each food item, per capita GDP and domestic and world prices."
   cleanup(inDT, outName, fileloc("iData"), desc = desc)
 }
 

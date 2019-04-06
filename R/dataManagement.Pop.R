@@ -1,11 +1,27 @@
 #' @title "Management of SSP Population Data"
 #' @keywords data management, SSP, population data
 #' @name dataManagement.Pop.R
-#' @description
+#' #Copyright (C) 2015 - 2018 Gerald C. Nelson, except where noted
+
+#   This program is free software: you can redistribute it and/or modify it
+#   under the terms of the GNU General Public License as published by the Free
+#   Software Foundation, either version 3 of the License, or (at your option)
+#   any later version.
+#
+#   This program is distributed in the hope that it will be useful, but
+#   WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
+#   or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License
+#   for more details at http://www.gnu.org/licenses/.
+#' \description{
 #' This script reads in  cleaned up population data written by dataPrep.SSP.R for the SSP populaton data 
 #' or the population data set for the African Ag Futures work prepared in dataPrep.UNscenarios.R 
 #' and does manipulations to prepare it for later use
-#' to align the SSP population data with the nutrient requirements age and gender structure data
+#' to align the SSP population data with the nutrient requirements age and gender structure data.
+#' }
+sourceFile <- "dataManagement.Pop.R"
+description <- "This script reads in  cleaned up population data written by dataPrep.SSP.R for the SSP populaton data or the population data set for the African Ag Futures work prepared in dataPrep.UNscenarios.R and does manipulations to prepare it for later use to align the SSP population data with the nutrient requirements age and gender structure data."
+createScriptMetaData()
+
 #' Creates the following files
 #'   req.EAR.ssp - data/req.EAR.percap.rds
 #'   req.RDA.vits.ssp - data/req.RDA.vits.percap.rds
@@ -31,8 +47,6 @@
 gdxChoice <- "SSPs"
 source("R/nutrientModFunctions.R")
 
-sourceFile <- "dataManagement.Pop.R"
-createScriptMetaData()
 keepYearList <- keyVariable("keepYearList")
 
 # Read in the cleaned up population data ----
@@ -96,8 +110,9 @@ data.table::setnames(dt.pop, old = "value",new = "pop.value")
 #' It is included to so these individual rows can be deleted. They are replaced with
 #' preg, lact, and nonPL, which should sum to the total of the list in ageRowsToSum
 #' @param region - code for the region over which the operations should be done; e.g., region_code.IMPACT159
-#' @return
+#' @return requirements for a representative consumer
 #' @export
+
 # repCons generates the age and gender specific nutrient requirements for a representative consumer as they change over time.
 repCons <- function(dt.pop, nutReqName) {
   dt.nutReq <- getNewestVersion(nutReqName)

@@ -23,14 +23,16 @@ createScriptMetaData()
 # or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License
 # for more details at http://www.gnu.org/licenses/.
 
-#' @description This script reads in the IMPACT data from a gdx file and writes out selected variables to a .rds file.
-#' The gdxrrw package is needed to run this. It is available at this url, not from CRAN.
-#' @source \url{https://support.gams.com/gdxrrw:interfacing_gams_and_r}
-#' Download the relevant file and use the following command to install
-#' install.packages("gdxrrw_1.0.4.tgz",repos=NULL). Replace gdxrrw_1.0.4.tgz with the
-#' name of the file you downloaded. If you put it in the main directory of your project,
-#' the install.packages command will find it.
-#' @import gdxrrw
+#' \description{
+#' This script reads in the IMPACT data from a gdx file and writes out selected variables to a .rds file.
+#' }
+description <- "This script reads in the IMPACT data from a gdx file and writes out selected variables to a .rds file."
+# The gdxrrw package is needed to run this. It is available at this url, not from CRAN.
+# @source \url{https://support.gams.com/gdxrrw:interfacing_gams_and_r}
+# Download the relevant file and use the following command to install
+# install.packages("gdxrrw_1.0.4.tgz",repos=NULL). Replace gdxrrw_1.0.4.tgz with the
+# name of the file you downloaded. If you put it in the main directory of your project,
+# the install.packages command will find it.
 
 #' Title importIMPACT - Import data from the IMPACT model and write out rds and excel files
 #' @description Read IMPACT159 data from a gdx file
@@ -41,12 +43,14 @@ singleScenario <- FALSE # do the regular IMPACT variables first
 gdxFileName <- "Micronutrient-Inputs-07252016.gdx"
 gdxFileLoc <- paste(fileloc("IMPACTRawData"), gdxFileName, sep = "/")
 gdxChoice <- "SSPs"
+keepYearList <- keyVariable("keepYearList")
+
 #' Title generateResults - send a list of variables with common categories to the
 #' function to write out the data
 #' @param vars - list of variables to process
 #' @param catNames - list of categories common to all variables in var
 #'
-#' @return
+#' @return generate results
 #' @export
 
 #' Title processIMPACT159Data - read in from an IMPACT gdx file and write out rds and excel files for a single param
@@ -55,8 +59,6 @@ gdxChoice <- "SSPs"
 #' @param catNames - types of info about the parameter
 #' @return null
 #' @export
-
-keepYearList <- keyVariable("keepYearList")
 
 processIMPACT159Data <- function(gdxFileLoc, varName, catNames, singleScenario, keepYearList) {
   # IMPACTgdx <- gdxFileName

@@ -29,6 +29,13 @@ library(data.table) # this is needed everywhere and currently some scripts don't
 library(ggthemes)
 library(qdapRegex) # needed for the TC (title case) function, added Nov 3, 2018
 library(gtools) # for capwords function
+#' @description {
+#' This is the script with all the widely used functions in the nutrient modeling project.
+#' }
+
+
+sourceFile <- "nutrientModFunctions.R"
+description <- "This is the script with all the widely used functions in the nutrient modeling project."
 
 fontFamily <- "Cambria"
 # .onLoad <- function(libname, pkgname) {
@@ -50,34 +57,37 @@ fontFamily <- "Cambria"
 # }
 
 # sourcer is currently only used in automate.R but could potentially be used elsewhere
-sourcer <- function(sourceFile){
-  sourceFile <- paste0("R/", sourceFile)
-  cat("\nRunning ", sourceFile, "\n")
-  source(sourceFile)
+sourcer <- function(srcFile){
+  srcFile <- paste0("R/", srcFile)
+  cat("\nRunning ", srcFile, "\n")
+  source(srcFile)
 }
 
 createMissingDir <- function(dirNeeded)
   if (!dir.exists(dirNeeded)) {dir.create(dirNeeded)}
 
-#'fileloc directory locations for files
+#' fileloc directory locations for files
 #'
 #' @param variableName Name of variable holding a path
 #'
 #' @param rawData - raw data directory
 #'
-#' @param mData - main data directory
-#' @param iData - directory with IMPACT data
-#' @param uData - directory with data that are universal to all scenarios
-#' @param gDir  - the path to the graphics directory
-#' @param resultsPaperDir - directory with results for the paper
-#' @param resultsDir - directory for results
-#' @param FBSData - directory where FBS data are kept
-#' @param SSPData - the path to the SSP data directory
-#' @param IMPACTRawData - the path to the raw IMPACT data directory
-#' @param IMPACTCleanData  - the path to the cleaned up IMPACT data directory
+#' @param mData main data directory
+#' @param iData directory with IMPACT data
+#' @param uData directory with data that are universal to all scenarios
+#' @param gDir  the path to the graphics directory
+#' @param resultsPaperDir directory with results for the paper
+#' @param resultsDir directory for results
+#' @param FBSData directory where FBS data are kept
+#' @param SSPData the path to the SSP data directory
+#' @param IMPACTRawData the path to the raw IMPACT data directory
+#' @param IMPACTCleanData  the path to the cleaned up IMPACT data directory
 #' @return Value of the variableName to be assigned in another script
-#'
+#' fileloc()
+#' @return Value of the variableName to be assigned in another script
+#' 
 #' @export
+
 fileloc <- function(variableName) {
   gdxChoice <- "SSPs"
   rawData <- "data-raw"
@@ -124,6 +134,7 @@ fileloc <- function(variableName) {
 #'
 #' @param fileShortName The substantive (first) part of the file name.
 #' @return The most recent file.
+#' getNewestVersion()
 #'
 #' @export
 getNewestVersion <- function(fileShortName, directory, fileType) {
@@ -178,14 +189,18 @@ getNewestVersion <- function(fileShortName, directory, fileType) {
 #' @description read in a .rds file that includes the file fileShortName from the data/IMPACTData directory
 #' @param fileShortName The substantive (first) part of the file name.
 #' @return The most recent .rds file of IMPACT data
+#' getNewestVersionIMPACT()
+#' 
 #' @export
 getNewestVersionIMPACT <- function(fileShortName) {
   getNewestVersion(fileShortName, fileloc("iData"))
 }
 
 #' Title removeOldVersions - removes old version of a rawData file
-#' @param fileShortName - short name of the file to be removed
-#' @param dir - directory of the file to be removed
+#' @param fileShortName short name of the file to be removed
+#' @param dir directory of the file to be removed
+#' removeOldVersions()
+#' 
 #' @export
 removeOldVersions <- function(fileShortName,dir) {
   removeFcn <- function(regExp) {
@@ -213,45 +228,45 @@ removeOldVersions <- function(fileShortName,dir) {
   removeFcn(regExp)
 }
 
-createScriptMetaData <- function(sourceFile) {
+createScriptMetaData <- function(srcFile) {
   if (!exists("metadataDT")){
     metadataDT <<- data.table(outName = character(0), sourcecode = character(0), destDir = character(0), desc = character(0), colNames = character(0))
   }
 }
 
 finalizeScriptMetadata <- function(metadataDT, sourceFile) {
-  write.csv(metadataDT, file = paste("data/metadata", sourceFile, "csv", sep = "."), row.names = FALSE)
+  write.csv(metadataDT, file = paste("documentation/metadata", sourceFile, "csv", sep = "."), row.names = FALSE)
 }
 
-clearMemory <- function(sourceFile, gdxChoice = gdxChoice) {
-  cat("Clearing memory after running", sourceFile, "\n")
+clearMemory <- function(srcFile, gdxChoice = gdxChoice) {
+  cat("Clearing memory after running", srcFile, "\n")
   rmList <- ls(envir = as.environment(1)) # pos=1 says do this in the global environment
   rmList <- rmList[!rmList %in% "gdxChoice"]
   rm(list = rmList, envir = as.environment(1))
   
   # The sourcer function is run here in case the automate script is used to run all the R scripts
-  sourcer <- function(sourceFile){
-    cat("\nRunning ", sourceFile, "\n")
-    sourceFile <- paste0("R/", sourceFile)
-    source(sourceFile)
+  sourcer <- function(srcFile){
+    cat("\nRunning ", srcFile, "\n")
+    srcFile <- paste0("R/", srcFile)
+    source(srcFile)
   }
   return(sourcer)
 }
 #' Title cleanup - remove old versions and save rds and xlsx or csv versions of the file
-#' @param inDT - name of the data table or frame to be written out
-#' @param outName - short name of the file to be written out
-#' @param destDir - directory where the cleanup takes place
-#' @param writeFiles - format to use for writing output in addition to RDS
-#' @desc brief description of the contents of the file
+#' @param inDT name of the data table or frame to be written out
+#' @param outName short name of the file to be written out
+#' @param destDir directory where the cleanup takes place
+#' @param writeFiles format to use for writing output in addition to RDS
+#' @description brief description of the contents of the file
 cleanup <- function(inDT, outName, destDir, writeFiles, desc) {
-  sourceFile <- get("sourceFile", envir = .GlobalEnv)
+  srcFile <- get("sourceFile", envir = .GlobalEnv)
   if (missing(writeFiles)) {writeFiles = "xlsx"}
   if (missing(destDir)) {destDir = fileloc("mData")}
   
   colNames <- paste(colnames(inDT), collapse = ", ")
-  outInfo <- list(outName, sourceFile, destDir, desc, colNames)
+  outInfo <- list(outName, srcFile, destDir, desc, colNames)
   metadataDT <<- rbind(metadataDT, outInfo)
-  #  cat("\n", "Outfilename: ", outName, " Destination: ", Destination," Script: ", sourceFile," Desc: ", desc," Col. names: ", colNames, "\n")
+  #  cat("\n", "Outfilename: ", outName, " Destination: ", Destination," Script: ", srcFile," Desc: ", desc," Col. names: ", colNames, "\n")
   #convert to a standard order
   oldOrder <- names(inDT)
   startOrder <- c("scenario",keyVariable("region"),"year")
@@ -317,12 +332,12 @@ cleanup <- function(inDT, outName, destDir, writeFiles, desc) {
 
 cleanupGraphFiles <- function(inGraphFile, outName, destDir, desc) {
   sprintf("start cleanup for %s", outName)
-  sourceFile <- get("sourceFile", envir = .GlobalEnv)
+  srcFile <- get("srcFile", envir = .GlobalEnv)
   removeOldVersions(outName, destDir)
   if (missing(destDir)) {destDir = fileloc("mData")}
   
   colNames <- paste(inDT$names, collapse = ", ")
-  outInfo <- list(outName, sourceFile, destDir, desc, colNames)
+  outInfo <- list(outName, srcFile, destDir, desc, colNames)
   metadataDT <<- rbind(metadataDT, outInfo)
   
   sprintf("\nWriting the rds for %s to %s ", outName, destDir)
@@ -334,21 +349,21 @@ cleanupGraphFiles <- function(inGraphFile, outName, destDir, desc) {
 }
 
 cleanupNutrientNames <- function(nutList) {
-  nutList <- gsub("food_group_code","Food group code",nutList)
-  nutList <- gsub("_g_reqRatio","",nutList)
-  nutList <- gsub("reqRatio","",nutList)
-  nutList <- gsub("vit_","Vitamin ",nutList)
-  nutList <- gsub("_µg","",nutList)
-  nutList <- gsub("_mg","",nutList)
-  nutList <- gsub("_g","",nutList)
-  nutList <- gsub("totalfiber","total fiber",nutList)
-  nutList <- gsub(".ratio.foodGroup","",nutList)
-  nutList <- gsub(".sum.all","",nutList)
-  nutList <- gsub("rootsNPlantain","roots and plantain",nutList)
-  nutList <- gsub("nutsNseeds","nuts and oilseeds",nutList)
-  nutList <- gsub("alcohol","alcoholic beverages",nutList)
-  nutList <- gsub("beverages","nonalcoholic beverages",nutList)
-  nutList <- gsub("alcoholic nonalcoholic beverages","alcoholic beverages",nutList)
+  nutList <- gsub("food_group_code","Food group code", nutList)
+  nutList <- gsub("_g_reqRatio","", nutList)
+  nutList <- gsub("reqRatio","", nutList)
+  nutList <- gsub("vit_","Vitamin ", nutList)
+  nutList <- gsub("_µg","", nutList, fixed = TRUE)
+  nutList <- gsub("_mg","", nutList)
+  nutList <- gsub("_g","", nutList)
+  nutList <- gsub("totalfiber","total fiber", nutList)
+  nutList <- gsub(".ratio.foodGroup","", nutList)
+  nutList <- gsub(".sum.all","", nutList)
+  nutList <- gsub("rootsNPlantain","roots and plantain", nutList)
+  nutList <- gsub("nutsNseeds","nuts and oilseeds", nutList)
+  nutList <- gsub("alcohol","alcoholic beverages", nutList)
+  nutList <- gsub("beverages","nonalcoholic beverages", nutList)
+  nutList <- gsub("alcoholic nonalcoholic beverages","alcoholic beverages", nutList)
   nutList <- gsub("ft_acds_tot_sat", "saturated fat", nutList)
   nutList <- gsub("_g_AMDR", "", nutList)
   nutList <- gsub("Vitamin b", "Vitamin B", nutList)
@@ -357,40 +372,42 @@ cleanupNutrientNames <- function(nutList) {
   nutList <- gsub("Vitamin e", "Vitamin E", nutList)
   nutList <- gsub("Vitamin k", "Vitamin K", nutList)
   nutList <- TC(nutList)
-  nutList <- gsub("A_rae","A (RAE)",nutList)
+  nutList <- gsub("A_rae","A (RAE)", nutList)
   return(nutList)
 }
 
 #' Title keyVariable - Return a key variable, or a list of all possibilities
-#' @param keepYearList - list of scenario years to keep
-#' @param keepYearList.FBS - list of FBS years to keep
-#' @param FBSyearsToAverage - years to average over for base data set
-#' @param IMPACTfish_code- variable name list for fish consumption items for IMPACT
-#' @param IMPACTalcohol_code - variable name list for alcoholic beverages consumption for IMPACT
-#' @param IMPACTfoodCommodList - variable name lists for IMPACT food commodities
-#' @param scenarioListSSP.pop - list of scenarios in the SSP pop data
-#' @param scenarioListSSP.GDP - list of scenarios in the SSP GDP|PPP data
-#' @param DinY - number of days in a year
-#' @param reqsList - nutrient requirements basic list
-#' @param reqsList_RDA_macro <- list of RDAs for macro nutrients
-#' @param reqsList_RDA_minrls <- list of RDAs for mineral nutrients
-#' @param reqsList_RDA_vits <- list of RDAs for vitamin nutrients
-#' @param reqsListSSP - nutrient requirements by SSP age groups
-#' @param ctyDeleteList
-#' @param switch.useCookingRetnValues - apply the cooking retention values to the nutrient content
-#' @param userName - Name of person running the scripts and generating results
-#' @param region -  Aggregation scheme from individual countries to regions
+#' @param keepYearList list of scenario years to keep
+#' @param keepYearList.FBS list of FBS years to keep
+#' @param FBSyearsToAverage years to average over for base data set
+#' @param IMPACTfish_codevariable name list for fish consumption items for IMPACT
+#' @param IMPACTalcohol_code variable name list for alcoholic beverages consumption for IMPACT
+#' @param IMPACTfoodCommodList variable name lists for IMPACT food commodities
+#' @param scenarioListSSP.pop list of scenarios in the SSP pop data
+#' @param scenarioListSSP.GDP list of scenarios in the SSP GDP|PPP data
+#' @param DinY number of days in a year
+#' @param reqsList nutrient requirements basic list
+#' @param reqsList_RDA_macro <list of RDAs for macro nutrients
+#' @param reqsList_RDA_minrls <list of RDAs for mineral nutrients
+#' @param reqsList_RDA_vits <list of RDAs for vitamin nutrients
+#' @param reqsListSSP nutrient requirements by SSP age groups
+#' @param switch.useCookingRetnValues apply the cooking retention values to the nutrient content
+#' @param userName Name of person running the scripts and generating results
+#' @param region  Aggregation scheme from individual countries to regions
 #' @param switch.fixFish - if TRUE, fix salmon, tuna, and crustaceans
 #' @param switch.changeElasticity - if TRUE, set max fish income elasticities to 1
 #' @param commonList - names of the lists of nutrient names common to the nutrient lookup table and the requirements
-#' @param dropListCty
-#' @param allAfricaCodes
-#' @param SSAfricaCodes
-#' @param regions.AfricanAgFutures
-#' @param tenregions
+#' @param dropListCty list of countries to drop because of insufficient data
+#' @param allAfricaCodes list of all African countries
+#' @param SSAfricaCodes list of Sub Saharan African countries
+#' @param regions.AfricanAgFutures list of countries used in the African Ag Futures project
+#' @param tenregions list of 10 countries to to provide individual country graphs for in the nutrient modeling project
 
 #' @return list of key variables
+#' keyVariable()
+#' 
 #' @export
+
 keyVariable <- function(variableName) {
   switch.fixFish <- "TRUE"
   switch.useCookingRetnValues <- "TRUE"
@@ -628,8 +645,9 @@ metadata <- function() {
 #' @param SSP_DRI_ageGroupLU - lookup tables for SSP to DRI age and gender groups
 #' @source \url{http://faostat3.fao.org/download/FB/FBS/E} Source of FBS data
 #' @return Nothing
+#' fileNameList()
+#' 
 #' @export
-
 fileNameList <- function(variableName) {
   IMPACTCleanData <- fileloc("IMPACTCleanData")
   nutrientDataDetails <- paste(fileloc("rawData"), "NutrientData/nutrientDetails", sep = "/")
@@ -721,6 +739,8 @@ fileNameList <- function(variableName) {
 #' @param ISOCodes - path and file name for the ISO country codes
 #' @param FBSregionsToDrop - countries that do not have enough information or are large regions
 #' @return The content of the variable name.
+#' filelocFBS()
+#' 
 #' @export
 filelocFBS <- function(variableName) {
   FBSData <- fileloc("FBSData")
@@ -934,7 +954,7 @@ storeWorldMapDF <- function(){
   require("rgdal")
   require("rgeos")
   require("dplyr")
-  sourceFile <- "storeWorldMapDF in R/nutrientModFunctions.R"
+  srcFile <- "storeWorldMapDF in R/nutrientModFunctions.R"
   createScriptMetaData()
   # check to see if worldMap already exists
   # naturalearth world map geojson

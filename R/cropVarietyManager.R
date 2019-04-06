@@ -3,13 +3,9 @@
 #' @keywords nutrient data
 #' @title Calculate final graph combinations for the nutrient modeling paper
 #' @name cropVarietyManager.R
-#' @include nutrientModFunctions.R
-#' @include workBookFunctions.R
-#' @include nutrientCalcFunctions.R
-#' @description This code writes out pdfs of the graphs used in the final nutrient modeling paper.
-#' The code grabs the individual graphs created in aggRun.R and places them in pdf file to be incorporated into the final word doc. There are 1 to 6
-#' individual graphs per pdf. The layout is guided by the layoutMatrixx structure, where the last x is replaced by a number (1 to 6). The heightsx variables
-#' control how tall the graph is in inches. The width is determined by the height variable and the relative width from the original file.
+#' @description{
+#' USDA varieties used for specific countries
+#' }
 
 #Copyright (C) 2015-2017 Gerald C. Nelson, except where noted
 
@@ -23,8 +19,12 @@
 #     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE, See the
 #     GNU General Public License for more details at http://www.gnu.org/licenses/.
 source("R/nutrientModFunctions.R")
+#' description {
+#'  USDA varieties used for specific countries. More description needed.
+#'  }
 
 sourceFile <- "cropVarietyManager.R"
+description <- "USDA varieties used for specific countries. More information needed."
 createScriptMetaData()
 
 #' load in all the data from the USDA food composition tables
@@ -78,7 +78,7 @@ data.table::setnames(nutr_def, old = "Units", new = "unit")
   variety_data[usda_code %in% riceCodes, IMPACT_code := "crice"]
   variety_data[usda_code %in% maizeCodes, IMPACT_code := "cmaiz"]
 }
-#' keep description info for just the food items for the varieties of the various crops
+#' keep descr. info for just the food items for the varieties of the various crops
 food_des <- FOOD_DES[usda_code %in% c(wheatCodes, riceCodes, maizeCodes),]
 food_des[is.na(Refuse), Refuse := 100]
 
@@ -100,8 +100,8 @@ dt.variety <- dt.variety[is.na(edible_share.fromPhytateSource), edible_share.fro
 # dt.variety <- merge(dt.variety, dt.retentionLU, by = "IMPACT_code", all.x = TRUE)
 dt.variety <- merge(dt.variety, dt.nutcodeLU, by = c("NutrDesc", "Nutr_No", "unit"), all.x = TRUE)
 
-#' cooking retention info setup -----
-{#' dt.retentionLU used to look up IMPACT commodities and their retention code equivalent
+# cooking retention info setup -----
+# dt.retentionLU used to look up IMPACT commodities and their retention code equivalent
   dt.retentionLU <- data.table::as.data.table(openxlsx::read.xlsx("data-raw/NutrientData/nutrientDetails/retentionLookup.xlsx"))
   dt.retentionLU[, retentioncode_aus := as.character(retentioncode_aus)]
   #' dt.cookingRetn has retention codes and the effect on nutrient content of cooking the food indicated by the retention descriptions
@@ -145,7 +145,7 @@ dt.variety <- merge(dt.variety, dt.nutcodeLU, by = c("NutrDesc", "Nutr_No", "uni
     value.var = "Retn_Factor")
   dt.cookingRetn.wide[is.na(dt.cookingRetn.wide)] <- 100
   dt.cookingRetn.wide <- dt.cookingRetn.wide[Retn_Code %in% dt.retentionLU$retentioncode_aus,]
-}
+
 # formula.wide <- paste("usda_code  + Long_Desc + IMPACT_conversion + Ref_Desc +
 formula.wide <- paste("IMPACT_code  + Long_Desc + IMPACT_conversion + usda_code  +  Ref_Desc +
                         edible_share + phytate_mg + phytate_source  ~ nutCode")

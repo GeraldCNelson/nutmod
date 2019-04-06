@@ -14,13 +14,14 @@
 # or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License
 # for more details at http://www.gnu.org/licenses/.
 #' @name dataManagement.foodNnuts.R
-#' @description Does all the calculations combining food availability with nutrient content.
+#' @description {
+#' Does all the calculations combining food availability with nutrient content.
+#' }
 
-#' @include nutrientModFunctions.R
 
 source("R/nutrientModFunctions.R")
-
 sourceFile <- "dataManagement.foodNnuts.R"
+description <- "Does all the calculations combining food availability with nutrient content."
 createScriptMetaData()
 
 # Read in all data first and standardize variable names -----

@@ -1,14 +1,6 @@
 #' @author Gerald C. Nelson, \email{nelson.gerald.c@@gmail.com}
 #' @keywords fish data prep, FishStat
 #' @title Prepare fish data from FishStat for use in nutrient modeling
-#' @name dataPrepFishStat.R
-#' @include nutrientModFunctions.R
-#' @include workBookFunctions.R
-#' @include nutrientCalcFunctions.R
-#' @include aggNorder.R
-#' @description This code reads in the species and country specific fish production data.
-#' Species data are assigned to seven fish categories.
-#' The output is a data set with nutrient composition that is
 
 #Copyright (C) 2018 Gerald C. Nelson, except where noted
 
@@ -21,6 +13,9 @@
 #     but WITHOUT ANY WARRANTY; without even the implied warranty of
 #     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE, See the
 #     GNU General Public License for more details at http://www.gnu.org/licenses/.
+#' \description{
+#' Reads in fish data from FishStat and manipulates it for use in nutrient modeling. It produces averages over the three years found in the key variable keepListYears.composites.
+#' }
 
 # source of the data - http://www.fao.org/fishery/statistics/global-production/en, downloaded Feb 13, 2018 and
 # stored as data-raw/FAOSTAT/FishStatData/GlobalProuction_2017.1.1.zip`
@@ -28,6 +23,8 @@
 source("R/nutrientModFunctions.R")
 
 sourceFile <- "dataPrepFishStat.R"
+description <- "Reads in fish data from FishStat and manipulates it for use in nutrient modeling. It produces averages over the three years found in the key variable keepListYears.composites."
+
 createScriptMetaData()
 # aquatic plants used as food not included in FishStat so "c_aqpl not included in this code
 fishComposites <- keyVariable("fishComposites")

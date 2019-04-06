@@ -3,9 +3,16 @@ library(data.table)
 source("R/nutrientModFunctions.R")
 sourceFile <- "dataPrep.ODBCaccess.R"
 createScriptMetaData()
-# as of Dec 21, 21017, the code below has been converted to reading in data from the ascii files.
+#' @description{
+#' Read in data from the USDA food nutrient composition data base at https://ndb.nal.usda.gov
+#' }
+
+description <- "Read in data from the USDA food nutrient composition data base at https://ndb.nal.usda.gov"
+
+# as of Dec 21, 2017, the code below has been converted to reading in data from the ascii files. The description of how to 
+# install and use an 
 # some notes on setting RODBC up
-# 1.	Install homebrew. Grab the line of code at http://brew.sh/ and paste into a terminal prompt. Here’s what it looks like today but should be reviewed at website before use
+# 1.	Install homebrew. needs to be done in a terminal. Grab the line of code at http://brew.sh/ and paste into a terminal prompt. Here’s what it looks like today but should be reviewed at website before use
 # /usr/bin/ruby -e "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install)"
 # 1. if you have already installted homebreiw, type brew update at a terminal prompt.
 # 2.	After 1. completes successfully, type
@@ -25,6 +32,8 @@ createScriptMetaData()
 #con <- odbcConnect(dsn=paste(getwd(),"data-raw/NutrientData/sr28db/sr28.accdb",sep = "/"),DBMSencoding="Windows-1252") # this encoding is needed to get the mu character correct
 # con <- odbcConnect(dsn="nutrientDataSR28",DBMSencoding="Windows-1252") # this encoding is needed to get the mu character correct
 # tbls <- sqlTables(con, tableType = "TABLE")
+# invisible(SRC_CD <- as.data.table(sqlFetch(con, "SRC_CD"))) # source of data
+# odbcClose(con)
 
 # principal files
 #FOOD_DES <- as.data.table(sqlFetch(con, "FOOD_DES", as.is = TRUE )) #food description; code is NDB_No, contains Food Group code, FdGrp_Cd)
@@ -64,7 +73,6 @@ deleteListCol <- c("Num_Data_Pts", "Std_Error", "Src_Cd", "Deriv_Cd", "Ref_NDB_N
                    "Add_Nutr_Mark", "Num_Studies", "Min", "Max", "DF", "Low_EB", "Up_EB", "Stat_Cmt", "AddMod_Date")
 NUT_DATA[,(deleteListCol) := NULL]
 data.table::setnames(NUT_DATA, old = "NDB_No", new = "usda_code")
-#NUT_DATA[, usda_code := as.character(usda_code)][, Nutr_No := as.character(Nutr_No)]
 
 #not used yet
 # WEIGHT <- as.data.table(sqlFetch(con, "WEIGHT", as.is = TRUE)) #gram weight file of a serving; contains NDB_No
@@ -85,8 +93,6 @@ NUTR_DEF <- as.data.table(read.csv("data-raw/NutrientData/sr28asc/NUTR_DEF.txt",
 deleteListCol <- c("Tagname", "Num_Dec",  "SR_Order")
 NUTR_DEF[,(deleteListCol) := NULL][, Nutr_No := as.character(Nutr_No)]
 
-# invisible(SRC_CD <- as.data.table(sqlFetch(con, "SRC_CD"))) # source of data
-# odbcClose(con)
 inDT <- FOOD_DES
 outName <- "FOOD_DES"
 desc <- "Food descriptive info from USDA FCT"

@@ -12,9 +12,13 @@
 # WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
 # or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License
 # for more details at http://www.gnu.org/licenses/.
-#' @description A script to hold functions used for graphing in aggRun.R.
+#' @description {
+#' A script to hold functions used for graphing in aggRun.R.
+#' }
 
 source("R/nutrientModFunctions.R")
+sourceFile <- "spatialPlots.R"
+description <- "A script to hold functions used for graphing in aggRun.R."
 # GDP setup -----
 library(gridExtra)
 library(gplots)
@@ -30,16 +34,12 @@ library(maptools)
 library(mapproj)
 library(rgeos)
 library(rgdal)
-# library(jsonlite)
-# library(RCurl)
-# library(gpclib)
 library(broom)
 library(grid)
 library(gridExtra)
-#library(ggthemes)
 
 # needed for maps of nutrient availability
-dt.nutrientNames_Units <- getNewestVersion("dt.nutrientNames_Units", fileloc("mData"))
+dt.nutrientNames_Units <- getNewestVersion("dt.nutrientNames_Units_final", fileloc("mData"))
 
 # naturalearth world map geojson
 #world <- readOGR(dsn="https://raw.githubusercontent.com/nvkelso/natural-earth-vector/master/geojson/ne_50m_admin_0_countries.geojson", layer="OGRGeoJSON")

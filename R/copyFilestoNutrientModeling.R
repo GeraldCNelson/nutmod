@@ -2,8 +2,9 @@
 #' @keywords utilities, copy files, nutrient modeling shiny app
 #' @name copyFilestoNutrientModeling.R
 #' @author Gerald C. Nelson, \\email{nelson.gerald.c@@gmail.com}
-#' @description
-#' copy files from the dir directory (typically results) to the nutrientModeling directory.
+#' @description {
+#' Copies files from the dir directory (typically results) to the nutrientModeling directory.
+}
 #' files to copy are
 #' dt.regions.all
 #' dt.scenarioListIMPACT
@@ -33,11 +34,11 @@
 #   or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License
 #   for more details at http://www.gnu.org/licenses/.
 
-#' @include nutrientModFunctions.R
-#' @include workBookFunctions.R
-gdxChoice <- "SSPs"
 source("R/nutrientModFunctions.R")
+sourceFile <- "copyFilestoNutrientModeling.R"
+description <- "Copies files from the dir directory (typically results) to the nutrientModeling directory."
 
+gdxChoice <- "SSPs"
 # #for testing
 # fileShortName <- "RDA.macro_sum_reqRatio"
 # sourceDir <- fileloc("resultsDir")

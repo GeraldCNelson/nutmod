@@ -1,12 +1,14 @@
 #' @author Gerald C. Nelson, \email{nelson.gerald.c@@gmail.com}
 #' @keywords SSP data cleanup
 # Intro -------------------------------------------------------------------
-#' @, desc = description
+#' \description{
 #' This script reads in the SSP data and renames the variables in the SSP file. It deletes all years except those in
 #' keepYearList (with year 0 added)
 #' It keeps population results only from the IIASA-WiC POP model.
-
-#Copyright (C) 2015-2017 Gerald C. Nelson, except where noted
+#' }
+description <- "This script reads in the SSP data and renames the variables in the SSP file. It deletes all years except those in keepYearList (with year 0 added). It keeps population results only from the IIASA-WiC POP model."
+  
+# Copyright (C) 2015-2017 Gerald C. Nelson, except where noted
 
 #   This program is free software: you can redistribute it and/or modify
 #   it under the terms of the GNU General Public License as published by
@@ -40,9 +42,10 @@ dt.SSP <- as.data.table(readr::read_csv(unz(SSPdataZip, filename = SSPcsv), col_
 # add X to the year column name so R is happy with years as column names
 data.table::setnames(dt.SSP, make.names(names(dt.SSP)))
 
-# drop all years except those in keepYearList, created in dataPrep.setup.R
+# drop all years except those in keepYearList, contained in nutrientModFunctions.R
 keepListCol <- c("MODEL", "SCENARIO", "REGION", "VARIABLE", "UNIT", keepYearList)
 dt.SSP[, setdiff(names(dt.SSP), keepListCol) := NULL]
+
 #make all names lower case and change region to ISO_code
 oldNameList <- names(dt.SSP)
 newNameList <- c("model", "scenario", "ISO_code", "variable", "unit", keepYearList)
@@ -109,8 +112,7 @@ dt.SSP.pop <- dt.SSP[model == modelListPop,]
 # keep full population count around. Keep 2005 for the gdppercap operations
 dt.SSP.pop.tot <-
   dt.SSP.pop[variable == "Population", c("scenario", "ISO_code",  keepYearList), with = FALSE]
-data.table::setcolorder(dt.SSP.pop.tot, c("scenario", "ISO_code", "X2005", "X2010", "X2015", "X2020", "X2025",
-                                          "X2030", "X2035", "X2040", "X2045", "X2050"))
+
 # deal with missing 2005 pop data in the IIASA data set by getting 2005 from the OECD data set
 dt.SSP.pop.tot[, X2005 := NULL]
 keepListCol <- c("scenario", "ISO_code", "X2005")
@@ -129,10 +131,10 @@ dt.SSP.pop.tot.melt <- data.table::melt(
 )
 
 data.table::setnames(dt.SSP.pop.tot.melt, old = "ISO_code", new = "region_code.SSP")
-dt.SSP.pop.tot.melt <- dt.SSP.pop.tot.melt[!region_code.SSP %in% keyVariable("dropListCty"),]
+dt.SSP.pop.tot.melt <- dt.SSP.pop.tot.melt[!region_code.SSP %in% keyVariable("dropListCty"),] # get rid of some small countries without data
 inDT <- dt.SSP.pop.tot.melt
 outName <- "dt.SSP.pop.tot"
-desc <- "Population information by country and scenario with cleaned up column names. Units are million. Has 2005. Only used for fish and alc calculations"
+desc <- "Population information by country and scenario with cleaned up column names. Units are million people. Includes 2005 which is only used for fish and alcoholic beverage calculations"
 cleanup(inDT,outName,fileloc("uData"), desc = desc)
 
 # Remove the aggregates of Population", "Population|Female" and "Population|Male"
@@ -191,7 +193,7 @@ dt.SSP.pop.step2.melt[,scenario := substr((scenario),1,4)] # keep just the SSP n
 dt.SSP.pop.step2.melt <- unique(dt.SSP.pop.step2.melt)
 inDT <- dt.SSP.pop.step2.melt
 outName <- "dt.SSPPopClean"
-desc <- "Population information by country (IMPACT region) and scenario and age and gender with cleaned up column names"
+desc <- "Population information by country (IMPACT region) and scenario and age and gender with cleaned up column names. Units are million people."
 cleanup(inDT,outName,fileloc("uData"), desc = desc)
 
 finalizeScriptMetadata(metadataDT, sourceFile)

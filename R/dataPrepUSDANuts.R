@@ -14,17 +14,20 @@
 #     or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
 #     for more details at http://www.gnu.org/licenses/.
 
-#' @description Manipulate the results of the ODBC_access script and prepare nutrient data f
-#' These include
-#' - USDAnutrients - all the USDA FCT value for the USDA food items used in the analysis
-#' - dt.cookinRetn - the cooking retention columns by IMPACT_code
-#'
 source("R/nutrientModFunctions.R")
 source("R/workBookFunctions.R")
 source("R/nutrientCalcFunctions.R")
 library(readxl)
 
+#' \description{
+#' Manipulate the results of the ODBC_access script and prepare nutrient data for analysis.
+#' These include
+#' - USDAnutrients - all the USDA FCT value for the USDA food items used in the analysis
+#' - dt.cookinRetn - the cooking retention columns by IMPACT_code.
+#'}
+
 sourceFile <- "dataPrepUSDANuts.R"
+description <- "Manipulate the results of the ODBC_access script and prepare nutrient data for analysis. These include USDAnutrients - all the USDA FCT value for the USDA food items used in the analysis; dt.cookinRetn - the cooking retention columns by IMPACT_code."
 createScriptMetaData()
 
 # load data created in the dataPrep.ODBCaccess.R script
@@ -50,20 +53,20 @@ dt.compositesLU.fish <- copy(dt.fishStatData)
 dt.compositesLU.fish[, c("prodAve", "region_code.IMPACT159") := NULL]
 
 # this code used to generate the RDS file and so is commented out. Dec 20, 2018
-# dt.compositesLU.nofish <- data.table::as.data.table(read_excel("data-raw/NutrientData/nutrientDetails/composites.lookup.nofish.xlsx",
-#                                                                col_types = c("text", "text", "skip",
-#                                                                              "numeric", "skip", "numeric", "text",
-#                                                                              "skip", "text", "skip")))
-# dt.compositesLU.nofish <- dt.compositesLU.nofish[include == 1,]
-# dt.compositesLU.nofish[, include := NULL]
-# desc <- "The excel file dt.compositesLU.nofish converted to .rds to speed up reading it in."
-# inDT <- dt.compositesLU.nofish
-# outName <- "dt.compositesLU.nofish"
-# cleanup(inDT, outName, fileloc("iData"), desc = desc)
-# dt.compositesLU.nofish <- data.table::as.data.table(openxlsx::read.xlsx("data-raw/NutrientData/nutrientDetails/composites.lookup.nofish.xlsx", cols = 1:7))
+dt.compositesLU.nofish <- data.table::as.data.table(read_excel("data-raw/NutrientData/nutrientDetails/composites.lookup.nofish.xlsx",
+                                                               col_types = c("text", "text", "skip",
+                                                                             "numeric", "skip", "numeric", "text",
+                                                                             "skip", "text", "skip")))
+dt.compositesLU.nofish <- dt.compositesLU.nofish[include == 1,]
+dt.compositesLU.nofish[, include := NULL]
+desc <- "The excel file dt.compositesLU.nofish converted to .rds to speed up reading it in."
+inDT <- dt.compositesLU.nofish
+outName <- "dt.compositesLU.nofish"
+cleanup(inDT, outName, fileloc("iData"), desc = desc)
+dt.compositesLU.nofish <- data.table::as.data.table(openxlsx::read.xlsx("data-raw/NutrientData/nutrientDetails/composites.lookup.nofish.xlsx", cols = 1:7))
 # the fish data include an extra column used to calculate the edible share. The data for conversion are from an FAO data set called Indicative factors for
 # converting prodcut weight to live weight for a selection of major fishery commodities; the pdf is call FAO_ANNEX_I1_fish edible portions.pdf
-# dt.compositesLU.fish <- data.table::as.data.table(openxlsx::read.xlsx("data-raw/NutrientData/nutrientDetails/composites.lookup.fish.xlsx", cols = 1:8))
+dt.compositesLU.fish <- data.table::as.data.table(openxlsx::read.xlsx("data-raw/NutrientData/nutrientDetails/composites.lookup.fish.xlsx", cols = 1:8))
 dt.compositesLU.nofish <- getNewestVersion("dt.compositesLU.nofish", fileloc("iData"))
 dt.compositesLU <- rbind(dt.compositesLU.fish, dt.compositesLU.nofish)
 
@@ -627,7 +630,7 @@ if (getSwitchChoice() %in%"3") {
 }
 # create dt.nutrientNames_Units for use elsewhere
 
-dt.nutrientNames_Units <- openxlsx::read.xlsx("data-raw/NutrientData/nutrientNames_Units.xlsx", colNames = TRUE)
+dt.nutrientNames_Units <- openxlsx::read.xlsx("data-raw/NutrientData/nutrientNames_Units_base.xlsx", colNames = TRUE)
 
 # the next few lines are just to ensure correct encoding for mu.
 # Encoding(temp) <- "UTF-8" makes all the variable names with mu in it encoded as UTF-8 but leaves the rest as unknown, at least on a mac
@@ -640,18 +643,18 @@ data.table::setnames(dt.nutrientNames_Units, old = names(dt.nutrientNames_Units)
 # add six new columns to dt.nutrientNames_Units - kcals_fat_g, kcals_protein, kcals_carbs, kcals_ethanol,
 # kcals_sugar, kcals_ft_acds_tot_sat_g
 compositesKcals <- data.table::data.table(
-  kcals_ethanol_g      = c("Ethanol", "kcals"),
-  kcals_fat_g          = c("Fat", "kcals"),
-  kcals_carbohydrate_g = c("Carbohydrate, by difference", "kcals"),
-  kcals_protein_g      = c("Protein", "kcals"),
-  kcals_sugar_g        = c("Sugars, total", "kcals"),
-  kcals_ft_acds_tot_sat_g        = c("Fatty acids, total saturated", "kcals")
+  kcals_ethanol_g      = c("Ethanol", "kcals per gram"),
+  kcals_fat_g          = c("Fat", "kcals per gram"),
+  kcals_carbohydrate_g = c("Carbohydrate, by difference", "kcals per gram"),
+  kcals_protein_g      = c("Protein", "kcals per gram"),
+  kcals_sugar_g        = c("Sugars, total", "kcals per gram"),
+  kcals_ft_acds_tot_sat_g        = c("Fatty acids, total saturated", "kcals per gram")
 )
 
 dt.nutrientNames_Units <- cbind(dt.nutrientNames_Units, compositesKcals)
 #write this out to an rds file
 inDT <- dt.nutrientNames_Units
-outName <- "dt.nutrientNames_Units"
+outName <- "dt.nutrientNames_Units_final"
 desc <- "Nutrient names and units"
 cleanup(inDT, outName, fileloc("mData"), desc = desc)
 

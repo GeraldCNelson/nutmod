@@ -13,13 +13,15 @@
 #     or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
 #     for more details at http://www.gnu.org/licenses/.
 #'
-#' @name dataManagementVars.R
-#' @description Replaces base crop varieties with country-specific varieties and does some graphing
-#' @name dataPrep.SingleScenario.R
+#' @description {
+#'  Replaces base crop varieties with country-specific varieties and does some graphing
+#'  }
 
 source("R/nutrientModFunctions.R")
-#source("R/aggNorder.R") # is this needed? Commented out April 11, 2018
-sourceFile <- "dataManagementVars.R" # would be better to figure out a way to get this automatically.
+# would be better to figure out a way to get this automatically
+sourceFile <- "dataManagementVars.R"
+description <- "Replaces base crop varieties with country-specific varieties and does some graphing."
+
 createScriptMetaData()
 
 gdxSwitchCombo <- read.csv(file = paste0(getwd(), "/results/", gdxChoice, "/gdxInfo.csv"), header = TRUE, stringsAsFactors = FALSE)

@@ -16,15 +16,15 @@
 # or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License
 # for more details at http://www.gnu.org/licenses/.
 
-
-#' @include nutrientModFunctions.R
-#' @include workBookFunctions.R
-#' @include nutrientCalcFunctions.R
-gdxChoice <- "SSPs"
+#' @description {
+#' First round of calculations to generate final results.
+#' }
 source("R/nutrientModFunctions.R")
 
 sourceFile <- "nutrientCalcs.R"
+description <- "First round of calculations to generate final results"
 createScriptMetaData()
+gdxChoice <- "SSPs"
 scenarioListIMPACT <- keyVariable("scenarioListIMPACT")
 reqsListPercap <- keyVariable("reqsListPercap")
 

@@ -1,10 +1,23 @@
 #' @author Gerald C. Nelson, \\email{nelson.gerald.c@@gmail.com}
 #' @keywords utilities, region alignment
+#' #Copyright (C) 2015-2018 Gerald C. Nelson, except where noted
+
+#     This program is free software: you can redistribute it and/or modify
+#     it under the terms of the GNU General Public License as published by
+#     the Free Software Foundation, either version 3 of the License, or
+#     (at your option) any later version.
+#
+#     This program is distributed in the hope that it will be useful,
+#     but WITHOUT ANY WARRANTY; without even the implied warranty of
+#     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE, See the
+#     GNU General Public License for more details at http://www.gnu.org/licenses/.
+source("R/nutrientModFunctions.R")
 # Intro -------------------------------------------------------------------
-#' @description
-#' # Intro -------------------------------------------------------------------
-#' This script contains functions to align regional aggregations from country data and writes them out to
-#' @param dt.regions.all.rds It contains
+#' \description{
+#' This script contains functions to align regional aggregations from country data and writes them out to dt.regions.all.rds Only needs to be run
+#' when there is a new regional aggregation.
+#' }
+#' It contains
 #' @param ISO_code - official ISO 3 digit code for all countries - 249 countries
 #' @param region_code.SSP - the SSP region for each ISO code (either an ISO 3 code or NA) - 194 countries
 #' @param region_code.IMPACT115 - the 3 digit IMPACT115 region code for each ISO code
@@ -26,20 +39,9 @@
 #' IMPACT159 includes all the countries in the ISO list, either individually or in a plus region
 #' SSP doesn't include the 56 countries in missingList.SSP. These are bunch of really small things.
 
-#Copyright (C) 2015 Gerald C. Nelson, except where noted
-
-#     This program is free software: you can redistribute it and/or modify
-#     it under the terms of the GNU General Public License as published by
-#     the Free Software Foundation, either version 3 of the License, or
-#     (at your option) any later version.
-#
-#     This program is distributed in the hope that it will be useful,
-#     but WITHOUT ANY WARRANTY; without even the implied warranty of
-#     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE, See the
-#     GNU General Public License for more details at http://www.gnu.org/licenses/.
-source("R/nutrientModFunctions.R")
 library(readxl)
 sourceFile <- "dataPrep.regions.R"
+description <- "This script contains functions to align regional aggregations from country data and writes them out to dt.regions.all.rds. Only needs to be run when there is a new regional aggregation."
 createScriptMetaData()
 
 # update Aug 28, 2016. Most of the code below has been superceded by the spreadsheet IMPACT regions update Aug 28, 2016

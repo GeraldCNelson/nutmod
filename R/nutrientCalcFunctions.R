@@ -13,8 +13,12 @@
 #     or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
 #     for more details at http://www.gnu.org/licenses/.
 #' @name nutrientCalcFunctions.R
-#' @description Has functions for cooking retention and budget share calculations
-#'
+#' @description {
+#' Has functions for cooking retention and budget share calculations
+#' }
+
+sourceFile <- "nutrientCalcFunctions.R"
+description <- "Has functions for cooking retention and budget share calculations"
 
 switches <- function() {
 
@@ -88,10 +92,13 @@ switches <- function() {
 #' Title priceGrowth
 #' calculate the share of per capita income spent on IMPACT commodities
 #' writes out data table to the results directory
-#' @param dt.IMPACTfood
-#' @param region - the grouping of countries to aggregate to
+#' @param dt.IMPACTfood the data table that is read in
+#' @param region the grouping of countries to aggregate to
 #' @return null
+#' priceGrowth()
+#' 
 #' @export
+
 priceGrowth <- function(dt.IMPACTfood) {
   #' prices are in 2005 dollars per metric ton
   #' pcGDP is in 1000 2005 dollars.

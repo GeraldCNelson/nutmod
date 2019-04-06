@@ -14,16 +14,20 @@
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 # GNU General Public License for more details at http://www.gnu.org/licenses/.
+source("R/nutrientModFunctions.R")
 
-#' @description This script reads in fish and alcoholic beverage data from FAO's Food Balance Sheet data
+#' \description{
+#' This script reads in fish and alcoholic beverage data from FAO's Food Balance Sheet data
 #' and parameters for IMPACT and generates scenarios of per capita availability for fish composite food items and
 #' beer, wine and spirits. The output file is dt.fishnAlcScenarios
 #' The fish food availability data are taken from FAO's FBS data set.
+#' }
+
+sourceFile <- "dataManagement.fishnAlc.R"
+description <- "This script reads in fish and alcoholic beverage data from FAO's Food Balance Sheet data and parameters for IMPACT and generates scenarios of per capita availability for fish composite food items and beer, wine and spirits. The output file is dt.fishnAlcScenarios. The fish food availability data are taken from FAO's FBS data set."
+createScriptMetaData()
 
 # options(warn=2)
-source("R/nutrientModFunctions.R")
-sourceFile <- "dataManagement.fishnAlc.R"
-createScriptMetaData()
 
 # load data files and key variables
 IMPACTfish <- fileNameList("IMPACTfish") # spreadsheet name with data from Fish to 2030
@@ -292,5 +296,5 @@ inDT <- dt.GDPFBSelas.melt[year %in% keepYearList]
 outName <- "dt.fishnAlcScenarios"
 desc <- "Scenarios of fish and alcoholic beverages availability by fish composite and country. Average availability, kgs per person per year"
 cleanup(inDT,outName, fileloc("mData"), desc = desc) # changed to mData Oct 30, 2018
-
+finalizeScriptMetadata(metadataDT, sourceFile)
 

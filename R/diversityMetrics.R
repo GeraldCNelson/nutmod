@@ -1,7 +1,7 @@
 #' @author Gerald C. Nelson, \email{nelson.gerald.c@@gmail.com}
 #' @keywords utilities, nutrient data, IMPACT food commodities nutrient lookup
 # Intro ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-#Copyright (C) 2015 Gerald C. Nelson, except where noted
+#Copyright (C) 2015-2018 Gerald C. Nelson, except where noted
 
 #     This program is free software: you can redistribute it and/or modify it
 #     under the terms of the GNU General Public License as published by the Free
@@ -13,16 +13,15 @@
 #     or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
 #     for more details at http://www.gnu.org/licenses/.
 
-#' @description Calculated diversity and nutrient benefit metrics.
-#'
+#' \description{
+#' Calculates diversity and nutrient benefit metrics.
+#' }
 # library(data.table)
 # library(maps)
 
-#' @include nutrientModFunctions.R
-#' @include workBookFunctions.R
-#' @include nutrientCalcFunctions.R
 source("R/nutrientModFunctions.R")
 sourceFile <- "diversityMetrics.R"
+description <- "Calculates diversity and nutrient benefit metrics."
 createScriptMetaData()
 
 keepYearList <- keyVariable("keepYearList")
@@ -54,7 +53,7 @@ for (switchloop in getSwitchChoice()) {
   #nutrients with cooking retention values
   # cookingretention <- keyVariable("cookingretention")
   
-  # dt.nutrientNames_Units <- getNewestVersion("dt.nutrientNames_Units", fileloc("mData"))
+  # dt.nutrientNames_Units <- getNewestVersion("dt.nutrientNames_Units_final", fileloc("mData"))
   # keepListCol <- c(macroNutrients, vitamins, minerals, fattyAcids)
   # dt.nutrientNames_Units <- dt.nutrientNames_Units[,(keepListCol), with = FALSE]
   

@@ -2,7 +2,7 @@
 #' @author Gerald C. Nelson, \email{nelson.gerald.c@@gmail.com}
 #' @keywords utilities, nutrient data, IMPACT food commodities nutrient lookup
 # Intro ---------------------------------------------------------------
-#Copyright (C) 2015 Gerald C. Nelson, except where noted
+#Copyright (C) 2015 - 2018 Gerald C. Nelson, except where noted
 
 #   This program is free software: you can redistribute it and/or modify it
 #   under the terms of the GNU General Public License as published by the Free
@@ -14,13 +14,14 @@
 #   or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License
 #   for more details at http://www.gnu.org/licenses/.
 
-#' @description To be added
+#' @description {
+#' Calculate various adequacy ratios. More description needed
+#' }
 
-#' @include nutrientModFunctions.R
-#' @include nutrientCalcFunctions.R
 source("R/nutrientModFunctions.R")
 
-sourceFile <- "nutrientCalcsProcessing.R"
+sourceFile <- "nutCalcsProcessing.R"
+description <- "Calculate various adequacy ratios. More description needed"
 createScriptMetaData()
 
 reqList <- keyVariable("reqsList")
@@ -327,4 +328,3 @@ for (switchloop in getSwitchChoice()) {
 }
 
 finalizeScriptMetadata(metadataDT, sourceFile)
-

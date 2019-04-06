@@ -14,14 +14,14 @@
 #     or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
 #     for more details at http://www.gnu.org/licenses/.
 
-#' @description Imports gdx data for SSP2 HGEM results with and without GLOBE CGE adjustments and
+#' @description {
+#' Imports gdx data for SSP2 HGEM results with and without GLOBE CGE adjustments and
 #' calculates the effects on the food budget share.
-#' @name dataPrep.SingleScenario.R
-#' @include nutrientModFunctions.R
-# library(gdxrrw) Not needed because relevant data already extracted from the gdx. Dec 21, 2018
+#' }
 library(RColorBrewer)
 source("R/nutrientModFunctions.R")
 sourceFile <- "dataPrepSingleScenario.R"
+description <- "Imports gdx data for SSP2 HGEM results with and without GLOBE CGE adjustments and calculates the effects on the food budget share."
 createScriptMetaData()
 
 graphsListHolder <- list()
@@ -154,7 +154,7 @@ for (j in c("base", "share")) {
   palette <- myPalette(4)
    displayOrder <- sort(unique(DT[, get(facetColName)])) # default - alphabetically sorted
   prefix <- "SSPs_scenOrderSSP"
-  fileName <- paste(prefix,"_facetmap", "_macroMetrics", "_2050", ".pdf", sep = "")
+  fileName <- paste(prefix,"_facetmap", "_macroMetrics", "_2050", sep = "")
   facetMaps(mapFile = worldMap, DTfacetMap = DT, fileName, legendText, fillLimits = fillLimits, 
             palette = palette, facetColName = facetColName, graphsListHolder = graphsListHolder, displayOrder = displayOrder, width = 7, height = 3)
 }
@@ -175,8 +175,8 @@ gg
 createMissingDir(fileloc("gDir")) # checks for the existence of the directory and if its not available, creates it Dec 21, 2018
 ggsave(file = paste0(fileloc("gDir"),"/", prefix,"_CGEeffects",".pdf"), plot = gg,
        width = 4, height = 4)
+ggsave(file = paste0(fileloc("gDir"),"/", prefix,"_CGEeffects",".png"), plot = gg,
+       width = 4, height = 4)
 
 lmout <- lm(incShareRatio ~  incRatio, dt.50 )
-
 finalizeScriptMetadata(metadataDT, sourceFile)
-

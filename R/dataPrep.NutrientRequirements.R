@@ -18,15 +18,15 @@
 # Arsenault, Malcolm Reilly, Jessica Bogard, and Keith Lividini (for
 # nutrition expertise)
 
-#' @description - This script calculates nutrient requirements for SSP age group categories
-#' The source of the requirements is
-#' @source \url{http://www.nal.usda.gov/fnic/DRI/DRI_Tables/recommended_intakes_individuals.pdf}
-#' The requirements are imported in dataManagement.ODBCaccess.R. Not now; March 5, 2018. ODBCaccess renamed to old
-
-#' @include nutrientModFunctions.R
 source("R/nutrientModFunctions.R")
 
+#' @description {
+#' This script calculates nutrient requirements for SSP age group categories.
+#' The source of the requirements is http://www.nal.usda.gov/fnic/DRI/DRI_Tables/recommended_intakes_individuals.pdf.
+#' }
+
 sourceFile <- "dataPrep.NutrientRequirements.R"
+description <- "This script calculates nutrient requirements for SSP age group categories. The source of the requirements is http://www.nal.usda.gov/fnic/DRI/DRI_Tables/recommended_intakes_individuals.pdf."
 createScriptMetaData()
 
 options(encoding = "UTF-8")

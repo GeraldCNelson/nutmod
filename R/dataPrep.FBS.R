@@ -13,7 +13,7 @@
 #     or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
 #     for more details at http://www.gnu.org/licenses/.
 # Intro -------------------------------------------------------------------
-#' \description{
+#' @description {
 #' This script reads in the FAO Food Balance Sheet information from a zip file, does
 #' some manipulations of the data, and writes out results to an rds file
 #' }.
@@ -22,6 +22,7 @@
 source("R/nutrientModFunctions.R")
 
 sourceFile <- "dataPrep.FBS.R"
+description <- "This script reads in the FAO Food Balance Sheet information from a zip file, does some manipulations of the data, and writes out results to an rds file."
 createScriptMetaData()
 
 # Read in the FBS data from a zip file
@@ -59,7 +60,7 @@ dt.FBS.raw[variable == "Food", variable := "foodMT"]
 dt.FBS.raw[variable == "Food supply quantity (kg/capita/yr)", variable := "kgPerCapPerYear"]
 dt.FBS.raw[variable == "Food supply (kcal/capita/day)", variable := "KcalPerCapPerDay"]
 
-# get rid of variables other than perCapKg, kgs per person per year. Added kcals July 24, 2018
+# get rid of variables other than perCapKg, kgs per person per *year* and kcals per person per *day*
 dt.FBS.raw <- dt.FBS.raw[variable %in% c("kgPerCapPerYear", "KcalPerCapPerDay")]
 
 # Read in a worksheet with the list of FBS food items by code, name, definition, and IMPACT commodity code.

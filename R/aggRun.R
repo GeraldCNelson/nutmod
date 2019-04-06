@@ -8,9 +8,6 @@ library(extrafont) # may be necessary for Calibri font
 
 #' @name aggRun.R
 #' @keywords aggregate, sort, and graph data
-#' @description
-#' This script generates graphs of nutrient information aggregated to various levels.
-#' IMPORTANT NOTE: For the AfricanAgFutures project, use aggRun.AfrAgFutures.R
 
 #Copyright (C) 2016 - 2018 Gerald C. Nelson, except where noted
 
@@ -23,16 +20,23 @@ library(extrafont) # may be necessary for Calibri font
 # WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
 # or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License
 # for more details at http://www.gnu.org/licenses/.
-
+# Intro -------------------------------------------------------------------
 source("R/nutrientModFunctions.R")
 source("R/aggNorder.R") # needed to load function updateLegendGrobs. Could move this function elsewhere April 30, 2018
+#' @description {
+#'  This script generates graphs of nutrient information aggregated to various levels.
+#' }.
+# IMPORTANT NOTE: For the AfricanAgFutures project, use aggRun.AfrAgFutures.R
+
+sourceFile <- "aggRun.R"
+description <- " This script generates graphs of nutrient information aggregated to various levels."
+createScriptMetaData()
+
 library(RColorBrewer)
 # next 3 libraries needed for world maps
 library(sp)
 library(broom)
 library(rgdal)
-sourceFile <- "aggRun.R"
-createScriptMetaData()
 gdxChoice <- "SSPs"
 # DTGlobal choices are
 # with one output
@@ -124,7 +128,7 @@ for (switchloop in getSwitchChoice()) {
   scenChoice.name <- gdxChoice
   aggChoiceListBarChart <- c("WB", "tenregions")
   
-  dt.nutrientNames_Units <- getNewestVersion("dt.nutrientNames_Units", fileloc("mData"))
+  dt.nutrientNames_Units <- getNewestVersion("dt.nutrientNames_Units_final", fileloc("mData"))
   
   # mergedVals is used in aggNorder to determine what regions get merged. The regionAgg function sets region_code to the proper values for the relevant region aggregation.
   mergedVals <- c("scenario", "region_code", "year")

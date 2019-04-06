@@ -2,14 +2,12 @@
 #' @keywords final graphs
 #' @title Calculate final graph combinations for the nutrient modeling paper
 #' @name finalGraphCreation.R
-#' @include nutrientModFunctions.R
-#' @include workBookFunctions.R
-#' @include nutrientCalcFunctions.R
-#' @include aggNorder.R
-#' @description This code writes out pdfs of the graphs used in the final nutrient modeling paper.
+#' @description {
+#' This code writes out pdfs of the graphs used in the final nutrient modeling paper.
 #' The code grabs the individual graphs created in aggRun.R and places them in pdf file to be incorporated into the final word doc. There are 1 to 6
 #' individual graphs per pdf. The layout is guided by the layoutMatrixx structure, where the last x is replaced by a number (1 to 6). The heightsx variables
 #' control how tall the graph is in inches. The width is determined by the height variable and the relative width from the original file.
+#'  }
 
 #Copyright (C) 2015-2017 Gerald C. Nelson, except where noted
 
@@ -25,12 +23,12 @@
 
 source("R/nutrientModFunctions.R")
 source("R/aggNorder.R")
-library(data.table)
 library(grid)
 library(Cairo) # may be necessary for Calibri font
 library(extrafont) # may be necessary for Calibri font
 library(staplr) # to merge pdfs and other manipulation
 sourceFile <- "finalGraphCreation.R"
+description <- "This code writes out pdfs of the graphs used in the final nutrient modeling paper. The code grabs the individual graphs created in aggRun.R and places them in pdf file to be incorporated into the final word doc. There are 1 to 6 individual graphs per pdf. The layout is guided by the layoutMatrixx structure, where the last x is replaced by a number (1 to 6). The heightsx variables control how tall the graph is in inches. The width is determined by the height variable and the relative width from the original file."
 
 gdxChoice <- "SSPs"
 # delete all files in gDir/final - Commmented out but code left for future use
@@ -147,10 +145,10 @@ for (figchoice in c("figS6.nutavail.zinc")) {
   pdfDimensions <- rbind(pdfDimensions, fileDims)
 }
 
-fig5.facetMapRR_CCDelta <- paste("facetmap_nutReqRatioChange_climate", suffix, sep = ".")
-fig4.facetMapRR_IncDelta <- paste("facetmap_nutReqRatioChange_income", suffix, sep = ".")
-# facetMapRR_2050NoCC <- paste("facetmap_nutReqRatio_2050_NoCC", suffix, sep = ".")
 fig3.facetMapRR_2010 <- paste("facetmap_nutReqRatio_2010", suffix, sep = ".")
+fig4.facetMapRR_IncDelta <- paste("facetmap_nutReqRatioChange_income", suffix, sep = ".")
+fig5.facetMapRR_CCDelta <- paste("facetmap_nutReqRatioChange_climate", suffix, sep = ".")
+# facetMapRR_2050NoCC <- paste("facetmap_nutReqRatio_2050_NoCC", suffix, sep = ".")
 figS1.facetMapBudgetShare2010_50 <- paste("facetmap_budgetShare_2010_50_SSP2_HGEM.world", sep = ".") 
 figS10.1.facetMapMRV_2010 <- paste("facetmap_MRVRatio_2010", suffix, sep = ".")
 figS10.2.facetMapMRV_IncDelta <- paste("facetmap_MRVRatioChange_income", suffix, sep = ".")
@@ -341,7 +339,7 @@ layout <- layoutMatrix6
 colWidths <- colWidths2
 colHeights <-heights6
 
-for (figchoice in c( "figS7.2.adequacy.vits", "figS7.3.adequacy.minrls" )) {
+for (figchoice in c( "figS7.2.adequacy.vits_1", "figS7.3.adequacy.minrls" )) {
   cat("\nfigchoice:", figchoice, "\n")
   fileName <- paste(finalDir, figchoice, "_", "WB", ".", suffix, ".", fileouttype, sep = "")
   fileDims <- layoutPlots(fileName, figchoice, prefix, rowNum, legendNum, layout, colHeights = colHeights, colWidths = colWidths)
@@ -554,4 +552,3 @@ for (i in 1:length(lists)){
   # temp + theme(axis.title.x=element_blank(),
   #              +              axis.text.x=element_blank(),
   #              +              axis.ticks.x=element_blank())
-  

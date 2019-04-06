@@ -6,7 +6,7 @@
 # This script contains functions to generate openxlsx::spreadsheets of
 # the nutrition requirements results
 
-# Copyright (C) 2015 Gerald C. Nelson, except where noted
+# Copyright (C) 2015 - 2018 Gerald C. Nelson, except where noted
 
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -16,6 +16,9 @@
 # the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
 # PURPOSE.  See the GNU General Public License for more details at
 # http://www.gnu.org/licenses/.
+
+sourceFile <- "workBookFunctions.R"
+description <- "Functions used in the dataPrepUSDANuts.R script. Sourced in nutrientModFunctions.R"
 
 numStyle <- openxlsx::createStyle(numFmt = "0.00", halign = "right")
 numStyle3 <- openxlsx::createStyle(numFmt = "0.000", halign = "right")

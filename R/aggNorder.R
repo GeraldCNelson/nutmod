@@ -3,10 +3,11 @@
 #' @name aggNorder.R
 #' @author Gerald C. Nelson, \email{nelson.gerald.c@@gmail.com}
 #' @keywords utilities, aggregate data, sort data
-#' @description
+#' @description {
 #' This script contains functions that are needed primarily (or perhaps exclusively) in
 #' the aggRun.R script. It has functions to aggregate data to arbitrary regions and to sort
 #' data ordering to a prespecified order.
+#' }
 
 #Copyright (C) 2016, 2017 Gerald C. Nelson, except where noted
 
@@ -19,6 +20,8 @@
 # WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
 # or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License
 # for more details at http://www.gnu.org/licenses/.
+sourceFile <- "aggNorder.R"
+description <- "This script contains functions that are needed primarily (or perhaps exclusively) in the aggRun.R script. It has functions to aggregate data to arbitrary regions and to sort data ordering to a prespecified order."
 
 # GDP setup -----
 library(gridExtra)
