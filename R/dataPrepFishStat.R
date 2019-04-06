@@ -124,6 +124,7 @@ dt.compositesLU.fish <- data.table::as.data.table(read_excel("data-raw/NutrientD
 dt <- merge(dt.compositesLU.fish, fishprod, by.x = "item_name", by.y = "Name_en")
 dt <- dt[!remove %in% "1",]
 deleteListCol <- c("include", "remove", "Taxonomic_Code", "Major_Group", "ISSCAAP_Group",  "CPC_Group" , "CPCdiv_Group", "item_code", "ratio_prod_live")
+keepListCol <- names(dt)[!names(dt) %in% deleteListCol]
 dt[, (deleteListCol) := NULL]
 dt <- unique(dt)
 setnames(dt, old = c("Species", "prodAve"), new = c("item_code", "prodAve"))

@@ -35,7 +35,7 @@ library(dtplyr)
 library(data.table) # this is needed everywhere and currently some scripts don't call it
 library(ggplot2)
 
-library(strengejacke)
+#library(strengejacke)
 library(ggiraphExtra) #to do the interactive spider graphs. As of May 27, 2017, needs to be installed with devtools::install_github('cardiomoon/ggiraphExtra')
 require(ggiraph)
 library(RColorBrewer)

@@ -260,8 +260,8 @@ figS7.3.adequacy.minrls <- paste(c("reqRatio_minrls_calcium_mg", "reqRatio_minrl
 #' Fig S2 kcal availability - 1 graph
 
 figS5.energyavail.WB <- paste(c("kcals.tot.perDay"),  "_", "WB", ".", suffix, sep = "")
-figS11.budgetShare <- paste(c("budgetShare"),  "_", "tenregions", ".", suffix, sep = "")
-figS13.energyavail.10regions <- paste(c("kcals.tot.perDay"),  "_", "tenregions", ".", suffix, sep = "")
+figS12.budgetShare <- paste(c("budgetShare"),  "_", "tenregions", ".", suffix, sep = "")
+figS14.energyavail.10regions <- paste(c("kcals.tot.perDay"),  "_", "tenregions", ".", suffix, sep = "")
 
 #' Fig s7.0 macro nutrients adequacy ratio, 3 plots per page
 figS7.0.adequacy.macro <- paste(c("reqRatio_macro_carbohydrate_g", "reqRatio_macro_protein_g",
@@ -299,17 +299,17 @@ figS11.badRatios <- paste(c("badRatios_ethanol_g", "badRatios_ft_acds_tot_sat_g"
 
 #' Fig S8 availability -----
 #' foodgroup availability ratio part 1 - 6 graphs
-figS12.foodavail.1 <- paste(c("foodAvail_foodGroup_alcohol", "foodAvail_foodGroup_beverages",
+figS13.foodavail.1 <- paste(c("foodAvail_foodGroup_alcohol", "foodAvail_foodGroup_beverages",
                               "foodAvail_foodGroup_cereals", "foodAvail_foodGroup_dairy",
                               "foodAvail_foodGroup_eggs", "foodAvail_foodGroup_fish"), "_", "tenregions", ".", suffix, sep = "")
 
 #' foodgroup availability  part 2 - 6 graphs
-figS12.foodavail.2 <- paste(c("foodAvail_foodGroup_fruits", "foodAvail_foodGroup_meats",
+figS13.foodavail.2 <- paste(c("foodAvail_foodGroup_fruits", "foodAvail_foodGroup_meats",
                               "foodAvail_foodGroup_nutsNseeds", "foodAvail_foodGroup_oils",
                               "foodAvail_foodGroup_pulses", "foodAvail_foodGroup_rootsNPlantain"), "_", "tenregions", ".", suffix, sep = "")
 
 #' foodgroup availability", part 3 - 2 graphs
-figS12.foodavail.3 <- paste(c("foodAvail_foodGroup_sweeteners", "foodAvail_foodGroup_vegetables"), "_", "tenregions", ".", suffix, sep = "")
+figS13.foodavail.3 <- paste(c("foodAvail_foodGroup_sweeteners", "foodAvail_foodGroup_vegetables"), "_", "tenregions", ".", suffix, sep = "")
 
 #' Fig S17 tenregions micronutrients adequacy ratio ------
 #' micronutrients adequacy", "part 2 and 3 vitamins
@@ -353,7 +353,7 @@ for (figchoice in c("figS4.foodavail.1", "figS4.foodavail.2")) {
   pdfDimensions <- rbind(pdfDimensions, fileDims)
 }
 
-for (figchoice in c( "figS12.foodavail.1", "figS12.foodavail.2", "figS17.1.adequacy.vits", "figS17.3.adequacy.minrls")) {
+for (figchoice in c( "figS13.foodavail.1", "figS13.foodavail.2", "figS17.1.adequacy.vits", "figS17.3.adequacy.minrls")) {
   cat("\nfigchoice:", figchoice, "\n")
   fileName <- paste(finalDir, figchoice, "_", "tenregions", ".", suffix, ".", fileouttype, sep = "")
   cat("fileName: ", fileName, "\n")
@@ -412,7 +412,7 @@ for (figchoice in c("figS5.energyavail.WB")) {
   pdfDimensions <- rbind(pdfDimensions, fileDims)
 }
 
-for (figchoice in c("figS11.budgetShare")) {
+for (figchoice in c("figS12.budgetShare")) {
   cat("\nfigchoice:", figchoice, "\n")
   rowNum <- 2
   legendNum <- legendHorizontalNum
@@ -434,7 +434,7 @@ for (figchoice in c("figS11.budgetShare")) {
   pdfDimensions <- rbind(pdfDimensions, fileDims)
 }
 
-for (figchoice in c("figS13.energyavail.10regions")) {
+for (figchoice in c("figS14.energyavail.10regions")) {
   cat("\nfigchoice:", figchoice, "\n")
   rowNum <- 2
   legendNum <- legendHorizontalNum
@@ -471,7 +471,7 @@ for (figchoice in c("figS4.foodavail.3",  "figS8.compDINB", "figS8.RaoNenergySha
   pdfDimensions <- rbind(pdfDimensions, fileDims)
 }
 
-for (figchoice in c("figS12.foodavail.3", "figS18.compDINB")) {
+for (figchoice in c("figS13.foodavail.3", "figS18.compDINB")) {
   cat("\nfigchoice:", figchoice, "\n")
   rowNum <- 2
   legendNum <- legendHorizontalNum
@@ -509,7 +509,7 @@ for (figchoice in c("figS15.adequacy.macro", "figS16.AMDRhiLo")) {
 }
 # } commented out switchloop Nov 15.
 
-dt.finalGraphicsNames <- as.data.table(read_csv(paste0(fileloc("resultsDir"), "/finalGraphicsNames.csv"), col_names = FALSE))
+dt.finalGraphicsNames <- as.data.table(read_csv("data-raw/finalGraphicsNames.csv"), col_names = FALSE)
 
 for (i in 1:nrow(dt.finalGraphicsNames)){
   fileFrom <- paste0(fileloc("gDir"), "/final/", dt.finalGraphicsNames$X1[i])

@@ -101,7 +101,7 @@ suffix. An example is `metaData.2018-04-17.xlsx`.
     available for consumption by a representative consumer. Units -
     kg/day
   - nutrient.code — a nutrient code combines the common name of the
-    nutrient and the units it is in. Example - folate\_µg"  
+    nutrient and the units it is in. Example - folate\_µg (folate in micrograms)  
   - nutrient.Q — the quantity of a nutrient available from an IMPACT
     commodity per day
   - nutrient.sum \[.all, .staple, .foodGroup\] — The sum of nutrient.Q
@@ -109,4 +109,5 @@ suffix. An example is `metaData.2018-04-17.xlsx`.
   - nutrient.ratio \[.all, .staple, .foodGroup\] — The ratio of a
     nutrient to the total consumed
   - nutrient.req.ratio \[.all, .staple, .foodGroup\] — The ratio of a
-    nutrient to the the daily requirement
+    nutrient to the daily requirement for a representative consumer (i., population 
+    weighted by age and gender requirements)

@@ -98,8 +98,8 @@ sourcer(srcFile) # mData - Nutrient requirements adjusted for population distrib
 # paste(dt,varName, sep = ".") - one file for each IMPACT variable, example is perCapKcalPerDay.2016-06-21.rds
 # dt.foodAvailability is created here. Just has food availability from gdx. dt.IMPACTfood adds the fish and alcoholic beverages
 
-# srcFile <- "dataManagement.IMPACT.R"
-# sourcer(srcFile) # adds fish and alcohol data, writes out IMPACT variables just for food items (names begin with c), and dt.IMPACTfood file
+srcFile <- "dataManagement.IMPACT.R"
+sourcer(srcFile) # adds fish and alcohol data, writes out IMPACT variables just for food items (names begin with c), and dt.IMPACTfood file
 # Key output is dt.IMPACTfood
 #dt.IMPACTfood, iData
 

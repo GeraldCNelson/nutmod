@@ -4,10 +4,10 @@
 #' @author Gerald C. Nelson, \\email{nelson.gerald.c@@gmail.com}
 #' @description {
 #' Copies files from the dir directory (typically results) to the nutrientModeling directory.
-}
+#' }
 #' files to copy are
 #' dt.regions.all
-#' dt.scenarioListIMPACT
+#' dt.scenarioListIMPACT - removed because it is now a keyVariable April 6, 2019
 #' dt.foodAvail.foodGroup
 #' dt.nutrients.sum.staples
 #' dt.shannonDiversity
@@ -22,7 +22,7 @@
 #' gdxinfo.csv
 #' dt.nutrients
 
-#Copyright (C) 2016 2018 Gerald C. Nelson, except where noted
+# Copyright (C) 2016 2018 Gerald C. Nelson, except where noted
 
 #   This program is free software: you can redistribute it and/or modify it
 #   under the terms of the GNU General Public License as published by the Free
@@ -79,7 +79,7 @@ for (switchloop in getSwitchChoice()) {
   copyListFromSpecificResultsNoSuffix <- c("dt.metadataTot")
   copyListFromiData <- c("dt.nutrients.var")
   copyListFromuData <- c("dt.regions.all")
-  copyListFrommData <-c("dt.scenarioListIMPACT", "dt.foodGroupsInfo", "resultFileLookup")
+  copyListFrommData <-c( "dt.foodGroupsInfo", "resultFileLookup") # removed "dt.scenarioListIMPACT" because it is now a keyvariable April 6, 2019
   
   copyfacetMapListFromgDir <- c()
   #' special copy for the gdxInfo file which is just below results
@@ -93,8 +93,8 @@ for (switchloop in getSwitchChoice()) {
   
   #' copy from from results without suffix
   for (i in copyListFromSpecificResultsNoSuffix) {
-    print(sprintf("copying file %s from %s to %s", i, fileloc("mData"), destDir))
-    copyFile(fileShortName = i, sourceDir = fileloc("mData"), destDir, fileType = fileType)
+    print(sprintf("copying file %s from %s to %s", i, "documentation", destDir))
+    copyFile(fileShortName = i, sourceDir = "documentation", destDir, fileType = fileType)
   }
 }
 

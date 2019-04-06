@@ -24,13 +24,14 @@ library(readxl)
 #' These include
 #' - USDAnutrients - all the USDA FCT value for the USDA food items used in the analysis
 #' - dt.cookinRetn - the cooking retention columns by IMPACT_code.
+#' The final output is a lookup table that has the nutrient content for each of the IMPACT commodities per 100 gm of the commodity, not adjusted for bioavailability.
 #'}
 
 sourceFile <- "dataPrepUSDANuts.R"
-description <- "Manipulate the results of the ODBC_access script and prepare nutrient data for analysis. These include USDAnutrients - all the USDA FCT value for the USDA food items used in the analysis; dt.cookinRetn - the cooking retention columns by IMPACT_code."
+description <- "Manipulate the results of the ODBC_access script and prepare nutrient data for analysis. These include USDAnutrients - all the USDA FCT value for the USDA food items used in the analysis; dt.cookinRetn - the cooking retention columns by IMPACT_code. The final output is a lookup table that has the nutrient content for each of the IMPACT commodities per 100 gm of the commodity, not adjusted for bioavailability."
 createScriptMetaData()
 
-# load data created in the dataPrep.ODBCaccess.R script
+# load data created in the dataPrep.ODBCaccess.R script. These data from from the USDA food composition tables.
 FOOD_DES <- getNewestVersion("FOOD_DES", fileloc("uData"))
 NUT_DATA <- getNewestVersion("NUT_DATA", fileloc("uData"))
 NUTR_DEF <- getNewestVersion("NUTR_DEF", fileloc("uData"))
@@ -38,44 +39,47 @@ NUTR_DEF <- getNewestVersion("NUTR_DEF", fileloc("uData"))
 # Important note: USDA nutrient values are for 100 gm of edible portion of a food item
 
 # load various lookup tables
+# USDA codes from the initial results. It includes conversion from FAOSTAT to retail product.
+
 dt.IMPACTSingleCodeLU <- data.table::as.data.table(openxlsx::read.xlsx("data-raw/NutrientData/nutrientDetails/IMPACTSingleCodeLookup.xlsx"))
 dt.IMPACTSingleCodeLU <- dt.IMPACTSingleCodeLU[is.na(IMPACT_conversion), IMPACT_conversion := 100]
 
-# USDA codes from the initial results. It includes conversion from FAOSTAT to retail product.
 
-# lots of warnings about getting NA when expecting numeric
-# dt.compositesLU.fish <- data.table::as.data.table(read_excel("data-raw/NutrientData/nutrientDetails/composites.lookup.fish.xlsx",
-#                                                              col_types = c("text", "text", "skip",
-#                                                                            "numeric", "numeric", "text", "skip",
-#                                                                            "text", "skip")))
-dt.fishStatData <- getNewestVersion("dt.fishStatData", fileloc("iData"))
-dt.compositesLU.fish <- copy(dt.fishStatData)
-dt.compositesLU.fish[, c("prodAve", "region_code.IMPACT159") := NULL]
+dt.fishStatData <- getNewestVersion("dt.fishStatData", fileloc("iData")) # created in dataPrepFishStat.R
+dt.composites.fish <- copy(dt.fishStatData) # make a copy to allow editing of the copy without affecting the original
+dt.composites.fish[, c("prodAve", "region_code.IMPACT159") := NULL]
 
-# this code used to generate the RDS file and so is commented out. Dec 20, 2018
-dt.compositesLU.nofish <- data.table::as.data.table(read_excel("data-raw/NutrientData/nutrientDetails/composites.lookup.nofish.xlsx",
-                                                               col_types = c("text", "text", "skip",
-                                                                             "numeric", "skip", "numeric", "text",
-                                                                             "skip", "text", "skip")))
-dt.compositesLU.nofish <- dt.compositesLU.nofish[include == 1,]
-dt.compositesLU.nofish[, include := NULL]
-desc <- "The excel file dt.compositesLU.nofish converted to .rds to speed up reading it in."
-inDT <- dt.compositesLU.nofish
-outName <- "dt.compositesLU.nofish"
-cleanup(inDT, outName, fileloc("iData"), desc = desc)
-dt.compositesLU.nofish <- data.table::as.data.table(openxlsx::read.xlsx("data-raw/NutrientData/nutrientDetails/composites.lookup.nofish.xlsx", cols = 1:7))
-# the fish data include an extra column used to calculate the edible share. The data for conversion are from an FAO data set called Indicative factors for
-# converting prodcut weight to live weight for a selection of major fishery commodities; the pdf is call FAO_ANNEX_I1_fish edible portions.pdf
-dt.compositesLU.fish <- data.table::as.data.table(openxlsx::read.xlsx("data-raw/NutrientData/nutrientDetails/composites.lookup.fish.xlsx", cols = 1:8))
+# the next few lines of code to outName <- ... are used to generate a .RDS file for faster reading. This only needs to be done 
+# when new composite fish data are made available so these lines are commented out
+# dt.compositesLU.nofish <- data.table::as.data.table(read_excel("data-raw/NutrientData/nutrientDetails/composites.lookup.nofish.xlsx",
+#                                                                col_types = c("text", "text", "skip",
+#                                                                              "numeric", "skip", "numeric", "text",
+#                                                                              "skip", "text", "skip")))
+# dt.compositesLU.nofish <- dt.compositesLU.nofish[include == 1,]
+# dt.compositesLU.nofish[, include := NULL]
+# desc <- "The excel file dt.compositesLU.nofish converted to .rds to speed up reading it in."
+# inDT <- dt.compositesLU.nofish
+# outName <- "dt.compositesLU.nofish"
+# cleanup(inDT, outName, fileloc("iData"), desc = desc)
+
+# the next line of code reads in the file create in the commented out section above
 dt.compositesLU.nofish <- getNewestVersion("dt.compositesLU.nofish", fileloc("iData"))
+
+# the fish data include an extra column used to calculate the edible share. The data for conversion are from an FAO data set called Indicative factors for
+# converting prodcut weight to live weight for a selection of major fishery commodities; the pdf is called FAO_ANNEX_I1_fish edible portions.pdf
+dt.compositesLU.fish <- data.table::as.data.table(openxlsx::read.xlsx("data-raw/NutrientData/nutrientDetails/composites.lookup.fish.xlsx", cols = 1:8))
+dt.compositesLU.fish <- dt.compositesLU.fish[include == 1,]
+dt.compositesLU.fish[, setdiff(names(dt.compositesLU.fish), names(dt.compositesLU.nofish)) := NULL] # keep just the columns in .fish that have the same name as those in nofish
 dt.compositesLU <- rbind(dt.compositesLU.fish, dt.compositesLU.nofish)
 
 # get usda codes from the variety specific spreadsheet
+# the dt.countryCropVariety data table has column with the usda code for the variety used in most countries. The country specific columns (e.g., AFG, AGO, etc) are either NA, in which case
+# they use the common variety; if they contain a number, then this is the USDA code for a variety that differs from the common variety)
 dt.countryCropVariety <- as.data.table(read_excel("data-raw/NutrientData/countryCropVariety.xlsx", na = "NA"))
 dt <- dt.countryCropVariety[,c("IMPACT_code", "usda_code") := NULL]
 dt <- dt[-1]
 dt <-  unique(unlist(dt))
-usdaCodes.var <- dt[!is.na(dt)]
+usdaCodes.var <- dt[!is.na(dt)] # these are the variety-specific codes.
 
 #' phytate information
 dt.phytateLU <- data.table::as.data.table(openxlsx::read.xlsx("data-raw/NutrientData/nutrientDetails/phytateSourcesWOedibleshare.xlsx"))
@@ -94,20 +98,19 @@ data.table::setnames(nutr_def, old = "Units", new = "unit")
 usdaCodes.single <- sort(unique(dt.IMPACTSingleCodeLU$usda_code))
 usdaCodes.composites <- sort(unique(dt.compositesLU$usda_code))
 usdaCodes <- unique(c(usdaCodes.single, usdaCodes.composites, usdaCodes.var))
-# keep just the USDA codes from the single and composite commodity lists. Moved to after files are merged.March 16, 2018
-#food_des <- FOOD_DES[usda_code %in% usdaCodes,]
-#nut_data <- nut_data[usda_code %in% usdaCodes]
+
+#IMPORT NOTE: the Nutr_Val column in dt below is the amount of the nutrient per 100 grams for the food.
 dt <- merge(nutr_def, nut_data, by = "Nutr_No") #combine nutrient codes and names
 dt <- merge(dt, FOOD_DES, by = "usda_code") #combine nutrient info with food descriptive info
 dt <- merge(dt, dt.phytateLU, by = "usda_code", all.x = TRUE) #add phytate info to single commodities
 
 #dt <- merge(dt, dt.IMPACTSingleCodeLU, by = c("usda_code"), all.y = TRUE, allow.cartesian = TRUE) #combine IMPACT code info and phytate info
 dt <- merge(dt, dt.nutcodeLU, by = c("NutrDesc", "Nutr_No", "unit"), all.x = TRUE)
-dt <- dt[usda_code %in% usdaCodes,]
+dt <- dt[usda_code %in% usdaCodes,] # keep just the usda values for codes that are in the usdaCodes list
 
 formula.wide <- paste("usda_code  + Long_Desc + Ref_Desc +
                       edible_share + phytate_mg + phytate_source  ~ nutCode")
-dt.USDAnutrients <- data.table::dcast(
+dt.USDAnutrients <- data.table::dcast( # dt.USDAnutrients has all the USDA nutrient information for all the USDA commodities used in this analysis, either as single food items or in composites.
   data = dt,
   formula = formula.wide,
   value.var = "Nutr_Val")
@@ -117,7 +120,7 @@ dt.USDAnutrients <- data.table::dcast(
 dt.USDAnutrients[is.na(phytate_mg), phytate_mg := 0]
 
 #fix some of the missing values in the USDA fct with imputed values
-# Some food items didn't have all nutrients so we imputed them from other sources, described in sources.
+# Some food items in the USDA data set dont have all nutrients so we imputed them from other sources, described in sources.
 # This meant that the correction for potassium was over written.
 USDANutrientImputedValues <- as.data.table(read_excel("data-raw/NutrientData/nutrientDetails/USDANutrientImputedValues.xlsx"))
 USDANutrientImputedValues[, notes := NULL]
@@ -130,11 +133,11 @@ NAlist <- names(dt.USDAnutrients)[!names(dt.USDAnutrients) %in% c("usda_code", "
 dt.USDAnutrients[, (NAlist) := lapply(.SD, function(x){x[is.na(x)] <- 0; x}), .SDcols = NAlist]
 inDT <- dt.USDAnutrients
 outName <- "dt.USDAnutrients"
-desc <- "All the USDA FCT varieties that are potentially used for nutrient information for IMPACT food items"
+desc <- "All the USDA FCT varieties that are potentially used for nutrient information for IMPACT food items, either as individual commodities or in composites. Units are per 100 grams of food item."
 cleanup(inDT, outName, fileloc("iData"), desc = desc)
 
 # prepare fish composites data, production average over three years
-dt.fishStatData <- getNewestVersion("dt.fishStatData", fileloc("iData"))
+# dt.fishStatData <- getNewestVersion("dt.fishStatData", fileloc("iData")). No need to reload; already loaded above
 usda_codes.fish <- unique(dt.fishStatData$usda_code)
 dt.USDAnutrients.fish <- dt.USDAnutrients[usda_code %in% usda_codes.fish,]
 dt.USDAnutrients.fish[, c("edible_share") := NULL]
@@ -153,7 +156,7 @@ keepListCol <- c("region_code.IMPACT159", "FAOSTAT_code")
 dt.regions <- dt.regions.all[,(keepListCol), with = FALSE][, FAOSTAT_code := as.character(FAOSTAT_code)]
 
 # read in FAOSTAT data; fish data have a different format so are handled elsewhere
-keepListYears.composites <- keyVariable("keepListYears.composites") # years used to average
+keepListYears.composites <- keyVariable("keepListYears.composites") # 3 years used to average. Data are in metric tons.
 keepListCol <- c("Country Code", "Item Code", "Item", "Element", "Unit", keepListYears.composites)
 dt.FAOSTAT.prod.crops <- fread('unzip -cq data-raw/FAOSTAT/Production_Crops_E_All_Data.zip', select = keepListCol,
                                colClasses = c(`Country Code` = "character", `Item Code` = "character"))
@@ -174,7 +177,7 @@ FAOSTATcombined[, itemSum := rowSums(.SD), .SDcols = keepListYears.composites] #
 deleteListCol <- c("unit", keepListYears.composites)
 FAOSTATcombined[, (deleteListCol) := NULL]
 
-#' aggregate smaller countries to their IMPACT159 regions
+#' aggregate smaller countries in the FAOSTAT data to their IMPACT159 regions
 data.table::setkeyv(FAOSTATcombined, c("region_code.IMPACT159", "item_code", "element"))
 FAOSTATcombined[, itemSumNew := sum(itemSum), by = eval(data.table::key(FAOSTATcombined))]
 FAOSTATcombined <- unique(FAOSTATcombined)
@@ -202,15 +205,15 @@ temp <- unique(temp)
 FAOSTATcombined.wide <- FAOSTATcombined.wide[!item_code %in% c("211","1954")]
 FAOSTATcombined.wide <- rbind(FAOSTATcombined.wide, temp)
 
-FAOSTATcombined.wide[, foodAvail := (Production + importQ - exportQ)/3] # average annual food availability for the 3 years. Summation done above.
+FAOSTATcombined.wide[, foodAvail := (Production + importQ - exportQ)/3] # average annual food availability, centered in the middle of the 3 years. Summation done above.
 
 deleteListCol <- c("Production", "importQ", "exportQ")
 FAOSTATcombined.wide[, (deleteListCol) := NULL]
-FAOSTATcombined.wide[foodAvail <0, foodAvail := 0]
+FAOSTATcombined.wide[foodAvail <0, foodAvail := 0] # in metric tons
 
 # merge FAOSTAT with dt.compositesLU.nofish
 composites.temp <- merge(FAOSTATcombined.wide, dt.compositesLU.nofish, by = c("item_code", "item_name"))
-composites.temp[, edible_share := lapply(.SD, function(x){x[is.na(x)] <- 100; x}), .SDcols = c("edible_share")]
+composites.temp[, edible_share := lapply(.SD, function(x){x[is.na(x)] <- 100; x}), .SDcols = c("edible_share")] # if edible share is NA, assume it is 100 percent
 
 composites.temp[, c("FAOSTAT_code") := NULL]
 compositesHolder <- merge(composites.temp, dt.USDAnutrients, by = c("usda_code", "edible_share"))
@@ -225,7 +228,8 @@ dt.composites <- rbind(compositesHolder, dt.USDAnutrients.fish)
 compositeNames <- sort(unique(dt.composites$composite))
 compositeNames <- c(compositeNames, "c_aqan", "c_aqpl")
 dt.composites[, c("item_code", "item_name") := NULL]
-dt.composites[, foodAvailpDay := foodAvail * (edible_share/100)/keyVariable("DinY")] # reduce food avail quantity by the edible share ratio and divide by days in year to get average daily availability
+# reduce food avail quantity by the edible share ratio and divide by days in year to get average daily availability. units are mt for foodAvail and per 100 gm for nutrients
+dt.composites[, foodAvailpDay := foodAvail * (edible_share/100)/keyVariable("DinY")] 
 
 # special handling for c_OMarn. The next line reads in the nutrient data for it
 dt.compositesLU.fish.c_OMarn <- data.table::as.data.table(read_excel("data-raw/NutrientData/nutrientDetails/c_OMarnData.xlsx",
@@ -355,7 +359,6 @@ dt.cookingRetn.aus[, Retn_Factor := Retn_Factor * 100] # convert to same units a
 dt.cookingRetn.aus[, NutrShortDesc := "Vitamin E"]
 dt.cookingRetn <- rbind(dt.cookingRetn, dt.cookingRetn.aus)
 Encoding(dt.cookingRetn$nutCode) <- "unknown"
-# Encoding(dt.cookingRetn$nutCode) <- "UTF-8"}
 
 #' now add _cr columns and convert to wide
 dt.cookingRetn[, nutCode := paste0(nutCode,"_cr")]
@@ -379,7 +382,7 @@ dt.cookingRetn.wide[, (deleteListCol) := NULL]
 dt.cookingRetn.wide[, (names(dt.cookingRetn.wide)) := lapply(.SD, function(x){x[is.na(x)] <- 100; x}), .SDcols = names(dt.cookingRetn.wide)]
 inDT <- dt.cookingRetn.wide
 outName <- "dt.cookingRetn"
-desc <- "Cooking retention for selected nutrients for each food item"
+desc <- "Cooking retention for selected nutrients for each food item, units are percent of nutrient from food item."
 cleanup(inDT, outName, fileloc("iData"), desc = desc)
 
 # add cooking retention to composites
@@ -402,7 +405,7 @@ setcolorder(dt.composites.var, c( startCols, nuts, cols.cookingRet))
 inDT <- dt.composites.var
 inDT[, (names(inDT)) := lapply(.SD, function(x){x[is.na(x)] <- 0; x}), .SDcols = names(inDT)]
 outName <- "dt.composites.var"
-desc <- "Nutrient composition for composite food items, country-specific information"
+desc <- "Nutrient composition for composite food items, country-specific information. Units are per 100 grams of food item"
 cleanup(inDT, outName, fileloc("iData"), desc = desc)
 
 # kcal information to add to nutrient file -----
@@ -584,7 +587,7 @@ desc <- "Nutrient composition of IMPACT food items, country-specific"
 cleanup(inDT, outName, fileloc("iData"), desc = desc)
 
 # now add supplementation. Add this to dt.nutrients.var if the switches say to do fortfication results
-if (getSwitchChoice() %in%"3") {
+if (getSwitchChoice() %in% "3") {
   dt.fortValues <- getNewestVersion(fileShortName = "dt.fortValues", fileloc("uData"))
   nutrientsList.fort <- unique(dt.fortValues$Nutrient)
   dt.fortValues[, Nutrient := paste0(Nutrient,".fort")]
