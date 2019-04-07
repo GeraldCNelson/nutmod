@@ -46,7 +46,8 @@ for (switchloop in getSwitchChoice()) {
   
   #dt.nutrients is per 100 gm
   #dt is per kg of food
-  dt <- switches() # is specific to countries if switchloop = 2 or 3. nutrient composition of composites vary in .var because the composition of composites changes by country
+  dt <- switches() # is specific to countries if switchloop = 2, 3, or 4. nutrient composition of composites vary 
+  # in .var because the composition of composites changes by country
   
   dt.foodNnuts <- merge(dt.IMPACTfood, dt, by = c("region_code.IMPACT159", "IMPACT_code"), allow.cartesian = TRUE)
   
@@ -122,7 +123,7 @@ for (switchloop in getSwitchChoice()) {
   inDT <- dt.foodNnuts
   inDT <- inDT[scenario %in% c("SSP1_NoCC", "SSP2_HGEM", "SSP2_NoCC","SSP3_NoCC"),]
   inDT <- inDT[year %in% c("X2010", "X2030", "X2050"),]
-  desc <- "Combines dt.IMPACTfood with nutrients and kcalsPerDay"
+  desc <- "Combines dt.IMPACTfood with nutrients and kcalsPerDay. Units are for 1 kg, daily availability. iron and zince are adjusted for bioavailability"
   createMissingDir(fileloc("resultsDir")) # checks for the existence of the directory and if its not available, creates it Dec 21, 2018
   cleanup(inDT, outName, fileloc("resultsDir"), desc = desc)
   
