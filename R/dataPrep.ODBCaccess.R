@@ -1,5 +1,3 @@
-#library(RODBC)
-library(data.table)
 source("R/nutrientModFunctions.R")
 sourceFile <- "dataPrep.ODBCaccess.R"
 createScriptMetaData()
@@ -37,10 +35,6 @@ description <- "Read in data from the USDA food nutrient composition data base a
 
 # principal files
 #FOOD_DES <- as.data.table(sqlFetch(con, "FOOD_DES", as.is = TRUE )) #food description; code is NDB_No, contains Food Group code, FdGrp_Cd)
-
-# FOOD_DES <- read_delim("data-raw/NutrientData/sr28asc/FOOD_DES.txt",
-#                        "^", quote = "~", escape_double = FALSE,
-#                        trim_ws = TRUE)
 
 FOOD_DES <- as.data.table(fread("data-raw/NutrientData/sr28asc/FOOD_DES.txt",
                                 quote = "~", sep = "^", head = FALSE, stringsAsFactors = FALSE,

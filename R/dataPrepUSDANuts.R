@@ -17,7 +17,6 @@
 source("R/nutrientModFunctions.R")
 source("R/workBookFunctions.R")
 source("R/nutrientCalcFunctions.R")
-library(readxl)
 
 #' \description{
 #' Manipulate the results of the ODBC_access script and prepare nutrient data for analysis.
@@ -336,12 +335,9 @@ dt.cookingRetn[Nutr_No %in% "432", `:=`(
 # adjust  cooking retention code for Vitamin A, RE to 320
 dt.cookingRetn[Nutr_No %in% "392", `:=`(
   Nutr_No = "320",  NutrDesc = "Vitamin A, RAE")]
-# dt.cookingRetn[Nutr_No %in% "392", Nutr_No := "320"]
 dt.cookingRetn <- merge(dt.cookingRetn, dt.nutcodeLU, by = c("Nutr_No", "NutrDesc"))
 
 #' get Australian cooking retention info and pull out just vitamin e
-# dt.cookingRetn.aus <- data.table::as.data.table(openxlsx::read.xlsx("data-raw/NutrientData/AusData/NUTTAB 2010 - Retention Factor File.xlsx"))
-library(readxl)
 dt.cookingRetn.aus <- data.table::as.data.table(read_excel("data-raw/NutrientData/AusData/NUTTAB 2010 - Retention Factor File.xlsx",
                                                            col_types = c("text", "text", "text",
                                                                          "text", "text", "numeric")))
@@ -662,4 +658,4 @@ desc <- "Nutrient names and units"
 cleanup(inDT, outName, fileloc("mData"), desc = desc)
 
 finalizeScriptMetadata(metadataDT, sourceFile)
-sourcer <- clearMemory(sourceFile, gdxChoice) # removes everything in memory and sources the sourcer function
+#sourcer <- clearMemory(sourceFile, gdxChoice) # removes everything in memory and sources the sourcer function

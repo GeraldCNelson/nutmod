@@ -28,7 +28,6 @@ description <- "Reads in fish data from FishStat and manipulates it for use in n
 createScriptMetaData()
 # aquatic plants used as food not included in FishStat so "c_aqpl not included in this code
 fishComposites <- keyVariable("fishComposites")
-#TS_FI_PRODUCTION <- fread("data-raw/FAOSTAT/FishStatData/GlobalProuction_2017.1.1/TS_FI_PRODUCTION.csv")
 TS_FI_PRODUCTION <- as.data.table(read_csv("data-raw/FAOSTAT/FishStatData/GlobalProuction_2017.1.1/TS_FI_PRODUCTION.csv", col_names = TRUE, cols(
   Country = col_character(),
   Area = col_character(),
@@ -116,7 +115,6 @@ fishprod <- unique(fishprod)
 fishprod <- merge(fishprod, CL_FI_SPECIES_GROUPS, by.x = "Species", by.y = "3Alpha_Code", all.x = TRUE)
 
 # read in info that aligns species names with composite fish items
-library(readxl)
 dt.compositesLU.fish <- data.table::as.data.table(read_excel("data-raw/NutrientData/nutrientDetails/composites.lookup.fish.xlsx",
                                                              col_types = c("text", "text", "numeric",
                                                                            "numeric", "numeric", "text", "numeric",

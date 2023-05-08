@@ -23,10 +23,11 @@ metadata.tot <<- data.table(outName = character(0), sourcecode = character(0), d
 for (i in metadata.list) {
   metadata.tot <- rbind(metadata.tot, read.csv(paste0("documentation/", i)))
 }
+setnames(metadata.tot, old = names(metadata.tot), new = c("file name", "name of code file", "output directory", "description", "file column names"))
 inDT <- metadata.tot
-outName <- "dt.metadataTot"
-desc <- "Metadata for all the files created"
+outName <- "filesCreated"
+desc <- "information for all the files created"
 # next line is to keep cleanup happy
 metadataDT <<- data.table(outName = character(0), sourcecode = character(0), destDir = character(0), desc = character(0), colNames = character(0))
-cleanup(inDT, outName, destDir = "documentation", writeFiles = "csv", desc = desc)
+cleanup(inDT, outName, destDir = "documentation", writeFiles = "xlsx", desc = desc)
 

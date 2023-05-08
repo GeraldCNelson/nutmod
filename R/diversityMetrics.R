@@ -16,8 +16,6 @@
 #' \description{
 #' Calculates diversity and nutrient benefit metrics.
 #' }
-# library(data.table)
-# library(maps)
 
 source("R/nutrientModFunctions.R")
 sourceFile <- "diversityMetrics.R"

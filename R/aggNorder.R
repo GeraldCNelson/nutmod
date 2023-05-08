@@ -34,7 +34,7 @@ gdxChoice <- "SSPs"
 # dt.pop <- getNewestVersion("dt.PopX0", fileloc("iData"))
 dt.pop <- readRDS(paste0(fileloc("iData"), "dt.PopX0"))
 
-getRegionOrder <- function(aggChoice, regionNames){
+getRegionOrder <- function(aggChoice, regionNames) {
   regionNameOrder <- character(0)
   if (aggChoice %in% "WB") {regionNameOrder <- c("Low", "Lower middle", "Upper middle", "High")}
   if (aggChoice %in% "AggReg1") {regionNameOrder <- regionNames}
@@ -180,7 +180,8 @@ aggNorder <- function(gdxChoice, DTaggNorder, aggChoice, scenChoice, mergedVals,
   return(DT)
 }
 
-plotByRegionBar <- function(dt, fileName, plotTitle, yLab, yRange, aggChoice, suffix, scenOrder, oneLine, colorList, graphsListHolder, plotErrorBars, fill = "region_name") { # removed , AMDR_hi = NULL Oct 15, 2018
+# removed AMDR_hi = NULL Oct 15, 2018
+plotByRegionBar <- function(dt, fileName, plotTitle, yLab, yRange, aggChoice, suffix, scenOrder, oneLine, colorList, graphsListHolder, plotErrorBars, fill = "region_name") { 
   cat("Plotting bars by region", aggChoice, "for", plotTitle, "\n")
   temp <- copy(dt)
   regionCodes <- unique(temp$region_code)
@@ -355,7 +356,7 @@ plotByRegionStackedBar <- function(dt, fileName, plotTitle, yLab, yRange, aggCho
   write.csv(temp.wide, file = paste(fileloc("gDir"),"/", fileName, ".csv", sep = ""))
 }
 
-plotByBoxPlot2050 <- function(dt, fileName, plotTitle, yLab, yRange, aggChoice, suffix, graphsListHolder){
+plotByBoxPlot2050 <- function(dt, fileName, plotTitle, yLab, yRange, aggChoice, suffix, graphsListHolder) {
   cat("\nPlotting boxplot for 2050 by region", aggChoice, "\n")
   plotTitle <- capwords(plotTitle)
   temp <- copy(dt)

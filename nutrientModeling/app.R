@@ -20,107 +20,18 @@
 # To make sure data and script files are up to date, first run copyFilestoNutrientModeling.R
 # This is a Shiny web application. You can run the application by clicking
 # the 'Run App' button in RStudio
-library(shiny)
-library(shiny.router)
-library(shinyjs)
-library(shinythemes)
-# library(shinyWidgets)
-# library(shiny.router) # install using devtools::install_github("Appsilon/shiny.router"); using for table of contents
-library(DT) # needs to come after library(shiny)
-library(data.table)
-library(plyr)
-library(dplyr) # to do %>%
-library(dtplyr)
-# library(tidyverse) # includes ggplot2, tibble, tidyr, and readr # can't get it to compile on a centos system
-library(data.table) # this is needed everywhere and currently some scripts don't call it
-library(ggplot2)
-
-#library(strengejacke)
-library(ggiraphExtra) #to do the interactive spider graphs. As of May 27, 2017, needs to be installed with devtools::install_github('cardiomoon/ggiraphExtra')
-require(ggiraph)
-library(RColorBrewer)
-library(qdapRegex) # needed for the TC (title case) function
-source("global.R") # load all the background functions and install packages if not already done
+source("global.R") # load all the background functions and packages 
+source("globaldata.R")
+source("modules.R")
 #note install packages feature in global.R is commented out
-options(repos = c(CRAN = "https://cran.rstudio.com"))
-gdxChoice <- paste0(getwd(), "/data/gdxInfo.csv")
-
-
-
-#' files for the development tab section
-FGreqChoices <- c("macro nutrients", "minerals", "vitamins")
-staplesReqChoices <- c("energy","macro nutrients", "minerals", "vitamins")
-initialCountryName <- "India"
-initialScenarioName <- "SSP2_NoCC"
-initialCountryCode <- countryCodeLookup(initialCountryName, fileloc("mData"))
-userCountryChoice <- initialCountryName # until user chooses something different in the first tab
-userScenarioChoice <- initialScenarioName # until user chooses something different in the first tab
-
-#region groupings
-WBcountries <- list()
-region_name.WB <- c("Low income", "Lower middle income", "Upper middle income", "High income")
-dt <- copy(dt.regions.all)
-for (i in 1:length(region_name.WB)) {
-  dt <- dt.regions.all[region_name.WB.income %in% region_name.WB[i]]
-  temp <- sort(unique(dt$region_name.IMPACT159))
-  temp <- gsub(" plus", "", temp)
-  temp <- temp[temp %in% countryNames]
-  WBcountries[[region_name.WB[i]]] <- temp
-}
-
-dataSetsToLoad <- c(
-  "dt.foodAvail_foodGroup",
-  "dt.nutrients_kcals",
-  "food_agg_AMDR_hi",
-  "reqRatio_sum_RDA_macro",
-  "reqRatio_sum_RDA_vits",
-  "reqRatio_sum_RDA_minrls",
-  "dt.nutBalScore",
-  "dt.MRVRatios",
-  "dt.shannonDiversity",
-  "dt.KcalShare_nonstaple",
-  "dt.RAOqe"
-)
-
-# edited Aug 10, 2018 to deal with the .var element of file names
-dataSetsToLoad <- paste0(dataSetsToLoad, ".var")
-dataSetsToLoad <- c(dataSetsToLoad, "dt.budgetShare") # no var version of this.
-
-# use for big data sets
-dataSetsToLoad.supplemental <- c("dt.nutrients_sum_FG.var")
-
-dataSetsToLoad.desc <- c("Food availability by food group", "Kilocalorie availability", "AMDR ratios", "Adequacy, macro",
-                         "Adequacy, vitamins", "Adequacy, minerals", "Nutrient balance score", "Maximum recommended intake score", "Shannon diversity", "Share of kcals, nonstaples",
-                         "Rao's QE", "Budget share")
-dataSetsToLoad.desc.supplemental <- c("Nutrient availability")
-
-datasetsToLoad.complete <- c(dataSetsToLoad, dataSetsToLoad.supplemental)
-datasetsToLoad.desc.complete <- c(dataSetsToLoad.desc, dataSetsToLoad.desc.supplemental)
-
-#' foodGroupNames and foodGroupNamesNoWrap must align
-codeNames.foodGroups <- c("alcohol", "beverages", "cereals", "dairy", "eggs", "fish", "fruits", "meats", "nutsNseeds",
-                          "oils", "pulses", "rootsNPlantain", "sweeteners", "vegetables")
-foodGroupNamesNoWrap <- c("Beverages, alcoholic", "Beverages, nonalcoholic", "Cereals", "Dairy", "Eggs", "Fish", "Fruits", "Meats", "Nuts and oilseeds",
-                          "Oils", "Pulses", "Roots and plantain", "Sweeteners", "Vegetables")
-foodGroupNamesWrap <- c("Beverages,\nalcoholic", "Beverages,\nnonalcoholic", "Cereals", "Dairy", "Eggs", "Fish", "Fruits", "Meats", "Nuts and\noilseeds",
-                        "Oils", "Pulses", "Roots and\nplantain", "Sweeteners", "Vegetables")
-codeNames.macro <- c("carbohydrate_g", "protein_g", "totalfiber_g")
-nutNamesNoUnitsWrap.macro <- c("Carbo\nhydrate", "Protein", "Total fiber")
-codeNames.vits <- c("folate_µg", "niacin_mg", "riboflavin_mg", "thiamin_mg", "vit_a_rae_µg", "vit_b12_µg", "vit_b6_mg", "vit_c_mg",
-                    "vit_d_µg", "vit_e_mg", "vit_k_µg")
-nutNamesNoUnitsWrap.vits <- c("Folate", "Niacin", "Ribo\nflavin", "Thiamin", "Vitamin\nA RAE", "Vitamin\nB12", "Vitamin\nB6", "Vitamin\nC",
-                              "Vitamin\nD", "Vitamin\nE", "Vitamin\nK")
-codeNames.minrls <- c("calcium_mg", "iron_mg", "magnesium_mg", "phosphorus_mg", "potassium_g", "zinc_mg")
-nutNamesNoUnitsWrap.minrls <- c("Calcium", "Iron", "Mag\nnesium", "Phos\nphorus", "Potas\nsium", "Zinc")
-nutNamesNoUnitsWrap <- c(nutNamesNoUnitsWrap.macro, nutNamesNoUnitsWrap.vits, nutNamesNoUnitsWrap.minrls)
-codeNames.tot <- c(codeNames.macro, codeNames.vits, codeNames.minrls)
+source("initializationValues.R")
 
 # Define UI -----
 ui <- fluidPage(
-  theme = shinytheme("sandstone"),
+  theme = shinytheme("lumen"),
   title = "Nutrient modeling",
   
-#   router_ui(), 
+  #   router_ui(), 
   
   useShinyjs(debug = TRUE),
   div(
@@ -135,6 +46,9 @@ ui <- fluidPage(
                    sidebarLayout(
                      sidebarPanel( width = 3,
                                    includeHTML("www/countryChoice.html"),
+                                    #  button_UI("first"),
+                                    # button_selectize("first"),
+                                   country_choice_mod_ui("countryName"),
                                    selectizeInput(inputId = "userCountryName", label = "Choose country", choices = countryNames, selected = NULL),
                                    selectizeInput(inputId = "userScenarioName", label = "Choose scenario", choices = scenarioNames, selected = initialScenarioName)),
                      mainPanel(includeHTML("www/introText.html")))),
@@ -154,21 +68,11 @@ ui <- fluidPage(
           # food availability tab panel ------
           tabPanel(title = "Food Availability",
                    verticalLayout(
-                     # sidebarPanel(width = 1,
-                     #              
-                     #              
-                     #              # selectizeInput(inputId = "availabilityScenarioName", label = "Choose a scenario (see definition in glossary)",
-                     #              #                choices = scenarioNames),
-                     #              ,
-                     #                   mainPanel(
                      titlePanel("Average daily food availability by food group"),
                      includeHTML("www/availabilityText.html"),
                      selectizeInput(inputId = "availabilityCountryName", label = "Choose country",
                                     choices = countryNames,
                                     options = list(placeholder = "Select country")),
-                     # radioButtons("availabilityScenarioName", "Choose scenario (See glossary for details):",
-                     #              list("SSP2_NoCC", "SSP2_HGEM", "SSP1_NoCC", "SSP3_NoCC"), inline = TRUE),
-                     #                            ggiraphOutput("availabilitySpiderGraphP1", height = "600px", width = "100%"),
                      ggiraphOutput("availabilitySpiderGraphP1", height = "700px"),
                      
                      DT::dataTableOutput("availabilityTableP1"),
@@ -185,7 +89,7 @@ ui <- fluidPage(
                      mainPanel(titlePanel("Nutrient availability"),
                                includeHTML("www/foodGroupSpiderGraphText.html"),
                                div(radioButtons("FGscenarioName", "Choose scenario (See glossary for details):", 
-                                                list("SSP2_NoCC", "SSP2_HGEM", "SSP1_NoCC", "SSP3_NoCC"), inline = TRUE),  style="display:center-align"),
+                                                list("SSP2_NoCC", "SSP2_HGEM", "SSP1_NoCC", "SSP3_NoCC"), inline = TRUE),  style = "display:center-align"),
                                uiOutput("plot.NutAvailFGbarGraphP1"),
                                DT::dataTableOutput("NutAvailFGTable"),
                                includeHTML("www/nutrientDescription.html")))),
@@ -196,7 +100,7 @@ ui <- fluidPage(
                      titlePanel("Nutrient adequacy and kilocalorie availability"),
                      includeHTML("www/adequacyText.html"),
                      selectizeInput(inputId = "adequacyCountryName", label = "Choose country", choices = countryNames),
-                  column(width = 12, ggiraphOutput("adequacySpiderGraphtot", height = "700px")),
+                     column(width = 12, ggiraphOutput("adequacySpiderGraphtot", height = "700px")),
                      fluidRow(
                        column(width = 2,  radioButtons("adequacyScenarioName", "Choose scenario",
                                                        list("SSP2_NoCC", "SSP2_HGEM", "SSP1_NoCC", "SSP3_NoCC"), inline = TRUE)),
@@ -309,12 +213,12 @@ ui <- fluidPage(
                          mainPanel(
                            titlePanel("Data download"),
                            DT::dataTableOutput('table')))),
-              # Metadata tab panel -----
+              # filesCreated tab panel -----
               tabPanel(
                 title = "Files",
                 verticalLayout(
                   titlePanel("Information on file content for developers"),
-                  fluidRow(column(width = 12, div(DT::dataTableOutput("metadataTable"), style = "font-size:80%", family = fontFamily))))),
+                  fluidRow(column(width = 12, div(DT::dataTableOutput("filesCreatedTable"), style = "font-size:80%", family = fontFamily))))),
               # IMPACT metadata tab panel -----
               tabPanel(title = "Region definitions",
                        verticalLayout(
@@ -330,10 +234,10 @@ ui <- fluidPage(
                        verticalLayout(
                          titlePanel("Nutrient lookup table"),
                          includeHTML("www/nutrientLookupText.html"),
-                      
+                         
                          fluidRow(column(width = 12, div(DT::dataTableOutput("nutrientLookup"), style = "font-size:80%", family = fontFamily))),
                          downloadButton("downloadData.nutrients.adj", "Download")
-                         )),
+                       )),
               # File documentation -----
               tabPanel(title = "File documentation",
                        verticalLayout(
@@ -352,9 +256,14 @@ ui <- fluidPage(
 )
 
 server <- function(input, output, session) {
-#  router(input, output)
-  load_data(dataSetsToLoad) # load most of the data. Big files can be loaded elsewhere
+  #  router(input, output)
+  GlobalData = callModule(GlobalDataModule, "globals")
+#  load_data(dataSetsToLoad) # load most of the data. Big files can be loaded elsewhere
   reqRatio_sum_RDA <- data.table::rbindlist(list(reqRatio_sum_RDA_macro.var, reqRatio_sum_RDA_vits.var, reqRatio_sum_RDA_minrls.var))
+  
+  # button_UI("first")
+  countryName <- callModule(country_choice_mod_server, "plot1_vars")
+  
   
   keepListCol <- c("scenario", "region_code.IMPACT159", "year", "pcGDPX0", "budget.PCX0", "incShare.PCX0")
   dt.budgetShare[, setdiff(names(dt.budgetShare), keepListCol) := NULL]
@@ -394,6 +303,28 @@ server <- function(input, output, session) {
   })
   
   # country name choice observer -----
+  # observe({
+  #   countryName <- input$userCountryName
+  #   # Can also set the label and select items
+  #   updateSelectizeInput(session, "affordabilityCountryName", selected = countryName)
+  #   updateSelectizeInput(session, "availabilityCountryName", selected = countryName)
+  #   updateSelectizeInput(session, "adequacyCountryName", selected = countryName)
+  #   updateSelectizeInput(session, "nutbalCountryName", selected = countryName)
+  #   updateSelectizeInput(session, "AMDRCountryName", selected = countryName)
+  #   updateSelectizeInput(session, "diversityCountryName", selected = countryName)
+  #   updateSelectizeInput(session, "nonstapleEnergyShareCountryName", selected = countryName)
+  #   updateSelectizeInput(session, "MRVCountryName", selected = countryName)
+  #   updateSelectizeInput(session, "RaosQECountryName", selected = countryName)
+  #   updateSelectizeInput(session, "FGcountryName", selected = countryName)
+  #   
+  #   # scenario choice observer -----
+  #   scenarioName <- input$userScenarioName
+  #   # Can also set the label and select items
+  #   updateSelectizeInput(session, "availabilityScenarioName", selected = scenarioName)
+  #   updateSelectizeInput(session, "adequacyScenarioName", selected = scenarioName)
+  #   updateSelectizeInput(session, "FGscenarioName", selected = scenarioName)
+  # })
+  
   observe({
     countryName <- input$userCountryName
     # Can also set the label and select items
@@ -415,6 +346,11 @@ server <- function(input, output, session) {
     updateSelectizeInput(session, "adequacyScenarioName", selected = scenarioName)
     updateSelectizeInput(session, "FGscenarioName", selected = scenarioName)
   })
+  
+  
+  
+  
+  
   
   # food availability reactive -----
   data.foodAvail <- reactive({
@@ -1055,6 +991,20 @@ server <- function(input, output, session) {
     }
   })
   
+  output$table <- DT::renderDataTable({
+    dt <- datasetInput()
+    currentDT <- datasetsToLoad.complete[match(input$dataset.full, datasetsToLoad.desc.complete)]
+    valueDTNames <- paste0(c( "dt.foodAvail_foodGroup", "dt.nutrients_kcals",
+                              "reqRatio_sum_RDA_macro",  "reqRatio_sum_RDA_vits", "reqRatio_sum_RDA_minrls",
+                              "dt.nutBalScore", "dt.MRVRatios", "dt.KcalShare_nonstaple", "dt.RAOqe"), ".var")
+    setnames(dt, old = "region_code.IMPACT159", new = "Country code")
+    if (!currentDT %in% valueDTNames) {
+      dt <- DT::datatable(dt, rownames = FALSE, options = list(pageLength = 25))
+    }else{
+      dt <- DT::datatable(dt, rownames = FALSE, options = list(pageLength = 25)) %>% formatRound('value', 3)
+    }
+  })
+  
   output$downloadData.full <- downloadHandler(
     filename = function() { paste(input$dataset.full, "_", Sys.Date(), '.gz', sep = '') },
     content = function(file) {
@@ -1063,7 +1013,13 @@ server <- function(input, output, session) {
   
   # metadataTable ------
   output$metadataTable <- DT::renderDataTable({
-    dt <- getNewestVersion("dt.metadataTot", fileloc("mData"))
+    dt <- getNewestVersion("filesCreated", fileloc("mData"))
+    dt <- DT::datatable(dt, rownames = FALSE, options = list(pageLength = 25))
+  })
+  
+  # scriptInfoTable ------
+  output$metadataTable <- DT::renderDataTable({
+    dt <- getNewestVersion("scriptInfo", fileloc("mData"))
     dt <- DT::datatable(dt, rownames = FALSE, options = list(pageLength = 25))
   })
   
@@ -1087,11 +1043,6 @@ server <- function(input, output, session) {
     #    dt[, ft_acds_tot_trans_g := as.numeric(ft_acds_tot_trans_g)] #dt.nutrients.var comes in as chr because one entry is "ph (Aug 10, 2018); fixed Aug 12, 2018
     colsNotNumeric <- c("IMPACT_code",  "region_code.IMPACT159", "food_group_code", "staple_code")
     colsToRound3 <- names(dt)[!names(dt) %in% colsNotNumeric]
-    # colsToRound3 <- c("phytate_mg", "protein_g", "fat_g", "carbohydrate_g", "totalfiber_g", "energy_kcal",
-    #                  "calcium_mg", "iron_mg", "magnesium_mg", "phosphorus_mg", "potassium_g", "zinc_mg", "vit_c_mg", "thiamin_mg", "riboflavin_mg",
-    #                  "niacin_mg", "vit_b6_mg", "folate_µg", "vit_b12_µg", "vit_a_rae_µg", "vit_e_mg", "vit_d_µg", "vit_k_µg", "sugar_g", "ft_acds_tot_sat_g",
-    #                  "ft_acds_mono_unsat_g", "ft_acds_plyunst_g", "ft_acds_tot_trans_g", "ethanol_g", "caffeine_mg", "cholesterol_mg",
-    #                  "kcals.fat_g", "kcals.protein_g", "kcals.carbohydrate_g", "kcals.sugar_g", "kcals.ft_acds_tot_sat_g", "kcals.ethanol_g")
     colsToRound0 <- c("magnesium_mg", "phosphorus_mg", "ethanol_g", "caffeine_mg", "cholesterol_mg",
                       "ethanol_g_cr", "calcium_mg_cr", "iron_mg_cr", "magnesium_mg_cr", "phosphorus_mg_cr",
                       "potassium_g_cr", "zinc_mg_cr", "vit_a_rae_µg_cr", "vit_c_mg_cr", "thiamin_mg_cr",

@@ -39,7 +39,6 @@ source("R/nutrientModFunctions.R")
 #' IMPACT159 includes all the countries in the ISO list, either individually or in a plus region
 #' SSP doesn't include the 56 countries in missingList.SSP. These are bunch of really small things.
 
-library(readxl)
 sourceFile <- "dataPrep.regions.R"
 description <- "This script contains functions to align regional aggregations from country data and writes them out to dt.regions.all.rds. Only needs to be run when there is a new regional aggregation."
 createScriptMetaData()

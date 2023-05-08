@@ -17,18 +17,25 @@
 # http://www.gnu.org/licenses/.  Contributors to the work include
 # Brendan Power (for coding assistance), Joanne E. Arsenault (for
 # constructing the nutrient requirements worksheet) and Joanne E.
-# Arsenault, Malcolm Reilly, Jessica Bogard, and Keith Lividini (for
+# Arsenault, Jessica Bogard, Keith Lividini and Malcolm Reilly (for
 # nutrition expertise)
 
 source("R/workBookFunctions.R")
 source("R/nutrientCalcFunctions.R")
-library(plyr)
+library(dplyr)
+# dtplyr provides backend so data table works with dplyr
 library(dtplyr)
-library(tidyverse) # includes ggplot2, tibble, tidyr, and readr
-library(data.table) # this is needed everywhere and currently some scripts don't call it
+# tidyverse includes ggplot2, tibble, tidyr, and readr
+library(tidyverse)
+library(readxl)
+library(data.table)
 library(ggthemes)
-library(qdapRegex) # needed for the TC (title case) function, added Nov 3, 2018
-library(gtools) # for capwords function
+# qdapRegex needed for the TC (title case) function, added Nov 3, 2018
+library(qdapRegex)
+# gtools needed for capwords function
+library(gtools)
+# scales needed for the rescale function used below
+library(scales)
 #' @description {
 #' This is the script with all the widely used functions in the nutrient modeling project.
 #' }
@@ -38,26 +45,9 @@ sourceFile <- "nutrientModFunctions.R"
 description <- "This is the script with all the widely used functions in the nutrient modeling project."
 
 fontFamily <- "Cambria"
-# .onLoad <- function(libname, pkgname) {
-#   op <- options()
-#   op.devtools <- list(
-#     devtools.path = "~/R-dev",
-#     devtools.install.args = "",
-#     devtools.name = "Gerald C. Nelson",
-#     devtools.desc.author = 'person("Gerald", "Nelson",
-#     "nelson.gerald.c@gmail.com", role = c("aut", "cre"))',
-#     devtools.desc.license = "GPL-3",
-#     devtools.desc.suggests = NULL,
-#     devtools.desc = list()
-#     )
-#   toset <- !(names(op.devtools) %in% names(op))
-#   if (any(toset))
-#     options(op.devtools[toset])
-#   invisible()
-# }
 
 # sourcer is currently only used in automate.R but could potentially be used elsewhere
-sourcer <- function(srcFile){
+sourcer <- function(srcFile) {
   srcFile <- paste0("R/", srcFile)
   cat("\nRunning ", srcFile, "\n")
   source(srcFile)
@@ -85,7 +75,7 @@ createMissingDir <- function(dirNeeded)
 #' @return Value of the variableName to be assigned in another script
 #' fileloc()
 #' @return Value of the variableName to be assigned in another script
-#' 
+#'
 #' @export
 
 fileloc <- function(variableName) {
@@ -190,42 +180,44 @@ getNewestVersion <- function(fileShortName, directory, fileType) {
 #' @param fileShortName The substantive (first) part of the file name.
 #' @return The most recent .rds file of IMPACT data
 #' getNewestVersionIMPACT()
-#' 
+#'
 #' @export
 getNewestVersionIMPACT <- function(fileShortName) {
   getNewestVersion(fileShortName, fileloc("iData"))
+}
+
+# removeFcn used in removeOldVersions
+removeFcn <- function(regExp,dir) {
+  oldVersionList <-
+    grep(regExp,
+         list.files(dir),
+         value = TRUE,
+         perl = TRUE)
+  if (length(oldVersionList) > 0) {
+    #      print(oldVersionList)
+    file.remove(paste(dir, oldVersionList, sep = "/"))
+  }
 }
 
 #' Title removeOldVersions - removes old version of a rawData file
 #' @param fileShortName short name of the file to be removed
 #' @param dir directory of the file to be removed
 #' removeOldVersions()
-#' 
+#'
 #' @export
 removeOldVersions <- function(fileShortName,dir) {
-  removeFcn <- function(regExp) {
-    oldVersionList <-
-      grep(regExp,
-           list.files(dir),
-           value = TRUE,
-           perl = TRUE)
-    if (length(oldVersionList) > 0) {
-      #      print(oldVersionList)
-      file.remove(paste(dir, oldVersionList, sep = "/"))
-    }
-  }
   # remove .rawData versions
   regExp <- paste("(?=^", fileShortName, ")(?=.*rawData$)", sep = "")
-  removeFcn(regExp)
+  removeFcn(regExp, dir)
   # remove .rds versions
   regExp <- paste("(?=^", fileShortName, ")(?=.*rds$)", sep = "")
-  removeFcn(regExp)
+  removeFcn(regExp, dir)
   # remove .xlsx versions
   regExp <- paste("(?=^", fileShortName, ")(?=.*xlsx$)", sep = "")
-  removeFcn(regExp)
+  removeFcn(regExp, dir)
   # remove .csv versions
   regExp <- paste("(?=^", fileShortName, ")(?=.*csv$)", sep = "")
-  removeFcn(regExp)
+  removeFcn(regExp, dir)
 }
 
 createScriptMetaData <- function(srcFile) {
@@ -245,13 +237,9 @@ clearMemory <- function(srcFile, gdxChoice = gdxChoice) {
   rm(list = rmList, envir = as.environment(1))
   
   # The sourcer function is run here in case the automate script is used to run all the R scripts
-  sourcer <- function(srcFile){
-    cat("\nRunning ", srcFile, "\n")
-    srcFile <- paste0("R/", srcFile)
-    source(srcFile)
-  }
-  return(sourcer)
+  sourcer(srcFile)
 }
+
 #' Title cleanup - remove old versions and save rds and xlsx or csv versions of the file
 #' @param inDT name of the data table or frame to be written out
 #' @param outName short name of the file to be written out
@@ -405,7 +393,7 @@ cleanupNutrientNames <- function(nutList) {
 
 #' @return list of key variables
 #' keyVariable()
-#' 
+#'
 #' @export
 
 keyVariable <- function(variableName) {
@@ -465,9 +453,9 @@ keyVariable <- function(variableName) {
                      "MWI", "NAM", "NER", "NGA", "RWA", "SDN", "SDP", "SEN", "SLE", #removed "OAO" other Atlantic Ocean
                      "SOM", "SSD", "SWZ", "TCD", "TGO", "TZA", "UGA", "ZAF", "ZMB", "ZWE")
   
-  allAfricaCodes <- c("AGO", "BDI", "BEN", "BFA", "BWA", "CAF", "CIV", "CMR", "COD", "COG", "DJI", "DZA", 
-                      "EGY", "ERI", "ETH", "GAB", "GHA", "GIN", "GMB", "GNB", "GNQ", "KEN", "LBR", "LBY", "LSO", "MDG", "MLI", 
-                      "MOR", "MOZ", "MRT", "MWI", "NAM", "NER", "NGA", "RWA", "SDN", "SEN", "SLE", "SOM", "SWZ", "TCD", "TGO", 
+  allAfricaCodes <- c("AGO", "BDI", "BEN", "BFA", "BWA", "CAF", "CIV", "CMR", "COD", "COG", "DJI", "DZA",
+                      "EGY", "ERI", "ETH", "GAB", "GHA", "GIN", "GMB", "GNB", "GNQ", "KEN", "LBR", "LBY", "LSO", "MDG", "MLI",
+                      "MOR", "MOZ", "MRT", "MWI", "NAM", "NER", "NGA", "RWA", "SDN", "SEN", "SLE", "SOM", "SWZ", "TCD", "TGO",
                       "TUN", "TZA", "UGA", "ZAF", "ZMB", "ZWE")
   regions.AfricanAgFutures <- c("ETH", "NGA", "MWI", "MOZ", "ZMB", "ZWE")
   tenregions <- sort(c("NIC", "BRA", "CHM", "ETH", "IND", "GHA", "TZA", "FRP", "VNM", "USA"))
@@ -531,7 +519,7 @@ keyVariable <- function(variableName) {
         "fattyAcids",
         "other",
         "addedSugar",
-        "allAfricaCodes", 
+        "allAfricaCodes",
         "SSAfricaCodes"
       )
     )
@@ -646,7 +634,7 @@ metadata <- function() {
 #' @source \url{http://faostat3.fao.org/download/FB/FBS/E} Source of FBS data
 #' @return Nothing
 #' fileNameList()
-#' 
+#'
 #' @export
 fileNameList <- function(variableName) {
   IMPACTCleanData <- fileloc("IMPACTCleanData")
@@ -740,7 +728,7 @@ fileNameList <- function(variableName) {
 #' @param FBSregionsToDrop - countries that do not have enough information or are large regions
 #' @return The content of the variable name.
 #' filelocFBS()
-#' 
+#'
 #' @export
 filelocFBS <- function(variableName) {
   FBSData <- fileloc("FBSData")
@@ -848,10 +836,10 @@ regionAgg <- function(aggChoice) {
   I3regions <- sort(unique(dt.regions.all$region_code.IMPACT159))
   tenregions <- keyVariable("tenregions") # returns country codes
   regions.AfricanAgFutures <- keyVariable("regions.AfricanAgFutures") # returns country codes
-  AfricaWest <- c("Benin", "Burkina Faso", "Cape Verde", "Ivory Coast", "Gambia", "Ghana", "Guinea", "Guinea-Bissau", 
+  AfricaWest <- c("Benin", "Burkina Faso", "Cape Verde", "Ivory Coast", "Gambia", "Ghana", "Guinea", "Guinea-Bissau",
                   "Liberia", "Mali", "Mauritania", "Niger", "Nigeria", "Senegal", "Sierra Leone", "Togo")
   dropList.AfricaWest <- c("Cape Verde", "Gambia", "Guinea", "Guinea-Bissau", "Mauritania")
-  AfricaEast <- sort(c("Tanzania", "Kenya", "Uganda", "Rwanda", "Burundi", "South Sudan", "Djibouti", "Eritrea", "Ethiopia", 
+  AfricaEast <- sort(c("Tanzania", "Kenya", "Uganda", "Rwanda", "Burundi", "South Sudan", "Djibouti", "Eritrea", "Ethiopia",
                        "Somalia", "Comoros", "Mauritius", "Seychelles", "Mozambique", "Madagascar", "Malawi", "Zambia", "Sudan"))
   dropList.AfricaEast <- c("Comoros", "Djibouti", "Eritrea", "Seychelles", "Somalia", "South Sudan")
   AggReg1 <- sort(unique(dt.regions.all$region_code.AggReg1))
@@ -902,7 +890,7 @@ regionAgg <- function(aggChoice) {
   return(dt.regions)
 }
 
-gdxrrwExistenceCheck <- function(){
+gdxrrwExistenceCheck <- function() {
   # the GAMS gdxrrw package is needed to import data from IMPACT (in R scripts gdxrrwSetup.R, dataPrep.IMPACT.R and dataManagement.IMPACT.R)
   gdxrrwText <- 'The gdxrrw package is needed to run this. It is not available from CRAN; use this url:
 https://support.gams.com/gdxrrw:interfacing_gams_and_r. Download the relevant file and use the following command to install
@@ -949,11 +937,10 @@ gdxLibraryLocationCheck <- function() {
 }
 
 # store world map dataframe -----
-storeWorldMapDF <- function(){
-  library("maptools")
-  require("rgdal")
-  require("rgeos")
-  require("dplyr")
+storeWorldMapDF <- function() {
+  library(maptools)
+  library(rgdal)
+  library(rgeos)
   srcFile <- "storeWorldMapDF in R/nutrientModFunctions.R"
   createScriptMetaData()
   # check to see if worldMap already exists
@@ -1037,7 +1024,7 @@ storeWorldMapDF <- function(){
   # wintri projection
   projVal.wintri <- "+proj=wintri +datum=WGS84 +no_defs +over" #this doesn't work when you try to create a shapefile with raster:shapefile
   # mercator projection
-  projVal.mercat <- "+proj=merc +lon_0=0 +k=1 +x_0=0 +y_0=0 +ellps=WGS84 +datum=WGS84 +units=m +no_defs" 
+  projVal.mercat <- "+proj=merc +lon_0=0 +k=1 +x_0=0 +y_0=0 +ellps=WGS84 +datum=WGS84 +units=m +no_defs"
   #Robinson projection
   projVal.robin <- "+proj=robin +datum=WGS84 +ellps=WGS84"
   
@@ -1056,7 +1043,7 @@ storeWorldMapDF <- function(){
   fpusMap = SpatialPolygonsDataFrame(fpusMap, data=data)
   fpusMap <- sp::spTransform(fpusMap, CRSobj = defaultProj)
   fpusMap <- gBuffer(fpusMap, byid=TRUE, width=0)
-  yieldData <- getNewestVersion("yieldData", fileloc("mData"))   
+  yieldData <- getNewestVersion("yieldData", fileloc("mData"))
   # keep only the SSAfrica countries for data.fpus.SSA
   fpusMap_SSA <- subset(fpusMap, region_code.IMPACT159  %in% SSAfricaCodes)
   # redo factor after subsetting
@@ -1083,7 +1070,7 @@ storeWorldMapDF <- function(){
   # saveRDS(americas, file = paste(filelocMap, "americasFile.RDS", sep = "/"))
   # saveRDS(asia, file = paste(filelocMap, "asiaFile.RDS", sep = "/"))
   # saveRDS(fpusMap, file = paste(filelocMap, "fpusMap.RDS", sep = "/"))
-  # 
+  #
   
   #world.simp <- gSimplify(world, tol = .1, topologyPreserve = TRUE)
   # alternative would be CRS("+proj=longlat")) for WGS 84
@@ -1143,7 +1130,8 @@ storeWorldMapDF <- function(){
   cleanup(inDT, outName, fileloc("uData"), desc = desc)
 }
 
-generateBreakValues <- function(fillLimits, numLimits, decimals) { # added Sep 13, 2018. May not be appropriate
+# generateBreakValues added Sep 13, 2018. May not be appropriate
+generateBreakValues <- function(fillLimits, numLimits, decimals) {
   fillRange <- fillLimits[2] - fillLimits[1]
   fillStep <- fillRange/numLimits
   breakValues <- numeric(numLimits)
@@ -1159,7 +1147,7 @@ generateBreakValues <- function(fillLimits, numLimits, decimals) { # added Sep 1
   return(breakValues)
 }
 
-library(scales)
+# not sure the scales library is being used
 # new version that allows different maps, added Sep 13, 2108. Not sure why graphsListHolder left out. Added back in Oct 8, 2018
 facetMaps <- function(mapFile, DTfacetMap, fileName, legendText, fillLimits, palette, facetColName, graphsListHolder, displayOrder, width = 7, height = 4) {
   #b <- rescale(breakValues, to = c(0,1)) # the values option in scale_fill_gradientn MUST be from 0 to 1
@@ -1175,12 +1163,12 @@ facetMaps <- function(mapFile, DTfacetMap, fileName, legendText, fillLimits, pal
   n <- facetColName
   displayOrder <- gsub("X", "", displayOrder)
   d <- data.table::copy(DTfacetMap)
-  d[, (n) := factor(get(n), levels = displayOrder)] 
+  d[, (n) := factor(get(n), levels = displayOrder)]
   keepListCol <- c("id", facetColName, "value")
   if (!isTRUE(all.equal(sort(names(d)), sort(keepListCol)))) {d[, setdiff(names(d), keepListCol) := NULL]} # this format added Oct 30, 2018
   d <- unique(d)
   gg <- ggplot(data = d, aes(map_id = id))
-  gg <- gg + geom_map(aes(fill = value), map = mapFile, color=NA, size = 0.5) # "#ffffff" is white
+  gg <- gg + geom_map(aes(fill = value), map = mapFile, color=NA, linewidth = 0.5) # "#ffffff" is white
   gg <- gg + expand_limits(x = mapFile$long, y = mapFile$lat)
   gg <- gg + ggthemes::theme_map()
   gg <- gg + facet_wrap(facets = n)
@@ -1188,10 +1176,10 @@ facetMaps <- function(mapFile, DTfacetMap, fileName, legendText, fillLimits, pal
   #  gg <- gg + geom_point(data = xd, aes(size="xx.sub1", shape = NA), colour = "grey50")#  gg <- gg + guides(colour = guide_legend(title.position = "top"))
   # gg <- gg + guides(colour = guide_colourbar(title.position="top", title.hjust = 0.5),
   #        size = guide_legend(title.position="top", title.hjust = 0.5))
-  gg <- gg +  theme(axis.ticks = element_blank(), 
-                    axis.title = element_blank(), 
+  gg <- gg +  theme(axis.ticks = element_blank(),
+                    axis.title = element_blank(),
                     axis.text.x = element_blank(),
-                    axis.text.y = element_blank(), 
+                    axis.text.y = element_blank(),
                     strip.text = element_text(family = fontFamily, face = "plain", size = 7))
   
   gg <- gg + scale_fill_gradientn(colors = p, name = legendText,
@@ -1216,7 +1204,8 @@ facetMaps <- function(mapFile, DTfacetMap, fileName, legendText, fillLimits, pal
 
 
 # truncates the column value to the range of fillLimits
-truncateDT <- function(DT, fillLimits){ # function to make sure every country gets a color. The fillLimits values are identified ahead of time and entered manually into the code below
+# function to make sure every country gets a color. The fillLimits values are identified ahead of time and entered manually into the code below
+truncateDT <- function(DT, fillLimits) {
   dt <- copy(DT)
   # truncate range, upper and lower
   dt[value < fillLimits[1], value := fillLimits[1]]
@@ -1252,6 +1241,6 @@ g_legend <- function(plot.in) {
   return(legend)
 }
 
-fmt_dcimals <- function(decimals=0){
+fmt_dcimals <- function(decimals = 0) {
   function(x) format(x,nsmall = decimals,scientific = FALSE)
 }

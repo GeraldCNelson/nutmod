@@ -52,32 +52,31 @@ nut_data <-  NUT_DATA[Nutr_No %in% nutcodes, ]
 nutr_def <-  NUTR_DEF[Nutr_No %in% nutcodes, ]
 data.table::setnames(nutr_def, old = "Units", new = "unit")
 
-{#' load in the phytate information
-  dt.phytateLU <- data.table::as.data.table(openxlsx::read.xlsx("data-raw/NutrientData/nutrientDetails/phytateSources.xlsx"))
-  dt.phytateLU[,phytate_mg := as.numeric(phytate_mg)]
-  dt.phytateLU <- dt.phytateLU[is.na(phytate_mg), phytate_mg := 0]
-  deleteListCol <- c("checked", "valuefrom", "X9", "inedible_share.fromPhytate")
-  dt.phytateLU[, (deleteListCol) := NULL]
-  #dt.phytateLU[, c("edible_share.fromPhytateSource", "phytate_source", "inedible_share.fromPhytate") := NULL]
-}
+#' load in the phytate information
+dt.phytateLU <- data.table::as.data.table(openxlsx::read.xlsx("data-raw/NutrientData/nutrientDetails/phytateSources.xlsx"))
+dt.phytateLU[,phytate_mg := as.numeric(phytate_mg)]
+dt.phytateLU <- dt.phytateLU[is.na(phytate_mg), phytate_mg := 0]
+deleteListCol <- c("checked", "valuefrom", "X9", "inedible_share.fromPhytate")
+dt.phytateLU[, (deleteListCol) := NULL]
+#dt.phytateLU[, c("edible_share.fromPhytateSource", "phytate_source", "inedible_share.fromPhytate") := NULL]
 
 #' assemble the variety specific information
-{
-  #' these are all the food item codes from the USDA food composition tables for varieties of wheat, rice, and maize
-  wheatCodes <- c("20076", "20071", "20072", "20073", "20074", "20075")
-  #wheatNames <- c("durum", "hardRedSpring", "hardRedWinter", "softRedWinter", "hardWhite", "softWhite")
-  riceCodes <- c("20036", "20040", "20054", "20446", "20450", "20452", "20444")
-  maizeCodes <- c("20314", "20014", "20020")
-  #' base wheat is 20072, hardRedWinter
-  #' base rice is 20444, Rice, white, long-grain, regular, raw, unenriched
-  #' base maize is currently 20020 Cornmeal, whole-grain, yellow; should this be changed?
 
-  variety_data <- nut_data[usda_code %in% c(wheatCodes, riceCodes, maizeCodes),]
-  # add IMPACT code for the crop to the variety specific information on nutrients
-  variety_data[usda_code %in% wheatCodes, IMPACT_code := "cwhea"]
-  variety_data[usda_code %in% riceCodes, IMPACT_code := "crice"]
-  variety_data[usda_code %in% maizeCodes, IMPACT_code := "cmaiz"]
-}
+#' these are all the food item codes from the USDA food composition tables for varieties of wheat, rice, and maize
+wheatCodes <- c("20076", "20071", "20072", "20073", "20074", "20075")
+#wheatNames <- c("durum", "hardRedSpring", "hardRedWinter", "softRedWinter", "hardWhite", "softWhite")
+riceCodes <- c("20036", "20040", "20054", "20446", "20450", "20452", "20444")
+maizeCodes <- c("20314", "20014", "20020")
+#' base wheat is 20072, hardRedWinter
+#' base rice is 20444, Rice, white, long-grain, regular, raw, unenriched
+#' base maize is currently 20020 Cornmeal, whole-grain, yellow; should this be changed?
+
+variety_data <- nut_data[usda_code %in% c(wheatCodes, riceCodes, maizeCodes),]
+# add IMPACT code for the crop to the variety specific information on nutrients
+variety_data[usda_code %in% wheatCodes, IMPACT_code := "cwhea"]
+variety_data[usda_code %in% riceCodes, IMPACT_code := "crice"]
+variety_data[usda_code %in% maizeCodes, IMPACT_code := "cmaiz"]
+
 #' keep descr. info for just the food items for the varieties of the various crops
 food_des <- FOOD_DES[usda_code %in% c(wheatCodes, riceCodes, maizeCodes),]
 food_des[is.na(Refuse), Refuse := 100]
@@ -102,49 +101,49 @@ dt.variety <- merge(dt.variety, dt.nutcodeLU, by = c("NutrDesc", "Nutr_No", "uni
 
 # cooking retention info setup -----
 # dt.retentionLU used to look up IMPACT commodities and their retention code equivalent
-  dt.retentionLU <- data.table::as.data.table(openxlsx::read.xlsx("data-raw/NutrientData/nutrientDetails/retentionLookup.xlsx"))
-  dt.retentionLU[, retentioncode_aus := as.character(retentioncode_aus)]
-  #' dt.cookingRetn has retention codes and the effect on nutrient content of cooking the food indicated by the retention descriptions
-  dt.cookingRetn <- data.table::as.data.table(openxlsx::read.xlsx("data-raw/NutrientData/nutrientDetails/USDAcookingretn06.xlsx", colNames = FALSE))
-  # get rid of numeric version of the date enter variable; last one, and "FdGrp_Cd - X2"
-  dt.cookingRetn[, c("X2","X7") := NULL]
-  data.table::setnames(dt.cookingRetn, old = names(dt.cookingRetn), new = c("Retn_Code",  "RetnDesc",
-                                                                            "Nutr_No", "NutrDesc", "Retn_Factor"))
-  dt.cookingRetn[, Nutr_No := as.character(Nutr_No)][, Retn_Code := as.character(Retn_Code)]
-  # drop 5005, ALC BEV,.. because it has wierd nutrient descriptions
-  dt.cookingRetn <- dt.cookingRetn[!Retn_Code == "5005",]
-  # adjust folate in cooking retention so folate, food (432) code is changed to the code for folate, DFE (435)
-  dt.cookingRetn[Nutr_No %in% "432", `:=`(
-    Nutr_No = "435",  NutrDesc = "Folate, DFE")]
-  # adjust  cooking retention code for Vitamin A, RE to 320
-  dt.cookingRetn[Nutr_No %in% "392", `:=`(Nutr_No = "320",  NutrDesc = "Vitamin A, RAE")]
-  dt.cookingRetn <- merge(dt.cookingRetn, dt.nutcodeLU, by = c("Nutr_No", "NutrDesc"))
-  #' get Australian cooking retention info and pull out just vitamin e
-  dt.cookingRetn.aus <- data.table::as.data.table(openxlsx::read.xlsx("data-raw/NutrientData/AusData/NUTTAB 2010 - Retention Factor File.xlsx"))
+dt.retentionLU <- data.table::as.data.table(openxlsx::read.xlsx("data-raw/NutrientData/nutrientDetails/retentionLookup.xlsx"))
+dt.retentionLU[, retentioncode_aus := as.character(retentioncode_aus)]
+#' dt.cookingRetn has retention codes and the effect on nutrient content of cooking the food indicated by the retention descriptions
+dt.cookingRetn <- data.table::as.data.table(openxlsx::read.xlsx("data-raw/NutrientData/nutrientDetails/USDAcookingretn06.xlsx", colNames = FALSE))
+# get rid of numeric version of the date enter variable; last one, and "FdGrp_Cd - X2"
+dt.cookingRetn[, c("X2","X7") := NULL]
+data.table::setnames(dt.cookingRetn, old = names(dt.cookingRetn), new = c("Retn_Code",  "RetnDesc",
+                                                                          "Nutr_No", "NutrDesc", "Retn_Factor"))
+dt.cookingRetn[, Nutr_No := as.character(Nutr_No)][, Retn_Code := as.character(Retn_Code)]
+# drop 5005, ALC BEV,.. because it has wierd nutrient descriptions
+dt.cookingRetn <- dt.cookingRetn[!Retn_Code == "5005",]
+# adjust folate in cooking retention so folate, food (432) code is changed to the code for folate, DFE (435)
+dt.cookingRetn[Nutr_No %in% "432", `:=`(
+  Nutr_No = "435",  NutrDesc = "Folate, DFE")]
+# adjust  cooking retention code for Vitamin A, RE to 320
+dt.cookingRetn[Nutr_No %in% "392", `:=`(Nutr_No = "320",  NutrDesc = "Vitamin A, RAE")]
+dt.cookingRetn <- merge(dt.cookingRetn, dt.nutcodeLU, by = c("Nutr_No", "NutrDesc"))
+#' get Australian cooking retention info and pull out just vitamin e
+dt.cookingRetn.aus <- data.table::as.data.table(openxlsx::read.xlsx("data-raw/NutrientData/AusData/NUTTAB 2010 - Retention Factor File.xlsx"))
 
-  #' change names to align with those in dt.cookingRetn
-  oldNames <- names(dt.cookingRetn.aus)
-  newNames <- c("Retn_Code", "RetnDesc", "Tagname", "NutrDesc", "unit", "Retn_Factor")
-  data.table::setnames(dt.cookingRetn.aus, old = oldNames, new = newNames)
+#' change names to align with those in dt.cookingRetn
+oldNames <- names(dt.cookingRetn.aus)
+newNames <- c("Retn_Code", "RetnDesc", "Tagname", "NutrDesc", "unit", "Retn_Factor")
+data.table::setnames(dt.cookingRetn.aus, old = oldNames, new = newNames)
 
-  #' Australian retention info used to get just vitamin e cooking retention
-  dt.cookingRetn.aus[, Retn_Code := as.character(Retn_Code)]
-  dt.cookingRetn.aus <- dt.cookingRetn.aus[Tagname == "VITE",]
-  dt.cookingRetn.aus[, Nutr_No := "323"][, nutCode := "vit_e_mg"] # add the nutrient number and nutcode for vitamin e
-  dt.cookingRetn.aus[, Retn_Factor := Retn_Factor * 100] # convert to same units as dt.cookRetn
-  dt.cookingRetn <- rbind(dt.cookingRetn, dt.cookingRetn.aus)
-  #Encoding(dt.cookingRetn$nutCode) <- "unknown"
+#' Australian retention info used to get just vitamin e cooking retention
+dt.cookingRetn.aus[, Retn_Code := as.character(Retn_Code)]
+dt.cookingRetn.aus <- dt.cookingRetn.aus[Tagname == "VITE",]
+dt.cookingRetn.aus[, Nutr_No := "323"][, nutCode := "vit_e_mg"] # add the nutrient number and nutcode for vitamin e
+dt.cookingRetn.aus[, Retn_Factor := Retn_Factor * 100] # convert to same units as dt.cookRetn
+dt.cookingRetn <- rbind(dt.cookingRetn, dt.cookingRetn.aus)
+#Encoding(dt.cookingRetn$nutCode) <- "unknown"
 
-  #' now add _cr columns and convert cooking retention info  to wide
-  dt.cookingRetn[, nutCode := paste0(nutCode,"_cr")]
-  cols.cookingRet <- unique(dt.cookingRetn$nutCode) # list of cooking retention columnsformula.wide <- paste("RetnDesc + Retn_Code   ~ nutCode")
-  formula.wide <- paste("RetnDesc + Retn_Code ~ nutCode")
-  dt.cookingRetn.wide <- data.table::dcast(
-    data = dt.cookingRetn,
-    formula = formula.wide,
-    value.var = "Retn_Factor")
-  dt.cookingRetn.wide[is.na(dt.cookingRetn.wide)] <- 100
-  dt.cookingRetn.wide <- dt.cookingRetn.wide[Retn_Code %in% dt.retentionLU$retentioncode_aus,]
+#' now add _cr columns and convert cooking retention info  to wide
+dt.cookingRetn[, nutCode := paste0(nutCode,"_cr")]
+cols.cookingRet <- unique(dt.cookingRetn$nutCode) # list of cooking retention columnsformula.wide <- paste("RetnDesc + Retn_Code   ~ nutCode")
+formula.wide <- paste("RetnDesc + Retn_Code ~ nutCode")
+dt.cookingRetn.wide <- data.table::dcast(
+  data = dt.cookingRetn,
+  formula = formula.wide,
+  value.var = "Retn_Factor")
+dt.cookingRetn.wide[is.na(dt.cookingRetn.wide)] <- 100
+dt.cookingRetn.wide <- dt.cookingRetn.wide[Retn_Code %in% dt.retentionLU$retentioncode_aus,]
 
 # formula.wide <- paste("usda_code  + Long_Desc + IMPACT_conversion + Ref_Desc +
 formula.wide <- paste("IMPACT_code  + Long_Desc + IMPACT_conversion + usda_code  +  Ref_Desc +

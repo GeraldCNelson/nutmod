@@ -24,9 +24,12 @@
 source("R/nutrientModFunctions.R")
 source("R/aggNorder.R")
 library(grid)
-library(Cairo) # may be necessary for Calibri font
-library(extrafont) # may be necessary for Calibri font
-library(staplr) # to merge pdfs and other manipulation
+# Cairo may be necessary for Calibri font
+library(Cairo)
+# extrafont may be necessary for Calibri font
+library(extrafont)
+# use staplr to merge pdfs and other manipulation
+library(staplr) 
 sourceFile <- "finalGraphCreation.R"
 description <- "This code writes out pdfs of the graphs used in the final nutrient modeling paper. The code grabs the individual graphs created in aggRun.R and places them in pdf file to be incorporated into the final word doc. There are 1 to 6 individual graphs per pdf. The layout is guided by the layoutMatrixx structure, where the last x is replaced by a number (1 to 6). The heightsx variables control how tall the graph is in inches. The width is determined by the height variable and the relative width from the original file."
 
@@ -42,12 +45,11 @@ fileouttype.device = cairo_pdf
 fileouttype <- "pdf"
 suffix = "var"
 pdfDimensions <- data.table(fileName = character(0), height = character(0), width = character(0))
-#layoutPlots <- function(figchoice, aggChoice, prefix, rowNum, legendNum, layout, colHeights = colHeights, colWidths = colWidths, suffix) {
 layoutPlots <- function(fileName, figchoice, prefix, rowNum, legendNum, layout, colHeights = colHeights, colWidths = colWidths) {
   cat("\n", figchoice, "figures:", get(figchoice))
   plotNameList <- paste(prefix, "_", get(figchoice), sep = "")
   plotNumberList <- which(graphNames %in% plotNameList)
-  cat("\nlayoutPlots plotNumberList:", plotNumberList, "\n")
+  cat("\nlayoutPlots plotNumberList:", plotNumberList)
   plotNumberList <- c(plotNumberList, legendNum)
   g.out <- grid.arrange(
     grobs = graphsListHolder[plotNumberList],
@@ -102,7 +104,7 @@ gc(verbose = FALSE) # garbage collection Not sure this makes any difference
 # get the file that holds all the graphs produced for suffix
 newFile <- paste("graphsListHolder", suffix, sep = ".")
 graphsListHolder <- getNewestVersion(fileShortName = newFile, directory = fileloc("gDir"), fileType = "rds")
-finalDir <- paste0(fileloc("gDir"),"/final")
+finalDir <- paste0(fileloc("gDir"),"/final/")
 createMissingDir(finalDir) # checks for the existence of the directory and if its not available, creates it. Dec 21, 2018
 # get the names of all the graphs in the graphsListerHolder file
 graphNames <- names(graphsListHolder)
@@ -157,7 +159,7 @@ figS10.3.facetMapMRV_CCDelta <- paste("facetmap_MRVRatioChange_climate", suffix,
 # plot facet maps
   # special handling of files not created in aggrun.R for SSPs
   fileListOld <- c("SSPs_scenOrderSSP_CGEeffects.png", "SSPs_scenOrderSSP_facetmap_macroMetrics_2050.png")
-  fileListNew <- c("figS2.CGEmacroMetrics.png", "figS3.facetMapMacroMetrics.png")
+  fileListNew <- c("Figures2.png", "Figures3.png")
   oldDir = paste(getwd(), "graphics", gdxChoice, sep = "/")
   newDir = paste(getwd(), "graphics", gdxChoice, "final", sep = "/")
   
@@ -509,7 +511,7 @@ for (figchoice in c("figS15.adequacy.macro", "figS16.AMDRhiLo")) {
 }
 # } commented out switchloop Nov 15.
 
-dt.finalGraphicsNames <- as.data.table(read_csv("data-raw/finalGraphicsNames.csv"), col_names = FALSE)
+dt.finalGraphicsNames <- as.data.table(read_csv("data-raw/finalGraphicsNames.csv"), col_names = TRUE)
 
 for (i in 1:nrow(dt.finalGraphicsNames)){
   fileFrom <- paste0(fileloc("gDir"), "/final/", dt.finalGraphicsNames$X1[i])
@@ -517,7 +519,7 @@ for (i in 1:nrow(dt.finalGraphicsNames)){
   file.rename(fileFrom, fileTo)
 }
 
-# combine selected pdfs using staple_pdf
+# combine selected pdfs using staple_pdf from package staplr
 
 # fig2list.in <- c("figure2.0.pdf", "figure2.1.pdf", "figure2.2.pdf", "figure2.3.pdf")
 # fig2list.out <- "figure2.pdf"

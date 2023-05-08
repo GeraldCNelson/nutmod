@@ -4,7 +4,6 @@
 #' @name dataPrep.IMPACT.R
 #' @include nutrientModFunctions.R
 source("R/nutrientModFunctions.R")
-library(readxl)
 gdxrrw::igdx(gamsSysDir = fileNameList("R_GAMS_SYSDIR"), silent = TRUE)
 sourceFile <- "dataPrep.IMPACT.R"
 createScriptMetaData()

@@ -28,7 +28,6 @@ gdxSwitchCombo <- read.csv(file = paste0(getwd(), "/results/", gdxChoice, "/gdxI
 
 
 #get the country crop variety lookup data table
-library(readxl)
 dt.countryCropVariety <- as.data.table(read_excel("data-raw/NutrientData/countryCropVariety.xlsx", na = "NA"))
 #' delete country names in first row
 dt <- dt.countryCropVariety[-1]

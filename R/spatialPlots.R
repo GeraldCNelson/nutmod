@@ -27,7 +27,6 @@ library(gplots)
 gdxChoice <-"SSPs"
 
 library(sp)
-#library(rworldmap)
 library(maps)
 library(mapdata)
 library(maptools)
@@ -43,7 +42,6 @@ dt.nutrientNames_Units <- getNewestVersion("dt.nutrientNames_Units_final", filel
 
 # naturalearth world map geojson
 #world <- readOGR(dsn="https://raw.githubusercontent.com/nvkelso/natural-earth-vector/master/geojson/ne_50m_admin_0_countries.geojson", layer="OGRGeoJSON")
-#world <- readOGR(dsn = "data-raw/spatialData/ne_50m_admin_0_countries.geojson", layer = "OGRGeoJSON")
 world <- rgdal::readOGR(dsn = "data-raw/spatialData/ne_110m_admin_0_countries.geojson", layer = "OGRGeoJSON")
 
 # remove antarctica and some other small countries

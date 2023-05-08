@@ -3,8 +3,10 @@
 #' @title Aggregate and graph nutrient modeling data
 #' @name aggRun.R
 #' @include nutrientModFunctions.R
-library(Cairo) # may be necessary for Calibri font
-library(extrafont) # may be necessary for Calibri font
+# Cairo may be necessary for Calibri font
+library(Cairo)
+# extrafont may be necessary for Calibri font
+library(extrafont)
 
 #' @name aggRun.R
 #' @keywords aggregate, sort, and graph data

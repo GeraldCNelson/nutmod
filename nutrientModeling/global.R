@@ -18,8 +18,34 @@
 #     but WITHOUT ANY WARRANTY; without even the implied warranty of
 #     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE, See the
 #     GNU General Public License for more details at http://www.gnu.org/licenses/.
+library(shiny)
+library(shiny.router)
+library(shinyjs)
+library(shinythemes)
+# library(shinyWidgets)
+# library(shiny.router) # install using devtools::install_github("Appsilon/shiny.router"); using for table of contents
+library(DT) # needs to come after library(shiny)
+library(data.table)
+library(dplyr) # to do %>%
+library(dtplyr)
+# library(tidyverse) # includes ggplot2, tibble, tidyr, and readr # can't get it to compile on a centos system
+library(data.table) # this is needed everywhere and currently some scripts don't call it
+library(ggplot2)
 
-ggRadar2 <- function (data, mapping = NULL, rescale = TRUE, legend.position = "top", 
+library(ggiraphExtra) #to do the interactive spider graphs. As of May 27, 2017, needs to be installed with devtools::install_github('cardiomoon/ggiraphExtra')
+library(ggiraph)
+library(RColorBrewer)
+library(qdapRegex) # needed for the TC (title case) function
+library(snakecase) # needed for case-conversion
+
+# source modules here
+
+source("modules/button_mod.R")
+source("modules/button_selectize.R")
+
+# other functions below
+
+ggRadar2 <- function(data, mapping = NULL, rescale = TRUE, legend.position = "top", 
                       colour = "red", alpha = 0.3, size = 3, ylim = NULL, scales = "fixed", 
                       use.label = FALSE, interactive = FALSE, nrow = 1, ...) 
 {
@@ -64,7 +90,7 @@ ggRadar2 <- function (data, mapping = NULL, rescale = TRUE, legend.position = "t
     cols = setdiff(cols, groupvar)
     longdf = reshape2::melt(dt, id.vars = groupvar, measure.vars = xvars)
   }
-  temp = paste0("ddply(longdf,c(groupvar,'variable'),summarize,mean=mean(value,na.rm=TRUE))")
+  temp = paste0("plyr::ddply(longdf,c(groupvar,'variable'),summarize,mean=mean(value,na.rm=TRUE))")
   df = eval(parse(text = temp))
   colnames(df)[length(df)] = "value"
   df
@@ -101,16 +127,16 @@ ggRadar2 <- function (data, mapping = NULL, rescale = TRUE, legend.position = "t
     p <- p +
       theme( 
         #     panel.grid.major.x = element_blank() ,
-        panel.grid.major.y = element_line( size=.1, color="black" ), #y is the circles
-        panel.grid.major.x = element_line( size=.1, color="black" ), # x is the lines for the origin out
+        panel.grid.major.y = element_line( size = .1, color = "black" ), #y is the circles
+        panel.grid.major.x = element_line( size = .1, color = "black" ), # x is the lines for the origin out
         panel.background = element_blank()
         # to here
       ) 
-    p <- p + theme(panel.spacing.x=unit(50, "lines"))
+    p <- p + theme(panel.spacing.x = unit(50, "lines"))
     p <- p + theme(strip.text.x = element_text(size = 6, family = fontFamily, face = "plain"))
     p <- p + theme_minimal() +
-      theme(text = element_text(size=7))
-    p <- p + theme(panel.spacing.x=unit(3, "lines"))
+      theme(text = element_text(size = 7))
+    p <- p + theme(panel.spacing.x = unit(3, "lines"))
     
             # , # custom font size
             # axis.text.y = element_blank())
@@ -188,7 +214,7 @@ getNewestVersion <- function(fileShortName, directory, fileType) {
   # if (fileType == "xlsx") tailLength <- 16 # for xlsx files
   # fillIn <- paste('.{', tailLength, '}$', sep = "")
   fileShortNameTest <- paste(fileShortName,"_2", sep = "") # this should get rid of the multiple files problem
-  filesofFileType <- list.files(mData)[grep(fileType,list.files(mData))]
+  filesofFileType <- list.files(mData)[grep(fileType, list.files(mData))]
   
   # Note: added grepteststring, changed grep to grepl and fixed to FALSE June 14, 2018
   greptestString <- paste0("^", fileShortNameTest)
@@ -383,17 +409,17 @@ fmt_dcimals <- function(decimals=0){
 }
 
 # code specifically for shiny app -----
-years <- c("X2010", "X2030", "X2050")
-yearsClean <- gsub("X", "", years)
-fontFamily <- "Helvetica Neue"
-
-scenarioNames <- c("SSP2_NoCC", "SSP2_HGEM", "SSP1_NoCC", "SSP3_NoCC")
-resultFileLookup <- getNewestVersion("resultFileLookup", fileloc("mData"))
-dt.regions.all <- getNewestVersion("dt.regions.all", fileloc("mData"))
-dt.regions.all[, region_name.IMPACT159 := gsub(" plus", "", region_name.IMPACT159)] # used to get to country code
-dt.foodGroupsInfo <- getNewestVersion("dt.foodGroupsInfo", fileloc("mData"))
-countryNamesPlus <- sort(unique(dt.regions.all$region_name.IMPACT159))
-countryNames <- gsub(" plus", "", countryNamesPlus)
+# years <- c("X2010", "X2030", "X2050")
+# yearsClean <- gsub("X", "", years)
+# fontFamily <- "Helvetica Neue"
+# 
+# scenarioNames <- c("SSP2_NoCC", "SSP2_HGEM", "SSP1_NoCC", "SSP3_NoCC")
+# resultFileLookup <- getNewestVersion("resultFileLookup", fileloc("mData"))
+# dt.regions.all <- getNewestVersion("dt.regions.all", fileloc("mData"))
+# dt.regions.all[, region_name.IMPACT159 := gsub(" plus", "", region_name.IMPACT159)] # used to get to country code
+# dt.foodGroupsInfo <- getNewestVersion("dt.foodGroupsInfo", fileloc("mData"))
+# countryNamesPlus <- sort(unique(dt.regions.all$region_name.IMPACT159))
+# countryNames <- gsub(" plus", "", countryNamesPlus)
 
 # development files -----
 "dt.metadata" <- getNewestVersion("dt.metadataTot", fileloc("mData"))
@@ -458,33 +484,33 @@ spiderGraphOutput <- function(spiderData, nrow) {
   return(p)
 }
 
-loadNresize <- function(dt) {
-  temp <- getNewestVersion(dt, fileloc("mData"))
-  temp <- (temp[year %in% years])
-  temp[, scenario := gsub("-REF", "", scenario)] # added Aug 9, 2018
-  temp[, scenario := gsub("-", "_", scenario)]
-  temp <- temp[scenario %in% scenarioNames]
-  assign(dt, temp, envir = .GlobalEnv) # this puts the data sets into the global environment
-  return(temp) # changed to temp Aug 9, 2018
-}
+# loadNresize <- function(dt) {
+#   temp <- getNewestVersion(dt, fileloc("mData"))
+#   temp <- (temp[year %in% years])
+#   temp[, scenario := gsub("-REF", "", scenario)] # added Aug 9, 2018
+#   temp[, scenario := gsub("-", "_", scenario)]
+#   temp <- temp[scenario %in% scenarioNames]
+# #  assign(dt, temp, envir = .GlobalEnv) # this puts the data sets into the global environment, commented out because implementing this in a module
+#   return(temp) # changed to temp Aug 9, 2018
+# }
 
 load_data <- function(dataSetsToLoad) {
   #' load data that are not year or scenario specific; these are handled in the observe code in the server
   #' development files
   dt.metadata <- getNewestVersion("dt.metadataTot", fileloc("mData"))
   
-  withProgress(message = 'Loading data', value = 0, {
-    #' Number of times we'll go through the loop
-    n <- length(dataSetsToLoad)
-    
-    for (i in 1:n) {
-      #' load the data
-      dt <- loadNresize(dataSetsToLoad[i])
-      assign(dataSetsToLoad[i], dt)
-      #' Increment the progress bar, and update the detail text.
-      incProgress(1/n, detail = paste("Loading file", i, "of", n))
-    }
-  })
+  #' withProgress(message = 'Loading data', value = 0, {
+  #'   #' Number of times we'll go through the loop
+  #'   n <- length(dataSetsToLoad)
+  #' 
+  #'   for (i in 1:n) {
+  #'     #' load the data
+  #'     dt <- loadNresize(dataSetsToLoad[i])
+  #'     assign(dataSetsToLoad[i], dt)
+  #'     #' Increment the progress bar, and update the detail text.
+  #'     incProgress(1/n, detail = paste("Loading file", i, "of", n))
+  #'   }
+  #' })
   
   shinyjs::hide("loading_page", anim = FALSE, animType = "fade", time = 0.5)
   shinyjs::show("mainTabsetPanel", anim = TRUE, animType = "fade", time = 0.5)

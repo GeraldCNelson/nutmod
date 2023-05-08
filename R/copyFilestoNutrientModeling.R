@@ -76,10 +76,10 @@ for (switchloop in getSwitchChoice()) {
                                           "food_agg_AMDR_hi", "reqRatio_sum_RDA_macro", "reqRatio_sum_RDA_minrls",
                                           "reqRatio_sum_RDA_vits", "dt.foodAvail.foodGroup"), suffix, sep = ".")
   copyListFromSpecificResults <- c(copyListFromSpecificResults, "dt.budgetShare") # added because dt.budgetShare is identical for all suffixes
-  copyListFromSpecificResultsNoSuffix <- c("dt.metadataTot")
+  copyListFromSpecificResultsNoSuffix <- c("filesCreated", "scriptInfo", "functionInfo", "libraryInfo", "exogenousDataInfo")
   copyListFromiData <- c("dt.nutrients.var")
   copyListFromuData <- c("dt.regions.all")
-  copyListFrommData <-c( "dt.foodGroupsInfo", "resultFileLookup") # removed "dt.scenarioListIMPACT" because it is now a keyvariable April 6, 2019
+  copyListFrommData <- c( "dt.foodGroupsInfo", "resultFileLookup") # removed "dt.scenarioListIMPACT" because it is now a keyvariable April 6, 2019
   
   copyfacetMapListFromgDir <- c()
   #' special copy for the gdxInfo file which is just below results
@@ -116,6 +116,16 @@ for (i in copyListFromuData) {
   copyFile(i, fileloc("uData"), destDir, "rds")
 }
 
+filesInData <- list.files(destDir)
+filesInData <- filesInData[!filesInData %in% "data.RData"]
+for (i in filesInData) {
+   dt <- readRDS(paste(destDir, i, sep = "/"))
+    fileShortName <- gsub('.{15}$', '', i)
+    assign(fileShortName, dt)
+}
+shortFileNameList <- gsub(".{15}$", "", filesInData)
+save(list = shortFileNameList, file = paste0(destDir, "/data.RData"))
+write_csv(as.data.frame(shortFileNameList), paste0(destDir, "/filesInData.RData.csv"))
 #' next line commented out because global.R diverges from nutrientModFunctions.R
 #file.copy("R/nutrientModFunctions.R", "nutrientModeling/global.R", overwrite = TRUE)
 

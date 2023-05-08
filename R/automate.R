@@ -53,11 +53,11 @@ cat("\nThe packages below are needed and currently available on CRAN or by downl
 cat("\nThis set of scripts needs version 1.9.7 or greater of the data.table package. Version", as.character(packageVersion("data.table")), "is currently being used.\n")
 # print(paste("This set of scripts needs version 3.1.23 or greater of the openxlsx package. Version", as.character(packageVersion("openxlsx")), "is currently being used."))
 
-if (packageVersion("openxlsx") < "4.1.1") {
+if (packageVersion("openxlsx") < "4.1.3") {
   print("updating openxlsx")
   install.packages(c("Rcpp", "devtools"), dependencies = TRUE)
   require(devtools)
-  install_github("awalker89/openxlsx")
+  install_github("ycphs/openxlsx")
 }
 
 if (packageVersion("data.table") < "1.12.0") {
@@ -161,12 +161,13 @@ sourcer(srcFile)
 srcFile <- "finalGraphCreation.R"
 sourcer(srcFile)
 
-srcFile <- "dataPrep.metadata.R"
+srcFile <- "dataPrep.metadata.R" # documents files created
 sourcer(srcFile)
+
+srcFile <- "RawDataInfo.R"
+sourcer(srcFile)  # documents exogenous data used and what script uses it. Also a list of the scripts and what they do.
 
 srcFile <- "copyFilestoNutrientModeling.R"
 sourcer(srcFile)  # move results needed for the shiny app.R in the nutrientModeling folder
 
-srcFile <- "RawDataInfo.R"
-sourcer(srcFile)  # write out code that uses data in the raw-data folder and the script name that calls it
 
